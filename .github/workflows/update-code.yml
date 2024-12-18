@@ -13,6 +13,8 @@ jobs:
       # Step 1: Check out the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.ADMIN_KEY }}
 
       # Step 2: Fetch the latest version from the Maven metadata
       - name: Fetch Latest Version
@@ -58,10 +60,8 @@ jobs:
       # Step 4: Commit the updated file to the repository
       - name: Commit Updated File
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "MediumCraft"
+          git config --global user.email "mediumcraft@users.noreply.github.com"
           git add .
           git commit -m "Update to latest $ARTIFACT_ID $VERSION sources.jar"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.ADMIN_KEY }}
