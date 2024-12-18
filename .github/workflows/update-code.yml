@@ -50,9 +50,15 @@ jobs:
           echo "Downloading $JAR_URL"
           curl -L -o "$ARTIFACT_ID-$VERSION-$FILE_TYPE" "$JAR_URL"
 
+          # Define custom extraction path
+          CUSTOM_PATH="./Sources"
+          
+          # Create the custom path if it doesn't exist
+          mkdir -p "$CUSTOM_PATH"
+
           # Extract the .sources.jar to the repository root
           echo "Extracting $ARTIFACT_ID-$VERSION-$FILE_TYPE to repository root"
-          unzip -o "$ARTIFACT_ID-$VERSION-$FILE_TYPE" -d .
+          unzip -o "$ARTIFACT_ID-$VERSION-$FILE_TYPE" -d "$CUSTOM_PATH"
           
           # Clean up the downloaded .sources.jar file
           rm "$ARTIFACT_ID-$VERSION-$FILE_TYPE"
