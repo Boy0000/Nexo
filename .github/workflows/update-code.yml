@@ -36,7 +36,7 @@ jobs:
       # Step 3: Download the .sources.jar file
       - name: Download .sources.jar
         run: |
-          MAVEN_REPO_URL="https://repo.maven.apache.org/maven2"
+          MAVEN_REPO_URL="https://repo.nexomc.com/snapshots"
           GROUP_ID="com.nexomc"
           ARTIFACT_ID="nexo"
           FILE_TYPE="sources.jar"
