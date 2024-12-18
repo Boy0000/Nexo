@@ -69,5 +69,5 @@ jobs:
           git config --global user.name "MediumCraft"
           git config --global user.email "mediumcraft@users.noreply.github.com"
           git add .
-          git commit -m "Update to latest $ARTIFACT_ID $VERSION sources.jar"
+          git commit -m "Update code to latest snapshot"
           git push
