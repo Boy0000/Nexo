@@ -63,6 +63,7 @@ enum class Settings {
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers", false),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background", false),
     HIDE_TABLIST_BACKGROUND("Misc.hide_tablist_background", false),
+    BLOCK_OTHER_RESOURCEPACKS("Misc.block_other_resourcepacks", false),
 
     //Pack
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),
