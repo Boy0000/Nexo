@@ -10,6 +10,7 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.fonts.Shift
+import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
@@ -86,7 +87,7 @@ class PackGenerator {
                     OraxenConverter.processPackFolder(packFolder)
 
                 runCatching {
-                    NexoPack.mergePack(resourcePack, packReader.readFromDirectory(packFolder))
+                    NexoPack.mergePack(resourcePack, packReader.readFile(packFolder))
                 }.onFailure {
                     Logs.logError("Failed to read Nexo/pack/assets-folder to a ResourcePack")
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
@@ -164,6 +165,7 @@ class PackGenerator {
         resourcePack.fonts().forEach {
             it.providers() += Shift.fontProvider
         }
+        Font.font(ShiftTag.FONT, Shift.fontProvider).addTo(resourcePack)
     }
 
     private fun addGlyphFiles() {

@@ -1,18 +1,25 @@
 package com.nexomc.nexo.utils
 
+import com.google.gson.JsonParser
+import team.unnamed.creative.base.Writable
+
 typealias JsonObject = com.google.gson.JsonObject
 typealias JsonArray = com.google.gson.JsonArray
 typealias JsonPrimitive = com.google.gson.JsonPrimitive
 typealias JsonElement = com.google.gson.JsonElement
+
+fun Writable.toJsonObject(): JsonObject? = JsonParser.parseString(toUTF8String()).asJsonObject
+fun Writable.toJsonArray(): JsonArray? = JsonParser.parseString(toUTF8String()).asJsonArray
+fun JsonObject.toWritable(): Writable = Writable.stringUtf8(this.toString())
 
 object JsonBuilder {
 
     val jsonObject get(): JsonObject = JsonObject()
     val jsonArray get(): JsonArray = JsonArray()
 
-    fun JsonObject.`object`(key: String): JsonObject? = this.getAsJsonObject(key)
-    fun JsonObject.primitive(key: String): JsonPrimitive? = this.getAsJsonPrimitive(key)
-    fun JsonObject.array(key: String): JsonArray? = this.getAsJsonArray(key)
+    fun JsonObject.`object`(key: String): JsonObject? = runCatching { this.getAsJsonObject(key) }.getOrNull()
+    fun JsonObject.primitive(key: String): JsonPrimitive? = runCatching { this.getAsJsonPrimitive(key) }.getOrNull()
+    fun JsonObject.array(key: String): JsonArray? = runCatching { this.getAsJsonArray(key) }.getOrNull()
     fun JsonArray.objects(): List<JsonObject> = this.asJsonArray.asList().filterIsInstance<JsonObject>()
 
     fun JsonObject.plus(string: String, any: Any) = apply {

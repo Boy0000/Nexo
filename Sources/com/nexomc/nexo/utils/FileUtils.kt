@@ -16,7 +16,7 @@ object FileUtils {
     @JvmStatic
     fun setHidden(path: Path) {
         runCatching {
-            Files.setAttribute(path, "dos:hidden", true)
+            if (System.getProperty("os.name").startsWith("Windows")) Files.setAttribute(path, "dos:hidden", true)
             Files.isHidden(path)
         }.printOnFailure()
     }

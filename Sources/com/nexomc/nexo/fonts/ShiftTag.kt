@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 object ShiftTag {
     private const val SHIFT = "shift"
     private const val SHIFT_SHORT = "s"
-    private val FONT = Key.key("default")
+    val FONT = Key.key("nexo:shift")
     val PATTERN = Pattern.compile("(<shift:(-?\\d+)>)")
 
     val RESOLVER = TagResolver.resolver(setOf(SHIFT, SHIFT_SHORT)) { args, ctx -> shiftTag(args) }
