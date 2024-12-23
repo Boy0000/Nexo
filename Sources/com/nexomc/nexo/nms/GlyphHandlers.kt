@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.translation.GlobalTranslator
 import org.apache.commons.lang3.StringUtils
@@ -55,7 +56,7 @@ object GlyphHandlers {
 
     fun unescapeGlyphs(component: Component): Component {
         var component = component
-        val serialized = AdventureUtils.MINI_MESSAGE.serialize(component)
+        val serialized = component.asFlatTextContent()
 
         NexoPlugin.instance().fontManager().glyphs().asSequence().map { it.escapedRegex.matcher(serialized) }.forEach {
                 while (it.find()) {
@@ -76,6 +77,20 @@ object GlyphHandlers {
             }
 
         return component
+    }
+
+    private fun Component.asFlatTextContent(): String {
+        var flattened = ""
+        val flatText = (this@asFlatTextContent as? TextComponent) ?: return flattened
+        flattened += flatText.content()
+        flattened += flatText.children().joinToString("") { it.asFlatTextContent() }
+        (flatText.hoverEvent()?.value() as? Component)?.let { hover ->
+            val hoverText = hover as? TextComponent ?: return@let
+            flattened += hoverText.content()
+            flattened += hoverText.children().joinToString("") { it.asFlatTextContent() }
+        }
+
+        return flattened
     }
 
     @JvmStatic

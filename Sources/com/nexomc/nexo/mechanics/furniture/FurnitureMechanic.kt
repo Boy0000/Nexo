@@ -45,6 +45,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.joml.Quaternionf
+import org.joml.Vector3f
 
 class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
     Mechanic(mechanicFactory, section, { itemBuilder: ItemBuilder ->
@@ -63,7 +64,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)
     val seats = section.getStringList("seats").mapNotNull(FurnitureSeat::getSeat)
     val clickActions: List<ClickAction> = parseList(section)
-    val properties: FurnitureProperties = FurnitureProperties(section.getConfigurationSection("properties"))
+    val properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties()
     val rotatable: Rotatable = section.get("rotatable")?.let(::Rotatable) ?: Rotatable()
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
@@ -131,14 +132,14 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     private fun correctedSpawnLocation(baseLocation: Location, facing: BlockFace): Location {
         val isWall = limitedPlacing?.isWall == true
         val isRoof = limitedPlacing?.isRoof == true
-        val isFixed = properties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED
+        val isFixed = properties.displayTransform == ItemDisplay.ItemDisplayTransform.FIXED
         val correctedLocation = when {
             isFixed && facing == BlockFace.UP -> toCenterBlockLocation(baseLocation)
             else -> BlockHelpers.toCenterLocation(baseLocation)
         }
 
         if (properties.isNoneTransform && !isWall && !isRoof) return correctedLocation
-        val scale = properties.scale().y()
+        val scale = properties.scale.y()
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.modY == 0)
             correctedLocation.add(-facing.modX * (0.49 * scale.times(2)), 0.0, -facing.modZ * (0.49 * scale.times(2)))
@@ -176,7 +177,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         // No Packet-logic for Spigot Servers, so we set this here
         if (!VersionUtil.isPaperServer) {
-            baseEntity.itemDisplayTransform = properties.displayTransform()
+            baseEntity.itemDisplayTransform = properties.displayTransform
             if (properties.isFixedTransform)
                 baseEntity.transformation = baseEntity.transformation.apply { scale.set(0.5) }
             if (!VersionUtil.isPaperServer) baseEntity.setItemStack(item?.build())
@@ -210,11 +211,11 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     fun notEnoughSpace(baseEntity: ItemDisplay, yaw: Float = baseEntity.location.yaw): Boolean {
-        return !hitbox.hitboxLocations(baseEntity.location, yaw).all { BlockHelpers.isReplaceable(it.block, baseEntity.uniqueId) }
+        return hitbox.hitboxLocations(baseEntity.location, yaw).any { !BlockHelpers.isReplaceable(it.block, baseEntity.uniqueId) }
     }
 
     fun notEnoughSpace(rootLocation: Location, yaw: Float): Boolean {
-        return !hitbox.hitboxLocations(rootLocation.clone(), yaw).all { BlockHelpers.isReplaceable(it.block) }
+        return hitbox.hitboxLocations(rootLocation.clone(), yaw).any { !BlockHelpers.isReplaceable(it.block) }
     }
 
     fun runClickActions(player: Player) {

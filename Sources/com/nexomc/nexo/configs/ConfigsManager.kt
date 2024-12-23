@@ -149,8 +149,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         itemFiles().forEach file@{ file ->
             val config = loadConfiguration(file)
 
-            config.getKeys(false).associateWith { config.getConfigurationSection(it)!! }.forEach { (itemId, itemSection) ->
-                val packSection = itemSection.getConfigurationSection("Pack") ?: return@forEach
+            config.getKeys(false).associateWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
+                val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
                 val material = Material.getMaterial(itemSection.getString("material", "")!!) ?: return@forEach
                 val parsedKey = KeyUtils.parseKey(itemId.substringBefore(":", "minecraft"), itemId.substringAfter(":"), "model")
 

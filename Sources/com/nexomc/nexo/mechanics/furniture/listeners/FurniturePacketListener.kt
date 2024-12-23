@@ -18,6 +18,7 @@ import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.Event
@@ -85,7 +86,7 @@ class FurniturePacketListener : Listener {
         if (FurnitureSeat.isSeat(baseEntity)) return
 
         when {
-            ProtectionLib.canBreak(player, baseEntity.location) && isAttack -> {
+            isAttack && player.gameMode != GameMode.ADVENTURE && ProtectionLib.canBreak(player, baseEntity.location) -> {
                 NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
                     NexoFurniture.remove(baseEntity, player)
                 }

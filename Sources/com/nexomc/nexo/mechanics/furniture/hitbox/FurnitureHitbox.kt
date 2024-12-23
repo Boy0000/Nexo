@@ -55,7 +55,7 @@ class FurnitureHitbox(
         barriers.map { it.groundRotate(rotation).add(center) }
 
     fun interactionLocations(center: Location, rotation: Float) =
-        interactions.map { center.clone().add(it.offset(rotation)) }
+        interactions.map { center.toCenterLocation().clone().add(it.offset(rotation)) }
 
     companion object {
         val EMPTY = FurnitureHitbox()

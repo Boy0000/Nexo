@@ -5,7 +5,6 @@ import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.configs.Settings
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
-import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
 import team.unnamed.creative.font.BitMapFontProvider
@@ -16,7 +15,7 @@ class FontManager(configsManager: ConfigsManager) {
     private val glyphMap: MutableMap<String, Glyph> = LinkedHashMap()
     val placeholderGlyphMap: MutableMap<String, Glyph> = LinkedHashMap()
     val unicodeGlyphMap: MutableMap<Char, String> = LinkedHashMap()
-    private val fontEvents: FontListener = FontListener(this)
+    private val fontListener: FontListener = FontListener(this)
 
     init {
         configsManager.bitmaps.getConfigurationSection("bitmaps")?.let {
@@ -34,13 +33,13 @@ class FontManager(configsManager: ConfigsManager) {
     }
 
     fun registerEvents() {
-        Bukkit.getPluginManager().registerEvents(fontEvents, NexoPlugin.instance())
-        fontEvents.registerChatHandlers()
+        Bukkit.getPluginManager().registerEvents(fontListener, NexoPlugin.instance())
+        fontListener.registerChatHandlers()
     }
 
     fun unregisterEvents() {
-        HandlerList.unregisterAll(fontEvents)
-        fontEvents.unregisterChatHandlers()
+        HandlerList.unregisterAll(fontListener)
+        fontListener.unregisterChatHandlers()
     }
 
     private fun loadGlyphs(glyphs: Collection<Glyph>) {

@@ -306,6 +306,8 @@ object OraxenConverter {
                     }
 
                     furnitureNode.node("display_entity_properties").renameNode("properties")?.letVirtual { propertiesNode ->
+                        propertiesNode.node("displayWidth").renameNode("display_width")
+                        propertiesNode.node("displayHeight").renameNode("display_height")
                         propertiesNode.node("scale").takeIf(ConfigurationNode::virtual)?.let { scaleNode ->
                             val isFixed = propertiesNode.node("display_transform").string == "FIXED"
                             val scaleString = listOf("x", "y", "z").joinToString(",") { scaleNode.childrenMap()[it]?.getDouble(if (isFixed) 0.5 else 1.0)?.toString()?.replace(".0", "") ?: if (isFixed) "0.5" else "1" }

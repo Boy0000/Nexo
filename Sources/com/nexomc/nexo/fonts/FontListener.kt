@@ -34,7 +34,7 @@ import org.bukkit.persistence.PersistentDataType
 
 class FontListener(private val manager: FontManager) : Listener {
     private var paperChatHandler: PaperChatHandler? = null
-    private var spigotChatHandler: SpigotChatHandler?
+    private var spigotChatHandler: SpigotChatHandler
 
     enum class ChatHandler {
         LEGACY, MODERN;
@@ -254,10 +254,10 @@ class FontListener(private val manager: FontManager) : Listener {
         }
     }
 
+    private val RANDOM_FONT = Key.key("random")
     private fun format(message: Component, player: Player): Component {
         var message = message
-        val randomKey = Key.key("random")
-        val serialized = AdventureUtils.MINI_MESSAGE.serialize(message)
+        val serialized = message.asFlatTextContent()
 
         manager.unicodeGlyphMap.keys.forEach { character: Char ->
             if (character !in serialized) return@forEach
@@ -267,7 +267,7 @@ class FontListener(private val manager: FontManager) : Listener {
             message = message.replaceText(
                 TextReplacementConfig.builder()
                     .matchLiteral(character.toString())
-                    .replacement(glyph.glyphComponent().font(randomKey))
+                    .replacement(glyph.glyphComponent().font(RANDOM_FONT))
                     .build()
             )
         }
@@ -282,5 +282,19 @@ class FontListener(private val manager: FontManager) : Listener {
         }
 
         return message
+    }
+
+    private fun Component.asFlatTextContent(): String {
+        var flattened = ""
+        val flatText = (this@asFlatTextContent as? TextComponent) ?: return flattened
+        flattened += flatText.content()
+        flattened += flatText.children().joinToString("") { it.asFlatTextContent() }
+        (flatText.hoverEvent()?.value() as? Component)?.let { hover ->
+            val hoverText = hover as? TextComponent ?: return@let
+            flattened += hoverText.content()
+            flattened += hoverText.children().joinToString("") { it.asFlatTextContent() }
+        }
+
+        return flattened
     }
 }
