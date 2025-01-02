@@ -2,7 +2,6 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.VersionUtil.NMSVersion.Companion.matchesServer
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.event.HandlerList
 
@@ -25,7 +24,7 @@ object NMSHandlers {
     private fun setupHandler(): NMSHandler {
         handler = EmptyNMSHandler()
         SUPPORTED_VERSION.forEach { selectedVersion ->
-            if (!matchesServer(selectedVersion)) return@forEach
+            if (!VersionUtil.matchesServer(selectedVersion)) return@forEach
 
             version = selectedVersion.name
             runCatching {

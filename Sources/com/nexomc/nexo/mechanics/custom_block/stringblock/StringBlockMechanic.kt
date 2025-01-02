@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechanic
@@ -8,27 +7,15 @@ import org.bukkit.block.BlockFace
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
 
-class StringBlockMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    CustomBlockMechanic(mechanicFactory, section) {
-    private val randomPlace: List<String>
-    private val sapling: SaplingMechanic?
-    val isTall: Boolean
-    val isPlaceableOnWater: Boolean
-
-
-    init {
-        // Creates an instance of CustomBlockMechanic and applies the below
-        isTall = section.getBoolean("is_tall")
-        isPlaceableOnWater = section.getBoolean("placeable_on_water")
-        randomPlace = section.getStringList("random_place")
-
-        val saplingSection = section.getConfigurationSection("sapling")
-        sapling = if (saplingSection != null) SaplingMechanic(itemID, saplingSection) else null
-    }
+class StringBlockMechanic(factory: MechanicFactory, section: ConfigurationSection) : CustomBlockMechanic(factory, section) {
+    private val randomPlace: List<String> = section.getStringList("random_place")
+    private val sapling: SaplingMechanic? = section.getConfigurationSection("sapling")?.let { SaplingMechanic(itemID, it) }
+    // Creates an instance of CustomBlockMechanic and applies the below
+    val isTall: Boolean = section.getBoolean("is_tall")
+    val isPlaceableOnWater: Boolean = section.getBoolean("placeable_on_water")
 
     override val blockData = super.blockData as? Tripwire
 
-    private val BLOCK_FACES = arrayOf(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH)
     override fun createBlockData() = StringMechanicHelpers.modernBlockData(customVariation)
 
     fun isSapling(): Boolean {

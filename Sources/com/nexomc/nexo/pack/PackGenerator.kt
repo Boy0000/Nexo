@@ -34,6 +34,7 @@ import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
+import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
@@ -163,7 +164,7 @@ class PackGenerator {
 
     private fun addShiftProvider() {
         resourcePack.fonts().forEach {
-            it.providers() += Shift.fontProvider
+            it.providers() += FontProvider.reference(ShiftTag.FONT)
         }
         Font.font(ShiftTag.FONT, Shift.fontProvider).addTo(resourcePack)
     }
@@ -240,9 +241,7 @@ class PackGenerator {
         externalPacks.sortedWith(Comparator.comparingInt { f: File ->
             val index = externalOrder.indexOf(f.name)
             if (index == -1) Int.MAX_VALUE else index
-        }.thenComparing(File::getName))
-
-        externalPacks.asSequence().filterNotNull().filter { !it.name.matches(defaultRegex) }.forEach {
+        }.thenComparing(File::getName)).asSequence().filterNotNull().filter { !it.name.matches(defaultRegex) }.forEach {
                 if (it.isDirectory || it.name.endsWith(".zip")) {
                     Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
                     runCatching {

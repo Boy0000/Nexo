@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture

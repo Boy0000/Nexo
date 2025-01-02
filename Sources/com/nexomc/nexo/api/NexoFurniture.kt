@@ -1,10 +1,8 @@
 package com.nexomc.nexo.api
 
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.furniture.*
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
@@ -12,7 +10,6 @@ import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.ItemUtils.dyeColor
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
-import com.willfp.eco.core.data.get
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -178,7 +175,7 @@ object NexoFurniture {
         return baseEntity?.let(::furnitureMechanic) ?: let {
             val centerLoc = toCenterBlockLocation(location)
             val boundingBox = BoundingBox.of(centerLoc, 0.5, 1.0, 0.5)
-            centerLoc.getNearbyEntities(2.0, 2.0, 2.0)
+            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0)
                 .filterIsInstance<ItemDisplay>()
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .firstOrNull { it.boundingBox.overlaps(boundingBox) }
@@ -226,27 +223,19 @@ object NexoFurniture {
         val mechanic = furnitureMechanic(baseEntity)
         if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return
 
-        FurnitureHelpers.furnitureItem(baseEntity)?.let { newItem: ItemStack ->
-            FurnitureHelpers.furnitureItem(baseEntity, newItem)
-            FurnitureHelpers.furnitureDye(baseEntity, dyeColor(newItem).orElse(null))
-        }
-
         FurnitureSeat.updateSeats(baseEntity, mechanic)
 
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic)
+        furnitureBaseMap.removeIf { it.baseUuid == baseEntity.uniqueId }
         packetManager.removeLightMechanicPacket(baseEntity, mechanic)
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
-        Bukkit.getScheduler().runTask(NexoPlugin.instance(), Runnable {
-            val r = FurnitureFactory.instance()!!.simulationRadius
-            baseEntity.location.world.getNearbyEntities(baseEntity.location, r, r, r).filterIsInstance<Player>().forEach { player ->
-                    packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player)
-                    packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player)
-                    packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                    packetManager.sendLightMechanicPacket(baseEntity, mechanic, player)
-                }
-        })
+        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+            packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
+            packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
+            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
+            packetManager.sendLightMechanicPacket(baseEntity, mechanic)
+        }, 2L)
     }
 }

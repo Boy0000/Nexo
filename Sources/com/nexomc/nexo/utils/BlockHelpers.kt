@@ -123,7 +123,7 @@ object BlockHelpers {
 
     @JvmStatic
     fun isReplaceable(block: Block, excludeUUID: UUID? = null) =
-        !IFurniturePacketManager.blockIsHitbox(block, excludeUUID) && (block.blockData as? Snow)?.let { it.layers == 1 } ?: (block.type in REPLACEABLE_BLOCKS)
+        (block.blockData as? Snow)?.let { it.layers == 1 } ?: (block.type in REPLACEABLE_BLOCKS) && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
 
     @JvmStatic
     fun isReplaceable(position: Position, world: World, excludeUUID: UUID? = null): Boolean {

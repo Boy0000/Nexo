@@ -1,6 +1,6 @@
 package com.nexomc.nexo.nms
 
-import com.nexomc.nexo.nms.IGlyphHandler.EmptyGlyphHandler
+import com.nexomc.nexo.nms.IPacketHandler.EmptyPacketHandler
 import com.nexomc.nexo.utils.InteractionResult
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import org.bukkit.block.Block
@@ -11,8 +11,8 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
 class EmptyNMSHandler(override val resourcePackListener: Listener? = null) : NMSHandler {
-    override fun glyphHandler(): IGlyphHandler {
-        return EmptyGlyphHandler()
+    override fun packetHandler(): IPacketHandler {
+        return EmptyPacketHandler()
     }
 
     override fun noteblockUpdatesDisabled(): Boolean = false

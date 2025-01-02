@@ -158,7 +158,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val modelData = packSection.getInt("custom_model_data", -1).takeUnless { it == -1 } ?: return@forEach
                 val model = (packSection.getString("model")?.takeUnless(String::isNullOrEmpty) ?: itemId).takeIf(Key::parseable)?.let(Key::key) ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER
 
-                CustomModelData.DATAS[material]?.entries?.firstOrNull { it.value == modelData }?.key?.asString()?.also { existingId ->
+                CustomModelData.DATAS[material]?.entries?.firstOrNull { it.value == modelData && it.key != parsedKey }?.key?.asString()?.also { existingId ->
                     Logs.logError("$itemId in ${file.path} is using CustomModelData $modelData, which is already assigned to $existingId")
                 } ?: also {
                     assignedModelDatas.computeIfAbsent(material) { LinkedHashMap() }[modelData] = model

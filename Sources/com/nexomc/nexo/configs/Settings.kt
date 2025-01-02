@@ -25,6 +25,7 @@ enum class Settings {
     FORMAT_SIGNS("Plugin.formatting.signs", true),
     FORMAT_CHAT("Plugin.formatting.chat", true),
     FORMAT_BOOKS("Plugin.formatting.books", true),
+    FORMAT_PACKETS("Plugin.formatting.packets", true),
 
     // WorldEdit
     WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic", false),

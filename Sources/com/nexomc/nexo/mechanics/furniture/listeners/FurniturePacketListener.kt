@@ -1,7 +1,9 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent
-import com.mineinabyss.idofront.operators.plus
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
@@ -10,28 +12,33 @@ import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.logs.Logs
-import io.papermc.paper.event.player.PlayerFailMoveEvent
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.entity.Interaction
 import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.entity.EntityDismountEvent
+import org.bukkit.event.entity.EntityMountEvent
+import org.bukkit.event.entity.EntityTeleportEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.vehicle.VehicleEnterEvent
+import org.bukkit.event.vehicle.VehicleExitEvent
 import org.bukkit.inventory.EquipmentSlot
-import org.bukkit.util.Vector
-import java.util.UUID
+import java.util.*
 
 class FurniturePacketListener : Listener {
     @EventHandler
@@ -41,7 +48,7 @@ class FurniturePacketListener : Listener {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
         Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
-            packetManager.sendFurnitureEntityPacket(itemDisplay, mechanic, player)
+            packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
             packetManager.sendInteractionEntityPacket(itemDisplay, mechanic, player)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
@@ -54,10 +61,35 @@ class FurniturePacketListener : Listener {
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        packetManager.removeFurnitureEntityPacket(itemDisplay, mechanic, player)
         packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player)
+    }
+
+    @EventHandler
+    fun EntityAddToWorldEvent.onLoad() {
+        val itemDisplay = entity as? ItemDisplay ?: return
+        furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId && it.baseId != itemDisplay.entityId }
+    }
+
+    @EventHandler
+    fun EntityRemoveFromWorldEvent.onUnload() {
+        val itemDisplay = entity as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
+        val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
+
+        furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId }
+        packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic)
+        packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
+        packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun EntityTeleportEvent.onTeleportFurniture() {
+        val baseEntity = entity as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+
+        mechanic.hitbox.refreshHitboxes(baseEntity, mechanic)
     }
 
     @EventHandler
@@ -67,7 +99,7 @@ class FurniturePacketListener : Listener {
             val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@forEach
             if (FurnitureSeat.isSeat(baseEntity)) return@forEach
 
-            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic)
+            packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
@@ -106,7 +138,7 @@ class FurniturePacketListener : Listener {
             action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.location) -> {
 
                 val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.isBlock
-                if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable || player.isSneaking)) {
+                if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable || player.isSneaking) && ProtectionLib.canBuild(player, baseEntity.location)) {
                     setUseItemInHand(Event.Result.DENY)
                     clickedBlock?.type = Material.BARRIER
                     CustomBlockHelpers.makePlayerPlaceBlock(player, hand!!, item!!, clickedBlock!!, blockFace, null, null)
@@ -136,9 +168,10 @@ class FurniturePacketListener : Listener {
     }
 
     private val flightCache: MutableSet<UUID> = mutableSetOf()
-    @EventHandler
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     fun PlayerMoveEvent.onMove() {
-        flightCache -= player.uniqueId
+        if (from.blockX != to.blockX || from.blockY != to.blockY || from.blockZ != to.blockZ)
+            flightCache -= player.uniqueId
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -146,5 +179,25 @@ class FurniturePacketListener : Listener {
         if (cause != PlayerKickEvent.Cause.FLYING_PLAYER && player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
         flightCache += player.uniqueId
         isCancelled = true
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    fun EntityMountEvent.onSitSeat() {
+        val player = entity as? Player ?: return
+        val baseEntity = mount.persistentDataContainer.get(FurnitureSeat.SEAT_KEY, DataType.UUID)?.let(Bukkit::getEntity) as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+
+        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+            FurnitureFactory.instance()?.packetManager()?.removeBarrierHitboxPacket(baseEntity, mechanic, player)
+        }, 4L)
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    fun EntityDismountEvent.onLeaveSeat() {
+        val player = entity as? Player ?: return
+        val baseEntity = dismounted.persistentDataContainer.get(FurnitureSeat.SEAT_KEY, DataType.UUID)?.let(Bukkit::getEntity) as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+
+        FurnitureFactory.instance()?.packetManager()?.sendBarrierHitboxPacket(baseEntity, mechanic, player)
     }
 }

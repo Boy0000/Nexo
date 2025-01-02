@@ -1,6 +1,7 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.utils.JarReader.manifestMap
+import com.nexomc.nexo.utils.VersionUtil.NMSVersion.UNKNOWN
 import com.nexomc.nexo.utils.logs.Logs
 import org.apache.commons.lang3.Validate
 import org.bukkit.Bukkit
@@ -91,10 +92,8 @@ object VersionUtil {
 
     enum class NMSVersion {
         v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;
-
-        companion object {
-            fun matchesServer(version: NMSVersion) =
-                version != UNKNOWN && MinecraftVersion.currentVersion?.toNMS() == version
-        }
     }
+
+    fun matchesServer(version: NMSVersion) =
+        version != UNKNOWN && MinecraftVersion.currentVersion?.toNMS() == version
 }

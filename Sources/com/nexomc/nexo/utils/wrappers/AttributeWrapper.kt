@@ -10,6 +10,8 @@ object AttributeWrapper {
     val MAX_HEALTH = if (VersionUtil.atleast("1.21.2")) Attribute.MAX_HEALTH else Registry.ATTRIBUTE[NamespacedKey.minecraft("generic.max_health")]!!
     @JvmField
     val BLOCK_BREAK_SPEED = if (VersionUtil.atleast("1.21.2")) Attribute.BLOCK_BREAK_SPEED else Registry.ATTRIBUTE[NamespacedKey.minecraft("player.block_break_speed")]
+    @JvmField
+    val INTERACTION_RANGE = if (VersionUtil.atleast("1.21.2")) Attribute.ENTITY_INTERACTION_RANGE else Registry.ATTRIBUTE[NamespacedKey.minecraft("player.entity_interact_range")]
 
     @JvmStatic
     fun fromString(attribute: String) = runCatching {

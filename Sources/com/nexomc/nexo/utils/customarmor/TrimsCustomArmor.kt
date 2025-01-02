@@ -5,6 +5,8 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.DefaultResourcePackExtractor
+import com.nexomc.nexo.utils.JsonBuilder
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.NexoDatapack
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
@@ -233,7 +235,7 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
         LinkedHashSet(resourcePack.textures().map(::armorPrefix).filter(String::isNotBlank))
 
     private fun armorPrefix(texture: Texture): String {
-        val textureKey = texture.key().asString()
+        val textureKey = texture.key().value()
         return when {
             textureKey.endsWith("_armor_layer_1.png") -> textureKey.substringBefore("_armor_layer_1.png").substringAfterLast("/")
             textureKey.endsWith("_armor_layer_2.png") -> textureKey.substringBefore("_armor_layer_2.png").substringAfterLast("/")
@@ -242,38 +244,25 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
     }
 
     private fun writeVanillaTrimPattern() {
-        val vanillaArmorJson = datapackFile.resolve("data/minecraft/trim_pattern/chainmail.json")
-        vanillaArmorJson.parentFile.mkdirs()
-        val vanillaTrimPattern = JsonObject()
-        val description = JsonObject()
-        description.addProperty("translate", "trim_pattern.minecraft.chainmail")
-        vanillaTrimPattern.add("description", description)
-        vanillaTrimPattern.addProperty("asset_id", "minecraft:chainmail")
-        vanillaTrimPattern.addProperty("template_item", "minecraft:debug_stick")
+        val vanillaArmorJson = datapackFile.resolve("data/minecraft/trim_pattern/chainmail.json").apply { parentFile.mkdirs() }
 
-        runCatching {
-            vanillaArmorJson.createNewFile()
-            FileUtils.writeStringToFile(vanillaArmorJson, vanillaTrimPattern.toString(), StandardCharsets.UTF_8)
-        }.printOnFailure()
+        vanillaArmorJson.writeText(JsonBuilder.jsonObject
+            .plus("description", JsonBuilder.jsonObject.plus("translate", "trim_pattern.minecraft.chainmail"))
+            .plus("asset_id", "minecraft:chainmail")
+            .plus("template_item", "minecraft:debug_stick")
+            .toString()
+        )
     }
 
     private fun writeCustomTrimPatterns(armorPrefixes: LinkedHashSet<String>) {
         armorPrefixes.forEach { armorPrefix ->
-            val armorJson = datapackFile.resolve("data/nexo/trim_pattern/$armorPrefix.json")
-            armorJson.parentFile.mkdirs()
-
-            val trimPattern = JsonObject().apply {
-                add("description", JsonObject().apply {
-                    addProperty("translate", "trim_pattern.nexo.$armorPrefix")
-                })
-                addProperty("asset_id", "nexo:$armorPrefix")
-                addProperty("template_item", "minecraft:debug_stick")
-            }.toString()
-
-            runCatching {
-                armorJson.createNewFile()
-                FileUtils.writeStringToFile(armorJson, trimPattern, StandardCharsets.UTF_8)
-            }.printOnFailure()
+            val armorJson = datapackFile.resolve("data/nexo/trim_pattern/$armorPrefix.json").apply { parentFile.mkdirs() }
+            armorJson.writeText(JsonBuilder.jsonObject
+                .plus("description", JsonBuilder.jsonObject.plus("translate", "trim_pattern.nexo.$armorPrefix"))
+                .plus("asset_id", "nexo:$armorPrefix")
+                .plus("template_item", "minecraft:debug_stick")
+                .toString()
+            )
         }
     }
 }

@@ -4,7 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.converter.ConverterListener
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.mechanics.furniture.compatibility.AxiomCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
@@ -26,6 +25,7 @@ import kotlin.math.pow
 class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
     val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
+    private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
     var simulationRadius = Bukkit.getServer().simulationDistance.times(16.0).pow(2.0)
 
@@ -42,8 +42,6 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
         evolvingFurnitures = false
 
-        if (PluginUtils.isEnabled("AxiomPaper"))
-            registerListeners(AxiomCompatibility())
         if (PluginUtils.isEnabled("Spartan"))
             registerListeners(SpartanCompatibility())
         if (PluginUtils.isEnabled("Vulcan"))
@@ -52,7 +50,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         if (NexoPlugin.instance().converter().oraxenConverter.convertFurnitureOnLoad)
             registerListeners(ConverterListener())
 
-        registerListeners(FurnitureSoundListener())
+        if (customSounds) registerListeners(FurnitureSoundListener())
     }
 
     fun packetManager(): IFurniturePacketManager = if (VersionUtil.isPaperServer) NMSHandlers.handler().furniturePacketManager() else EmptyFurniturePacketManager()

@@ -86,10 +86,9 @@ data class NexoMeta(
         this.customModelData = section.getInt("custom_model_data").takeUnless { it == 0 }
     }
 
-    // this might not be a very good function name
     private fun readModelName(configSection: ConfigurationSection, configString: String): Key? {
         val modelName = configSection.getString(configString)
-        val parent = configSection.parent!!.name
+        val parent = configSection.parent!!.name.lowercase().replace(" ", "_")
 
         return when {
             modelName == null && configString == "model" && Key.parseable(parent) -> Key.key(parent)

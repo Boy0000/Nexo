@@ -5,6 +5,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemBuilder
+import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacy
@@ -62,12 +63,22 @@ class FontListener(private val manager: FontManager) : Listener {
 
     fun registerChatHandlers() {
         paperChatHandler?.let { Bukkit.getPluginManager().registerEvents(it, NexoPlugin.instance()) }
-        spigotChatHandler?.let { Bukkit.getPluginManager().registerEvents(it, NexoPlugin.instance()) }
+        Bukkit.getPluginManager().registerEvents(spigotChatHandler, NexoPlugin.instance())
     }
 
     fun unregisterChatHandlers() {
         paperChatHandler?.let(HandlerList::unregisterAll)
         spigotChatHandler?.let(HandlerList::unregisterAll)
+    }
+
+    @EventHandler
+    fun PlayerJoinEvent.onJoin() {
+        if (Settings.FORMAT_PACKETS.toBool()) NMSHandlers.handler().packetHandler().inject(player)
+    }
+
+    @EventHandler
+    fun PlayerQuitEvent.onQuit() {
+        if (Settings.FORMAT_PACKETS.toBool()) NMSHandlers.handler().packetHandler().uninject(player)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -92,10 +103,9 @@ class FontListener(private val manager: FontManager) : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerInteractEvent.onBookGlyph() {
-        if (!Settings.FORMAT_BOOKS.toBool()) return
         val (item, meta) = (item ?: return) to (item?.itemMeta as? BookMeta ?: return)
 
-        if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
+        if (!Settings.FORMAT_BOOKS.toBool() || action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (item.type != Material.WRITTEN_BOOK || useInteractedBlock() == Event.Result.ALLOW) return
 
         meta.pages.forEach { page: String ->
@@ -130,21 +140,15 @@ class FontListener(private val manager: FontManager) : Listener {
         if (!Settings.FORMAT_SIGNS.toBool()) return
 
         lines.forEachIndexed { index, line ->
-            var line = line
-            line = parseLegacyThroughMiniMessage(line)
+            var line = parseLegacyThroughMiniMessage(line)
 
-            manager.unicodeGlyphMap.keys.forEach { character: Char? ->
-                if (!line.contains(java.lang.String.valueOf(character))) return@forEach
-
-                val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
-                if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
-                    isCancelled = true
-                }
+            manager.unicodeGlyphMap.keys.filter { it in line }.forEach { character: Char ->
+                val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character]).takeUnless { it.hasPermission(player) } ?: return@forEach
+                Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
+                isCancelled = true
             }
 
-            manager.placeholderGlyphMap.entries.forEach { (glyphId, glyph) ->
-                if (!glyph.hasPermission(player)) return@forEach
+            manager.placeholderGlyphMap.filterValues { it.hasPermission(player) }.entries.forEach { (glyphId, glyph) ->
                 line = line
                     .replace(glyphId, ChatColor.WHITE.toString() + glyph.character() + ChatColor.BLACK)
                     .replace(glyph.character(), ChatColor.WHITE.toString() + glyph.character() + ChatColor.BLACK)
@@ -170,12 +174,12 @@ class FontListener(private val manager: FontManager) : Listener {
             manager.unicodeGlyphMap.keys.forEach { character: Char ->
                 if (character.toString() !in displayName!!) return@forEach
                 val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
-                if (!glyph.hasPermission(player)) {
-                    val required = manager.glyphFromName("required")
-                    val replacement = if (required.hasPermission(player)) required.character() else ""
-                    Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
-                    displayName = displayName?.replace(character.toString(), replacement)
-                }
+                if (glyph.hasPermission(player)) return@forEach
+
+                val required = manager.glyphFromName("required")
+                val replacement = if (required.hasPermission(player)) required.character() else ""
+                Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
+                displayName = displayName?.replace(character.toString(), replacement)
             }
 
             manager.placeholderGlyphMap.entries.forEach { (glyphId, glyph) ->

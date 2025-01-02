@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.MechanicFactory

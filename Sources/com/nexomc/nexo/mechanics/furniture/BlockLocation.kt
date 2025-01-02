@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture
 
 import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import org.bukkit.Location
 import org.bukkit.Utility
 import org.bukkit.World
@@ -12,17 +12,10 @@ import org.joml.Vector3f
 import kotlin.math.cos
 import kotlin.math.round
 import kotlin.math.sin
-import kotlin.math.sqrt
 
 open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : ConfigurationSerializable {
 
     constructor(location: Location) : this(location.blockX, location.blockY, location.blockZ)
-
-    constructor(coordinatesMap: Map<String?, Int>) : this(
-        coordinatesMap.getOrDefault("x", 0),
-        coordinatesMap.getOrDefault("y", 0),
-        coordinatesMap.getOrDefault("z", 0)
-    )
 
     constructor(location: String) : this() {
         if (location == "origin") {
@@ -81,6 +74,10 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
         "y" to y,
         "z" to z,
     )
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
 
     companion object {
         var dataType = ConfigurationSerializableDataType(BlockLocation::class.java)

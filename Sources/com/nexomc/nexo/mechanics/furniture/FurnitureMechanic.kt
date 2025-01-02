@@ -132,23 +132,26 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     private fun correctedSpawnLocation(baseLocation: Location, facing: BlockFace): Location {
         val isWall = limitedPlacing?.isWall == true
         val isRoof = limitedPlacing?.isRoof == true
-        val isFixed = properties.displayTransform == ItemDisplay.ItemDisplayTransform.FIXED
+        val isFixed = properties.isFixedTransform
+        val solidBelow = baseLocation.block.getRelative(BlockFace.DOWN).isSolid
+        val hitboxOffset = (hitbox.hitboxHeight() - 1).toFloat().takeUnless { isRoof && facing == BlockFace.DOWN } ?: -0.49f
+
         val correctedLocation = when {
-            isFixed && facing == BlockFace.UP -> toCenterBlockLocation(baseLocation)
+            isFixed && (facing == BlockFace.UP || (facing.modY == 0 && solidBelow && !isWall)) -> toCenterBlockLocation(baseLocation)
             else -> BlockHelpers.toCenterLocation(baseLocation)
+        }.apply {
+            if (isRoof && facing == BlockFace.DOWN) y += -hitboxOffset
         }
 
         if (properties.isNoneTransform && !isWall && !isRoof) return correctedLocation
-        val scale = properties.scale.y()
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
-        if (isFixed && isWall && facing.modY == 0)
-            correctedLocation.add(-facing.modX * (0.49 * scale.times(2)), 0.0, -facing.modZ * (0.49 * scale.times(2)))
-
-        val hitboxOffset = (hitbox.hitboxHeight() - 1).toFloat()
-
-        return correctedLocation.apply {
-            y += (if (isRoof && facing == BlockFace.DOWN) if (isFixed) 0.49 else (-1 * hitboxOffset).toDouble() else 0.0)
+        if (isFixed && isWall && facing.modY == 0 && !solidBelow) correctedLocation.apply {
+            val scale = 0.49 * properties.scale.y().times(2)
+            x += -facing.modX * scale
+            z += -facing.modZ * scale
         }
+
+        return correctedLocation
     }
 
     private fun setBaseFurnitureData(baseEntity: ItemDisplay, yaw: Float, blockFace: BlockFace) {
@@ -166,12 +169,31 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (limitedPlacing != null && properties.isFixedTransform) {
             pitch = when {
                 limitedPlacing.isFloor && blockFace == BlockFace.UP -> -90f
+                limitedPlacing.isFloor && !limitedPlacing.isWall && blockFace.modY == 0 -> -90f
                 limitedPlacing.isRoof && blockFace == BlockFace.DOWN -> 90f
                 else -> 0f
             }
 
             if (limitedPlacing.isWall && blockFace.modY == 0) yaw = 90f * blockFace.ordinal - 180
         } else pitch = 0f
+
+        baseEntity.transformation = baseEntity.transformation.apply {
+            val blockAgainst = baseEntity.location.block.getRelative(blockFace.oppositeFace)
+            val bb = blockAgainst.boundingBox
+            val offset = when (blockFace) {
+                BlockFace.UP -> bb.height - if (properties.isFixedTransform) 0.99 else 1.01
+                BlockFace.DOWN -> bb.height - if (properties.isFixedTransform) 0.99 else 0.0
+                else -> 0.0
+            }
+
+            if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
+            if (bb.contains(baseEntity.location.clone().apply { y += offset }.toVector())) return@apply
+
+            when {
+                properties.isFixedTransform -> translation.set(0.0, 0.0, offset)
+                else -> translation.set(0.0, offset, 0.0)
+            }
+        }
 
         baseEntity.setRotation(yaw, pitch)
 
@@ -202,7 +224,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     fun removeBaseEntity(baseEntity: ItemDisplay) {
         if (hasSeats()) FurnitureSeat.removeSeats(baseEntity)
         val packetManager = FurnitureFactory.instance()?.packetManager()
-        packetManager?.removeFurnitureEntityPacket(baseEntity, this)
         packetManager?.removeInteractionHitboxPacket(baseEntity, this)
         packetManager?.removeBarrierHitboxPacket(baseEntity, this)
         packetManager?.removeLightMechanicPacket(baseEntity, this)

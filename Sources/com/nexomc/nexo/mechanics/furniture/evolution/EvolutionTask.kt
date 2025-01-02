@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.evolution
 
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems

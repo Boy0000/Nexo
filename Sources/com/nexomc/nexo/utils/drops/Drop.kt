@@ -31,6 +31,8 @@ class Drop(
     private var bestTool: String? = null,
 ) {
 
+    val explosionDrops: Drop get() = Drop(loots.filter { it.inExplosion }.toMutableList(), false, false, sourceID)
+
     constructor(loots: MutableList<Loot>, silktouch: Boolean, fortune: Boolean, sourceID: String) :
             this(loots = loots, isSilktouch = silktouch, isFortune = fortune, sourceID = sourceID)
 
@@ -115,12 +117,12 @@ class Drop(
         }
     }
 
-    private fun fortuneMultiplier(itemInHand: ItemStack) =
+    fun fortuneMultiplier(itemInHand: ItemStack) =
         itemInHand.itemMeta?.takeIf { isFortune && it.hasEnchant(Enchantment.FORTUNE) }?.let {
             Random.nextInt(it.getEnchantLevel(EnchantmentWrapper.FORTUNE))
         } ?: 1
 
-    private fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull {
+    fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull {
         it.dropNaturally(location, fortuneMultiplier).takeIf { it > 0 }?.let { amount -> DroppedLoot(it, amount) }
     }
 

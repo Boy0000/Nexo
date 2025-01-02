@@ -16,7 +16,7 @@ interface NMSHandler {
 
     fun furniturePacketManager(): IFurniturePacketManager = EmptyFurniturePacketManager()
 
-    fun glyphHandler(): IGlyphHandler
+    fun packetHandler(): IPacketHandler
 
     fun noteblockUpdatesDisabled(): Boolean
 

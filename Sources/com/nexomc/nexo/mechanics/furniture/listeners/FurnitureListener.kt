@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
@@ -70,7 +70,7 @@ class FurnitureListener : Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     fun PlayerInteractEvent.onFurniturePlace() {
         val block = clickedBlock?.let { if (BlockHelpers.isReplaceable(it)) it else it.getRelative(blockFace) } ?: return
         val (item, hand) = (item ?: return) to (hand?.takeIf { it == EquipmentSlot.HAND } ?: return)
@@ -187,8 +187,8 @@ class FurnitureListener : Listener {
         if (slotType != InventoryType.SlotType.QUICKBAR) return
         if (cursor.type != Material.BARRIER) return
 
-        val rayTraceResult = player.rayTraceBlocks(8.0)
-        val mechanic = NexoFurniture.furnitureMechanic(rayTraceResult?.hitPosition?.toLocation(player.world)) ?: return
+        val baseEntity = FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player) ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
         val builder = NexoItems.itemFromId(mechanic.itemID) ?: return
 
         val item = builder.build()
@@ -209,12 +209,14 @@ class FurnitureListener : Listener {
 
     @EventHandler(ignoreCancelled = true)
     fun BlockFromToEvent.onFlowThroughBarrier() {
-        if (toBlock.location in IFurniturePacketManager.barrierHitboxLocationMap) isCancelled = true
+        val toLoc = toBlock.location
+        if (IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
     }
 
     @EventHandler(ignoreCancelled = true)
     fun EntityMoveEvent.onMobMove() {
-        if (to.block.location in IFurniturePacketManager.barrierHitboxLocationMap) isCancelled = true
+        val toLoc = to.block.location
+        if (hasExplicitlyChangedBlock() && IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
     }
 
     @EventHandler

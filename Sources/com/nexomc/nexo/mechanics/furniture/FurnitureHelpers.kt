@@ -4,11 +4,9 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
 import org.bukkit.Color
 import org.bukkit.Rotation
-import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import kotlin.jvm.optionals.getOrNull
 
 object FurnitureHelpers {
     fun correctedYaw(mechanic: FurnitureMechanic, yaw: Float): Float {
@@ -31,14 +29,16 @@ object FurnitureHelpers {
 
     @JvmStatic
     fun furnitureItem(baseEntity: ItemDisplay): ItemStack? {
-        return IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity).getOrNull()?.itemStack
+        return IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.itemStack
     }
 
     @JvmStatic
-    fun furnitureItem(baseEntity: Entity, itemStack: ItemStack) {
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity).ifPresent { furnitureBase ->
+    fun furnitureItem(baseEntity: ItemDisplay, itemStack: ItemStack) {
+        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.also { furnitureBase ->
             furnitureBase.itemStack = itemStack
         }
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
     }
 
     @JvmStatic
@@ -49,9 +49,11 @@ object FurnitureHelpers {
     fun furnitureDye(baseEntity: ItemDisplay, dyeColor: Color?) {
         if (dyeColor == null) baseEntity.persistentDataContainer.remove(FurnitureMechanic.FURNITURE_DYE_KEY)
         else baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, dyeColor.asRGB())
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity).ifPresent { furnitureBase ->
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.also { furnitureBase ->
             furnitureBase.itemStack = furnitureBase.itemStack
         }
+        FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
     }
 
     @JvmStatic

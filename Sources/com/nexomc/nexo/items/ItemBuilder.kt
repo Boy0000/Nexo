@@ -13,6 +13,7 @@ import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.api.NexoFurniture
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.*
@@ -20,6 +21,8 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.damage.DamageType
 import org.bukkit.enchantments.Enchantment
+import org.bukkit.entity.EntityType
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemRarity
 import org.bukkit.inventory.ItemStack
@@ -564,6 +567,20 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemStack = NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         itemStack = NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
+
+        if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) when {
+            itemStack.itemMeta is PotionMeta -> {
+                itemStack = NMSHandlers.handler().consumableComponent(itemStack, null)
+                ItemUtils.editItemMeta(itemStack) {
+                    it.setFood(null)
+                }
+            }
+            itemStack.itemMeta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") -> {
+                ItemUtils.editItemMeta(itemStack) {
+                    it.setEquippable(it.equippable.apply { slot = EquipmentSlot.HAND })
+                }
+            }
+        }
 
         finalItemStack = itemStack
         return this

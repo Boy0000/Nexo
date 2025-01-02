@@ -4,6 +4,8 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.ItemUpdater
+import com.nexomc.nexo.utils.safeCast
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.Indyuce.mmoitems.MMOItems
 import org.bukkit.Location
 import org.bukkit.Material
@@ -16,15 +18,14 @@ class Loot(
     var itemStack: ItemStack? = null,
     val probability: Double,
     val amount: IntRange,
+    val inExplosion: Boolean = false,
     var config: LinkedHashMap<String, Any> = linkedMapOf()
 ) {
 
     constructor(config: LinkedHashMap<String, Any>, sourceID: String) : this(
         probability = config.getOrDefault("probability", 1).toString().toDouble(),
-        amount = (config.getOrDefault("amount", "") as? String)?.let {
-            val (start, end) = (it.substringBefore("..").toIntOrNull() ?: 1) to (it.substringAfter("..").toIntOrNull() ?: 1)
-            IntRange(start, end)
-        } ?: IntRange(1, 1),
+        amount = (config.getOrDefault("amount", "") as? String)?.toIntRangeOrNull() ?: IntRange(1, 1),
+        inExplosion = config.getOrDefault("in_explosion", false).safeCast<Boolean>() ?: false,
         config = config,
         sourceID = sourceID
     )

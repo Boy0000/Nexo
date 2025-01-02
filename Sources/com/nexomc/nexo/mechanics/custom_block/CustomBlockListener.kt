@@ -1,10 +1,8 @@
 package com.nexomc.nexo.mechanics.custom_block
 
-import com.mineinabyss.idofront.util.to
-import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.api.events.custom_block.NexoBlockInteractEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockInteractEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
@@ -13,11 +11,8 @@ import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingTyp
 import com.nexomc.nexo.utils.BlockHelpers.isInteractable
 import com.nexomc.nexo.utils.EventUtils.call
 import io.th0rgal.protectionlib.ProtectionLib
-import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
@@ -32,12 +27,15 @@ import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCreativeEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.ItemStack
 import kotlin.random.Random
 
 class CustomBlockListener : Listener {
+    private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE)
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun PlayerInteractEvent.callInteract() {
-        val block = clickedBlock?.takeIf { it.type == Material.NOTE_BLOCK && action == Action.RIGHT_CLICK_BLOCK } ?: return
+        val block = clickedBlock?.takeIf { action == Action.RIGHT_CLICK_BLOCK } ?: return
 
         val customBlockEvent = when (val mechanic = NexoBlocks.customBlockMechanic(block.blockData)) {
             is NoteBlockMechanic ->
@@ -141,20 +139,28 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun EntityExplodeEvent.onEntityExplosion() {
-        HashSet(blockList()).forEach { block: Block ->
-            if (entityType == EntityType.WIND_CHARGE || NexoBlocks.customBlockMechanic(block.blockData)?.isBlastResistant != true) return@forEach
-            NexoBlocks.remove(block.location)
-            blockList().remove(block)
+        val customBlocks = blockList().mapNotNull { block ->
+            NexoBlocks.customBlockMechanic(block.blockData)?.let { m -> block to m }
+        }.toMap()
+
+        customBlocks.forEach { (block, mechanic) ->
+            if (!mechanic.isBlastResistant) block.type = Material.AIR
+            mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
+        blockList().removeAll(customBlocks.keys)
     }
 
     @EventHandler
     fun BlockExplodeEvent.onBlockExplosion() {
-        HashSet(blockList()).forEach { block: Block ->
-            if (NexoBlocks.customBlockMechanic(block.blockData)?.isBlastResistant != true) return@forEach
-            NexoBlocks.remove(block.location)
-            blockList().remove(block)
+        val customBlocks = blockList().mapNotNull { block ->
+            NexoBlocks.customBlockMechanic(block.blockData)?.let { m -> block to m }
+        }.toMap()
+
+        customBlocks.forEach { (block, mechanic) ->
+            if (!mechanic.isBlastResistant) block.type = Material.AIR
+            mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
+        blockList().removeAll(customBlocks.keys)
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -168,29 +174,28 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun InventoryCreativeEvent.onMiddleClick() {
-        if (click != ClickType.CREATIVE) return
+        if (click != ClickType.CREATIVE || cursor.type !in matArray) return
         val player = inventory.holder as Player? ?: return
-        if (cursor.type == Material.NOTE_BLOCK) {
-            val block = player.rayTraceBlocks(6.0)?.hitBlock ?: return
-            var mechanic = NexoBlocks.customBlockMechanic(block.blockData)
 
-            if (mechanic == null) {
-                val mechanicBelow = NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))
-                if (mechanicBelow == null || !mechanicBelow.isTall) return
-                mechanic = mechanicBelow
-            }
+        val block = player.rayTraceBlocks(6.0)?.hitBlock ?: return
+        var mechanic = NexoBlocks.customBlockMechanic(block.blockData)
 
-            val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()
-
-            for (i in 0..8) {
-                if (player.inventory.getItem(i) == null) continue
-                if (NexoItems.idFromItem(player.inventory.getItem(i)) == NexoItems.idFromItem(item)) {
-                    player.inventory.heldItemSlot = i
-                    isCancelled = true
-                    return
-                }
-            }
-            cursor = item
+        if (mechanic == null) {
+            val mechanicBelow = NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))
+            if (mechanicBelow == null || !mechanicBelow.isTall) return
+            mechanic = mechanicBelow
         }
+
+        val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()
+
+        for (i in 0..8) {
+            if (player.inventory.getItem(i) == null) continue
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) == NexoItems.idFromItem(item)) {
+                player.inventory.heldItemSlot = i
+                isCancelled = true
+                return
+            }
+        }
+        cursor = item
     }
 }

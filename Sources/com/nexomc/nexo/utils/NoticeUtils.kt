@@ -24,4 +24,10 @@ object NoticeUtils {
         Logs.logError("Consider purchasing Nexo on SpigotMC or Polymart if you want a working version.")
         Bukkit.getPluginManager().disablePlugin(NexoPlugin.instance())
     }
+
+    fun failedLibs() {
+        Logs.logError("Nexo failed to download/load certain libraries...")
+        Logs.logError("This will cause some functionalities not to work")
+        Logs.logError("Please restart your server, if this continues download NexoLibs aswell")
+    }
 }

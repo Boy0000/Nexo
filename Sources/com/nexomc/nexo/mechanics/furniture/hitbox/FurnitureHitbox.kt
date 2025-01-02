@@ -2,6 +2,8 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
@@ -13,7 +15,7 @@ class FurnitureHitbox(
 ) {
 
     constructor(hitboxSection: ConfigurationSection) : this(
-        hitboxSection.getStringList("barriers").map(::BarrierHitbox),
+        hitboxSection.getStringList("barriers").map(::parseHitbox).flatten().toSet(),
         hitboxSection.getStringList("interactions").map(::InteractionHitbox)
     )
 
@@ -37,12 +39,10 @@ class FurnitureHitbox(
     fun refreshHitboxes(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic)
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
         packetManager.removeLightMechanicPacket(baseEntity, mechanic)
 
-        packetManager.sendFurnitureEntityPacket(baseEntity, mechanic)
         packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
         packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
         packetManager.sendLightMechanicPacket(baseEntity, mechanic)
@@ -59,5 +59,27 @@ class FurnitureHitbox(
 
     companion object {
         val EMPTY = FurnitureHitbox()
+
+        fun parseHitbox(hitboxString: String): List<BarrierHitbox> {
+            return when {
+                hitboxString == "origin" -> listOf(BarrierHitbox("0,0,0"))
+                ".." in hitboxString -> {
+                    // Split the coordinates by commas
+                    val coordinates = hitboxString.split(",").map { r -> r.toIntRangeOrNull() ?: (r.toIntOrNull() ?: 0).let { IntRange(it, it) } }
+
+                    val xRange = coordinates[0]
+                    val yRange = coordinates[1]
+                    val zRange = coordinates[2]
+
+                    // Generate combinations of all the ranges
+                    mutableListOf<BarrierHitbox>().apply {
+                        for (x in xRange) for (y in yRange) for (z in zRange) {
+                            this += BarrierHitbox(x, y, z)
+                        }
+                    }
+                }
+                else -> listOf(BarrierHitbox(hitboxString))
+            }
+        }
     }
 }

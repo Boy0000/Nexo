@@ -4,6 +4,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.NexoMeta
 import net.kyori.adventure.key.Key
+import org.bukkit.Material
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
@@ -30,7 +31,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         NexoItems.items().forEach { itemBuilder ->
             val nexoMeta = itemBuilder.nexoMeta ?: return@forEach
             if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
-            val model = generateModelBuilder(nexoMeta)
+            val model = generateModelBuilder(itemBuilder.type, nexoMeta)
 
             resourcePack.model(model.key())?.let {
                 model.toBuilder().also { builder ->
@@ -42,7 +43,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         }
     }
 
-    private fun generateModelBuilder(nexoMeta: NexoMeta): Model {
+    private fun generateModelBuilder(material: Material, nexoMeta: NexoMeta): Model {
         val parent = nexoMeta.parentModel.value()
         val textures = nexoMeta.modelTextures?.toBuilder() ?: ModelTextures.builder()
         val layers = nexoMeta.modelTextures?.layers() ?: listOf()
@@ -93,6 +94,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
 
         return Model.model()
             .key(nexoMeta.modelKey!!)
+            .display(DisplayProperties.fromMaterial(material))
             .parent(nexoMeta.parentModel)
             .textures(textures.build())
             .build()

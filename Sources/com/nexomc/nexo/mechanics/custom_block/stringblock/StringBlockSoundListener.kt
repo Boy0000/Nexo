@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import com.mineinabyss.idofront.util.to
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockPlaceEvent

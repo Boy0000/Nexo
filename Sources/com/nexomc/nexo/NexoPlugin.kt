@@ -16,10 +16,8 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.EmptyServer
 import com.nexomc.nexo.pack.server.NexoPackServer
 import com.nexomc.nexo.recipes.RecipesManager
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.FileUtils
-import com.nexomc.nexo.utils.NoticeUtils
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickActionManager
 import com.nexomc.nexo.utils.breaker.BreakerManager
 import com.nexomc.nexo.utils.breaker.LegacyBreakerManager
@@ -27,8 +25,6 @@ import com.nexomc.nexo.utils.breaker.ModernBreakerManager
 import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
-import com.nexomc.nexo.utils.libs.LibraryManager
-import com.nexomc.nexo.utils.safeCast
 import io.th0rgal.protectionlib.ProtectionLib
 import net.byteflux.libby.BukkitLibraryManager
 import net.byteflux.libby.Library
@@ -41,6 +37,7 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
+import kotlin.io.resolve
 
 class NexoPlugin : JavaPlugin() {
     private lateinit var configsManager: ConfigsManager
@@ -56,8 +53,9 @@ class NexoPlugin : JavaPlugin() {
     private lateinit var converter: Converter
 
     override fun onLoad() {
+        if (!NexoLibsLoader.loadNexoLibs(this)) LibbyManager.loadLibs(this)
+        dataFolder.resolve("lib").deleteRecursively()
         nexo = this
-        LibraryManager().loadLibs(this)
         CommandAPIManager(this).load()
     }
 
@@ -91,12 +89,11 @@ class NexoPlugin : JavaPlugin() {
         packServer.start()
 
         Metrics(this, 23930)
-        MechanicsManager.registerNativeMechanics()
-        NexoItems.loadItems()
 
         Bukkit.getScheduler().runTask(this, Runnable {
+            MechanicsManager.registerNativeMechanics()
+            NexoItems.loadItems()
             RecipesManager.load(this)
-            NexoItemsLoadedEvent().call()
             packGenerator.generatePack()
         })
 
@@ -104,6 +101,7 @@ class NexoPlugin : JavaPlugin() {
         if (VersionUtil.isCompiled) NoticeUtils.compileNotice()
         if (VersionUtil.isCI) NoticeUtils.ciNotice()
         if (VersionUtil.isLeaked) NoticeUtils.leakNotice()
+        if (LibbyManager.failedLibs) NoticeUtils.failedLibs()
     }
 
     override fun onDisable() {

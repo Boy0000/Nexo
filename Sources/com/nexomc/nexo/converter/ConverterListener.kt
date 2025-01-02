@@ -1,18 +1,15 @@
 package com.nexomc.nexo.converter
 
-import com.nexomc.nexo.items.ItemUpdater
-import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
-import com.nexomc.nexo.utils.logs.Logs
 import com.jeff_media.customblockdata.CustomBlockData
+import com.mineinabyss.idofront.items.asColorable
+import com.nexomc.nexo.api.NexoFurniture
+import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
-import org.bukkit.entity.ArmorStand
-import org.bukkit.entity.Entity
-import org.bukkit.entity.Interaction
-import org.bukkit.entity.ItemFrame
+import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.persistence.PersistentDataType
@@ -43,5 +40,8 @@ class ConverterListener : Listener {
             Logs.logWarn("Nexo only supports ItemDisplay-Furniture, we suggest manually replacing these")
         }
         entities.map(Entity::getPersistentDataContainer).forEach(OraxenConverter::convertOraxenPDCEntries)
+        entities.filterIsInstance<ItemDisplay>().filter(NexoFurniture::isFurniture).forEach { baseEntity ->
+            FurnitureHelpers.furnitureDye(baseEntity, baseEntity.itemStack.itemMeta?.asColorable()?.color)
+        }
     }
 }

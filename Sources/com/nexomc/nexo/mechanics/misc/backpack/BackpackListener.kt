@@ -6,6 +6,7 @@ import com.nexomc.nexo.utils.InventoryUtils.topInventoryForPlayer
 import com.jeff_media.morepersistentdatatypes.DataType
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
+import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
@@ -106,11 +107,11 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
     }
 
     private fun isBackpack(item: ItemStack?): Boolean {
-        return item != null && factory.getMechanic(NexoItems.idFromItem(item)) != null
+        return item != null && item.type != Material.BUNDLE && factory.getMechanic(NexoItems.idFromItem(item)) != null
     }
 
     private fun openBackpack(player: Player) {
-        val itemInHand = player.inventory.itemInMainHand
+        val itemInHand = player.inventory.itemInMainHand.takeIf { it.type != Material.BUNDLE } ?: return
         val mechanic = factory.getMechanic(NexoItems.idFromItem(itemInHand)) ?: return
         createGUI(mechanic, itemInHand)?.open(player)
     }

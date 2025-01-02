@@ -165,7 +165,7 @@ table_lamp:
           probability: 1.0
 arm_chair_dyeable:
   itemname: "Arm Chair"
-  material: TIPPED_ARROW
+  material: LEATHER_HORSE_ARMOR
   color: 255, 255, 255
   Pack:
     model: nexo:item/nexo_furniture/arm_chair_dyeable
@@ -192,7 +192,7 @@ arm_chair_dyeable:
           probability: 1.0
 coffee_table_dyeable:
   itemname: "Coffee Table"
-  material: TIPPED_ARROW
+  material: LEATHER_HORSE_ARMOR
   color: 255, 255, 255
   Pack:
     model: nexo:item/nexo_furniture/coffee_table_dyeable
@@ -218,7 +218,7 @@ coffee_table_dyeable:
           probability: 1.0
 sofa_dyeable:
   itemname: "Sofa"
-  material: TIPPED_ARROW
+  material: LEATHER_HORSE_ARMOR
   color: 255, 255, 255
   Pack:
     model: nexo:item/nexo_furniture/sofa_dyeable
@@ -248,7 +248,7 @@ sofa_dyeable:
           probability: 1.0
 table_lamp_dyeable:
   itemname: "Table Lamp"
-  material: TIPPED_ARROW
+  material: LEATHER_HORSE_ARMOR
   color: 255, 255, 255
   Pack:
     model: nexo:item/nexo_furniture/table_lamp_dyeable

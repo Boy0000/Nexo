@@ -28,12 +28,12 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
             overrides += ItemOverride.of(nexoMeta.modelKey, cmdPredicate)
 
             val parentModel = nexoMeta.parentModel
-            if (nexoMeta.hasBlockingModel()) addMissingOverrideModel(nexoMeta.blockingModel!!, parentModel)
-            if (nexoMeta.hasChargedModel()) addMissingOverrideModel(nexoMeta.chargedModel!!, parentModel)
-            if (nexoMeta.hasCastModel()) addMissingOverrideModel(nexoMeta.castModel!!, parentModel)
-            if (nexoMeta.hasFireworkModel()) addMissingOverrideModel(nexoMeta.fireworkModel!!, parentModel)
-            for (pullingKey in nexoMeta.pullingModels) addMissingOverrideModel(pullingKey, parentModel)
-            for (damagedKey in nexoMeta.damagedModels) addMissingOverrideModel(damagedKey, parentModel)
+            if (nexoMeta.hasBlockingModel()) addMissingOverrideModel(itemBuilder.type, nexoMeta.blockingModel!!, parentModel)
+            if (nexoMeta.hasChargedModel()) addMissingOverrideModel(itemBuilder.type, nexoMeta.chargedModel!!, parentModel)
+            if (nexoMeta.hasCastModel()) addMissingOverrideModel(itemBuilder.type, nexoMeta.castModel!!, parentModel)
+            if (nexoMeta.hasFireworkModel()) addMissingOverrideModel(itemBuilder.type, nexoMeta.fireworkModel!!, parentModel)
+            for (pullingKey in nexoMeta.pullingModels) addMissingOverrideModel(itemBuilder.type, pullingKey, parentModel)
+            for (damagedKey in nexoMeta.damagedModels) addMissingOverrideModel(itemBuilder.type, damagedKey, parentModel)
 
             if (nexoMeta.hasBlockingModel()) overrides.add(ItemOverride.of(nexoMeta.blockingModel, ItemPredicate.blocking(), cmdPredicate))
             if (nexoMeta.hasChargedModel()) overrides.add(ItemOverride.of(nexoMeta.chargedModel, ItemPredicate.charged(), cmdPredicate))
@@ -62,9 +62,9 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
         return String.format("%.2f", roundedValue).replace(",", ".").toFloat()
     }
 
-    private fun addMissingOverrideModel(modelKey: Key, parentKey: Key) {
+    private fun addMissingOverrideModel(material: Material, modelKey: Key, parentKey: Key) {
         resourcePack.model(
-            resourcePack.model(modelKey) ?: Model.model().key(modelKey).parent(parentKey)
+            resourcePack.model(modelKey) ?: Model.model().key(modelKey).parent(parentKey).display(DisplayProperties.fromMaterial(material))
                 .textures(ModelTextures.builder().layers(ModelTexture.ofKey(dropExtension(modelKey))).build()).build()
         )
     }
