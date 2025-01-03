@@ -14,6 +14,7 @@ import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
+import org.bukkit.entity.WindCharge
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -144,7 +145,7 @@ class CustomBlockListener : Listener {
         }.toMap()
 
         customBlocks.forEach { (block, mechanic) ->
-            if (!mechanic.isBlastResistant) block.type = Material.AIR
+            if (!mechanic.isBlastResistant && entity !is WindCharge) block.type = Material.AIR
             mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
         blockList().removeAll(customBlocks.keys)

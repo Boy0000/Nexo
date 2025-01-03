@@ -22,18 +22,10 @@ class LogStripListener : Listener {
 
         if (action != Action.RIGHT_CLICK_BLOCK || block.type != Material.NOTE_BLOCK || !canStripLog(item)) return
 
-        var mechanic = NexoBlocks.noteBlockMechanic(block) ?: return
-        mechanic = mechanic.directional?.takeUnless { it.isParentBlock() && mechanic.isLog }?.parentMechanic ?: return
+        val log = NexoBlocks.noteBlockMechanic(block)?.log()?.takeIf { it.canBeStripped() } ?: return
 
-        val log = mechanic.log()
-        if (!mechanic.isLog || !log!!.canBeStripped()) return
-
-        if (log.hasStrippedDrop()) {
-            player.world.dropItemNaturally(
-                block.getRelative(player.facing.getOppositeFace()).location,
-                NexoItems.itemFromId(log.strippedLogDrop)?.build() ?: ItemStack(Material.AIR)
-            )
-        }
+        if (log.hasStrippedDrop())
+            player.world.dropItemNaturally(block.getRelative(player.facing.getOppositeFace()).location, log.logDrop)
 
         (item.itemMeta as? Damageable).takeIf { log.shouldDecreaseAxeDurability() && player.gameMode != GameMode.CREATIVE }?.let { axeMeta ->
             val maxDurability = item.type.maxDurability.toInt()
@@ -50,7 +42,7 @@ class LogStripListener : Listener {
             }
         }
 
-        NoteBlockMechanicFactory.setBlockModel(block, log.strippedLogDrop)
+        block.blockData = log.stripBlock ?: return
         player.playSound(block.location, Sound.ITEM_AXE_STRIP, 1.0f, 0.8f)
     }
 

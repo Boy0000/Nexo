@@ -31,6 +31,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockFormEvent
 import org.bukkit.event.block.BlockFromToEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.inventory.ClickType
@@ -205,18 +206,6 @@ class FurnitureListener : Listener {
     @EventHandler
     fun PlayerQuitEvent.onPlayerQuitEvent() {
         if (NexoFurniture.isFurniture(player.vehicle)) player.leaveVehicle()
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    fun BlockFromToEvent.onFlowThroughBarrier() {
-        val toLoc = toBlock.location
-        if (IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    fun EntityMoveEvent.onMobMove() {
-        val toLoc = to.block.location
-        if (hasExplicitlyChangedBlock() && IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
     }
 
     @EventHandler

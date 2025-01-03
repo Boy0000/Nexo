@@ -118,9 +118,7 @@ class Drop(
     }
 
     fun fortuneMultiplier(itemInHand: ItemStack) =
-        itemInHand.itemMeta?.takeIf { isFortune && it.hasEnchant(Enchantment.FORTUNE) }?.let {
-            Random.nextInt(it.getEnchantLevel(EnchantmentWrapper.FORTUNE))
-        } ?: 1
+        itemInHand.itemMeta?.takeIf { isFortune }?.getEnchantLevel(EnchantmentWrapper.FORTUNE)?.plus(1)?.let { Random.nextInt(1, it) } ?: 1
 
     fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull {
         it.dropNaturally(location, fortuneMultiplier).takeIf { it > 0 }?.let { amount -> DroppedLoot(it, amount) }

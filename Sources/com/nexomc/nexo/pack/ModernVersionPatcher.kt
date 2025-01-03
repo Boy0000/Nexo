@@ -69,7 +69,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                         Logs.logWarn(overrides.joinToString("\n") { it.toString() })
                     }
 
-                } ?: JsonBuilder.jsonObject.plus("model", modelObject(overrides, model))
+                } ?: JsonBuilder.jsonObject.plus("model", modelObject(existingItemModel?.`object`("model"), overrides, model))
                 resourcePack.unknownFile("assets/minecraft/items/$model", Writable.stringUtf8(finalNewItemModel.toString()))
             }
 
@@ -158,16 +158,15 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             .filterKeys { it.startsWith("assets/minecraft/items") }[key]?.toJsonObject()?.equals(itemModel) ?: false
     }
 
-    private fun modelObject(overrides: List<ItemOverride>, model: String? = null): JsonObject = JsonBuilder.jsonObject
+    private fun modelObject(baseItemModel: JsonObject?, overrides: List<ItemOverride>, model: String? = null): JsonObject = JsonBuilder.jsonObject
         .plus("type", "minecraft:range_dispatch")
         .plus("property", "minecraft:custom_model_data")
         .plus("entries", modelEntries(overrides))
         .plus("scale", 1f)
         .apply {
-            if (model != null) plus(
-                "fallback", JsonBuilder.jsonObject
-                    .plus("type", "minecraft:model")
-                    .plus("model", "item/${model.removeSuffix(".json")}")
+            if (model != null) plus("fallback", baseItemModel ?: JsonBuilder.jsonObject
+                .plus("type", "minecraft:model")
+                .plus("model", "item/${model.removeSuffix(".json")}")
             )
         }
 

@@ -167,20 +167,6 @@ class FurniturePacketListener : Listener {
         )
     }
 
-    private val flightCache: MutableSet<UUID> = mutableSetOf()
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    fun PlayerMoveEvent.onMove() {
-        if (from.blockX != to.blockX || from.blockY != to.blockY || from.blockZ != to.blockZ)
-            flightCache -= player.uniqueId
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    fun PlayerKickEvent.onKick() {
-        if (cause != PlayerKickEvent.Cause.FLYING_PLAYER && player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
-        flightCache += player.uniqueId
-        isCancelled = true
-    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     fun EntityMountEvent.onSitSeat() {
         val player = entity as? Player ?: return

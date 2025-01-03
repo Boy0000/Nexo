@@ -1,14 +1,11 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers.isInteractable
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.logs.Logs
-import org.bukkit.Bukkit
 import org.bukkit.Instrument
 import org.bukkit.Material
 import org.bukkit.Sound

@@ -9,6 +9,7 @@ import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionTask
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxListener
+import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBarrierHitboxListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurniturePacketListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
@@ -33,7 +34,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         instance = this
         registerListeners(FurnitureListener(), EvolutionListener(), JukeboxListener())
 
-        if (VersionUtil.isPaperServer) registerListeners(FurniturePacketListener())
+        if (VersionUtil.isPaperServer) registerListeners(FurniturePacketListener(), FurnitureBarrierHitboxListener())
         else {
             Logs.logWarn("Seems that your server is a Spigot-server")
             Logs.logWarn("FurnitureHitboxes will not work properly due to it relying on Paper-only events")

@@ -186,8 +186,7 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
          * @param itemId The Nexo item ID.
          */
         fun setBlockModel(block: Block, itemId: String?) {
-            val mechanic = NexoBlocks.noteBlockMechanic(itemId)
-            if (mechanic != null) block.blockData = mechanic.blockData!!
+            block.blockData = NexoBlocks.noteBlockMechanic(itemId)?.blockData ?: return
         }
 
         fun getMechanic(blockData: NoteBlock): NoteBlockMechanic? {
