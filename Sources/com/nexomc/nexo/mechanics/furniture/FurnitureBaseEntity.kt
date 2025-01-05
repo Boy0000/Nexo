@@ -3,10 +3,8 @@ package com.nexomc.nexo.mechanics.furniture
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -46,7 +44,7 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechan
         return NexoFurniture.furnitureMechanic(furnitureId) ?: mechanic
     }
 
-    fun equals(baseEntity: FurnitureBaseEntity): Boolean {
-        return this.baseUuid == baseEntity.baseUuid && this.baseId == baseEntity.baseId && mechanic.itemID == baseEntity.mechanic().itemID
+    override fun equals(other: Any?): Boolean {
+        return other is FurnitureBaseEntity && this.baseUuid == other.baseUuid && this.baseId == other.baseId && mechanic.itemID == other.mechanic().itemID
     }
 }

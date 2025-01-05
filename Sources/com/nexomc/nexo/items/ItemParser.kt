@@ -1,5 +1,8 @@
 package com.nexomc.nexo.items
 
+import com.jeff_media.morepersistentdatatypes.DataType
+import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType
+import com.jeff_media.persistentdataserializer.PersistentDataSerializer
 import com.mineinabyss.idofront.util.toColor
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
@@ -7,17 +10,12 @@ import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
-import com.nexomc.nexo.utils.PotionUtils.getEffectType
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
@@ -25,6 +23,7 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.enchantments.EnchantmentWrapper
 import org.bukkit.inventory.ItemFlag
+import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffect
 import java.util.*
@@ -126,36 +125,32 @@ class ItemParser(private val section: ConfigurationSection) {
 
     @Suppress("DEPRECATION")
     private fun parseVanillaSections(item: ItemBuilder) {
-        val section = mergeWithTemplateSection() ?: return
+        val section = mergeWithTemplateSection()
 
         if ("ItemFlags" in section) for (itemFlag: String in section.getStringList("ItemFlags"))
             item.addItemFlags(ItemFlag.valueOf(itemFlag))
 
-        section.getList("PotionEffects")?.filterIsInstance<LinkedHashMap<String, Any>>()?.forEach { serializedEffect ->
-            val effect = getEffectType(serializedEffect["type"] as? String) ?: return@forEach
-            val duration = serializedEffect["duration"] as? Int ?: 60
-            val amplifier = serializedEffect["amplifier"] as? Int ?: 0
-            val ambient = serializedEffect["ambient"] as? Boolean ?: false
-            val particles = serializedEffect["particles"] as? Boolean ?: true
-            val icon = serializedEffect["icon"] as? Boolean ?: true
-            item.addPotionEffect(PotionEffect(effect, duration, amplifier, ambient, particles, icon))
+        section.getList("PotionEffects")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach {
+            PotionUtils.getEffectType(it["type"].safeCast())?.also { v -> it["effect"] = v.key.key }
+            item.addPotionEffect(PotionEffect(it))
         }
 
         runCatching {
-            section.getList("PersistentData")?.filterIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
-                val keyContent = (attributeJson["key"] as String).split(":")
-                val persistentDataType = PersistentDataType::class.java.getDeclaredField(attributeJson["type"] as String)
-                    .get(null).safeCast<PersistentDataType<Any, Any?>>() ?: return@forEach
 
-                item.addCustomTag(
-                    NamespacedKey(keyContent[0], keyContent[1]),
-                    persistentDataType,
-                    attributeJson["value"]
-                )
+            section.getList("PersistentData")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
+                val key = (attributeJson["key"] as String).split(":").let { NamespacedKey(it.first(), it.last()) }
+
+                // Resolve the PersistentDataType using reflection or a registry
+                val dataTypeField = DataType::class.java.getDeclaredField(attributeJson["type"] as String)
+                val dataType = dataTypeField.get(null).safeCast<PersistentDataType<Any, Any>>() ?: return@forEach
+                val value = attributeJson["value"] ?: return@forEach
+
+                item.customTag(key, dataType, value)
             }
+
         }.printOnFailure(true)
 
-        section.getList("AttributeModifiers")?.filterIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
+        section.getList("AttributeModifiers")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
             attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString())
             attributeJson.putIfAbsent("name", "nexo:modifier")
             attributeJson.putIfAbsent("key", "nexo:modifier")

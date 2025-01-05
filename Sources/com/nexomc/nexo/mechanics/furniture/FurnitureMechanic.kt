@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture
 
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
@@ -8,14 +9,17 @@ import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
+import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxBlock
+import com.nexomc.nexo.mechanics.furniture.rotatable.Rotatable
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.VersionUtil
@@ -23,29 +27,18 @@ import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.logs.Logs
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
-import com.nexomc.nexo.mechanics.furniture.rotatable.Rotatable
-import com.nexomc.nexo.utils.BlockHelpers
 import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.entity.Entity
-import org.bukkit.entity.Interaction
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import org.joml.Quaternionf
-import org.joml.Vector3f
 
 class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
     Mechanic(mechanicFactory, section, { itemBuilder: ItemBuilder ->
@@ -110,7 +103,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     fun hasEvolution() = evolution != null
     val isInteractable = rotatable.rotatable || hasSeats() || isStorage()
 
-    fun place(location: Location) = place(location, 0f, BlockFace.NORTH, true)
+    fun place(location: Location) = place(location, location.yaw, BlockFace.UP, true)
 
     fun place(location: Location, yaw: Float, facing: BlockFace) = place(location, yaw, facing, true)
 
@@ -130,9 +123,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     private fun correctedSpawnLocation(baseLocation: Location, facing: BlockFace): Location {
-        val isWall = limitedPlacing?.isWall == true
-        val isRoof = limitedPlacing?.isRoof == true
-        val isFixed = properties.isFixedTransform
+        val (isWall, isRoof) = (limitedPlacing?.isWall == true) to (limitedPlacing?.isRoof == true)
+        val (isFixed, isNone) = properties.isFixedTransform to properties.isNoneTransform
         val solidBelow = baseLocation.block.getRelative(BlockFace.DOWN).isSolid
         val hitboxOffset = (hitbox.hitboxHeight() - 1).toFloat().takeUnless { isRoof && facing == BlockFace.DOWN } ?: -0.49f
 
@@ -143,7 +135,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
             if (isRoof && facing == BlockFace.DOWN) y += -hitboxOffset
         }
 
-        if (properties.isNoneTransform && !isWall && !isRoof) return correctedLocation
+        if (isNone && !isWall && !isRoof) return correctedLocation
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall && facing.modY == 0 && !solidBelow) correctedLocation.apply {
             val scale = 0.49 * properties.scale.y().times(2)
@@ -155,7 +147,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     private fun setBaseFurnitureData(baseEntity: ItemDisplay, yaw: Float, blockFace: BlockFace) {
-        var yaw = yaw
         baseEntity.isPersistent = true
         baseEntity.isInvulnerable = true
         baseEntity.isSilent = true
@@ -165,24 +156,25 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (VersionUtil.isPaperServer) baseEntity.customName(customName)
         else baseEntity.customName = AdventureUtils.LEGACY_SERIALIZER.serialize(customName)
 
-        val pitch: Float
-        if (limitedPlacing != null && properties.isFixedTransform) {
-            pitch = when {
-                limitedPlacing.isFloor && blockFace == BlockFace.UP -> -90f
-                limitedPlacing.isFloor && !limitedPlacing.isWall && blockFace.modY == 0 -> -90f
-                limitedPlacing.isRoof && blockFace == BlockFace.DOWN -> 90f
-                else -> 0f
-            }
-
-            if (limitedPlacing.isWall && blockFace.modY == 0) yaw = 90f * blockFace.ordinal - 180
-        } else pitch = 0f
+        val (isWall, isFloor) = (limitedPlacing?.isWall == true) to (limitedPlacing?.isFloor == true)
+        val (isRoof, isFixed) = (limitedPlacing?.isRoof == true) to properties.isFixedTransform
+        val yaw = when {
+            isWall && isFixed && blockFace.modY == 0 -> 90f * blockFace.ordinal - 180
+            else -> yaw
+        }
+        val pitch = when {
+            isFixed && isFloor && blockFace == BlockFace.UP -> -90f
+            isFixed && isFloor && !isWall && blockFace.modY == 0 -> -90f
+            isFixed && isRoof && blockFace == BlockFace.DOWN -> 90f
+            else -> 0f
+        }
+        baseEntity.setRotation(yaw, pitch)
 
         baseEntity.transformation = baseEntity.transformation.apply {
-            val blockAgainst = baseEntity.location.block.getRelative(blockFace.oppositeFace)
-            val bb = blockAgainst.boundingBox
+            val bb = baseEntity.location.block.getRelative(blockFace.oppositeFace).boundingBox
             val offset = when (blockFace) {
-                BlockFace.UP -> bb.height - if (properties.isFixedTransform) 0.99 else 1.01
-                BlockFace.DOWN -> bb.height - if (properties.isFixedTransform) 0.99 else 0.0
+                BlockFace.UP -> bb.height - if (isFixed) 0.99 else 1.01
+                BlockFace.DOWN -> bb.height - if (isFixed) 0.99 else 0.0
                 else -> 0.0
             }
 
@@ -190,12 +182,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
             if (bb.contains(baseEntity.location.clone().apply { y += offset }.toVector())) return@apply
 
             when {
-                properties.isFixedTransform -> translation.set(0.0, 0.0, offset)
+                isFixed -> translation.set(0.0, 0.0, offset)
                 else -> translation.set(0.0, offset, 0.0)
             }
         }
-
-        baseEntity.setRotation(yaw, pitch)
 
         // No Packet-logic for Spigot Servers, so we set this here
         if (!VersionUtil.isPaperServer) {

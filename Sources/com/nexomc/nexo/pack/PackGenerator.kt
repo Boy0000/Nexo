@@ -163,10 +163,10 @@ class PackGenerator {
     fun builtPack() = builtPack
 
     private fun addShiftProvider() {
-        resourcePack.fonts().forEach {
-            it.providers() += FontProvider.reference(ShiftTag.FONT)
+        resourcePack.fonts().toList().forEach {
+            it.toBuilder().addProvider(FontProvider.reference(ShiftTag.FONT)).build().addTo(resourcePack)
         }
-        Font.font(ShiftTag.FONT, Shift.fontProvider).addTo(resourcePack)
+        resourcePack.font(ShiftTag.FONT, Shift.fontProvider)
     }
 
     private fun addGlyphFiles() {

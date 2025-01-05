@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.converter.ConverterListener
+import com.nexomc.nexo.converter.OraxenConverterListener
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
@@ -18,17 +18,14 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
-import kotlin.math.pow
 
 class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
-    val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
+    private val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
-    var simulationRadius = Bukkit.getServer().simulationDistance.times(16.0).pow(2.0)
 
     init {
         instance = this
@@ -49,7 +46,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
             registerListeners(VulcanCompatibility())
 
         if (NexoPlugin.instance().converter().oraxenConverter.convertFurnitureOnLoad)
-            registerListeners(ConverterListener())
+            registerListeners(OraxenConverterListener())
 
         if (customSounds) registerListeners(FurnitureSoundListener())
     }

@@ -33,6 +33,16 @@ inline fun <T, K, V> Iterable<T>.associateFast(transform: (T) -> Pair<K, V>): Ob
     return associateTo(Object2ObjectOpenHashMap<K, V>(capacity), transform)
 }
 
+inline fun <reified R> Iterable<*>.filterFastIsInstance(): ObjectArrayList<R> {
+    return filterIsInstanceTo(ObjectArrayList<R>())
+}
+
+inline fun <reified R> Iterable<*>.filterFastIsInstance(predicate: (R) -> Boolean): ObjectArrayList<R> {
+    val result = ObjectArrayList<R>()
+    for (element in this) if (element is R && predicate(element)) result.add(element)
+    return result
+}
+
 inline fun <T> Iterable<T>.filterFast(predicate: (T) -> Boolean): ObjectArrayList<T> {
     return filterTo(ObjectArrayList<T>(), predicate)
 }
@@ -45,12 +55,14 @@ fun <K, V> Iterable<Pair<K, V>>.toFastMap(): Object2ObjectOpenHashMap<K, V> {
     if (this is Collection) {
         return when (size) {
             0 -> Object2ObjectOpenHashMap()
-            1 -> Object2ObjectOpenHashMap(mapOf(if (this is List) this[0] else iterator().next()))
+            1 -> fastMapOf(if (this is List) this[0] else iterator().next())
             else -> toMap(Object2ObjectOpenHashMap<K, V>(mapCapacity(size)))
         }
     }
     return toMap(LinkedHashMap<K, V>()).optimizeReadOnlyMap()
 }
+
+fun <K, V> fastMapOf(pair: Pair<K, V>): Object2ObjectOpenHashMap<K, V> = Object2ObjectOpenHashMap<K, V>().apply { put(pair.first, pair.second) }
 
 fun mapCapacity(expectedSize: Int): Int = when {
     // We are not coercing the value to a valid one and not throwing an exception. It is up to the caller to
@@ -64,7 +76,7 @@ fun mapCapacity(expectedSize: Int): Int = when {
 
 internal fun <K, V> Map<K, V>.optimizeReadOnlyMap() = when (size) {
     0 -> Object2ObjectOpenHashMap()
-    1 -> Object2ObjectOpenHashMap(with(entries.iterator().next()) { java.util.Collections.singletonMap(key, value) })
+    1 -> Object2ObjectOpenHashMap(with(entries.iterator().next()) { Collections.singletonMap(key, value) })
     else -> Object2ObjectOpenHashMap(this)
 }
 

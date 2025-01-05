@@ -7,22 +7,18 @@ import com.nexomc.nexo.utils.VectorUtils.vector3fFromString
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.Color
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.entity.Display
 import org.bukkit.entity.Display.Billboard
 import org.bukkit.entity.Display.Brightness
-import org.bukkit.entity.Entity
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.ItemDisplay.ItemDisplayTransform
 import org.joml.Quaternionf
 import org.joml.Vector3f
-import java.util.*
 
 class FurnitureProperties(
     val glowColor: Color? = null,
     val viewRange: Float? = null,
     val brightness: Brightness? = null,
     val displayTransform: ItemDisplayTransform = ItemDisplayTransform.NONE,
-    private val _scale: Vector3f = Vector3f(1f,1f,1f),
+    _scale: Vector3f = Vector3f(1f,1f,1f),
     val trackingRotation: Billboard? = null,
     val shadowStrength: Float? = null,
     val shadowRadius: Float? = null,

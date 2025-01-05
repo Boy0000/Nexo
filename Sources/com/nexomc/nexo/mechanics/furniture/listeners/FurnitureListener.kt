@@ -42,6 +42,7 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 
 class FurnitureListener : Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
@@ -101,7 +102,7 @@ class FurnitureListener : Listener {
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
 
         dyeColor(item).ifPresent { color: Color ->
-            baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, DataType.INTEGER, color.asRGB())
+            baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, color.asRGB())
         }
         swingHand(player, hand)
 

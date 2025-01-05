@@ -426,6 +426,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
         return this
     }
 
+    fun hasCustomTag(): Boolean = !persistentDataContainer.isEmpty
+
     fun <T, Z> customTag(namespacedKey: NamespacedKey, dataType: PersistentDataType<T, Z>, data: Z): ItemBuilder {
         persistentDataMap[PersistentDataSpace(namespacedKey, dataType)] = data as Any
         return this
@@ -439,14 +441,6 @@ class ItemBuilder(private val itemStack: ItemStack) {
         }
         return null
     }
-
-    fun hasCustomTag(): Boolean = !persistentDataContainer.isEmpty
-
-    @Suppress("UNCHECKED_CAST")
-    fun <T, Z> addCustomTag(key: NamespacedKey, type: PersistentDataType<T, Z>, value: Z) {
-        persistentDataContainer.set(key, type as PersistentDataType<T, Any>, value as Any)
-    }
-
 
     fun removeCustomTag(key: NamespacedKey): ItemBuilder {
         persistentDataContainer.remove(key)

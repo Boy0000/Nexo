@@ -18,18 +18,12 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
     constructor(location: Location) : this(location.blockX, location.blockY, location.blockZ)
 
     constructor(location: String) : this() {
-        if (location == "origin") {
-            this.x = 0
-            this.y = 0
-            this.z = 0
-        } else {
-            val split = location.split(",").map { it.toIntOrNull() ?: 0 }.toMutableList()
-            while (split.size < 3) split += 0
+        val split = location.split(",").map { it.toIntOrNull() ?: 0 }.toMutableList()
+        while (split.size < 3) split += 0
 
-            x = split[0]
-            y = split[1]
-            z = split[2]
-        }
+        x = split[0]
+        y = split[1]
+        z = split[2]
     }
 
     override fun toString() = "$x,$y,$z"

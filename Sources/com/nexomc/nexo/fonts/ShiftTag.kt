@@ -7,6 +7,7 @@ import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import team.unnamed.creative.font.Font
 import java.util.regex.Pattern
 
 object ShiftTag {
@@ -18,10 +19,10 @@ object ShiftTag {
     val RESOLVER = TagResolver.resolver(setOf(SHIFT, SHIFT_SHORT)) { args, ctx -> shiftTag(args) }
 
     val REPLACEMENT_CONFIG = TextReplacementConfig.builder()
-        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)).font(FONT) }.build()
+        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)).font(Font.MINECRAFT_DEFAULT) }.build()
 
     private fun shiftTag(args: ArgumentQueue): Tag {
         val shift = args.popOr("A shift value is required").value().toIntOrNull() ?: 0
-        return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(FONT))
+        return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(Font.MINECRAFT_DEFAULT))
     }
 }
