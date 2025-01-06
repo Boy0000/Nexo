@@ -18,11 +18,9 @@ import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
@@ -55,7 +53,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val modelEngineID: String? = section.getString("modelengine_id", null)
     val placedItemId: String = section.getString("item", itemID)!!
     val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)
-    val seats = section.getStringList("seats").mapNotNull(FurnitureSeat::getSeat)
+    val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val clickActions: List<ClickAction> = parseList(section)
     val properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties()
     val rotatable: Rotatable = section.get("rotatable")?.let(::Rotatable) ?: Rotatable()
@@ -78,15 +76,15 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     init {
-        val barrierHitboxes = hitbox.barriers().map(BarrierHitbox::toVector3f)
+        val barrierHitboxes = hitbox.barriers.mapFast(BarrierHitbox::toVector3f)
         val lightBlocks = LightMechanic(section).lightBlocks
-        val overlap = lightBlocks.filter { it.toVector3f() in barrierHitboxes }.joinToString()
+        val overlap = lightBlocks.filterFast { it.toVector3f() in barrierHitboxes }.joinToString()
         if (overlap.isNotEmpty()) {
             Logs.logError("Furniture $itemID has lights that overlap with the barrierHitboxes at: $overlap")
             Logs.logWarn("Nexo will ignore any lights that conflict with a barrier...")
         }
 
-        this.light = lightBlocks.filter { it.toVector3f() !in barrierHitboxes }.let(::LightMechanic)
+        this.light = lightBlocks.filterFast { it.toVector3f() !in barrierHitboxes }.let(::LightMechanic)
     }
 
     val isModelEngine: Boolean
@@ -108,11 +106,11 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     fun place(location: Location, yaw: Float, facing: BlockFace) = place(location, yaw, facing, true)
 
     fun place(location: Location, yaw: Float, facing: BlockFace, checkSpace: Boolean): ItemDisplay? {
-        if (!location.isWorldLoaded()) return null
+        if (!location.isWorldLoaded) return null
         if (checkSpace && this.notEnoughSpace(location, yaw)) return null
-        checkNotNull(location.getWorld())
+        checkNotNull(location.world)
 
-        val baseEntity = location.getWorld().spawn(correctedSpawnLocation(location, facing), ItemDisplay::class.java) { e ->
+        val baseEntity = location.world.spawn(correctedSpawnLocation(location, facing), ItemDisplay::class.java) { e ->
             setBaseFurnitureData(e, yaw, facing)
         }
 

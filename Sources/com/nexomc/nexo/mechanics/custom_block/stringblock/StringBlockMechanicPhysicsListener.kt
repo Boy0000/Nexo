@@ -3,7 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.utils.BlockHelpers.isReplaceable
+import com.nexomc.nexo.utils.BlockHelpers
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -68,7 +68,7 @@ class StringBlockMechanicPhysicsListener : Listener {
 
             if (player.gameMode != GameMode.CREATIVE) block.breakNaturally(player.inventory.itemInMainHand, true)
             else block.type = Material.AIR
-            if (isReplaceable(blockAbove.type)) blockAbove.breakNaturally(true)
+            if (BlockHelpers.isReplaceable(blockAbove.type)) blockAbove.breakNaturally(true)
             Bukkit.getScheduler().runTaskLater(
                 NexoPlugin.instance(), Consumer { StringMechanicHelpers.fixClientsideUpdate(block.location) }, 1
             )

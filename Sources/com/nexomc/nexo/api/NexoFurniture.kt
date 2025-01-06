@@ -220,8 +220,7 @@ object NexoFurniture {
     @JvmStatic
     fun updateFurniture(baseEntity: ItemDisplay) {
         if (!FurnitureFactory.isEnabled || !isLoaded(baseEntity.location)) return
-        val mechanic = furnitureMechanic(baseEntity)
-        if (mechanic == null || FurnitureSeat.isSeat(baseEntity)) return
+        val mechanic = furnitureMechanic(baseEntity)?.takeUnless { FurnitureSeat.isSeat(baseEntity) } ?: return
 
         FurnitureSeat.updateSeats(baseEntity, mechanic)
 

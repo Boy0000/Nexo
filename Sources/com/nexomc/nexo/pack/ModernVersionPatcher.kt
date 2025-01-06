@@ -49,8 +49,8 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             .filterKeys { it.startsWith("assets/minecraft/items") }
             .toMutableMap()
 
-        resourcePack.models().filter { DefaultResourcePackExtractor.vanillaResourcePack.model(it.key()) != null }
-            .associate { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
+        resourcePack.models().filterFast { DefaultResourcePackExtractor.vanillaResourcePack.model(it.key()) != null }
+            .associateFast { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
             .forEach { (model, overrides) ->
                 val existingItemModel = itemModels["assets/minecraft/items/$model"]?.let { JsonParser.parseString(it.toUTF8String()).asJsonObject }
                 // If not standard (shield etc.) we need to traverse the tree

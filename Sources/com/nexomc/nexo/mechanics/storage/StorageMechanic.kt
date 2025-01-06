@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.ItemUtils.displayName
 import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
 import com.willfp.eco.core.data.get
@@ -80,7 +81,7 @@ class StorageMechanic(section: ConfigurationSection) {
 
     fun dropStorageContent(block: Block) {
         val gui = blockStorages[block]
-        val pdc = getPersistentDataContainer(block)
+        val pdc = block.persistentDataContainer
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         val items = when {
             block in blockStorages && gui != null -> gui.inventory.contents
@@ -201,7 +202,7 @@ class StorageMechanic(section: ConfigurationSection) {
 
     private fun createGui(block: Block): StorageGui {
         val location = block.location
-        val storagePDC = getPersistentDataContainer(block)
+        val storagePDC = block.persistentDataContainer
         val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create()
 
         // Slight delay to catch stacks sometimes moving too fast

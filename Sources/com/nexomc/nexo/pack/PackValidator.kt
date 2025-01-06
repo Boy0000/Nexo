@@ -2,11 +2,11 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.fonts.Glyph
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas
@@ -26,8 +26,8 @@ class PackValidator(val resourcePack: ResourcePack) {
 
     fun validatePack() {
         Logs.logInfo("Validating ResourcePack files...")
-        val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterIsInstance<PalettedPermutationsAtlasSource>()?.flatMap { source ->
-            source.textures().map { it.appendPng() }.flatMap textures@{ texture ->
+        val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()?.flatMapFast { source ->
+            source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
                 if (resourcePack.texture(texture) == null && DefaultResourcePackExtractor.vanillaResourcePack.texture(texture) == null) {
                     logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
                     return@textures emptyList()
@@ -108,8 +108,8 @@ class PackValidator(val resourcePack: ResourcePack) {
     }
 
     private val uvTextures by lazy {
-        resourcePack.models().associate { it.textures() to it.elements() }.mapNotNull { (textures, elements) ->
-            elements.flatMap { it.faces().values }.filter { it.uv() != null }.mapNotNull { face ->
+        resourcePack.models().associateFast { it.textures() to it.elements() }.mapNotNull { (textures, elements) ->
+            elements.flatMapFast { it.faces().values }.filterFast { it.uv() != null }.mapNotNull { face ->
                 textures.variables()[face.texture().removePrefix("#")]?.key()
             }
         }.flatten().toSet()

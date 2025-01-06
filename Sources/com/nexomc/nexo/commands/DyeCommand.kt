@@ -5,6 +5,7 @@ import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.util.ColorHelpers
 import com.mineinabyss.idofront.util.removeSpaces
 import com.nexomc.nexo.configs.Message
+import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.kotlindsl.greedyStringArgument
@@ -49,7 +50,7 @@ fun String.toColor(): Color? {
             this.startsWith("0x") -> Color.fromARGB(this.drop(2).padStart(8, 'F').hexToInt(ColorHelpers.hexFormat))
             "," in this -> {
                 val color = this.removeSpaces().split(",")
-                when (color.mapNotNull(String::toIntOrNull).size) {
+                when (color.mapNotNullFast(String::toIntOrNull).size) {
                     3 -> Color.fromRGB(color[0].toInt(), color[1].toInt(), color[2].toInt())
                     4 -> Color.fromARGB(color[0].toInt(), color[1].toInt(), color[2].toInt(), color[3].toInt())
                     else -> null

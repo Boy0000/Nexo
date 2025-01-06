@@ -7,6 +7,8 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
+import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.flatMapFast
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.World
@@ -18,7 +20,7 @@ import kotlin.random.Random
 
 class EvolutionTask(private val furnitureFactory: FurnitureFactory, private val delay: Int) : BukkitRunnable() {
     override fun run() {
-        Bukkit.getWorlds().flatMap { it.entities }.filterIsInstance<ItemDisplay>().forEach { entity ->
+        Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach { entity ->
             val (entityLoc, world, pdc) = entity.location to entity.world to entity.persistentDataContainer
             if (!pdc.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return@forEach
 

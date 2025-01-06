@@ -3,6 +3,8 @@ package com.nexomc.nexo.mechanics.furniture
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
+import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
@@ -37,7 +39,7 @@ interface IFurniturePacketManager {
     fun removeLightMechanicPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {}
 
     fun removeAllFurniturePackets() {
-        Bukkit.getWorlds().flatMap { it.entities }.filterIsInstance<ItemDisplay>().forEach { entity ->
+        Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach { entity ->
             val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@forEach
             removeInteractionHitboxPacket(entity, mechanic)
             removeBarrierHitboxPacket(entity, mechanic)
@@ -82,7 +84,7 @@ interface IFurniturePacketManager {
         }
 
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean =
-            barrierHitboxLocationMap.asSequence().any { (uuid, locations) -> uuid != excludeUUID && locations.any { it == block.location } }
+            barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it == block.location } }
     }
 
 }

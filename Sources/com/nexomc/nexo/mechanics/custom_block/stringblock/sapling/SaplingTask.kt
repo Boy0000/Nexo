@@ -6,6 +6,7 @@ import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.jeff_media.customblockdata.CustomBlockData
+import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import org.bukkit.Bukkit
 import org.bukkit.Chunk
 import org.bukkit.Material
@@ -20,7 +21,7 @@ class SaplingTask(private val delay: Int) : BukkitRunnable() {
         for (world: World in Bukkit.getWorlds()) {
             for (chunk: Chunk? in world.loadedChunks) {
                 for (block: Block in CustomBlockData.getBlocksWithCustomData(NexoPlugin.instance(), chunk)) {
-                    val pdc = getPersistentDataContainer(block)
+                    val pdc = block.persistentDataContainer
                     when {
                         pdc.has(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER) && block.type == Material.TRIPWIRE -> {
                             val string = NexoBlocks.stringMechanic(block)

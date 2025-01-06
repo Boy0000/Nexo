@@ -3,6 +3,7 @@ package com.nexomc.nexo.commands
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.mapFast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
@@ -16,7 +17,7 @@ internal fun CommandTree.glyphInfoCommand() = literalArgument("glyphinfo") {
     withPermission("nexo.command.glyphinfo")
     stringArgument("glyphid") {
         replaceSuggestions(ArgumentSuggestions.stringsAsync {
-            CompletableFuture.supplyAsync { NexoPlugin.instance().fontManager().glyphs().map(Glyph::id).toTypedArray() }
+            CompletableFuture.supplyAsync { NexoPlugin.instance().fontManager().glyphs().mapFast(Glyph::id).toTypedArray() }
         })
         anyExecutor { sender, args ->
             val mm = AdventureUtils.MINI_MESSAGE

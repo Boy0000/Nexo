@@ -6,12 +6,9 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
-import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.resolve
 import io.leangen.geantyref.TypeToken
 import org.bukkit.NamespacedKey
 import org.bukkit.persistence.PersistentDataContainer
@@ -393,7 +390,7 @@ object OraxenConverter {
             else file.delete()
         }
 
-        setOf("models", "textures", "sounds", "font", "lang").associateWith { packFolder.resolve(it) }.forEach {
+        setOf("models", "textures", "sounds", "font", "lang").associateFastWith { packFolder.resolve(it) }.forEach {
             val dest = namespaceFolder.resolve(it.key)
             it.value.copyRecursively(dest, false) { _, _ ->
                 OnErrorAction.SKIP

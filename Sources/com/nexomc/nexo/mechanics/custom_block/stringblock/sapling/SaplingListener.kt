@@ -3,6 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
+import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import org.bukkit.Effect
 import org.bukkit.GameMode
@@ -32,7 +33,7 @@ class SaplingListener : Listener {
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
         block.world.playEffect(block.location, Effect.BONE_MEAL_USE, 3)
 
-        val pdc = getPersistentDataContainer(block)
+        val pdc = block.persistentDataContainer
         val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - sapling.boneMealGrowthSpeedup
         if (growthTimeRemains <= 0) {
             block.setType(Material.AIR, false)

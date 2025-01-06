@@ -11,13 +11,13 @@ class FurnitureSubEntity {
     val baseId: Int
     val entityIds: IntList
 
-    constructor(baseEntity: ItemDisplay, entityIds: Collection<Int?>) {
+    constructor(baseEntity: ItemDisplay, entityIds: Collection<Int>) {
         this.baseUuid = baseEntity.uniqueId
         this.baseId = baseEntity.entityId
         this.entityIds = IntArrayList(entityIds)
     }
 
-    constructor(baseUuid: UUID, baseId: Int, entityIds: Collection<Int?>) {
+    constructor(baseUuid: UUID, baseId: Int, entityIds: Collection<Int>) {
         this.baseUuid = baseUuid
         this.baseId = baseId
         this.entityIds = IntArrayList(entityIds)

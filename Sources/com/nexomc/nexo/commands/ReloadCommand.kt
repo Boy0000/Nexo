@@ -15,17 +15,20 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.NexoPackServer.Companion.initializeServer
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
+import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import dev.jorel.commandapi.kotlindsl.textArgument
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import kotlin.jvm.optionals.getOrDefault
 
 internal fun CommandTree.reloadCommand() = multiLiteralArgument(nodeName = "reload", "reload", "rl") {
@@ -80,19 +83,27 @@ object ReloadCommand {
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...")
-            Bukkit.getServer().onlinePlayers.asSequence().map(Player::getInventory).forEach { inventory ->
-                Bukkit.getScheduler().runTaskAsynchronously(NexoPlugin.instance(), Runnable {
-                    for (i in 0..inventory.size) {
-                        val oldItem = inventory.getItem(i) ?: continue
-                        val newItem = ItemUpdater.updateItem(oldItem).takeUnless { it == oldItem } ?: continue
-                        inventory.setItem(i, newItem)
+            Bukkit.getScheduler().runTaskAsynchronously(NexoPlugin.instance(), Runnable {
+                Bukkit.getServer().onlinePlayers.forEach { player ->
+                    val updates = ObjectArrayList<Pair<Int, ItemStack>>()
+
+                    player.inventory.contents.forEachIndexed { index, item ->
+                        if (item == null) return@forEachIndexed
+                        val newItem = ItemUpdater.updateItem(item).takeUnless { it == item } ?: return@forEachIndexed
+                        updates.add(index to newItem)
                     }
-                })
-            }
+
+                    Bukkit.getScheduler().runTask(NexoPlugin.instance(), Runnable {
+                        updates.forEach { (index, newItem) ->
+                            player.inventory.setItem(index, newItem)
+                        }
+                    })
+                }
+            })
         }
 
         Logs.logInfo("Updating all placed furniture...")
-        for (baseEntity in Bukkit.getWorlds().flatMap { it.getEntitiesByClass(ItemDisplay::class.java) })
+        for (baseEntity in Bukkit.getWorlds().flatMapFast { it.getEntitiesByClass(ItemDisplay::class.java) })
             NexoFurniture.updateFurniture(baseEntity)
     }
 

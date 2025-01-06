@@ -2,6 +2,8 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 
 import com.nexomc.nexo.utils.VectorUtils.vectorFromString
 import org.apache.commons.lang3.StringUtils
+import org.bukkit.Location
+import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import org.joml.Math
 import kotlin.math.cos
@@ -42,6 +44,10 @@ data class InteractionHitbox(
         val z = offset.x * sin(radians) + (-offset.z) * cos(radians)
 
         return Vector(x, offset.y, z)
+    }
+
+    fun boundingBox(center: Location): BoundingBox {
+        return BoundingBox.of(center, width.div(2.0), height.div(2.0), width.div(2.0))
     }
 
     companion object {

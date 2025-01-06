@@ -149,7 +149,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         itemFiles().forEach file@{ file ->
             val config = loadConfiguration(file)
 
-            config.getKeys(false).associateWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
+            config.getKeys(false).associateFastWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
                 val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
                 val material = Material.getMaterial(itemSection.getString("material", "")!!) ?: return@forEach
                 val parsedKey = KeyUtils.parseKey(itemId.substringBefore(":", "minecraft"), itemId.substringAfter(":"), "model")
@@ -170,8 +170,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     fun parseAllItemTemplates() {
         itemFiles().asSequence().filter(File::exists).map(::loadConfiguration).forEach { configuration ->
-            configuration.getKeys(false).asSequence().mapNotNull(configuration::getConfigurationSection)
-                .filter { it.isBoolean("template") }.forEach(ItemTemplate::register)
+            configuration.getKeys(false).mapNotNullFast(configuration::getConfigurationSection)
+                .filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
         }
     }
 
@@ -206,7 +206,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             map[itemId] = runCatching {
                 itemParser.buildItem()
             }.onFailure {
-                Logs.logError("ERROR BUILDING ITEM \"$itemId\"")
+                Logs.logError("ERROR BUILDING ITEM \"$itemId\" from file ${itemFile.path}")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
                 else it.message?.let(Logs::logWarn)
             }.getOrNull() ?: ERROR_ITEM

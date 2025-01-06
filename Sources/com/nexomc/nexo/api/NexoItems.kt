@@ -6,8 +6,9 @@ import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.NexoYaml
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
@@ -76,17 +77,17 @@ object NexoItems {
     fun itemMap() = itemMap
 
     @JvmStatic
-    fun entriesAsMap(): Map<String, ItemBuilder> = itemMap.values.flatMap { it.entries }.associate { it.key to it.value }
+    fun entriesAsMap(): Map<String, ItemBuilder> = itemMap.values.flatMapFast { it.entries }.associateFast { it.key to it.value }
 
     @JvmStatic
-    fun entries(): Set<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMap { it.entries }.toSet()
+    fun entries(): ObjectOpenHashSet<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMapSetFast { it.entries }
 
     @JvmStatic
-    fun items(): Set<ItemBuilder> = itemMap.values.flatMap { it.values }.toSet()
+    fun items(): ObjectOpenHashSet<ItemBuilder> = itemMap.values.flatMapSetFast { it.values }
 
     @JvmStatic
-    fun names(): Set<String> = itemMap.values.flatMap { it.keys }.toSet()
+    fun names(): ObjectOpenHashSet<String> = itemMap.values.flatMapSetFast { it.keys }
 
     @JvmStatic
-    fun itemNames(): Array<String> = itemMap.values.flatMap { it.filterValues { it.nexoMeta?.excludedFromCommands != true }.keys }.toTypedArray()
+    fun itemNames(): Array<String> = itemMap.values.flatMapFast { it.filterFast { it.value.nexoMeta?.excludedFromCommands != true }.keys }.toTypedArray()
 }

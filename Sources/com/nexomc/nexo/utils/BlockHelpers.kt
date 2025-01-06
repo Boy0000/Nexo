@@ -1,11 +1,12 @@
 package com.nexomc.nexo.utils
 
+import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
-import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -17,7 +18,7 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.BoundingBox
-import java.util.UUID
+import java.util.*
 
 object BlockHelpers {
     /**
@@ -105,10 +106,7 @@ object BlockHelpers {
     /** Returns the PersistentDataContainer from CustomBlockData
      * @param block The block to get the PersistentDataContainer for
      */
-    @JvmStatic
-    fun getPersistentDataContainer(block: Block): PersistentDataContainer {
-        return getPersistentDataContainer(block, NexoPlugin.instance())
-    }
+    val Block.persistentDataContainer: PersistentDataContainer get() = CustomBlockData(this, NexoPlugin.instance())
 
     /** Returns the PersistentDataContainer from CustomBlockData
      * @param block The block to get the PersistentDataContainer for
@@ -119,20 +117,22 @@ object BlockHelpers {
     }
 
     @JvmField
-    val REPLACEABLE_BLOCKS: Set<Material> = Tag.REPLACEABLE.values
+    val REPLACEABLE_BLOCKS: ObjectOpenHashSet<Material> = ObjectOpenHashSet(Tag.REPLACEABLE.values)
 
     @JvmStatic
-    fun isReplaceable(block: Block, excludeUUID: UUID? = null) =
-        (block.blockData as? Snow)?.let { it.layers == 1 } ?: (block.type in REPLACEABLE_BLOCKS) && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+    fun isReplaceable(block: Block, excludeUUID: UUID? = null): Boolean {
+        return when (block.type) {
+            Material.SNOW -> (block.blockData as Snow).layers == 1
+            in REPLACEABLE_BLOCKS -> !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+            else -> false
+        }
+    }
 
     @JvmStatic
     fun isReplaceable(position: Position, world: World, excludeUUID: UUID? = null): Boolean {
         val block = position.toLocation(world).block
         return isReplaceable(block, excludeUUID)
     }
-
-    fun isReplaceable(blockData: BlockData) =
-        (blockData as? Snow)?.let { it.layers == 1 } ?: (blockData.material in REPLACEABLE_BLOCKS)
 
     @JvmStatic
     fun isReplaceable(material: Material) = material in REPLACEABLE_BLOCKS

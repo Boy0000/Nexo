@@ -9,6 +9,7 @@ import com.nexomc.nexo.recipes.loaders.*
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapNotNullFast
 import org.bukkit.Bukkit
 import org.bukkit.Keyed
 import org.bukkit.configuration.ConfigurationSection
@@ -66,7 +67,7 @@ object RecipesManager {
     }
 
     private fun registerConfigRecipes(configFile: File) {
-        loadConfiguration(configFile).let { it.getKeys(false).mapNotNull(it::getConfigurationSection) }.forEach {
+        loadConfiguration(configFile).let { it.getKeys(false).mapNotNullFast(it::getConfigurationSection) }.forEach {
             registerRecipeByType(configFile, it)
         }
     }

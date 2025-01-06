@@ -21,6 +21,7 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
+import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.EventUtils.call
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -149,7 +150,7 @@ object NexoBlocks {
     private fun placeNoteBlock(location: Location, itemID: String?) {
         val block = location.block
         NoteBlockMechanicFactory.setBlockModel(block, itemID)
-        val pdc = getPersistentDataContainer(block)
+        val pdc = block.persistentDataContainer
         val mechanic = noteBlockMechanic(block) ?: return
 
         if (mechanic.storage()?.storageType == StorageType.STORAGE) {
@@ -170,7 +171,7 @@ object NexoBlocks {
         }
 
         if (mechanic.isSapling()) mechanic.sapling()?.takeIf { it.canGrowNaturally }?.let {
-            getPersistentDataContainer(block).set(
+            block.persistentDataContainer.set(
                 SaplingMechanic.SAPLING_KEY,
                 PersistentDataType.INTEGER,
                 it.naturalGrowthTime

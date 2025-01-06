@@ -15,6 +15,8 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.flatMapFast
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
 import io.th0rgal.protectionlib.ProtectionLib
@@ -95,7 +97,7 @@ class FurniturePacketListener : Listener {
     @EventHandler
     fun NexoMechanicsRegisteredEvent.onFurnitureFactory() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-        Bukkit.getWorlds().flatMap { it.entities }.filterIsInstance<ItemDisplay>().forEach { baseEntity ->
+        Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach { baseEntity ->
             val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@forEach
             if (FurnitureSeat.isSeat(baseEntity)) return@forEach
 

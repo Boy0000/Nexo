@@ -9,6 +9,7 @@ import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.toFastMap
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
@@ -100,10 +101,10 @@ data class FurnitureSeat(val offset: Vector) {
                     val furnitureSeat = mechanic.seats.elementAtOrNull(i) ?: return@mapIndexedNotNull null
                     val interactionEntity = Bukkit.getEntity(uuid) as? Interaction ?: return@mapIndexedNotNull null
                     furnitureSeat to interactionEntity
-                }?.toMap() ?: return
+                }?.toFastMap() ?: return
 
 
-            if (mechanic.seats.isEmpty()) seats.values.onEach(Entity::remove)
+            if (mechanic.seats.isEmpty) seats.values.onEach(Entity::remove)
             else seats.forEach { (seat, entity) ->
                 val passengers = entity.passengers.toList().onEach(entity::removePassenger)
                 entity.teleport(baseEntity.location.plus(seat.offset(baseEntity.location.yaw)))

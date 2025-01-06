@@ -3,32 +3,29 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.toIntRangeOrNull
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
+import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
+import kotlin.collections.plus
 
 class FurnitureHitbox(
-    private val barriers: Set<BarrierHitbox> = setOf(),
-    private val interactions: Set<InteractionHitbox> = setOf(),
+    val barriers: ObjectOpenHashSet<BarrierHitbox> = ObjectOpenHashSet(),
+    val interactions: ObjectOpenHashSet<InteractionHitbox> = ObjectOpenHashSet(),
 ) {
 
     constructor(hitboxSection: ConfigurationSection) : this(
-        hitboxSection.getStringList("barriers").map(::parseHitbox).flatten().toSet(),
-        hitboxSection.getStringList("interactions").map(::InteractionHitbox)
+        hitboxSection.getStringList("barriers").flatMapSetFast(::parseHitbox),
+        hitboxSection.getStringList("interactions").mapFastSet(::InteractionHitbox)
     )
 
     constructor(barriers: Collection<BarrierHitbox>, interactions: Collection<InteractionHitbox>)
-        : this(barriers.toSet(), interactions.toSet())
-
-    fun barriers(): Set<BarrierHitbox> {
-        return barriers
-    }
-
-    fun interactions(): List<InteractionHitbox> {
-        return interactions.toList()
-    }
+        : this(ObjectOpenHashSet(barriers), ObjectOpenHashSet(interactions))
 
     fun hitboxHeight(): Double {
         val highestBarrier = barriers.maxOfOrNull { it.y + 1 } ?: 0
@@ -49,13 +46,16 @@ class FurnitureHitbox(
     }
 
     fun hitboxLocations(center: Location, yaw: Float) =
-        barrierLocations(center, yaw).plus(interactionLocations(center, yaw))
+        barrierLocations(center, yaw).plusFast(interactionLocations(center, yaw))
 
     fun barrierLocations(center: Location, rotation: Float) =
-        barriers.map { it.groundRotate(rotation).add(center) }
+        barriers.mapFast { it.groundRotate(rotation).add(center) }
 
     fun interactionLocations(center: Location, rotation: Float) =
-        interactions.map { center.toCenterLocation().clone().add(it.offset(rotation)) }
+        interactions.mapFast { center.toCenterLocation().clone().add(it.offset(rotation)) }
+
+    fun interactionBoundingBoxes(center: Location, rotation: Float) =
+        interactions.mapFast { it.boundingBox(center.toCenterLocation().clone().add(it.offset(rotation))) }
 
     companion object {
         val EMPTY = FurnitureHitbox()

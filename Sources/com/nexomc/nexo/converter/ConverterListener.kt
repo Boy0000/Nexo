@@ -4,6 +4,8 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
@@ -26,8 +28,8 @@ class OraxenConverterListener : Listener {
     @EventHandler
     fun ChunkLoadEvent.onChunkLoad() {
         CustomBlockData.getBlocksWithCustomData("oraxen", chunk)
-            .associateWith { CustomBlockData(it, "oraxen") }
-            .filter { it.key.type == Material.BARRIER && BASE_ENTITY_KEY in it.value.keys }
+            .associateFastWith { CustomBlockData(it, "oraxen") }
+            .filterFast { it.key.type == Material.BARRIER && BASE_ENTITY_KEY in it.value.keys }
             .forEach { (block, pdc) ->
                 block.type = Material.AIR
                 pdc.clear()
