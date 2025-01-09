@@ -88,7 +88,7 @@ class NexoPlugin : JavaPlugin() {
         packServer = NexoPackServer.initializeServer()
         packServer.start()
 
-        Metrics(this, 23930)
+        NexoMetrics.initializeMetrics()
 
         Bukkit.getScheduler().runTask(this, Runnable {
             MechanicsManager.registerNativeMechanics()

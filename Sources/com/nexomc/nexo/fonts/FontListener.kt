@@ -5,6 +5,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemBuilder
+import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
@@ -13,7 +14,9 @@ import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.ItemUtils.displayName
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.key.Key
@@ -213,13 +216,8 @@ class FontListener(private val manager: FontManager) : Listener {
         fun AsyncPlayerChatEvent.onPlayerChat() {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy) return
 
-            val format = format(format, null)
-            val message = format(message, player)
-            if (format == null || message == null) isCancelled = true
-            else {
-                setFormat(format)
-                setMessage(message)
-            }
+            format = format
+            message = GlyphHandlers.escapeGlyphs(message.deserialize(), player).serialize()
         }
 
         /**
@@ -253,52 +251,9 @@ class FontListener(private val manager: FontManager) : Listener {
     inner class PaperChatHandler : Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         fun AsyncChatDecorateEvent.onPlayerChat() {
+            val player = player() ?: return
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern) return
-            result(format(result(), player()!!))
+            result(GlyphHandlers.escapePlaceholders(GlyphHandlers.escapeGlyphs(result(), player), player))
         }
-    }
-
-    private val RANDOM_FONT = Key.key("random")
-    private fun format(message: Component, player: Player): Component {
-        var message = message
-        val serialized = message.asFlatTextContent()
-
-        manager.unicodeGlyphMap.keys.forEach { character: Char ->
-            if (character !in serialized) return@forEach
-
-            val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
-            if (glyph.hasPermission(player)) return@forEach
-            message = message.replaceText(
-                TextReplacementConfig.builder()
-                    .matchLiteral(character.toString())
-                    .replacement(glyph.glyphComponent().font(RANDOM_FONT))
-                    .build()
-            )
-        }
-
-        manager.placeholderGlyphMap.entries.forEach { (placeholder, glyph) ->
-            if (!glyph.hasPermission(player)) return@forEach
-            message = message.replaceText(
-                TextReplacementConfig.builder()
-                    .matchLiteral(placeholder)
-                    .replacement(glyph.glyphComponent()).build()
-            )
-        }
-
-        return message
-    }
-
-    private fun Component.asFlatTextContent(): String {
-        var flattened = ""
-        val flatText = (this@asFlatTextContent as? TextComponent) ?: return flattened
-        flattened += flatText.content()
-        flattened += flatText.children().joinToString("") { it.asFlatTextContent() }
-        (flatText.hoverEvent()?.value() as? Component)?.let { hover ->
-            val hoverText = hover as? TextComponent ?: return@let
-            flattened += hoverText.content()
-            flattened += hoverText.children().joinToString("") { it.asFlatTextContent() }
-        }
-
-        return flattened
     }
 }

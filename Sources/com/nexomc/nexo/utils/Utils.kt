@@ -11,6 +11,7 @@ import org.bukkit.inventory.EquipmentSlot
 import java.io.Serializable
 import java.nio.file.FileSystems
 import java.util.*
+import kotlin.random.Random
 
 inline fun <reified T> Any?.safeCast(): T? = this as? T
 inline fun <reified T> Any?.ensureCast(): T = this as T
@@ -31,6 +32,10 @@ internal fun String.toIntRangeOrNull(): IntRange? {
     val first = this.substringBefore("..").toIntOrNull() ?: return null
     return first..(this.substringAfter("..").toIntOrNull() ?: return null)
 }
+
+fun IntRange.randomOrMin(): Int =
+    if (start >= endInclusive) start
+    else Random.nextInt(start, endInclusive)
 
 object Utils {
 

@@ -1,6 +1,6 @@
 package com.nexomc.nexo.compatibilities.mmoitems
 
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
+import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.logs.Logs
 import net.Indyuce.mmoitems.MMOItems
 import net.Indyuce.mmoitems.api.ItemTier
@@ -19,7 +19,7 @@ class WrappedMMOItem(
 
     constructor(section: ConfigurationSection) : this() {
         when {
-            !isEnabled("MMOItems") -> Logs.logError("MMOItems is not installed")
+            !PluginUtils.isEnabled("MMOItems") -> return
             else -> {
                 type = MMOItems.plugin.types.get(section.getString("type"))
                 id = section.getString("id")
@@ -44,12 +44,13 @@ class WrappedMMOItem(
         }
     }
 
+    val material = runCatching { template()?.newBuilder()?.build()?.newBuilder()?.build()?.type }.getOrNull()
+
     fun build(): ItemStack? {
-        if (isEnabled("MMOItems")) {
-            template()?.let { templateItem ->
-                return templateItem.newBuilder().build().newBuilder().build()
-            } ?: Logs.logError("Failed to load MMOItem $id, Item does not exist")
-        } else Logs.logWarn("MMOItems is not installed")
+        if (PluginUtils.isEnabled("MMOItems")) {
+            return template()?.newBuilder()?.build()?.newBuilder()?.build()
+                ?: null.apply { Logs.logError("Failed to load MMOItem $id, Item does not exist") }
+        } else Logs.logError("Failed to load MMOItem $id, MMOItems is not installed")
         return null
     }
 }

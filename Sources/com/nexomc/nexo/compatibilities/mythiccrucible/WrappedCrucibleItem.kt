@@ -11,6 +11,7 @@ class WrappedCrucibleItem(private val id: String?, val cache: Boolean = true) {
 
     constructor(section: ConfigurationSection) : this(section.getString("id"), section.getBoolean("cache", true))
 
+    val material = runCatching { MythicBukkit.inst().itemManager.getItemStack(id).type }.getOrNull()
 
     fun build() = runCatching {
         BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(id).orElseThrow().generateItemStack(1))

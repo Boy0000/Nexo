@@ -6,8 +6,8 @@ import org.bukkit.Material
 import org.bukkit.block.data.type.Light
 
 class LightBlock : BlockLocation {
-    private val lightLevel: Int
-    private val lightData: Light
+    val lightLevel: Int
+    val lightData: Light
 
     fun from(hitboxObject: Any?): LightBlock {
         return when (hitboxObject) {
@@ -23,14 +23,6 @@ class LightBlock : BlockLocation {
 
     constructor(location: Location, lightData: Light) : super(location) {
         this.lightLevel = lightData.level
-        this.lightData = lightData
-    }
-
-    fun lightLevel(): Int {
-        return lightLevel
-    }
-
-    fun lightData(): Light {
-        return lightData
+        this.lightData = lightData.apply { isWaterlogged = location.block.type == Material.WATER }
     }
 }

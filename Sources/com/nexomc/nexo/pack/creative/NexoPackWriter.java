@@ -117,7 +117,7 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
 
     private <T> void writeToJson(FileTreeWriter writer, JsonResourceSerializer<T> serializer, T object, String path) {
         try (JsonWriter jsonWriter = new JsonWriter(writer.openWriter(path))) {
-            jsonWriter.setIndent("  ");
+            if (!Settings.PACK_MINIMIZE_JSON.toBool(true)) jsonWriter.setIndent("  ");
             serializer.serializeToJson(object, jsonWriter);
         } catch (IOException e) {
             throw new UncheckedIOException("Failed to write to " + path, e);

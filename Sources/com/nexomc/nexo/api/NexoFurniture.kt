@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.ItemUtils.dyeColor
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
+import io.lumine.mythiccrucible.items.furniture.Furniture
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -53,6 +54,15 @@ object NexoFurniture {
 
     @JvmStatic
     fun isFurniture(entity: Entity?) = entity?.type == EntityType.ITEM_DISPLAY && furnitureMechanic(entity) != null
+
+    @JvmStatic
+    fun baseEntity(block: Block?): ItemDisplay? = FurnitureMechanic.baseEntity(block)
+
+    @JvmStatic
+    fun baseEntity(location: Location?): ItemDisplay? = FurnitureMechanic.baseEntity(location)
+
+    @JvmStatic
+    fun baseEntity(interactionId: Int) = FurnitureMechanic.baseEntity(interactionId)
 
     /**
      * Places Furniture at a given location
@@ -100,15 +110,15 @@ object NexoFurniture {
     @JvmStatic
     fun remove(location: Location, player: Player? = null, drop: Drop? = null): Boolean {
         if (!FurnitureFactory.isEnabled) return false
-        if (!location.isWorldLoaded()) return false
-        checkNotNull(location.getWorld())
+        if (!location.isWorldLoaded) return false
+        checkNotNull(location.world)
 
-        val entity = location.getWorld().getNearbyEntities(location, 0.5, 0.5, 0.5).firstOrNull(::isFurniture)
+        val entity = location.world.getNearbyEntities(location, 0.5, 0.5, 0.5).firstOrNull(::isFurniture)
         val mechanic = furnitureMechanic(location) ?: furnitureMechanic(entity) ?: return false
         val itemStack = player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)
         checkNotNull(entity)
 
-        val baseEntity = mechanic.baseEntity(location) ?: return false
+        val baseEntity = FurnitureMechanic.baseEntity(location) ?: return false
 
         if (player != null) {
             if (player.gameMode != GameMode.CREATIVE) (drop ?: mechanic.breakable.drop).furnitureSpawns(baseEntity, itemStack)
@@ -236,5 +246,10 @@ object NexoFurniture {
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
         }, 2L)
+    }
+
+    @JvmStatic
+    fun findTargetFurniture(player: Player): ItemDisplay? {
+        return FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player)
     }
 }

@@ -62,17 +62,21 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
             if (Settings.DEBUG.toBool()) it.printStackTrace()
         }
 
-        enableDatapack(true)
+        when {
+            isFirstInstall -> {
+                Logs.logError("Nexos's Custom-Armor datapack could not be found...")
+                Logs.logWarn("The first time CustomArmor is enabled in settings.yml")
+                Logs.logWarn("you need to restart your server so that the DataPack is enabled...")
+                Logs.logWarn("Custom-Armor will not work, please restart your server once!", true)
+            }
+            !datapackEnabled -> {
+                Logs.logError("Nexos's Custom-Armor datapack is not enabled...")
+                Logs.logWarn("Custom-Armor will not work, please restart your server!", true)
+            }
+            else -> parseNexoArmorItems()
+        }
 
-        if (isFirstInstall) {
-            Logs.logError("Nexos's Custom-Armor datapack could not be found...")
-            Logs.logWarn("The first time CustomArmor is enabled in settings.yml")
-            Logs.logWarn("you need to restart your server so that the DataPack is enabled...")
-            Logs.logWarn("Custom-Armor will not work, please restart your server once!", true)
-        } else if (!datapackEnabled) {
-            Logs.logError("Nexos's Custom-Armor datapack is not enabled...")
-            Logs.logWarn("Custom-Armor will not work, please restart your server!", true)
-        } else parseNexoArmorItems()
+        enableDatapack(true)
     }
 
     private fun writeTrimAtlas(resourcePack: ResourcePack, armorPrefixes: LinkedHashSet<String>) {

@@ -20,13 +20,16 @@ object JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for 
             }.writeText(jukeboxPlayable.jukeboxJson)
         }
 
-        if (isFirstInstall) {
-            Logs.logError("Nexos's Custom Music Discs datapack could not be found...")
-            Logs.logWarn("The first time you add a music-disc you need to restart your server so that the DataPack is enabled...")
-            Logs.logWarn("Custom Music Discs will not work, please restart your server once!", true)
-        } else if (!datapackEnabled) {
-            Logs.logError("Nexos's Custom Music Discs datapack is not enabled...")
-            Logs.logWarn("Custom Music Discs will not work, please restart your server!", true)
+        when {
+            isFirstInstall -> {
+                Logs.logError("Nexos's Custom Music Discs datapack could not be found...")
+                Logs.logWarn("The first time you add a music-disc you need to restart your server so that the DataPack is enabled...")
+                Logs.logWarn("Custom Music Discs will not work, please restart your server once!", true)
+            }
+            !datapackEnabled -> {
+                Logs.logError("Nexos's Custom Music Discs datapack is not enabled...")
+                Logs.logWarn("Custom Music Discs will not work, please restart your server!", true)
+            }
         }
 
         enableDatapack(true)

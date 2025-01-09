@@ -28,6 +28,7 @@ abstract class CustomBlockMechanic(factory: MechanicFactory, section: Configurat
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
     open val breakable: BreakableMechanic = BreakableMechanic(section)
     val isBlastResistant: Boolean = section.getBoolean("blast_resistant")
+    val immovable: Boolean = section.getBoolean("immovable")
 
     open fun createBlockData(): BlockData? = Material.AIR.createBlockData()
 

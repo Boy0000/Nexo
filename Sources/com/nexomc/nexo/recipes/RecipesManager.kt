@@ -81,7 +81,6 @@ object RecipesManager {
                 "blasting.yml" -> BlastingLoader(recipeSection).registerRecipe()
                 "smoking.yml" -> SmokingLoader(recipeSection).registerRecipe()
                 "stonecutting.yml" -> StonecuttingLoader(recipeSection).registerRecipe()
-                else -> Logs.logError(configFile.name)
             }
         }.onFailure {
             Message.BAD_RECIPE.log(tagResolver("recipe", recipeSection.name))

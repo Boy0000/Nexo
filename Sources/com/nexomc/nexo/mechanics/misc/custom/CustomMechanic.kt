@@ -8,8 +8,7 @@ import com.nexomc.nexo.utils.actions.ClickAction.Companion.from
 import org.bukkit.configuration.ConfigurationSection
 import kotlin.collections.set
 
-class CustomMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class CustomMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     init {
         section.getKeys(false).forEach { subMechanicName ->
             val subsection = section.getConfigurationSection(subMechanicName) ?: return@forEach

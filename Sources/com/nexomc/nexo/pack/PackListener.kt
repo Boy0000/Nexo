@@ -15,7 +15,7 @@ class PackListener : Listener {
         if (!Settings.PACK_SEND_ON_JOIN.toBool()) return
         if (Settings.PACK_SEND_PRE_JOIN.toBool() && (VersionUtil.atleast("1.21") || !VersionUtil.isPaperServer || player.hasResourcePack())) return
 
-        val delay = Settings.PACK_SEND_DELAY.value as Int
+        val delay = Settings.PACK_SEND_DELAY.toInt(-1)
         if (delay <= 0) NexoPlugin.instance().packServer().sendPack(player)
         else Bukkit.getScheduler().runTaskLaterAsynchronously(
             NexoPlugin.instance(),

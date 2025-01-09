@@ -1,82 +1,67 @@
 package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.fonts.ShiftTag
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.*
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.translation.GlobalTranslator
-import org.apache.commons.lang3.StringUtils
-import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
+import team.unnamed.creative.font.Font
 import java.util.Locale
 import java.util.regex.Pattern
 
 object GlyphHandlers {
-    @JvmField
-    val GLYPH_HANDLER_KEY = NamespacedKey(NexoPlugin.instance(), "glyph_handler")
 
     private val randomKey = Key.key("random")
+    private val randomComponent = NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent()
+    private val defaultEmoteReplacementConfigs = NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }
+        .associateFast { it to TextReplacementConfig.builder().match(it.character()).replacement(Component.textOfChildren(randomComponent)).build() }
+
     private val colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>")
 
-    private fun escapeGlyphs(component: Component, player: Player): Component {
-        var component = GlobalTranslator.render(component, player.locale())
-        val serialized = AdventureUtils.MINI_MESSAGE.serialize(component)
+    fun escapePlaceholders(component: Component, player: Player?): Component {
+        var component = component
+
+        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
+            val config = if (glyph.hasPermission(player)) glyph.placeholderReplacementConfig else return@forEach
+            component = component.replaceText(config ?: return@forEach)
+        }
+
+        return component
+    }
+
+    fun escapeGlyphs(component: Component, player: Player?): Component {
+        var component = component
+        val serialized = component.asFlatTextContent()
+
+        // Replace all unicodes found in default font with a random one
+        // This is to prevent use of unicodes from the font the chat is in
+        defaultEmoteReplacementConfigs.filterFast { !it.key.hasPermission(player) }.forEach { (_, config) ->
+            component = component.replaceText(config)
+        }
 
         // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
             if (glyph.hasPermission(player)) return@forEach
 
-            component = component.replaceText(
-                TextReplacementConfig.builder()
-                    .matchLiteral(glyph.character())
-                    .replacement(glyph.glyphComponent().font(randomKey))
-                    .build()
-            )
-
-            // Escape all glyph-tags
-            val matcher = glyph.baseRegex.matcher(serialized)
-            while (matcher.find()) {
-                component = component.replaceText(
-                    TextReplacementConfig.builder().once()
-                        .matchLiteral(matcher.group())
-                        .replacement(AdventureUtils.MINI_MESSAGE.deserialize("\\" + matcher.group()))
-                        .build()
-                )
-            }
+            component = component.replaceText(glyph.escapeReplacementConfig)
         }
 
-        return component
+        return component.replaceText(ShiftTag.ESCAPE_REPLACEMENT_CONFIG)
     }
 
     fun unescapeGlyphs(component: Component): Component {
         var component = component
-        val serialized = component.asFlatTextContent()
 
-        NexoPlugin.instance().fontManager().glyphs().asSequence().map { it.escapedRegex.matcher(serialized) }.forEach {
-                while (it.find()) {
-                    component = component.replaceText(
-                        TextReplacementConfig.builder().once()
-                            .matchLiteral(it.group())
-                            .replacement(
-                                AdventureUtils.STANDARD_MINI_MESSAGE.deserialize(
-                                    StringUtils.removeStart(
-                                        it.group(),
-                                        "\\"
-                                    )
-                                )
-                            )
-                            .build()
-                    )
-                }
-            }
+        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
+            component = component.replaceText(glyph.unescapeReplacementConfig)
+        }
 
-        return component
+        return component.replaceText(ShiftTag.ESCAPE_REPLACEMENT_CONFIG)
     }
 
     private fun Component.asFlatTextContent(): String {
@@ -96,7 +81,9 @@ object GlyphHandlers {
     @JvmStatic
     fun Component.transformGlyphs(locale: Locale? = null): Component {
         var component = GlobalTranslator.render(this, locale ?: Locale.US)
-        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
+        val serialized = component.asFlatTextContent()
+
+        NexoPlugin.instance().fontManager().glyphs().filterFast { it.glyphTag() in serialized }.forEach { glyph ->
             component = component.replaceText(glyph.replacementConfig)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)

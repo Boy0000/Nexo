@@ -2,15 +2,42 @@ package com.nexomc.nexo.utils
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.util.*
+
+fun <T> Sequence<T>.toFastList(): ObjectArrayList<T> {
+    val it = iterator()
+    if (!it.hasNext())
+        return ObjectArrayList()
+    val element = it.next()
+    if (!it.hasNext())
+        return ObjectArrayList.of(element)
+    val dst = ObjectArrayList<T>()
+    dst.add(element)
+    while (it.hasNext()) dst.add(it.next())
+    return dst
+}
+
+fun <T> Sequence<T>.toFastSet(): ObjectLinkedOpenHashSet<T> {
+    val it = iterator()
+    if (!it.hasNext())
+        return ObjectLinkedOpenHashSet()
+    val element = it.next()
+    if (!it.hasNext())
+        return ObjectLinkedOpenHashSet.of(element)
+    val dst = ObjectLinkedOpenHashSet<T>()
+    dst.add(element)
+    while (it.hasNext()) dst.add(it.next())
+    return dst
+}
 
 inline fun <T, R> Iterable<T>.flatMapFast(transform: (T) -> Iterable<R>): ObjectArrayList<R> {
     return flatMapTo(ObjectArrayList<R>(), transform)
 }
 
-inline fun <T, R> Iterable<T>.flatMapSetFast(transform: (T) -> Iterable<R>): ObjectOpenHashSet<R> {
-    return flatMapTo(ObjectOpenHashSet<R>(), transform)
+inline fun <T, R> Iterable<T>.flatMapSetFast(transform: (T) -> Iterable<R>): ObjectLinkedOpenHashSet<R> {
+    return flatMapTo(ObjectLinkedOpenHashSet<R>(), transform)
 }
 
 inline fun <T, R> Iterable<T>.mapFast(transform: (T) -> R): ObjectArrayList<R> {

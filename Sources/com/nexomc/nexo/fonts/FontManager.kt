@@ -3,6 +3,9 @@ package com.nexomc.nexo.fonts
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.mapNotNullFast
+import com.nexomc.nexo.utils.toFastMap
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
@@ -12,22 +15,22 @@ import team.unnamed.creative.font.FontProvider
 import java.util.*
 
 class FontManager(configsManager: ConfigsManager) {
-    private val glyphMap: MutableMap<String, Glyph> = LinkedHashMap()
-    val placeholderGlyphMap: MutableMap<String, Glyph> = LinkedHashMap()
-    val unicodeGlyphMap: MutableMap<Char, String> = LinkedHashMap()
+    private val glyphMap: Object2ObjectOpenHashMap<String, Glyph> = Object2ObjectOpenHashMap()
+    val placeholderGlyphMap: Object2ObjectOpenHashMap<String, Glyph> = Object2ObjectOpenHashMap()
+    val unicodeGlyphMap: Object2ObjectOpenHashMap<Char, String> = Object2ObjectOpenHashMap()
     private val fontListener: FontListener = FontListener(this)
 
     init {
         configsManager.bitmaps.getConfigurationSection("bitmaps")?.let {
-            glyphBitMaps = it.getKeys(false).mapNotNull { key ->
-                val section = it.getConfigurationSection(key) ?: return@mapNotNull null
+            glyphBitMaps = it.getKeys(false).mapNotNullFast { key ->
+                val section = it.getConfigurationSection(key) ?: return@mapNotNullFast null
                 key to GlyphBitMap(
                     Key.key(section.getString("font", "minecraft:default")!!),
                     Key.key(section.getString("texture", "")!!.replace("^(?!.*\\.png$)", "") + ".png"),
                     section.getInt("rows"), section.getInt("columns"),
                     section.getInt("height", 8), section.getInt("ascent", 8)
                 )
-            }.toMap()
+            }.toFastMap()
         }
         loadGlyphs(configsManager.parseGlyphConfigs())
     }
@@ -120,7 +123,7 @@ class FontManager(configsManager: ConfigsManager) {
     }
 
     companion object {
-        var glyphBitMaps = mapOf<String, GlyphBitMap>()
+        var glyphBitMaps: Object2ObjectOpenHashMap<String, GlyphBitMap> = Object2ObjectOpenHashMap<String, GlyphBitMap>()
         fun glyphBitMap(id: String?) = glyphBitMaps[id]
     }
 }

@@ -79,11 +79,12 @@ data class FurnitureSeat(val offset: Vector) {
         }
 
         fun spawnSeats(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-            val location = baseEntity.location
+            val translation = Vector.fromJOML(baseEntity.transformation.translation)
             val yaw = baseEntity.location.yaw
             val uuid = baseEntity.uniqueId
             val seatUUIDs = mechanic.seats.map { seat: FurnitureSeat ->
-                baseEntity.world.spawn(location.clone().add(seat.offset(yaw)), Interaction::class.java) { i ->
+                val location = baseEntity.location.plus(translation).add(seat.offset(yaw))
+                baseEntity.world.spawn(location, Interaction::class.java) { i ->
                     i.interactionHeight = 0.1f
                     i.interactionWidth = 0.1f
                     i.isPersistent = true
@@ -107,7 +108,8 @@ data class FurnitureSeat(val offset: Vector) {
             if (mechanic.seats.isEmpty) seats.values.onEach(Entity::remove)
             else seats.forEach { (seat, entity) ->
                 val passengers = entity.passengers.toList().onEach(entity::removePassenger)
-                entity.teleport(baseEntity.location.plus(seat.offset(baseEntity.location.yaw)))
+                val translation = Vector.fromJOML(baseEntity.transformation.translation)
+                entity.teleport(baseEntity.location.plus(translation).plus(seat.offset(baseEntity.location.yaw)))
                 passengers.onEach(entity::addPassenger)
             }
         }

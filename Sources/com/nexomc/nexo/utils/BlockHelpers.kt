@@ -33,12 +33,10 @@ object BlockHelpers {
 
         val entityBox = entity.boundingBox.expand(0.3)
 
-        return BlockFace.entries
-            .asSequence()
-            .filter { it.isCartesian && it.modY == 0 }
-            .map(blockBelow::getRelative)
-            .firstOrNull { it.type != Material.AIR && it.boundingBox.overlaps(entityBox) }
+        return blockFaces.mapFast(blockBelow::getRelative)
+            .firstOrNull { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
     }
+    private val blockFaces = BlockFace.entries.filterFast { it.ordinal in 0..3 }
 
     @JvmStatic
     fun playCustomBlockSound(location: Location, sound: String?, volume: Float, pitch: Float) {
@@ -123,9 +121,9 @@ object BlockHelpers {
     fun isReplaceable(block: Block, excludeUUID: UUID? = null): Boolean {
         return when (block.type) {
             Material.SNOW -> (block.blockData as Snow).layers == 1
-            in REPLACEABLE_BLOCKS -> !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+            in REPLACEABLE_BLOCKS -> true
             else -> false
-        }
+        } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
     }
 
     @JvmStatic

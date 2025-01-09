@@ -34,11 +34,8 @@ object FurnitureHelpers {
 
     @JvmStatic
     fun furnitureItem(baseEntity: ItemDisplay, itemStack: ItemStack) {
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.also { furnitureBase ->
-            furnitureBase.itemStack = itemStack
-        }
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
+        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.itemStack(itemStack, baseEntity)
     }
 
     @JvmStatic
@@ -49,11 +46,7 @@ object FurnitureHelpers {
     fun furnitureDye(baseEntity: ItemDisplay, dyeColor: Color?) {
         if (dyeColor == null) baseEntity.persistentDataContainer.remove(FurnitureMechanic.FURNITURE_DYE_KEY)
         else baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, dyeColor.asRGB())
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.also { furnitureBase ->
-            furnitureBase.itemStack = furnitureBase.itemStack
-        }
-        FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
+        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.refreshItem(baseEntity)
     }
 
     @JvmStatic
@@ -67,8 +60,9 @@ object FurnitureHelpers {
     fun toggleLight(baseEntity: ItemDisplay, state: Boolean? = null): Boolean {
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.light.isEmpty } ?: return false
         val newState = state ?: !baseEntity.persistentDataContainer.getOrDefault(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, true)
-        if (!mechanic.lightIsToggleable) return true
+        if (!mechanic.light.toggleable) return true
         baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, state ?: newState)
+        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.refreshItem(baseEntity)
         return newState
     }
 }

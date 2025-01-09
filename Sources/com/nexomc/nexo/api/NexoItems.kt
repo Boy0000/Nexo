@@ -8,6 +8,8 @@ import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
@@ -19,8 +21,8 @@ import java.util.*
 
 object NexoItems {
     val ITEM_ID = NamespacedKey(NexoPlugin.instance(), "id")
-    private var itemMap = LinkedHashMap<File, LinkedHashMap<String, ItemBuilder>>()
-    private var items = LinkedHashSet<String>()
+    private var itemMap = Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>>()
+    private var items = ObjectLinkedOpenHashSet<String>()
 
     @JvmStatic
     fun loadItems() {
@@ -29,7 +31,7 @@ object NexoItems {
         NexoPlugin.instance().configsManager().assignAllUsedCustomModelDatas()
         NexoPlugin.instance().configsManager().parseAllItemTemplates()
         itemMap = NexoPlugin.instance().configsManager().parseItemConfig()
-        items = linkedSetOf()
+        items = ObjectLinkedOpenHashSet()
         for (subMap in itemMap.values) items += subMap.keys
 
         NexoItemsLoadedEvent().call()
@@ -80,13 +82,13 @@ object NexoItems {
     fun entriesAsMap(): Map<String, ItemBuilder> = itemMap.values.flatMapFast { it.entries }.associateFast { it.key to it.value }
 
     @JvmStatic
-    fun entries(): ObjectOpenHashSet<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMapSetFast { it.entries }
+    fun entries(): ObjectLinkedOpenHashSet<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMapSetFast { it.entries }
 
     @JvmStatic
-    fun items(): ObjectOpenHashSet<ItemBuilder> = itemMap.values.flatMapSetFast { it.values }
+    fun items(): ObjectLinkedOpenHashSet<ItemBuilder> = itemMap.values.flatMapSetFast { it.values }
 
     @JvmStatic
-    fun names(): ObjectOpenHashSet<String> = itemMap.values.flatMapSetFast { it.keys }
+    fun names(): ObjectLinkedOpenHashSet<String> = itemMap.values.flatMapSetFast { it.keys }
 
     @JvmStatic
     fun itemNames(): Array<String> = itemMap.values.flatMapFast { it.filterFast { it.value.nexoMeta?.excludedFromCommands != true }.keys }.toTypedArray()

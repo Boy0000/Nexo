@@ -84,7 +84,7 @@ interface IFurniturePacketManager {
         }
 
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean =
-            barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it == block.location } }
+            barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }
     }
 
 }

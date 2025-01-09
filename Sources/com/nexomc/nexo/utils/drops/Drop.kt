@@ -8,18 +8,17 @@ import com.nexomc.nexo.utils.BlockHelpers.toBlockLocation
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.ItemUtils.displayName
 import com.nexomc.nexo.utils.ItemUtils.editItemMeta
+import com.nexomc.nexo.utils.randomOrMin
 import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import java.util.*
-import kotlin.random.Random
 
 class Drop(
     private var hierarchy: List<String>? = null,
@@ -118,7 +117,7 @@ class Drop(
     }
 
     fun fortuneMultiplier(itemInHand: ItemStack) =
-        itemInHand.itemMeta?.takeIf { isFortune }?.getEnchantLevel(EnchantmentWrapper.FORTUNE)?.plus(1)?.let { Random.nextInt(1, it) } ?: 1
+        (1..(itemInHand.itemMeta?.takeIf { isFortune }?.getEnchantLevel(EnchantmentWrapper.FORTUNE)?.plus(1) ?: 1)).randomOrMin()
 
     fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull {
         it.dropNaturally(location, fortuneMultiplier).takeIf { it > 0 }?.let { amount -> DroppedLoot(it, amount) }

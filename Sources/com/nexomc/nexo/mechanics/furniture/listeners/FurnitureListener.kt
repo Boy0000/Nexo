@@ -85,8 +85,6 @@ class FurnitureListener : Listener {
         if (!player.isSneaking && NexoFurniture.furnitureMechanic(block)?.isInteractable == true) return
         if (mechanic.farmlandRequired && block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) return
 
-
-        val currentBlockData = block.blockData
         val blockPlaceEvent = BlockPlaceEvent(block, block.state, block.getRelative(blockFace), item, player, true, hand)
         val rotation = getRotation(player.eyeLocation.yaw.toDouble(), mechanic)
         val yaw = FurnitureHelpers.correctedYaw(mechanic, FurnitureHelpers.rotationToYaw(rotation))
@@ -108,10 +106,11 @@ class FurnitureListener : Listener {
 
         if (!NexoFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand).call()) {
             NexoFurniture.remove(baseEntity)
-            block.blockData = currentBlockData
             return
         }
 
+        // Override replaceable blocks that aren't water if furniture is waterloggable
+        if (!mechanic.waterloggable || block.type != Material.WATER) block.type = Material.AIR
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
         setUseInteractedBlock(Event.Result.DENY)
         if (VersionUtil.isPaperServer) baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.location.toVector())
@@ -147,14 +146,14 @@ class FurnitureListener : Listener {
         )
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun NexoFurnitureInteractEvent.onFurnitureInteract() {
         val allowUseItem = useItemInHand
         useItemInHand = Event.Result.DENY
 
         if (hand == EquipmentSlot.HAND && useFurniture != Event.Result.DENY) {
             if (mechanic.clickActions.isNotEmpty()) mechanic.runClickActions(player)
-            if (mechanic.lightIsToggleable) FurnitureHelpers.toggleLight(baseEntity)
+            if (mechanic.light.toggleable) FurnitureHelpers.toggleLight(baseEntity)
 
             when {
                 mechanic.rotatable.rotatable && (!mechanic.rotatable.onSneak || player.isSneaking) -> mechanic.rotateFurniture(baseEntity)
@@ -168,7 +167,7 @@ class FurnitureListener : Listener {
                     }
                 }
                 mechanic.hasSeats() && !player.isSneaking -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
-                mechanic.clickActions.isEmpty() && !mechanic.lightIsToggleable -> useItemInHand = allowUseItem
+                mechanic.clickActions.isEmpty() && !mechanic.light.toggleable -> useItemInHand = allowUseItem
             }
         }
 

@@ -15,18 +15,16 @@ class ClickAction private constructor(private val conditions: List<String>, priv
         if (conditions.isEmpty()) return true
         if (actions.isEmpty()) return false
 
-        val context = StandardEvaluationContext(player)
-        context.setVariable("player", player)
-        context.setVariable("server", Bukkit.getServer())
-
-        conditions.forEach { condition ->
-            runCatching {
-                val result = PARSER.parseExpression(condition).getValue(context, Boolean::class.java) ?: return false
-                if (!result) return false
-            }.printOnFailure(true)
+        val context = StandardEvaluationContext(player).apply {
+            setVariable("player", player)
+            setVariable("server", Bukkit.getServer())
         }
 
-        return true
+        return conditions.all { condition ->
+            runCatching {
+                PARSER.parseExpression(condition).getValue(context, Boolean::class.java) ?: return false
+            }.printOnFailure(true).getOrDefault(true)
+        }
     }
 
     fun performActions(player: Player) {

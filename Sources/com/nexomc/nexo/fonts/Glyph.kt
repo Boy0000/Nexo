@@ -31,10 +31,13 @@ open class Glyph {
     val permission: String
     val placeholders: Array<String>
     val bitmapEntry: BitMapEntry?
-    val baseRegex: Pattern
-    val escapedRegex: Pattern
+    private val baseRegex: Pattern
+    private val escapedRegex: Pattern
     val replacementConfig: TextReplacementConfig
     val placeholderReplacementConfig: TextReplacementConfig?
+    val escapePlaceholderReplacementConfig: TextReplacementConfig?
+    val escapeReplacementConfig: TextReplacementConfig
+    val unescapeReplacementConfig: TextReplacementConfig
 
     constructor(id: String, glyphSection: ConfigurationSection, newChars: Char) {
         this.id = id
@@ -45,12 +48,6 @@ open class Glyph {
         placeholders = chatSection?.getStringList("placeholders")?.toTypedArray() ?: emptyArray()
         permission = chatSection?.getString("permission") ?: ""
         tabcomplete = chatSection?.getBoolean("tabcomplete", false) ?: false
-
-        if ("code" in glyphSection) {
-            if (glyphSection.isInt("code")) glyphSection.set("char", glyphSection.getInt("code").toChar())
-            glyphSection.set("code", null)
-            isFileChanged = true
-        }
 
         if ("char" !in glyphSection && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("char", newChars)
@@ -75,6 +72,18 @@ open class Glyph {
         placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
             ?.replacement(glyphComponent())?.build()
+        escapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
+            ?.replacement { match, b ->
+                b.content("\\\\${match.group(1)}")
+            }?.build()
+
+        escapeReplacementConfig = TextReplacementConfig.builder().match(baseRegex).replacement { match, b ->
+            b.content("\\\\${match.group(1)}")
+        }.build()
+        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex).replacement { match, b ->
+            b.content(match.group(1).removePrefix("\\"))
+        }.build()
     }
 
     constructor(
@@ -109,6 +118,18 @@ open class Glyph {
         placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
             ?.replacement(glyphComponent())?.build()
+        escapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
+            ?.replacement { match, b ->
+                b.content("\\\\${match.group(1)}")
+            }?.build()
+
+        escapeReplacementConfig = TextReplacementConfig.builder().match(baseRegex).replacement { match, b ->
+            b.content("\\\\${match.group(1)}")
+        }.build()
+        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex).replacement { match, b ->
+            b.content(match.group(1).removePrefix("\\"))
+        }.build()
     }
 
     @JvmRecord

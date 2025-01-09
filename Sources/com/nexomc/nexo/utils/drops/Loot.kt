@@ -75,19 +75,14 @@ class Loot(
     fun dropNaturally(location: Location, amountMultiplier: Int) =
         if (Math.random() <= probability) dropItems(location, amountMultiplier) else 0
 
-    fun getItem(amountMultiplier: Int): ItemStack {
-        val stack = itemStack().clone()
-        val dropAmount = Random.nextInt(amount.first, amount.last + 1)
-        stack.amount *= amountMultiplier * dropAmount
-        return ItemUpdater.updateItem(stack)
+    private fun dropItems(location: Location, amountMultiplier: Int): Int {
+        val world = location.world ?: return 0
+        return getItem(amountMultiplier).also { world.dropItemNaturally(location, it) }.amount
     }
 
-    private fun dropItems(location: Location, amountMultiplier: Int): Int {
-        val item = getItem(amountMultiplier)
-        if (location.world != null) {
-            location.world.dropItemNaturally(location, item)
-            return item.amount
+    fun getItem(amountMultiplier: Int): ItemStack {
+        return ItemUpdater.updateItem(itemStack().clone()).also {
+            it.amount *= amount.plus(1).random() * amountMultiplier
         }
-        return 0
     }
 }

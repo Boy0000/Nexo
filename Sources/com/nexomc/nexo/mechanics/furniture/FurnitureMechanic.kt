@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.furniture
 
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
 import com.nexomc.nexo.items.ItemBuilder
@@ -29,6 +30,7 @@ import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -49,7 +51,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val farmlandRequired: Boolean = section.getBoolean("farmland_required", false)
     val evolution: EvolvingFurniture? = section.getConfigurationSection("evolution")?.let(::EvolvingFurniture)?.apply { (factory as FurnitureFactory).registerEvolution() }
     val light: LightMechanic
-    val lightIsToggleable: Boolean = section.getBoolean("lights_toggleable")
     val modelEngineID: String? = section.getString("modelengine_id", null)
     val placedItemId: String = section.getString("item", itemID)!!
     val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)
@@ -60,6 +61,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
     val breakable: BreakableMechanic = BreakableMechanic(section)
+    val waterloggable: Boolean = section.getBoolean("waterloggable")
 
     val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
 
@@ -77,19 +79,23 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
     init {
         val barrierHitboxes = hitbox.barriers.mapFast(BarrierHitbox::toVector3f)
-        val lightBlocks = LightMechanic(section).lightBlocks
-        val overlap = lightBlocks.filterFast { it.toVector3f() in barrierHitboxes }.joinToString()
+        this.light = LightMechanic(section)
+        val overlap = light.lightBlocks.filterFast { it.toVector3f() in barrierHitboxes }
         if (overlap.isNotEmpty()) {
-            Logs.logError("Furniture $itemID has lights that overlap with the barrierHitboxes at: $overlap")
+            Logs.logError("Furniture $itemID has lights that overlap with the barrierHitboxes at: ${overlap.joinToString()}")
             Logs.logWarn("Nexo will ignore any lights that conflict with a barrier...")
         }
 
-        this.light = lightBlocks.filterFast { it.toVector3f() !in barrierHitboxes }.let(::LightMechanic)
+        this.light.lightBlocks.removeIf { it in overlap }
     }
 
     val isModelEngine: Boolean
         get() = modelEngineID != null
 
+    val placedItem: ItemBuilder
+        get() = placedItemModel?.takeIf { VersionUtil.atleast("1.20.5") }
+            ?.let { ItemBuilder(Material.BARRIER).setItemModel(NamespacedKey.fromString(it.asString())) }
+            ?: NexoItems.itemFromId(placedItemId) ?: NexoItems.itemFromId(itemID) ?: ItemBuilder(Material.BARRIER)
     fun hasLimitedPlacing(): Boolean {
         return limitedPlacing != null
     }
@@ -169,15 +175,20 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         baseEntity.setRotation(yaw, pitch)
 
         baseEntity.transformation = baseEntity.transformation.apply {
-            val bb = baseEntity.location.block.getRelative(blockFace.oppositeFace).boundingBox
-            val offset = when (blockFace) {
-                BlockFace.UP -> bb.height - if (isFixed) 0.99 else 1.01
-                BlockFace.DOWN -> bb.height - if (isFixed) 0.99 else 0.0
-                else -> 0.0
-            }
+            // If placed on a non-replaceable, non-full block (slabs, carpets...) or against furniture that is
+            val against = baseEntity.location.block.getRelative(blockFace.oppositeFace)
 
-            if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
-            if (bb.contains(baseEntity.location.clone().apply { y += offset }.toVector())) return@apply
+            val offset = baseEntity(against)?.transformation?.translation?.y?.toDouble() ?: let {
+                val bb = baseEntity.location.block.getRelative(blockFace.oppositeFace).takeUnless { it.isReplaceable }?.boundingBox ?: return@apply
+                when (blockFace) {
+                    BlockFace.UP -> bb.height - if (isFixed) 0.99 else 1.01
+                    BlockFace.DOWN -> bb.height - if (isFixed) 0.99 else 0.0
+                    else -> 0.0
+                }.also {
+                    if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
+                    if (bb.contains(baseEntity.location.clone().apply { y += it }.toVector())) return@apply
+                }
+            }
 
             when {
                 isFixed -> translation.set(0.0, 0.0, offset)
@@ -231,24 +242,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         for (action: ClickAction in clickActions) if (action.canRun(player)) action.performActions(player)
     }
 
-    fun baseEntity(block: Block?): ItemDisplay? {
-        if (block == null) return null
-        return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(block.location))
-    }
-
-    fun baseEntity(location: Location?): ItemDisplay? {
-        if (location == null) return null
-        return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))
-    }
-
-    fun baseEntity(blockLocation: BlockLocation): ItemDisplay? {
-        return IFurniturePacketManager.baseEntityFromHitbox(blockLocation)
-    }
-
-    fun baseEntity(interactionId: Int): ItemDisplay? {
-        return IFurniturePacketManager.baseEntityFromHitbox(interactionId)
-    }
-
     fun rotateFurniture(baseEntity: ItemDisplay) {
         val newYaw = baseEntity.location.yaw + (if (restrictedRotation == RestrictedRotation.VERY_STRICT) 45f else 22.5f)
         if (notEnoughSpace(baseEntity, newYaw)) return
@@ -262,5 +255,18 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         val FURNITURE_LIGHT_KEY = NamespacedKey(NexoPlugin.instance(), "furniture_light")
         val MODELENGINE_KEY = NamespacedKey(NexoPlugin.instance(), "modelengine")
         val EVOLUTION_KEY = NamespacedKey(NexoPlugin.instance(), "evolution")
+
+        fun baseEntity(block: Block?): ItemDisplay? {
+            return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(block?.location ?: return null))
+        }
+
+        fun baseEntity(location: Location?): ItemDisplay? {
+            return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location ?: return null))
+        }
+
+        fun baseEntity(interactionId: Int): ItemDisplay? {
+            return IFurniturePacketManager.baseEntityFromHitbox(interactionId)
+        }
+
     }
 }

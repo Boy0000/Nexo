@@ -112,7 +112,7 @@ internal fun CommandTree.takeItemCommand() = literalArgument("take") {
             })
             integerArgument("amount", min = 1, optional = true) {
                 anyExecutor { sender, args ->
-                    val targets = args.get("targets").safeCast<Collection<Player>>() ?: return@anyExecutor
+                    val targets = args.get("players").safeCast<Collection<Player>>() ?: return@anyExecutor
                     val itemID = args.get("item") as? String ?: return@anyExecutor
                     val amount = args.getOptionalByClass("amount", Int::class.java)
                     if (!NexoItems.exists(itemID))

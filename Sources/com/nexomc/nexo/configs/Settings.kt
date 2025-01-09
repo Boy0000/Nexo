@@ -68,6 +68,7 @@ enum class Settings {
 
     //Pack
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),
+    PACK_MINIMIZE_JSON("Pack.generation.minimize_json", true),
     PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.SIMPLE.name),
     PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),

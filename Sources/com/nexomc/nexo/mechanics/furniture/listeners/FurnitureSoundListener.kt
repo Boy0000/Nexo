@@ -6,6 +6,7 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
+import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.BlockHelpers.entityStandingOn
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
@@ -15,6 +16,7 @@ import net.minecraft.references.Blocks
 import org.bukkit.*
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -101,16 +103,16 @@ class FurnitureSoundListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
-        val entity = entity as? LivingEntity ?: return
+        val entity = entity as? Player ?: return
         if (!isLoaded(entity.location)) return
 
         val blockStandingOn = entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
         val (cause, soundGroup) = entity.lastDamageCause to blockStandingOn.blockData.soundGroup
 
-        if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP) return
+        val mechanic by lazy { NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location) }
         if (event === GameEvent.HIT_GROUND && cause != null && cause.cause != EntityDamageEvent.DamageCause.FALL) return
         if (blockStandingOn.type == Material.TRIPWIRE) return
-        val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.location)
+        if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

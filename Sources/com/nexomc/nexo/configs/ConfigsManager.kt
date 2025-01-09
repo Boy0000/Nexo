@@ -1,6 +1,8 @@
 package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
+import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.fonts.Glyph.RequiredGlyph
@@ -13,7 +15,11 @@ import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.Utils.firstEmptyChar
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
+import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
@@ -94,7 +100,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     fun parseGlyphConfigs(): Collection<Glyph> {
         val output = mutableListOf<Glyph>()
-        val charPerGlyph = mutableMapOf<String, Char>()
+        val charPerGlyph = Object2ObjectOpenHashMap<String, Char>()
 
         glyphFiles().forEach { file: File ->
             if (file.name.startsWith("shift")) return@forEach
@@ -138,8 +144,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return output
     }
 
-    fun parseItemConfig(): LinkedHashMap<File, LinkedHashMap<String, ItemBuilder>> {
-        return linkedMapOf<File, LinkedHashMap<String, ItemBuilder>>().apply {
+    fun parseItemConfig(): Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>> {
+        return Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>>().apply {
             for (file: File in itemFiles()) this[file] = parseItemConfig(file)
         }
     }
@@ -151,7 +157,10 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
             config.getKeys(false).associateFastWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
                 val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
-                val material = Material.getMaterial(itemSection.getString("material", "")!!) ?: return@forEach
+                val material = Material.getMaterial(itemSection.getString("material", "")!!)
+                    ?: WrappedCrucibleItem(itemSection).material
+                    ?: WrappedMMOItem(itemSection).material
+                    ?: return@forEach
                 val parsedKey = KeyUtils.parseKey(itemId.substringBefore(":", "minecraft"), itemId.substringAfter(":"), "model")
 
                 validatePackSection(itemId, packSection)
@@ -169,7 +178,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     fun parseAllItemTemplates() {
-        itemFiles().asSequence().filter(File::exists).map(::loadConfiguration).forEach { configuration ->
+        itemFiles().filterFast(File::exists).mapFast(::loadConfiguration).forEach { configuration ->
             configuration.getKeys(false).mapNotNullFast(configuration::getConfigurationSection)
                 .filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
         }
@@ -191,17 +200,17 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     private val ERROR_ITEM by lazy { ItemBuilder(Material.PODZOL) }
-    private fun parseItemConfig(itemFile: File): LinkedHashMap<String, ItemBuilder> {
+    private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
         if (NexoPlugin.instance().converter().oraxenConverter.convertItems) OraxenConverter.processItemConfigs(itemFile)
         val config = loadConfiguration(itemFile)
-        val parseMap = LinkedHashMap<String, ItemParser>()
+        val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
 
         config.getKeys(false).filterNot(ItemTemplate::isTemplate).forEach { itemKey: String ->
             parseMap[itemKey] = ItemParser(config.getConfigurationSection(itemKey) ?: return@forEach)
         }
 
         var configUpdated = false
-        val map = LinkedHashMap<String, ItemBuilder>()
+        val map = Object2ObjectLinkedOpenHashMap<String, ItemBuilder>()
         parseMap.entries.forEach { (itemId, itemParser) ->
             map[itemId] = runCatching {
                 itemParser.buildItem()
@@ -209,7 +218,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 Logs.logError("ERROR BUILDING ITEM \"$itemId\" from file ${itemFile.path}")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
                 else it.message?.let(Logs::logWarn)
-            }.getOrNull() ?: ERROR_ITEM
+            }.getOrNull() ?: ERROR_ITEM.itemName(Component.text(itemId))
             if (itemParser.isConfigUpdated) configUpdated = true
         }
 
@@ -240,9 +249,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return map
     }
 
-    private fun itemFiles(): List<File> = itemsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toList()
+    private fun itemFiles(): ObjectArrayList<File> = itemsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
 
-    private fun glyphFiles(): List<File> = glyphsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toList()
+    private fun glyphFiles(): ObjectArrayList<File> = glyphsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
 
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")

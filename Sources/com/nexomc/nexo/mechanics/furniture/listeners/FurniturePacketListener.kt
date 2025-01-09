@@ -11,6 +11,7 @@ import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
@@ -126,7 +127,7 @@ class FurniturePacketListener : Listener {
                 }
             }
 
-            ProtectionLib.canInteract(player, baseEntity.location) ->
+            ProtectionLib.canInteract(player, baseEntity.location) && clickedRelativePosition != null ->
                 NexoFurnitureInteractEvent(mechanic, baseEntity, player, itemStack, hand, interactionPoint).call()
         }
     }
@@ -134,12 +135,11 @@ class FurniturePacketListener : Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerInteractEvent.onPlayerInteractBarrierHitbox() {
         val mechanic = NexoFurniture.furnitureMechanic(clickedBlock) ?: NexoFurniture.furnitureMechanic(interactionPoint) ?: return
-        val baseEntity = mechanic.baseEntity(clickedBlock) ?: mechanic.baseEntity(interactionPoint) ?: return
+        val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
 
         when {
             action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.location) -> {
-
-                val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.isBlock
+                val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.let { it.isBlock && it != Material.LILY_PAD && it != Material.FROGSPAWN }
                 if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable || player.isSneaking) && ProtectionLib.canBuild(player, baseEntity.location)) {
                     setUseItemInHand(Event.Result.DENY)
                     clickedBlock?.type = Material.BARRIER

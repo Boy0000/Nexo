@@ -10,7 +10,9 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.utils.BlockHelpers.isInteractable
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.filterFast
 import io.th0rgal.protectionlib.ProtectionLib
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
@@ -19,10 +21,7 @@ import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockExplodeEvent
-import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.block.*
 import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCreativeEvent
@@ -162,6 +161,16 @@ class CustomBlockListener : Listener {
             mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
         blockList().removeAll(customBlocks.keys)
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun BlockPistonRetractEvent.onPiston() {
+        if (blocks.any { NexoBlocks.customBlockMechanic(it.location)?.immovable == true }) isCancelled = true
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun BlockPistonExtendEvent.onPiston() {
+        if (blocks.any { NexoBlocks.customBlockMechanic(it.location)?.immovable == true }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

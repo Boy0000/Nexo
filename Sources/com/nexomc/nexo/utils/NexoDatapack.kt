@@ -2,7 +2,6 @@ package com.nexomc.nexo.utils
 
 import com.google.gson.JsonObject
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.VersionUtil.isPaperServer
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.packs.DataPack
@@ -31,7 +30,7 @@ open class NexoDatapack(key: String, description: String) {
     }
 
     internal fun enableDatapack(enabled: Boolean) {
-        if (!isPaperServer) return
-        Bukkit.getDatapackManager().packs.firstOrNull { it.name === datapackKey.asString() }?.isEnabled = enabled
+        if (!VersionUtil.isPaperServer) return
+        Bukkit.getDatapackManager().packs.firstOrNull { it.name == datapackKey.value() }?.isEnabled = enabled
     }
 }
