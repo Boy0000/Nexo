@@ -44,11 +44,11 @@ class WrappedMMOItem(
         }
     }
 
-    val material = runCatching { template()?.newBuilder()?.build()?.newBuilder()?.build()?.type }.getOrNull()
+    val material = runCatching { template()?.newBuilder()?.build()?.newBuilder()?.buildSilently()?.type }.getOrNull()
 
     fun build(): ItemStack? {
         if (PluginUtils.isEnabled("MMOItems")) {
-            return template()?.newBuilder()?.build()?.newBuilder()?.build()
+            return template()?.newBuilder()?.build()?.newBuilder()?.buildSilently()
                 ?: null.apply { Logs.logError("Failed to load MMOItem $id, Item does not exist") }
         } else Logs.logError("Failed to load MMOItem $id, MMOItems is not installed")
         return null

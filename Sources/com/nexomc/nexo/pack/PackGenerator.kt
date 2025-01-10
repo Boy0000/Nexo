@@ -26,6 +26,7 @@ import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
+import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
 import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
