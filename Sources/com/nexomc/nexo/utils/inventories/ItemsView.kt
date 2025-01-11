@@ -9,11 +9,14 @@ import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.Utils.removeExtension
+import com.nexomc.nexo.utils.VersionUtil
+import dev.triumphteam.gui.components.InventoryProvider
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.PaginatedGui
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
@@ -55,7 +58,11 @@ class ItemsView {
         }
 
         mainGui = Gui.paginated().rows(Settings.NEXO_INV_ROWS.toInt()).pageSize(Settings.NEXO_INV_SIZE.toInt(45))
-            .title(Settings.NEXO_INV_TITLE.toComponent()).disableItemSwap().disableItemPlace().create()
+            .title(Settings.NEXO_INV_TITLE.toComponent()).disableItemSwap().disableItemPlace()
+            .inventory { title, owner, rows ->
+                if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, rows, Settings.NEXO_INV_TITLE.toComponent())
+                else Bukkit.createInventory(owner, rows, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+            }.create()
         mainGui.addItem(*guiItems.toTypedArray())
 
         (NexoItems.itemFromId(Settings.NEXO_INV_PREVIOUS_ICON.toString()) ?: ItemBuilder(Material.BARRIER))

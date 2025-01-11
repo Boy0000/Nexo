@@ -173,4 +173,12 @@ object ItemUtils {
             FoodComponent::class.java.getMethod("getUsingConvertsTo").invoke(itemMeta.food) as? ItemStack
         }.onFailure { it.printStackTrace() }.getOrNull()
     }
+
+    @JvmStatic
+    fun setUsingConvertsTo(foodComponent: FoodComponent, replacement: ItemStack?) {
+        if (!VersionUtil.matchesServer("1.21.1")) return
+        runCatching {
+            FoodComponent::class.java.getMethod("setUsingConvertsTo").invoke(foodComponent, replacement)
+        }.onFailure { it.printStackTrace() }
+    }
 }

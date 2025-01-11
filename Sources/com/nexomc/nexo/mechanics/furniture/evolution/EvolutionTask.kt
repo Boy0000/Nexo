@@ -24,10 +24,8 @@ class EvolutionTask(private val furnitureFactory: FurnitureFactory, private val 
             val (entityLoc, world, pdc) = entity.location to entity.world to entity.persistentDataContainer
             if (!pdc.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return@forEach
 
-            val blockBelow = entityLoc.block.getRelative(BlockFace.DOWN)
             val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@forEach
-
-            if (mechanic.farmlandRequired && blockBelow.type != Material.FARMLAND) {
+            if (mechanic.farmlandRequired && entityLoc.block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) {
                 NexoFurniture.remove(entity, null)
                 return@forEach
             }
@@ -39,7 +37,7 @@ class EvolutionTask(private val furnitureFactory: FurnitureFactory, private val 
 
             if (evolutionStep < evolution.delay) pdc.set(FurnitureMechanic.EVOLUTION_KEY, DataType.INTEGER, evolutionStep)
             else {
-                if (evolution.nextStage == null || !evolution.bernoulliTest()) return@forEach
+                if (evolution.nextStage == null || Random.nextInt(evolution.probability) != 0) return@forEach
                 val nextMechanic = furnitureFactory.getMechanic(evolution.nextStage) ?: return@forEach
                 NexoFurniture.remove(entity)
                 nextMechanic.place(entity.location)

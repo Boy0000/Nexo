@@ -16,6 +16,7 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
@@ -26,8 +27,6 @@ import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.resolve
 import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
@@ -36,6 +35,7 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
 import team.unnamed.creative.font.ReferenceFontProvider
+import team.unnamed.creative.font.TrueTypeFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
@@ -164,8 +164,16 @@ class PackGenerator {
     fun builtPack() = builtPack
 
     private fun addShiftProvider() {
-        resourcePack.fonts().toList().forEach {
-            it.toBuilder().addProvider(FontProvider.reference(ShiftTag.FONT)).build().addTo(resourcePack)
+        resourcePack.fonts().toList().forEach { font ->
+            val trueTypes = font.providers().filterFastIsInstance<TrueTypeFontProvider>().mapFast { p ->
+                FontProvider.trueType().size(p.size()).shift(p.shift()).file(p.file()).oversample(p.oversample())
+                    .skip(p.skip().plus(Shift.fontProvider.advances().keys)).build()
+            }
+
+            font.providers(font.providers().filterFast { it !is TrueTypeFontProvider }
+                .plus(FontProvider.reference(ShiftTag.FONT))
+                .plus(trueTypes)
+            ).addTo(resourcePack)
         }
         resourcePack.font(ShiftTag.FONT, Shift.fontProvider)
     }
@@ -215,7 +223,10 @@ class PackGenerator {
         val requiredPack = externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return
 
         runCatching {
-            NexoPack.mergePack(resourcePack, packReader.readFile(requiredPack))
+            NexoPack.mergePack(resourcePack, packReader.readFile(requiredPack).apply {
+                if (VersionUtil.atleast("1.21.4"))
+                    unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.keys.forEach(::removeUnknownFile)
+            })
         }.onFailure {
             if (!Settings.DEBUG.toBool()) Logs.logError(it.message!!)
             else it.printStackTrace()
@@ -266,6 +277,7 @@ class PackGenerator {
 
         runCatching {
             NexoPack.mergePack(resourcePack, packReader.readFile(megPack).also { pack ->
+                if (!Settings.PACK_EXCLUDE_MODEL_ENGINE_SHADERS.toBool()) return@also
                 pack.unknownFiles().keys.filter { it.startsWith("assets/minecraft/shaders/core") }.forEach(pack::removeUnknownFile)
                 Logs.logInfo("Removed core-shaders from ModelEngine-ResourcePack...")
             })

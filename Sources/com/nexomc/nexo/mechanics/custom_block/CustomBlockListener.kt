@@ -129,11 +129,12 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockBreakEvent.onBreakingCustomBlock() {
+        if (!NexoBlocks.isCustomBlock(block)) return
         if (NexoBlocks.isCustomBlock(block)) isDropItems = false
-        NexoBlocks.remove(block.location, player)
+        if (!NexoBlocks.remove(block.location, player)) isCancelled = true
 
         val blockAbove = block.getRelative(BlockFace.UP)
-        if (!NexoBlocks.isNexoStringBlock(blockAbove)) return
+        if (isCancelled || !NexoBlocks.isNexoStringBlock(blockAbove)) return
         NexoBlocks.remove(blockAbove.location, player)
     }
 

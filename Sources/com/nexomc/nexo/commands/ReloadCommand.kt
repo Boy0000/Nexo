@@ -9,7 +9,9 @@ import com.nexomc.nexo.configs.SoundManager
 import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockSoundListener
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
 import com.nexomc.nexo.nms.NMSHandlers.resetHandler
 import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.NexoPackServer.Companion.initializeServer
@@ -77,6 +79,8 @@ object ReloadCommand {
     fun reloadItems(sender: CommandSender? = Bukkit.getConsoleSender()) {
         Message.RELOAD.send(sender, tagResolver("reloaded", "items"))
         NexoItems.itemConfigCache.clear()
+        NoteBlockSoundListener.breakerPlaySound.onEach { it.value.cancel() }.clear()
+        FurnitureSoundListener.breakerPlaySound.onEach { it.value.cancel() }.clear()
         FurnitureFactory.instance()?.packetManager()?.removeAllFurniturePackets()
         NexoItems.loadItems()
         NexoPlugin.instance().invManager().regen()

@@ -75,7 +75,8 @@ enum class Settings {
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
     PACK_IMPORT_FROM_LOCATION("Pack.import.from_location", listOf<String>()),
     PACK_IMPORT_EXTERNAL_PACK_ORDER("Pack.import.external_pack_order", listOf<String>()),
-    PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),
+    PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine.import_pack", true),
+    PACK_EXCLUDE_MODEL_ENGINE_SHADERS("Pack.import.modelengine.exclude_shaders", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", listOf(".zip", ".tar.gz")),
 
     PACK_VALIDATE_MODELS("Pack.validate.models", true),

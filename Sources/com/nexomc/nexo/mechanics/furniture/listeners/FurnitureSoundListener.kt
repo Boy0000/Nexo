@@ -12,6 +12,7 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import io.th0rgal.protectionlib.ProtectionLib
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.minecraft.references.Blocks
 import org.bukkit.*
 import org.bukkit.block.BlockFace
@@ -30,7 +31,9 @@ import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.scheduler.BukkitTask
 
 class FurnitureSoundListener : Listener {
-    private val breakerPlaySound = mutableMapOf<Location, BukkitTask>()
+    companion object {
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, BukkitTask>()
+    }
 
     @EventHandler
     fun WorldUnloadEvent.onWorldUnload() {

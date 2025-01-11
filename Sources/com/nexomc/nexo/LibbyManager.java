@@ -71,8 +71,8 @@ public class LibbyManager {
                 .url("https://repo.nexomc.com/releases/me/gabytm/util/actions-core/1.0.0/actions-core-1.0.0.jar")
                 .build());
 
-        libs.add(getLib("dev{}triumphteam", "triumph-gui", "3.1.11", "dev{}triumphteam")
-                .repository("https://repo.triumphteam.dev/releases").build());
+        libs.add(getLib("dev{}triumphteam", "triumph-gui", "3.1.12-SNAPSHOT", "dev{}triumphteam")
+                .repository("https://repo.triumphteam.dev/snapshots").build());
         libs.add(getLib("com{}github{}stefvanschie{}inventoryframework", "IF", "0.10.19", "com{}github{}stefvanschie").build());
 
         libs.add(getLib("com{}mineinabyss", "idofront-util", IDOFRONT_VERSION, "com{}mineinabyss").build());

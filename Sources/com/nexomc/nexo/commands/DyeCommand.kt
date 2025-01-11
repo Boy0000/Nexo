@@ -2,10 +2,12 @@ package com.nexomc.nexo.commands
 
 import com.mineinabyss.idofront.items.asColorable
 import com.mineinabyss.idofront.items.editItemMeta
-import com.mineinabyss.idofront.util.ColorHelpers
 import com.mineinabyss.idofront.util.removeSpaces
 import com.nexomc.nexo.configs.Message
+import com.nexomc.nexo.utils.deserialize
+import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapNotNullFast
+import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.kotlindsl.greedyStringArgument
@@ -43,11 +45,19 @@ internal fun CommandTree.dyeCommand() = literalArgument("dye") {
 }
 
 @OptIn(ExperimentalStdlibApi::class)
+private val hexFormat = HexFormat {
+    this.upperCase = true
+    this.number {
+        this.removeLeadingZeros = false
+    }
+}
+
+@OptIn(ExperimentalStdlibApi::class)
 fun String.toColor(): Color? {
     return runCatching {
         when {
-            this.startsWith("#") -> Color.fromARGB(this.drop(1).padStart(8, 'F').hexToInt(ColorHelpers.hexFormat))
-            this.startsWith("0x") -> Color.fromARGB(this.drop(2).padStart(8, 'F').hexToInt(ColorHelpers.hexFormat))
+            this.startsWith("#") -> Color.fromARGB(this.drop(1).padStart(8, 'F').hexToInt(hexFormat))
+            this.startsWith("0x") -> Color.fromARGB(this.drop(2).padStart(8, 'F').hexToInt(hexFormat))
             "," in this -> {
                 val color = this.removeSpaces().split(",")
                 when (color.mapNotNullFast(String::toIntOrNull).size) {
@@ -58,5 +68,5 @@ fun String.toColor(): Color? {
             }
             else -> NamedTextColor.NAMES.value(this)?.value()?.let(Color::fromRGB)
         }
-    }.getOrNull()
+    }.printOnFailure(true).getOrNull()
 }

@@ -10,7 +10,7 @@ class EvolvingFurniture(
     var rainBoostTick: Int,
     var boneMealChance: Int = 0,
     val nextStage: String?,
-    private val probability: Int,
+    val probability: Int,
 ) {
 
     constructor(plantSection: ConfigurationSection) : this(
@@ -28,6 +28,4 @@ class EvolvingFurniture(
 
         boneMealChance = plantSection.getInt("bone_meal_chance").coerceIn(0, 100)
     }
-
-    fun bernoulliTest() = Random.nextInt(probability) == 0
 }

@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockBreakEvent
@@ -10,7 +9,9 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.*
 import org.bukkit.entity.LivingEntity
 import org.bukkit.event.EventHandler
@@ -25,7 +26,9 @@ import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.scheduler.BukkitTask
 
 class NoteBlockSoundListener : Listener {
-    private val breakerPlaySound = mutableMapOf<Location, BukkitTask>()
+    companion object {
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, BukkitTask>()
+    }
 
     @EventHandler
     fun WorldUnloadEvent.onWorldUnload() {
@@ -67,27 +70,19 @@ class NoteBlockSoundListener : Listener {
         )
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun BlockDamageEvent.onHitWood() {
-        val location = block.location
-        val soundGroup = block.blockData.soundGroup
+        if (VersionUtil.below("1.20.5") || block.blockData.soundGroup.hitSound != Sound.BLOCK_WOOD_HIT) return
+        val location = block.location.takeUnless { it in breakerPlaySound } ?: return
+        val blockSounds = NexoBlocks.noteBlockMechanic(block)?.blockSounds
 
-        if (soundGroup.hitSound != Sound.BLOCK_WOOD_HIT) return
-        if (NexoBlocks.isNexoNoteBlock(block) || location in breakerPlaySound) return
+        val sound = blockSounds?.hitSound ?: BlockSounds.VANILLA_WOOD_HIT
+        val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
+        val pitch = blockSounds?.hitPitch ?: BlockSounds.VANILLA_HIT_PITCH
 
-        val task = Bukkit.getScheduler().runTaskTimer(
-            NexoPlugin.instance(),
-            Runnable {
-                playCustomBlockSound(
-                    location,
-                    BlockSounds.VANILLA_WOOD_HIT,
-                    BlockSounds.VANILLA_HIT_VOLUME,
-                    BlockSounds.VANILLA_HIT_PITCH
-                )
-            }, 2L, 4L
-        )
-
-        breakerPlaySound[location] = task
+        breakerPlaySound[location] = Bukkit.getScheduler().runTaskTimer(NexoPlugin.instance(), Runnable {
+            playCustomBlockSound(location, sound, volume, pitch)
+        }, 2L, 4L)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -100,7 +95,8 @@ class NoteBlockSoundListener : Listener {
         val entity = entity as? LivingEntity ?: return
         if (!isLoaded(entity.location)) return
         if (event == GameEvent.HIT_GROUND && entity.fallDistance < 4.0) return
-        val silent = entity.isInWater || entity.isSwimming || (VersionUtil.isPaperServer && (entity.isSneaking || entity.isInLava))
+        val silent =
+            entity.isInWater || entity.isSwimming || (VersionUtil.isPaperServer && (entity.isSneaking || entity.isInLava))
         if (event == GameEvent.STEP && silent) return
 
         val blockStandingOn = entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
@@ -111,9 +107,11 @@ class NoteBlockSoundListener : Listener {
             event === GameEvent.STEP ->
                 (mechanic?.blockSounds?.let { it.stepSound to it.stepVolume to it.stepPitch })
                     ?: (BlockSounds.VANILLA_WOOD_STEP to BlockSounds.VANILLA_STEP_VOLUME to BlockSounds.VANILLA_STEP_PITCH)
+
             event == GameEvent.HIT_GROUND ->
                 (mechanic?.blockSounds?.let { it.fallSound to it.fallVolume to it.fallPitch })
                     ?: (BlockSounds.VANILLA_WOOD_FALL to BlockSounds.VANILLA_FALL_VOLUME to BlockSounds.VANILLA_FALL_PITCH)
+
             else -> return
         }
 
