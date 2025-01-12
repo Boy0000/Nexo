@@ -81,6 +81,7 @@ enum class RemovedSettings(private val path: String) {
     PACK_SLICER("Pack.generation.texture_slicer"),
     PACK_UPLOAD("Pack.upload"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
+    PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine"),
     ;
 
     override fun toString(): String {

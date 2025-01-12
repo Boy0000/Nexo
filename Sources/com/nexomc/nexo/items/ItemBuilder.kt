@@ -495,7 +495,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun clone() = ItemBuilder(itemStack.clone())
 
-    private fun regenerateItem(): ItemBuilder {
+    fun regenerateItem(): ItemBuilder {
         var itemStack = this.itemStack
         itemStack.type = type
         if (amount != itemStack.amount) itemStack.amount = amount

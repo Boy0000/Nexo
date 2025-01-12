@@ -144,7 +144,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return output
     }
 
-    fun parseItemConfig(): Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>> {
+    internal fun parseItemConfig(): Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>> {
         return Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>>().apply {
             for (file: File in itemFiles()) this[file] = parseItemConfig(file)
         }
@@ -249,9 +249,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return map
     }
 
-    private fun itemFiles(): ObjectArrayList<File> = itemsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
+    private fun itemFiles(): List<File> = itemsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
 
-    private fun glyphFiles(): ObjectArrayList<File> = glyphsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
+    private fun glyphFiles(): List<File> = glyphsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
 
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")

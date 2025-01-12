@@ -7,6 +7,7 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
+import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
@@ -82,29 +83,29 @@ object NexoItems {
     fun hasMechanic(itemID: String?, mechanicID: String?) = MechanicsManager.getMechanicFactory(mechanicID)?.getMechanic(itemID) != null
 
     @JvmStatic
-    fun itemMap() = itemMap
+    fun itemMap(): Map<File, Map<String, ItemBuilder>> = itemMap
 
     @JvmStatic
     fun entriesAsMap(): Map<String, ItemBuilder> = itemMap.values.flatMapFast { it.entries }.associateFast { it.key to it.value }
 
     @JvmStatic
-    fun entries(): ObjectLinkedOpenHashSet<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMapSetFast { it.entries }
+    fun entries(): Set<Map.Entry<String, ItemBuilder>> = itemMap.values.flatMapSetFast { it.entries }
 
     @JvmStatic
-    fun items(): ObjectLinkedOpenHashSet<ItemBuilder> = itemMap.values.flatMapSetFast { it.values }
+    fun items(): Set<ItemBuilder> = itemMap.values.flatMapSetFast { it.values }
 
     @JvmStatic
-    fun names(): ObjectLinkedOpenHashSet<String> = itemMap.values.flatMapSetFast { it.keys }
+    fun names(): Set<String> = itemMap.values.flatMapSetFast { it.keys }
 
     @JvmStatic
     fun itemNames(): Array<String> = itemMap.values.flatMapFast { it.filterFast { it.value.nexoMeta?.excludedFromCommands != true }.keys }.toTypedArray()
 
     /**
-     * Primarily for handling data that requires NexoITems's<br></br>
+     * Primarily for handling data that requires NexoItems's<br></br>
      * For example FoodComponent#getUsingConvertsTo
      */
     private fun ensureComponentDataHandled() {
-        if (VersionUtil.atleast("1.21")) itemMap.forEach { (file, subMap) ->
+        if (VersionUtil.matchesServer("1.21.1")) itemMap.forEach { (file, subMap) ->
             subMap.forEach submap@{ (itemId, value) ->
                 val itemBuilder = value ?: return@submap
                 val foodComponent = itemBuilder.foodComponent ?: return@submap
@@ -112,7 +113,7 @@ object NexoItems {
                 val section = NexoYaml.loadConfiguration(file).getConfigurationSection("$itemId.Components.food.replacement") ?: return@submap
                 val replacementItem = parseFoodComponentReplacement(section)
                 ItemUtils.setUsingConvertsTo(foodComponent, replacementItem)
-                itemBuilder.setFoodComponent(foodComponent)
+                itemBuilder.setFoodComponent(foodComponent).regenerateItem()
             }
         }
     }

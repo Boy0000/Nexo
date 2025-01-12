@@ -178,7 +178,7 @@ object ItemUtils {
     fun setUsingConvertsTo(foodComponent: FoodComponent, replacement: ItemStack?) {
         if (!VersionUtil.matchesServer("1.21.1")) return
         runCatching {
-            FoodComponent::class.java.getMethod("setUsingConvertsTo").invoke(foodComponent, replacement)
+            FoodComponent::class.java.getMethod("setUsingConvertsTo", ItemStack::class.java).invoke(foodComponent, replacement)
         }.onFailure { it.printStackTrace() }
     }
 }
