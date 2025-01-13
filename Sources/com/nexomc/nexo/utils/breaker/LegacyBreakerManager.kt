@@ -168,7 +168,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
                     furnitureMechanic!!.itemID != activeBreakerData.mechanic.itemID ->
                         activeBreakerData.breakerSoundTask!!.cancel()
 
-                    furnitureMechanic.hasBlockSounds() && furnitureMechanic.blockSounds!!.hasHitSound() -> {
+                    furnitureMechanic.blockSounds?.hasHitSound() == true -> {
                         val sound = furnitureMechanic.blockSounds.hitSound
                     }
                 }

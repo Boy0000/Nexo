@@ -77,7 +77,7 @@ object NexoItems {
     fun builderFromItem(item: ItemStack?): ItemBuilder? = itemFromId(idFromItem(item))
 
     @JvmStatic
-    fun unexcludedItems(file: File) = itemMap[file]?.values?.filter { it.nexoMeta?.excludedFromInventory == false } ?: listOf()
+    fun unexcludedItems(file: File) = itemMap[file]?.values?.filterFast { it.nexoMeta?.excludedFromInventory == false } ?: listOf()
 
     @JvmStatic
     fun hasMechanic(itemID: String?, mechanicID: String?) = MechanicsManager.getMechanicFactory(mechanicID)?.getMechanic(itemID) != null

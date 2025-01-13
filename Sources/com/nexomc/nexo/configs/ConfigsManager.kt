@@ -3,6 +3,7 @@ package com.nexomc.nexo.configs
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
+import com.nexomc.nexo.converter.NexoConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.fonts.Glyph.RequiredGlyph
@@ -202,6 +203,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     private val ERROR_ITEM by lazy { ItemBuilder(Material.PODZOL) }
     private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
         if (NexoPlugin.instance().converter().oraxenConverter.convertItems) OraxenConverter.processItemConfigs(itemFile)
+        NexoConverter.processItemConfigs(itemFile)
         val config = loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
 

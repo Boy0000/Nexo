@@ -4,6 +4,7 @@ import com.nexomc.nexo.nms.IPacketHandler.EmptyPacketHandler
 import com.nexomc.nexo.utils.InteractionResult
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
 import org.bukkit.inventory.EquipmentSlot
@@ -23,7 +24,7 @@ class EmptyNMSHandler(override val resourcePackListener: Listener? = null) : NMS
         return newItem
     }
 
-    override fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block): InteractionResult? {
+    override fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block, blockFace: BlockFace): InteractionResult? {
         return null
     }
 

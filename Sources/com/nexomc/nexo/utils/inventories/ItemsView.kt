@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.Utils.removeExtension
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.mapNotNullFast
 import dev.triumphteam.gui.components.InventoryProvider
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
@@ -98,14 +99,14 @@ class ItemsView {
                     Settings.NEXO_INV_TITLE.toString()
                 )!!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
             )
-        ).create()
+        ).inventory { title, owner, rows ->
+            if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, rows, Settings.NEXO_INV_TITLE.toComponent())
+            else Bukkit.createInventory(owner, rows, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+        }.create()
         gui.disableAllInteractions()
 
-        items.asSequence().map { it.build() }.filterNot { isEmpty(it) }.forEach {
-            gui.addItem(GuiItem(it) { e: InventoryClickEvent ->
-                    e.whoClicked.inventory.addItem(ItemUpdater.updateItem(e.currentItem!!.clone()))
-                }
-            )
+        items.mapNotNullFast { it.build().takeUnless { it.isEmpty } }.forEach {
+            gui.addItem(GuiItem(it) { e -> e.whoClicked.inventory.addItem(ItemUpdater.updateItem(e.currentItem!!.clone())) })
         }
 
         val nextPage = (NexoItems.itemFromId(Settings.NEXO_INV_NEXT_ICON.toString()) ?: ItemBuilder(Material.BARRIER))

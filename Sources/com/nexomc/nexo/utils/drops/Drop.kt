@@ -2,14 +2,11 @@ package com.nexomc.nexo.utils.drops
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.BlockHelpers.toBlockLocation
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
-import com.nexomc.nexo.utils.ItemUtils.displayName
-import com.nexomc.nexo.utils.ItemUtils.editItemMeta
-import com.nexomc.nexo.utils.randomOrMin
-import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
@@ -18,6 +15,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.persistence.PersistentDataType
 import java.util.*
 
 class Drop(
@@ -97,14 +95,14 @@ class Drop(
 
     fun furnitureSpawns(baseEntity: ItemDisplay, itemInHand: ItemStack) {
         val baseItem = NexoItems.itemFromId(sourceID)!!.build()
-        val location = toBlockLocation(baseEntity.location)
+        val location = BlockHelpers.toBlockLocation(baseEntity.location).takeIf { it.isWorldLoaded } ?: return
         val furnitureItem = FurnitureHelpers.furnitureItem(baseEntity) ?: NexoItems.itemFromId(sourceID)?.build() ?: return
-        editItemMeta(furnitureItem) { itemMeta: ItemMeta ->
-            baseItem.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { displayName(itemMeta, it) }
+        ItemUtils.editItemMeta(furnitureItem) { itemMeta: ItemMeta ->
+            baseItem.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { ItemUtils.displayName(itemMeta, it) }
+            baseEntity.persistentDataContainer.get(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING)?.also { ItemUtils.displayName(itemMeta, it.deserialize()) }
         }
 
-        if (!canDrop(itemInHand) || !location.isWorldLoaded) return
-        checkNotNull(location.world)
+        if (!canDrop(itemInHand)) return
 
         when {
             isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true ->

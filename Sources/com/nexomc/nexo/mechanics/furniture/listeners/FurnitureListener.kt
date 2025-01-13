@@ -1,7 +1,5 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
@@ -14,15 +12,11 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic.RestrictedRotation
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.dyeColor
-import com.nexomc.nexo.utils.Utils.swingHand
-import com.nexomc.nexo.utils.VersionUtil
-import io.papermc.paper.event.entity.EntityMoveEvent
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.*
-import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -31,8 +25,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
-import org.bukkit.event.block.BlockFormEvent
-import org.bukkit.event.block.BlockFromToEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCreativeEvent
@@ -41,7 +33,6 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.inventory.EquipmentSlot
-import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
 class FurnitureListener : Listener {
@@ -98,11 +89,15 @@ class FurnitureListener : Listener {
         if (!blockPlaceEvent.canBuild() || !blockPlaceEvent.call()) return
 
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
+        val pdc = baseEntity.persistentDataContainer
 
-        dyeColor(item).ifPresent { color: Color ->
-            baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, color.asRGB())
+        dyeColor(item)?.asRGB()?.also {
+            pdc.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, it)
         }
-        swingHand(player, hand)
+        item.itemMeta.displayName()?.serialize()?.also {
+            pdc.set(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING, it)
+        }
+        Utils.swingHand(player, hand)
 
         if (!NexoFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand).call()) {
             NexoFurniture.remove(baseEntity)
@@ -157,7 +152,7 @@ class FurnitureListener : Listener {
 
             when {
                 mechanic.rotatable.rotatable && (!mechanic.rotatable.onSneak || player.isSneaking) -> mechanic.rotateFurniture(baseEntity)
-                mechanic.isStorage() && !player.isSneaking -> {
+                mechanic.isStorage && !player.isSneaking -> {
                     val storage = mechanic.storage ?: return
                     when (storage.storageType) {
                         StorageType.STORAGE, StorageType.SHULKER -> storage.openStorage(baseEntity, player)
@@ -166,7 +161,7 @@ class FurnitureListener : Listener {
                         StorageType.ENDERCHEST -> player.openInventory(player.enderChest)
                     }
                 }
-                mechanic.hasSeats() && !player.isSneaking -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
+                mechanic.hasSeats && !player.isSneaking -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
                 mechanic.clickActions.isEmpty() && !mechanic.light.toggleable -> useItemInHand = allowUseItem
             }
         }

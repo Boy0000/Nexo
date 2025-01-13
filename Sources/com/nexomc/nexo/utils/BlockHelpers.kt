@@ -122,6 +122,7 @@ object BlockHelpers {
         return when (block.type) {
             Material.SNOW -> (block.blockData as Snow).layers == 1
             in REPLACEABLE_BLOCKS -> true
+            Material.SCULK_VEIN -> true
             else -> false
         } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
     }
@@ -133,7 +134,7 @@ object BlockHelpers {
     }
 
     @JvmStatic
-    fun isReplaceable(material: Material) = material in REPLACEABLE_BLOCKS
+    fun isReplaceable(material: Material) = material in REPLACEABLE_BLOCKS || material == Material.SCULK_VEIN
 
     /**
      * Improved version of [Material.isInteractable] intended for replicating vanilla behavior.

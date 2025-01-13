@@ -18,11 +18,11 @@ class MiscMechanicFactory(section: ConfigurationSection) : MechanicFactory(secti
         val mechanic = MiscMechanic(this, section)
 
         if (VersionUtil.atleast("1.21.2")) {
-            if (!mechanic.burnsInLava() || !mechanic.burnsInLava()) {
-                Logs.logWarn(mechanic.itemID + " is using deprecated Misc-Mechanic burns_in_fire/lava...")
+            if (!mechanic.burnsInFire || !mechanic.burnsInLava) {
+                Logs.logWarn("${mechanic.itemID} is using deprecated Misc-Mechanic burns_in_fire/lava...")
                 Logs.logWarn("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...")
-            } else if (!mechanic.breaksFromCactus()) {
-                Logs.logWarn(mechanic.itemID + " is using deprecated Misc-Mechanic breaks_from_cactus...")
+            } else if (!mechanic.cactusBreaks) {
+                Logs.logWarn("${mechanic.itemID} is using deprecated Misc-Mechanic breaks_from_cactus...")
                 Logs.logWarn("It is heavily advised to swap to the new `damage_resistant`-component on 1.21.2+ servers...")
             }
         }

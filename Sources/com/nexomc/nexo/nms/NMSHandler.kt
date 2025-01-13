@@ -4,6 +4,7 @@ import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.utils.InteractionResult
 import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
@@ -43,9 +44,11 @@ interface NMSHandler {
      * @param player          The player that placed the block
      * @param slot            The hand the player placed the block with
      * @param itemStack       The ItemStack the player placed the block with
+     * @param target          The block where the new block will be placed (usually air or another replaceable block)
+     * @param blockFace       The face of the block that the player clicked
      * @return The enum interaction result
      */
-    fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block): InteractionResult?
+    fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block, blockFace: BlockFace): InteractionResult?
 
     fun foodComponent(itemBuilder: ItemBuilder, foodSection: ConfigurationSection) {}
 

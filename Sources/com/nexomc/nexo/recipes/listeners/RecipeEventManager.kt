@@ -47,6 +47,10 @@ class RecipeEventManager(
         val (customRecipe, player) = CustomRecipe.fromRecipe(recipe) to (playerFromView(this) ?: return)
         if (!hasPermission(player, customRecipe)) inventory.result = null
         if (inventory.result == null || recipe == null || customRecipe == null || customRecipe.isValidDyeRecipe || MiscMechanicFactory.instance() == null) return
+        if (inventory.matrix.any { MiscMechanicFactory.instance()?.getMechanic(it)?.isAllowedInVanillaRecipes == false }) {
+            inventory.result = null
+            return
+        }
         if (inventory.matrix.none(NexoItems::exists) || whitelistedCraftRecipes.any(customRecipe::equals)) return
 
         inventory.result = customRecipe.result

@@ -47,6 +47,7 @@ class LogStripListener : Listener {
     }
 
     private fun canStripLog(itemStack: ItemStack): Boolean {
-        return itemStack.type.name.endsWith("_AXE") || (MiscMechanicFactory.instance()?.getMechanic(NexoItems.idFromItem(itemStack))?.canStripLogs() ?: false)
+        return itemStack.type.name.endsWith("_AXE") || (MiscMechanicFactory.instance()?.getMechanic(NexoItems.idFromItem(itemStack))?.canStripLogs
+            ?: false)
     }
 }

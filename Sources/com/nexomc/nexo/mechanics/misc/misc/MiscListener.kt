@@ -77,7 +77,7 @@ class MiscListener : Listener {
     fun PlayerInteractEvent.onStripLog() {
         val block = clickedBlock?.takeIf { it.type == Material.COMPOSTER } ?: return
         val (item, hand) = (item ?: return) to (hand ?: return)
-        MiscMechanicFactory.instance()?.getMechanic(item)?.takeIf { it.canStripLogs() } ?: return
+        MiscMechanicFactory.instance()?.getMechanic(item)?.takeIf { it.canStripLogs } ?: return
 
         if (!Tag.LOGS.isTagged(block.type)) return
         if (action != Action.RIGHT_CLICK_BLOCK) return
@@ -113,7 +113,7 @@ class MiscListener : Listener {
     @EventHandler
     fun EntityDamageEvent.onItemBurnFire() {
         if (cause != EntityDamageEvent.DamageCause.FIRE && cause != EntityDamageEvent.DamageCause.FIRE_TICK) return
-        getMiscMechanic(entity)?.takeUnless { it.burnsInFire() } ?: return
+        getMiscMechanic(entity)?.takeUnless { it.burnsInFire } ?: return
         isCancelled = true
     }
 
@@ -122,8 +122,8 @@ class MiscListener : Listener {
         val mechanic = getMiscMechanic(entity) ?: return
 
         when {
-            cause == EntityDamageEvent.DamageCause.CONTACT && !mechanic.breaksFromCactus() -> isCancelled = true
-            cause == EntityDamageEvent.DamageCause.LAVA && !mechanic.burnsInLava() -> isCancelled = true
+            cause == EntityDamageEvent.DamageCause.CONTACT && !mechanic.cactusBreaks -> isCancelled = true
+            cause == EntityDamageEvent.DamageCause.LAVA && !mechanic.burnsInLava -> isCancelled = true
         }
     }
 
@@ -205,5 +205,5 @@ class MiscListener : Listener {
     }
 
     private fun shouldPreventPiglinAggro(itemStack: ItemStack) =
-        MiscMechanicFactory.instance()?.getMechanic(itemStack)?.takeIf { it.piglinIgnoreWhenEquipped() } != null
+        MiscMechanicFactory.instance()?.getMechanic(itemStack)?.takeIf { it.piglinsIgnoreWhenEquipped } != null
 }

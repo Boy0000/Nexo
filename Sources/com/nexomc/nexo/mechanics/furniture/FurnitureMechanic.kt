@@ -52,8 +52,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val evolution: EvolvingFurniture? = section.getConfigurationSection("evolution")?.let(::EvolvingFurniture)?.apply { (factory as FurnitureFactory).registerEvolution() }
     val light: LightMechanic
     val modelEngineID: String? = section.getString("modelengine_id", null)
-    val placedItemId: String = section.getString("item", itemID)!!
-    val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)
+    private val placedItemId: String = section.getString("item", itemID)!!
+    private val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)?.takeIf { VersionUtil.atleast("1.21.3") }
     val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val clickActions: List<ClickAction> = parseList(section)
     val properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties()
@@ -89,23 +89,29 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         this.light.lightBlocks.removeIf { it in overlap }
     }
 
-    val isModelEngine: Boolean
-        get() = modelEngineID != null
+    val isModelEngine: Boolean = modelEngineID != null
 
-    val placedItem: ItemBuilder
-        get() = placedItemModel?.takeIf { VersionUtil.atleast("1.20.5") }
-            ?.let { ItemBuilder(Material.BARRIER).setItemModel(NamespacedKey.fromString(it.asString())) }
+    fun placedItem(baseEntity: ItemDisplay): ItemBuilder {
+        var builder: ItemBuilder? = null
+
+        // Mechanic-specific item-overrides
+        if (!light.isEmpty && light.toggleable && FurnitureHelpers.lightState(baseEntity))
+            builder = light.toggledItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
+                ?: light.toggledModel?.let(NexoItems::itemFromId)
+
+        // Default Furniture items
+        return builder ?: placedItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
             ?: NexoItems.itemFromId(placedItemId) ?: NexoItems.itemFromId(itemID) ?: ItemBuilder(Material.BARRIER)
-    fun hasLimitedPlacing(): Boolean {
-        return limitedPlacing != null
     }
 
-    fun isStorage() = storage != null
-    fun hasBlockSounds() = blockSounds != null
-    fun isJukebox() = jukebox != null
-    fun hasSeats() = seats.isNotEmpty()
-    fun hasEvolution() = evolution != null
-    val isInteractable = rotatable.rotatable || hasSeats() || isStorage()
+    val hasLimitedPlacing: Boolean = limitedPlacing != null
+
+    val isStorage = storage != null
+    val hasBlockSounds = blockSounds != null
+    val isJukebox = jukebox != null
+    val hasSeats = seats.isNotEmpty()
+    val hasEvolution = evolution != null
+    val isInteractable = rotatable.rotatable || hasSeats || isStorage || light.toggleable
 
     fun place(location: Location) = place(location, location.yaw, BlockFace.UP, true)
 
@@ -206,7 +212,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         val pdc = baseEntity.persistentDataContainer
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, itemID)
-        if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0)
+        if (hasEvolution) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0)
         if (storage?.storageType == StorageType.STORAGE) {
             pdc.set<ByteArray, Array<ItemStack>>(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf())
         }
@@ -221,7 +227,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     fun removeBaseEntity(baseEntity: ItemDisplay) {
-        if (hasSeats()) FurnitureSeat.removeSeats(baseEntity)
+        if (hasSeats) FurnitureSeat.removeSeats(baseEntity)
         val packetManager = FurnitureFactory.instance()?.packetManager()
         packetManager?.removeInteractionHitboxPacket(baseEntity, this)
         packetManager?.removeBarrierHitboxPacket(baseEntity, this)
@@ -251,6 +257,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
     companion object {
         val FURNITURE_KEY = NamespacedKey(NexoPlugin.instance(), "furniture")
+        val DISPLAY_NAME_KEY = NamespacedKey(NexoPlugin.instance(), "display_name")
         val FURNITURE_DYE_KEY = NamespacedKey(NexoPlugin.instance(), "furniture_dye")
         val FURNITURE_LIGHT_KEY = NamespacedKey(NexoPlugin.instance(), "furniture_light")
         val MODELENGINE_KEY = NamespacedKey(NexoPlugin.instance(), "modelengine")

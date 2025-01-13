@@ -11,6 +11,7 @@ import org.bukkit.inventory.meta.*
 import org.bukkit.inventory.meta.components.FoodComponent
 import java.util.*
 import java.util.function.Consumer
+import javax.annotation.Nullable
 import kotlin.math.max
 
 object ItemUtils {
@@ -95,12 +96,13 @@ object ItemUtils {
     }
 
     @JvmStatic
+    @Nullable
     fun dyeColor(itemStack: ItemStack) = when (val meta = itemStack.itemMeta) {
         is LeatherArmorMeta -> meta.color
         is PotionMeta -> meta.color
         is MapMeta -> meta.color
         else -> null
-    }.let { Optional.ofNullable(it) }
+    }
 
     @JvmStatic
     fun dyeItem(itemStack: ItemStack, color: Color?) {

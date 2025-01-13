@@ -56,7 +56,7 @@ object CustomBlockHelpers {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(itemMaterial)) return
-            result = handler().correctBlockStates(player, hand, item, target.getRelative(face.oppositeFace))
+            result = handler().correctBlockStates(player, hand, item, target.getRelative(face.oppositeFace), face)
             (target.state as? Sign)?.takeIf { it.type != oldData.material }?.let {
                 player.openSign(it, Side.FRONT)
             }

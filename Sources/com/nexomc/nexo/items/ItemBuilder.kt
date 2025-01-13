@@ -265,6 +265,11 @@ class ItemBuilder(private val itemStack: ItemStack) {
         return this
     }
 
+    fun setItemModel(itemModel: Key?): ItemBuilder {
+        this.itemModel = itemModel?.let { NamespacedKey.fromString(it.asString()) }
+        return this
+    }
+
     fun hasTooltipStyle(): Boolean {
         return VersionUtil.atleast("1.21.2") && tooltipStyle != null
     }

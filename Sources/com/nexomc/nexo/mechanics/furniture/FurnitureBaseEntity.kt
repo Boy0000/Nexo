@@ -11,7 +11,7 @@ import java.util.*
 
 class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechanic) {
     fun refreshItem(baseEntity: ItemDisplay) {
-        itemStack = (mechanic.light.lightModelItem(baseEntity) ?: mechanic.placedItem).apply {
+        itemStack = (mechanic.placedItem(baseEntity)).apply {
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }.build().also {
             ItemUtils.dyeItem(it, FurnitureHelpers.furnitureDye(baseEntity))
@@ -28,7 +28,7 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechan
         itemStack = item
         FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
     }
-    var itemStack: ItemStack = (mechanic.light.lightModelItem(baseEntity) ?: mechanic.placedItem).apply {
+    var itemStack: ItemStack = (mechanic.placedItem(baseEntity)).apply {
         customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
     }.build().also {
         ItemUtils.dyeItem(it, FurnitureHelpers.furnitureDye(baseEntity))
