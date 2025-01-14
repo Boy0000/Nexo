@@ -160,7 +160,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
                 val material = Material.getMaterial(itemSection.getString("material", "")!!)
                     ?: WrappedCrucibleItem(itemSection).material
-                    ?: WrappedMMOItem(itemSection).material
+                    ?: WrappedMMOItem(itemSection, true).material
                     ?: return@forEach
                 val parsedKey = KeyUtils.parseKey(itemId.substringBefore(":", "minecraft"), itemId.substringAfter(":"), "model")
 

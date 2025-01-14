@@ -17,7 +17,9 @@ class WrappedMMOItem(
     var cache: Boolean = true,
 ) {
 
-    constructor(section: ConfigurationSection) : this() {
+    constructor(section: ConfigurationSection) : this(section, false)
+
+    constructor(section: ConfigurationSection, silent: Boolean) : this() {
         when {
             !PluginUtils.isEnabled("MMOItems") -> return
             else -> {
@@ -25,7 +27,7 @@ class WrappedMMOItem(
                 id = section.getString("id")
 
                 // Check if template exists
-                if (!MMOItems.plugin.templates.hasTemplate(type, id)) {
+                if (!silent && !MMOItems.plugin.templates.hasTemplate(type, id)) {
                     Logs.logError("Failed to load MMOItem $id")
                     Logs.logError("Template does not exist")
                 }
@@ -44,7 +46,7 @@ class WrappedMMOItem(
         }
     }
 
-    val material = runCatching { template()?.newBuilder()?.build()?.newBuilder()?.buildSilently()?.type }.getOrNull()
+    val material = runCatching { MMOItems.plugin.templates.getTemplate(type, id)?.newBuilder()?.build()?.newBuilder()?.buildSilently()?.type }.getOrNull()
 
     fun build(): ItemStack? {
         if (PluginUtils.isEnabled("MMOItems")) {

@@ -40,6 +40,7 @@ import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
 import java.io.File
+import java.net.URI
 import java.util.concurrent.CompletableFuture
 
 class PackGenerator {
@@ -80,6 +81,19 @@ class PackGenerator {
                         NexoPack.mergePack(resourcePack, packReader.readFile(file))
                     }.onFailure {
                         Logs.logError("Failed to read ${file.path} to a ResourcePack")
+                        if (Settings.DEBUG.toBool()) it.printStackTrace()
+                        else Logs.logError(it.message!!)
+                    }
+                }
+                Settings.PACK_IMPORT_FROM_URL.toStringList().forEach { url ->
+                    runCatching {
+                        Logs.logInfo("Importing pack from <aqua>${url}")
+                        val pack = URI.create(url).toURL().openStream().use { stream ->
+                            packReader.readFromInputStream(stream)
+                        }
+                        NexoPack.mergePack(resourcePack, pack)
+                    }.onFailure {
+                        Logs.logError("Failed to read $url to a ResourcePack")
                         if (Settings.DEBUG.toBool()) it.printStackTrace()
                         else Logs.logError(it.message!!)
                     }

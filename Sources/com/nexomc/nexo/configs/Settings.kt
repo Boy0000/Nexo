@@ -74,6 +74,7 @@ enum class Settings {
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
     PACK_IMPORT_FROM_LOCATION("Pack.import.from_location", listOf<String>()),
+    PACK_IMPORT_FROM_URL("Pack.import.from_url", listOf<String>()),
     PACK_IMPORT_EXTERNAL_PACK_ORDER("Pack.import.external_pack_order", listOf<String>()),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.model_engine.import_pack", true),
     PACK_EXCLUDE_MODEL_ENGINE_SHADERS("Pack.import.model_engine.exclude_shaders", true),
