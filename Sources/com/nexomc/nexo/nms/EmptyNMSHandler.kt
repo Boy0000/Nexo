@@ -17,27 +17,16 @@ class EmptyNMSHandler(override val resourcePackListener: Listener? = null) : NMS
     }
 
     override fun noteblockUpdatesDisabled(): Boolean = false
-
     override fun tripwireUpdatesDisabled(): Boolean = false
+    override fun chorusplantUpdateDisabled(): Boolean = false
 
-    override fun copyItemNBTTags(oldItem: ItemStack, newItem: ItemStack): ItemStack {
-        return newItem
-    }
+    override fun copyItemNBTTags(oldItem: ItemStack, newItem: ItemStack) = newItem
 
-    override fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block, blockFace: BlockFace): InteractionResult? {
-        return null
-    }
+    override fun correctBlockStates(player: Player, slot: EquipmentSlot, itemStack: ItemStack, target: Block, blockFace: BlockFace) = null
 
     override fun applyMiningEffect(player: Player) {
         player.addPotionEffect(
-            PotionEffect(
-                PotionEffectTypeWrapper.MINING_FATIGUE,
-                -1,
-                Int.MAX_VALUE,
-                false,
-                false,
-                false
-            )
+            PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE, -1, Int.MAX_VALUE, false, false, false)
         )
     }
 

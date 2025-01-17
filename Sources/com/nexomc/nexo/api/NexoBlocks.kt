@@ -15,11 +15,14 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechani
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
-import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
 import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockBreakEvent
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockDropLootEvent
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.EventUtils.call
@@ -27,6 +30,7 @@ import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
+import org.bukkit.block.data.MultipleFacing
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.entity.Player
@@ -59,6 +63,14 @@ object NexoBlocks {
     fun stringBlockIDs() = NexoItems.itemNames().filter(::isNexoStringBlock).toSet()
 
     /**
+     * Get all NexoItem ID's that have a ChorusBlockMechanic
+     *
+     * @return A set of all NexoItem ID's that have a ChorusBlockMechanic
+     */
+    @JvmStatic
+    fun chorusBlockIDs() = NexoItems.itemNames().filter(::isNexoChorusBlock).toSet()
+
+    /**
      * Check if a block is an instance of an NexoBlock
      *
      * @param block The block to check
@@ -68,6 +80,7 @@ object NexoBlocks {
     fun isCustomBlock(block: Block?) = when (block?.type) {
         Material.NOTE_BLOCK -> noteBlockMechanic(block) != null
         Material.TRIPWIRE -> stringMechanic(block) != null
+        Material.CHORUS_PLANT -> chorusBlockMechanic(block) != null
         else -> false
     }
 
@@ -82,7 +95,7 @@ object NexoBlocks {
      */
     @JvmStatic
     fun isCustomBlock(itemId: String?) =
-        NexoItems.hasMechanic(itemId, "noteblock") || NexoItems.hasMechanic(itemId, "stringblock")
+        NexoItems.hasMechanic(itemId, "noteblock") || NexoItems.hasMechanic(itemId, "stringblock") || NexoItems.hasMechanic(itemId, "chorusblock")
 
     /**
      * Check if a block is an instance of a NoteBlock
@@ -123,11 +136,30 @@ object NexoBlocks {
     @JvmStatic
     fun isNexoStringBlock(itemID: String?) = StringBlockMechanicFactory.instance()?.isNotImplementedIn(itemID) == false
 
+    /**
+     * Check if a block is an instance of a ChorusBlock
+     *
+     * @param block The block to check
+     * @return true if the block is an instance of a ChorusBlock, otherwise false
+     */
+    @JvmStatic
+    fun isNexoChorusBlock(block: Block) = block.type == Material.CHORUS_PLANT && chorusBlockMechanic(block) != null
+
+    /**
+     * Check if an itemID has a ChorusBlockMechanic
+     *
+     * @param itemID The itemID to check
+     * @return true if the itemID has a ChorusBlockMechanic, otherwise false
+     */
+    @JvmStatic
+    fun isNexoChorusBlock(itemID: String?) = ChorusBlockFactory.instance()?.isNotImplementedIn(itemID) == false
+
     @JvmStatic
     fun place(itemID: String?, location: Location) {
         when {
             isNexoNoteBlock(itemID) -> placeNoteBlock(location, itemID)
             isNexoStringBlock(itemID) -> placeStringBlock(location, itemID)
+            isNexoChorusBlock(itemID) -> placeChorusBlock(location, itemID)
         }
     }
 
@@ -179,6 +211,11 @@ object NexoBlocks {
         }
     }
 
+    @JvmStatic
+    private fun placeChorusBlock(location: Location, itemID: String?) {
+        ChorusBlockFactory.setBlockModel(location.block, itemID)
+    }
+
     /**
      * Breaks an NexoBlock at the given location
      *
@@ -189,10 +226,7 @@ object NexoBlocks {
      */
     @JvmStatic
     fun remove(location: Location, player: Player? = null, forceDrop: Boolean): Boolean {
-        val block = location.block
-
-        val noteMechanic = noteBlockMechanic(block)
-        val overrideDrop = if (!forceDrop) null else (noteMechanic?.breakable ?: stringMechanic(block)?.breakable)?.drop
+        val overrideDrop = if (!forceDrop) null else customBlockMechanic(location)?.breakable?.drop
         return remove(location, player, overrideDrop)
     }
 
@@ -211,6 +245,7 @@ object NexoBlocks {
         return when {
             isNexoNoteBlock(block) -> removeNoteBlock(block, player, overrideDrop)
             isNexoStringBlock(block) -> removeStringBlock(block, player, overrideDrop)
+            isNexoChorusBlock(block) -> removeChorusBlock(block, player, overrideDrop)
             else -> false
         }
     }
@@ -282,6 +317,37 @@ object NexoBlocks {
         return true
     }
 
+    private fun removeChorusBlock(block: Block, player: Player?, overrideDrop: Drop?): Boolean {
+        val (itemInHand, loc) = (player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)) to block.location
+        val mechanic = chorusBlockMechanic(block) ?: return false
+
+        var drop: Drop? = overrideDrop ?: mechanic.breakable.drop
+        if (player != null) {
+            val chorusBlockBreakEvent = NexoChorusBlockBreakEvent(mechanic, block, player)
+            if (!chorusBlockBreakEvent.call()) return false
+
+            drop = when {
+                player.gameMode == GameMode.CREATIVE -> null
+                overrideDrop != null || player.gameMode != GameMode.CREATIVE -> chorusBlockBreakEvent.drop
+                else -> drop
+            }
+
+            if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
+            loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
+        }
+
+        if (drop != null) {
+            val loots = drop.spawns(loc, itemInHand)
+            if (loots.isNotEmpty() && player != null) {
+                NexoChorusBlockDropLootEvent(mechanic, block, player, loots).call()
+                damageItem(player, itemInHand)
+            }
+        }
+
+        block.type = Material.AIR
+        return true
+    }
+
     /**
      * Get the NexoBlock at a location
      *
@@ -296,6 +362,7 @@ object NexoBlocks {
             else -> when (location.block.type) {
                 Material.NOTE_BLOCK -> noteBlockMechanic(location.block)
                 Material.TRIPWIRE -> stringMechanic(location.block)
+                Material.CHORUS_PLANT -> chorusBlockMechanic(location.block)
                 else -> null
             }
         }
@@ -306,13 +373,15 @@ object NexoBlocks {
         return when (blockData.material) {
             Material.NOTE_BLOCK -> noteBlockMechanic(blockData)
             Material.TRIPWIRE -> stringMechanic(blockData)
+            Material.CHORUS_PLANT -> chorusBlockMechanic(blockData)
             else -> null
         }
     }
 
     @JvmStatic
-    fun customBlockMechanic(itemID: String?) =
-        NoteBlockMechanicFactory.instance()?.getMechanic(itemID) ?: StringBlockMechanicFactory.instance()?.getMechanic(itemID)
+    fun customBlockMechanic(itemID: String?) = NoteBlockMechanicFactory.instance()?.getMechanic(itemID)
+        ?: StringBlockMechanicFactory.instance()?.getMechanic(itemID)
+        ?: ChorusBlockFactory.instance()?.getMechanic(itemID)
 
     @JvmStatic
     fun noteBlockMechanic(data: BlockData?): NoteBlockMechanic? {
@@ -346,4 +415,21 @@ object NexoBlocks {
     @JvmStatic
     fun stringMechanic(itemID: String?) =
         StringBlockMechanicFactory.instance()?.getMechanic(itemID)
+
+    @JvmStatic
+    fun chorusBlockMechanic(blockData: BlockData?): ChorusBlockMechanic? {
+        if (!ChorusBlockFactory.isEnabled || blockData !is MultipleFacing) return null
+        return ChorusBlockFactory.getMechanic(blockData)
+    }
+
+    @JvmStatic
+    fun chorusBlockMechanic(block: Block): ChorusBlockMechanic? {
+        if (!ChorusBlockFactory.isEnabled || block.type != Material.CHORUS_PLANT) return null
+        val chorus = block.blockData as? MultipleFacing ?: return null
+        return ChorusBlockFactory.getMechanic(chorus)
+    }
+
+    @JvmStatic
+    fun chorusBlockMechanic(itemID: String?) =
+        ChorusBlockFactory.instance()?.getMechanic(itemID)
 }

@@ -8,6 +8,7 @@ import com.nexomc.nexo.mechanics.combat.spell.fireball.FireballMechanicFactory
 import com.nexomc.nexo.mechanics.combat.spell.thor.ThorMechanicFactory
 import com.nexomc.nexo.mechanics.combat.spell.witherskull.WitherSkullMechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
 import com.nexomc.nexo.mechanics.farming.harvesting.HarvestingMechanicFactory
@@ -37,31 +38,32 @@ object MechanicsManager {
 
     fun registerNativeMechanics() {
         // misc
-        registerMechanicFactory("armor_effects") { section -> ArmorEffectsFactory(section) }
-        registerMechanicFactory("soulbound") { section -> SoulBoundMechanicFactory(section) }
-        registerMechanicFactory("itemtype") { section -> ItemTypeMechanicFactory(section) }
-        registerMechanicFactory("custom") { section -> CustomMechanicFactory(section) }
-        registerMechanicFactory("commands") { section -> CommandsMechanicFactory(section) }
-        registerMechanicFactory("backpack") { section -> BackpackMechanicFactory(section) }
-        registerMechanicFactory("misc") { section -> MiscMechanicFactory(section) }
+        registerMechanicFactory("armor_effects", ::ArmorEffectsFactory)
+        registerMechanicFactory("soulbound", ::SoulBoundMechanicFactory)
+        registerMechanicFactory("itemtype", ::ItemTypeMechanicFactory)
+        registerMechanicFactory("custom", ::CustomMechanicFactory)
+        registerMechanicFactory("commands", ::CommandsMechanicFactory)
+        registerMechanicFactory("backpack", ::BackpackMechanicFactory)
+        registerMechanicFactory("misc", ::MiscMechanicFactory)
 
         // gameplay
-        registerMechanicFactory("furniture") { section -> FurnitureFactory(section) }
-        registerMechanicFactory("noteblock") { section -> NoteBlockMechanicFactory(section) }
-        registerMechanicFactory("stringblock") { section -> StringBlockMechanicFactory(section) }
+        registerMechanicFactory("furniture", ::FurnitureFactory)
+        registerMechanicFactory("noteblock", ::NoteBlockMechanicFactory)
+        registerMechanicFactory("stringblock", ::StringBlockMechanicFactory)
+        registerMechanicFactory("chorusblock", ::ChorusBlockFactory)
         registerMechanicFactory(CustomBlockFactory("custom_block"), true)
 
         // combat
-        registerMechanicFactory("thor") { section -> ThorMechanicFactory(section) }
-        registerMechanicFactory("lifesteal") { section -> LifeStealMechanicFactory(section) }
-        registerMechanicFactory("energyblast") { section -> EnergyBlastMechanicFactory(section) }
-        registerMechanicFactory("witherskull") { section -> WitherSkullMechanicFactory(section) }
-        registerMechanicFactory("fireball") { section -> FireballMechanicFactory(section) }
+        registerMechanicFactory("thor", ::ThorMechanicFactory)
+        registerMechanicFactory("lifesteal", ::LifeStealMechanicFactory)
+        registerMechanicFactory("energyblast", ::EnergyBlastMechanicFactory)
+        registerMechanicFactory("witherskull", ::WitherSkullMechanicFactory)
+        registerMechanicFactory("fireball", ::FireballMechanicFactory)
 
         // farming
-        registerMechanicFactory("smelting") { section -> SmeltingMechanicFactory(section) }
-        registerMechanicFactory("harvesting") { section -> HarvestingMechanicFactory(section) }
-        registerMechanicFactory("repair") { section -> RepairMechanicFactory(section) }
+        registerMechanicFactory("smelting", ::SmeltingMechanicFactory)
+        registerMechanicFactory("harvesting", ::HarvestingMechanicFactory)
+        registerMechanicFactory("repair", ::RepairMechanicFactory)
 
         NexoMechanicsRegisteredEvent().call()
     }

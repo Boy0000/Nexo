@@ -23,6 +23,8 @@ interface NMSHandler {
 
     fun tripwireUpdatesDisabled(): Boolean
 
+    fun chorusplantUpdateDisabled(): Boolean
+
     fun resourcepackFormat(): Int
     fun datapackFormat(): Int
 

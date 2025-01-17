@@ -42,6 +42,15 @@ stringblock:
     disable_vanilla_strings: false
     custom_block_sounds: true
     enabled: true
+chorusblock:
+  tool_types:
+    - WOODEN
+    - STONE
+    - IRON
+    - GOLDEN
+    - DIAMOND
+    - NETHERITE
+  enabled: true
 furniture:
   tool_types:
     - WOODEN

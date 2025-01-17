@@ -4,12 +4,13 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -27,9 +28,9 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     private val saplingGrowthCheckDelay: Int = section.getInt("sapling_growth_check_delay")
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     val disableVanillaString: Boolean = section.getBoolean("disable_vanilla_strings", true)
-    private var notifyOfDeprecation = true
 
-    private val variants = mutableMapOf<String, MultiVariant>()
+    val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<StringBlockMechanic>()
+    private val variants = Object2ObjectOpenHashMap<String, MultiVariant>()
 
     init {
         instance = this
@@ -67,14 +68,8 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     override fun parse(section: ConfigurationSection): Mechanic? {
         val mechanic = StringBlockMechanic(this, section)
 
-        if (section.name == mechanicID && notifyOfDeprecation) {
-            notifyOfDeprecation = false
-            Logs.logError("${mechanic.itemID} is using Mechanics.stringblock which is deprecated...")
-            Logs.logWarn("It is recommended to use the new format, Mechanics.custom_block.type: ${CustomBlockFactory.instance()?.STRINGBLOCK}")
-        }
-
-        if (mechanic.customVariation !in 1..MAX_BLOCK_VARIATION) {
-            Logs.logError("The custom variation of the block ${mechanic.itemID} is not between 1 and $MAX_BLOCK_VARIATION!")
+        if (mechanic.customVariation !in MAX_BLOCK_VARIATION) {
+            Logs.logError("The custom variation of the block ${mechanic.itemID} is not between 1 and ${MAX_BLOCK_VARIATION.last}!")
             Logs.logWarn("The item has failed to build for now to prevent bugs and issues.")
             return null
         }
@@ -85,13 +80,13 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
             return null
         }
 
-        variants[getBlockstateVariantName(mechanic)] = MultiVariant.of(Variant.builder().model(mechanic.model).build())
+        variants[blockstateVariant(mechanic)] = MultiVariant.of(Variant.builder().model(mechanic.model).build())
         BLOCK_PER_VARIATION[mechanic.customVariation] = mechanic
         addToImplemented(mechanic)
         return mechanic
     }
 
-    private fun getBlockstateVariantName(mechanic: StringBlockMechanic): String {
+    private fun blockstateVariant(mechanic: StringBlockMechanic): String {
         val t = mechanic.blockData
         return "east=${t!!.hasFace(BlockFace.EAST)},west=${t.hasFace(BlockFace.WEST)},south=${t.hasFace(BlockFace.SOUTH)},north=${t.hasFace(BlockFace.NORTH)},attached=${t.isAttached},disarmed=${t.isDisarmed},powered=${t.isPowered}"
     }
@@ -105,8 +100,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     }
 
     companion object {
-        val BLOCK_PER_VARIATION = mutableMapOf<Int, StringBlockMechanic>()
-        const val MAX_BLOCK_VARIATION = 127
+        val MAX_BLOCK_VARIATION = 1..127
         private var instance: StringBlockMechanicFactory? = null
         private var saplingTask: SaplingTask? = null
         val isEnabled: Boolean
@@ -125,6 +119,6 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
             block.blockData = stringBlockMechanic.blockData!!
         }
 
-        fun getMechanic(blockData: Tripwire) = BLOCK_PER_VARIATION.values.firstOrNull { it.blockData == blockData }
+        fun getMechanic(blockData: Tripwire) = instance?.BLOCK_PER_VARIATION?.values?.firstOrNull { it.blockData == blockData }
     }
 }

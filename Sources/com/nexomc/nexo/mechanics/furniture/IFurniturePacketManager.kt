@@ -11,6 +11,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
+import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -52,8 +53,10 @@ interface IFurniturePacketManager {
     }
 
     companion object {
-        val BARRIER_DATA = Material.BARRIER.createBlockData()
+        val BARRIER_DATA = Material.BARRIER.createBlockData() as Waterlogged
+        val BARRIER_DATA_WATERLOGGED = (Material.BARRIER.createBlockData() as Waterlogged).apply { isWaterlogged = true }
         val AIR_DATA = Material.AIR.createBlockData()
+        val WATER_DATA = Material.WATER.createBlockData()
 
         val furnitureBaseMap = ObjectOpenHashSet<FurnitureBaseEntity>()
         val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, ObjectOpenHashSet<BarrierHitbox>>()

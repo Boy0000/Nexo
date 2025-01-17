@@ -11,6 +11,8 @@ import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripListene
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Instrument
 import org.bukkit.NamespacedKey
@@ -27,10 +29,9 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
     val toolTypes: List<String> = section.getStringList("tool_types")
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     val reimplementNoteblockFeatures: Boolean = section.getBoolean("reimplement_noteblock_features", false)
-    val BLOCK_PER_VARIATION = mutableMapOf<Int, NoteBlockMechanic>()
-    private var notifyOfDeprecation = true
 
-    private val variants = linkedMapOf<String, MultiVariant>()
+    val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<NoteBlockMechanic>()
+    private val variants = Object2ObjectOpenHashMap<String, MultiVariant>()
 
     init {
         instance = this
@@ -79,13 +80,6 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
 
     override fun parse(section: ConfigurationSection): NoteBlockMechanic? {
         val mechanic = NoteBlockMechanic(this, section)
-
-        // Deprecation notice
-        if (section.name == mechanicID && notifyOfDeprecation) {
-            notifyOfDeprecation = false
-            Logs.logError("${mechanic.itemID} is using Mechanics.noteblock which is deprecated...")
-            Logs.logWarn("It is recommended to use the new format, Mechanics.custom_block.type: ${CustomBlockFactory.instance()?.NOTEBLOCK}")
-        }
 
         if (mechanic.customVariation !in 1..MAX_BLOCK_VARIATION) {
             Logs.logError("The custom variation of the block ${mechanic.itemID} is not between 1 and $MAX_BLOCK_VARIATION!")
@@ -168,7 +162,6 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
     }
 
     companion object {
-        val MINEABLE_PACKET_LISTENER = NamespacedKey.fromString("mineable_with_key", NexoPlugin.instance())
         private const val MAX_PER_INSTRUMENT = 50
         val MAX_BLOCK_VARIATION = Instrument.entries.size * MAX_PER_INSTRUMENT - 1
         private var instance: NoteBlockMechanicFactory? = null

@@ -4,11 +4,13 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.block.data.BlockData
+import org.bukkit.block.data.MultipleFacing
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
@@ -21,6 +23,7 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
 
     val NOTEBLOCK = DefaultBlockType("NOTEBLOCK", NoteBlockMechanicFactory.instance())
     val STRINGBLOCK = DefaultBlockType("STRINGBLOCK", StringBlockMechanicFactory.instance())
+    val CHORUSBLOCK = DefaultBlockType("CHORUSBLOCK", ChorusBlockFactory.instance())
 
     companion object {
         private var instance: CustomBlockFactory? = null
@@ -32,6 +35,7 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
         fun getMechanic(blockData: BlockData) = when (blockData) {
             is NoteBlock -> NoteBlockMechanicFactory.getMechanic(blockData)
             is Tripwire -> StringBlockMechanicFactory.getMechanic(blockData)
+            is MultipleFacing -> ChorusBlockFactory.getMechanic(blockData)
             else -> null
         }
     }
@@ -40,12 +44,8 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
         instance = this
         CustomBlockRegistry.register(NOTEBLOCK)
         CustomBlockRegistry.register(STRINGBLOCK)
-        MechanicsManager.registerListeners(
-            NexoPlugin.instance(),
-            mechanicID,
-            CustomBlockListener(),
-            CustomBlockMiningListener()
-        )
+        CustomBlockRegistry.register(CHORUSBLOCK)
+        registerListeners(CustomBlockListener(), CustomBlockMiningListener())
     }
 
     fun blockStates(resourcePack: ResourcePack) {
@@ -60,6 +60,7 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
 
         NoteBlockMechanicFactory.instance()?.generateBlockState()?.let(blockStates::add)
         StringBlockMechanicFactory.instance()?.generateBlockState()?.let(blockStates::add)
+        ChorusBlockFactory.instance()?.generateBlockState()?.let(blockStates::add)
 
         blockStates.forEach { blockState ->
             (resourcePack.blockState(blockState.key())?.let {
@@ -97,6 +98,7 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
         return when {
             type === STRINGBLOCK -> StringBlockMechanicFactory.instance()?.toolTypes ?: listOf()
             type === NOTEBLOCK -> NoteBlockMechanicFactory.instance()?.toolTypes ?: listOf()
+            type === CHORUSBLOCK -> ChorusBlockFactory.instance()?.toolTypes ?: listOf()
             else -> listOf()
         }
     }
@@ -106,7 +108,7 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
         val type = CustomBlockRegistry.fromMechanicSection(section) ?: return null
 
         if (type.factory() == null) {
-            Logs.logError(itemId + " attempted to use " + type.name() + "-type but it has been disabled")
+            Logs.logError(itemId + " attempted to use ${type.name()}-type but it has been disabled")
             return null
         }
 

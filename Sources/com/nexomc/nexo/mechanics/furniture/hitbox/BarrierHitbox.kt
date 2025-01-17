@@ -6,10 +6,9 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.Waterlogged
-import org.joml.Vector3f
 
 class BarrierHitbox : BlockLocation {
-    val barrierData: BlockData
+    val barrierData: Waterlogged
 
     fun from(hitboxObject: Any?): BarrierHitbox {
         return when (hitboxObject) {
@@ -28,8 +27,8 @@ class BarrierHitbox : BlockLocation {
     }
 
     constructor(location: Location) : super(location) {
-        barrierData = (IFurniturePacketManager.BARRIER_DATA as Waterlogged).apply {
-            isWaterlogged = location.block.type == Material.WATER
-        }
+        barrierData = IFurniturePacketManager.BARRIER_DATA.takeUnless {
+            location.block.type == Material.WATER
+        } ?: IFurniturePacketManager.BARRIER_DATA_WATERLOGGED
     }
 }
