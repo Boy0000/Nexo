@@ -77,7 +77,7 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun EntityRemoveFromWorldEvent.onUnload() {
-        val itemDisplay = entity as? ItemDisplay ?: return
+        val itemDisplay = (entity as? ItemDisplay)?.takeIf { it.location.isChunkLoaded } ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 

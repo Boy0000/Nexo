@@ -3,8 +3,6 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
-import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import org.bukkit.Bukkit
@@ -17,7 +15,7 @@ import org.bukkit.scheduler.BukkitRunnable
 
 class SaplingTask(private val delay: Int) : BukkitRunnable() {
     override fun run() {
-        if (!isEnabled("WorldEdit")) return
+        if (!WrappedWorldEdit.loaded) return
         for (world: World in Bukkit.getWorlds()) {
             for (chunk: Chunk? in world.loadedChunks) {
                 for (block: Block in CustomBlockData.getBlocksWithCustomData(NexoPlugin.instance(), chunk)) {

@@ -2,9 +2,7 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
-import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import org.bukkit.Effect
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -27,7 +25,7 @@ class SaplingListener : Listener {
         if (action != Action.RIGHT_CLICK_BLOCK || hand != EquipmentSlot.HAND) return
         if (sapling.requiresLight() && sapling.minLightLevel > block.lightLevel) return
         if (sapling.requiresWaterSource && sapling.isUnderWater(block)) return
-        if (!sapling.canGrowFromBoneMeal || !isEnabled("WorldEdit")) return
+        if (!sapling.canGrowFromBoneMeal || !WrappedWorldEdit.loaded) return
         if (!sapling.replaceBlocks && WrappedWorldEdit.blocksInSchematic(block.location, sapling.schematic()).isNotEmpty()) return
 
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
