@@ -185,11 +185,11 @@ object NexoFurniture {
         return baseEntity?.let(::furnitureMechanic) ?: let {
             val centerLoc = toCenterBlockLocation(location)
             val boundingBox = BoundingBox.of(centerLoc, 0.5, 1.0, 0.5)
-            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0)
-                .filterIsInstance<ItemDisplay>()
+            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it is ItemDisplay}
                 .sortedBy { it.location.distanceSquared(centerLoc) }
-                .firstOrNull { it.boundingBox.overlaps(boundingBox) }
-                ?.let(::furnitureMechanic)
+                .associateWith { furnitureMechanic(it) }
+                .entries.firstOrNull { it.value?.hitbox?.interactionBoundingBoxes(centerLoc, centerLoc.yaw)?.any { it.overlaps(boundingBox) } == true }
+                ?.key?.let(::furnitureMechanic)
         }
     }
 

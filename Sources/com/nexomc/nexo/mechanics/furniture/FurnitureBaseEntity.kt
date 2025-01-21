@@ -7,6 +7,7 @@ import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.util.BoundingBox
 import java.util.*
 
 class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechanic) {

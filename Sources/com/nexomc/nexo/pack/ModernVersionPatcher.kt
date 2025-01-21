@@ -53,12 +53,15 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
                     runCatching {
                         val keys = baseItemModel.keySet()
-                        if (model.endsWith("bow.json")) handleBowEntries(existingItemModel, baseItemModel, overrides)
-                        else {
-                            if ("on_false" in keys) handleOnBoolean(false, baseItemModel, overrides)
-                            if ("on_true" in keys) handleOnBoolean(true, baseItemModel, overrides)
-                            if ("tints" in keys) handleTints(existingItemModel, baseItemModel, overrides)
-                            if ("cases" in keys) handleCases(existingItemModel, baseItemModel, overrides)
+                        when (model) {
+                            "crossbow.json" -> handleCrossbowEntries(existingItemModel, baseItemModel, overrides)
+                            "bow.json" -> handleBowEntries(existingItemModel, baseItemModel, overrides)
+                            else -> {
+                                if ("on_false" in keys) handleOnBoolean(false, baseItemModel, overrides)
+                                if ("on_true" in keys) handleOnBoolean(true, baseItemModel, overrides)
+                                if ("tints" in keys) handleTints(existingItemModel, baseItemModel, overrides)
+                                if ("cases" in keys) handleCases(existingItemModel, baseItemModel, overrides)
+                            }
                         }
                     }.onFailure {
                         it.printStackTrace()
@@ -168,6 +171,67 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             ).let { baseItemModel.plus("on_$boolean", it) }
     }
 
+    private fun handleCrossbowEntries(
+        existingItemModel: JsonObject,
+        baseItemModel: JsonObject,
+        overrides: MutableList<ItemOverride>,
+    ) {
+        val defaultObject = baseItemModel.deepCopy() ?: return
+        val pullingOverrides = overrides.groupBy { it.predicate().customModelData }
+
+        JsonBuilder.jsonObject
+            .plus("type", "minecraft:range_dispatch")
+            .plus("property", "minecraft:custom_model_data")
+            .plus("entries", pullingOverrides.entries.mapNotNull { (cmd, overrides) ->
+                val pullOverrides = overrides.filter { it.predicate().pull != null }.sortedBy { it.predicate().pull }
+                val fallback = pullOverrides.firstOrNull()?.model()?.asString() ?: overrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
+                val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
+
+                val fireworkObject = overrides.firstOrNull { it.predicate().firework != null }?.model()?.asString()?.let {
+                    JsonBuilder.jsonObject
+                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
+                        .plus("when", "rocket")
+                } ?: JsonBuilder.jsonObject
+
+                val chargedObject = overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
+                    JsonBuilder.jsonObject
+                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
+                        .plus("when", "arrow")
+                } ?: JsonBuilder.jsonObject
+
+                JsonBuilder.jsonObject
+                    .plus("threshold", cmd ?: return@mapNotNull null)
+                    .plus(
+                        "model",
+                        JsonBuilder.jsonObject
+                            .plus("type", "minecraft:condition")
+                            .plus("property", "minecraft:using_item")
+                            .plus("on_false",
+                                JsonBuilder.jsonObject
+                                    .plus("type", "minecraft:select")
+                                    .plus("property", "minecraft:charge_type")
+                                    .plus("fallback", fallbackObject)
+                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject))
+                            )
+                            .plus("on_true",
+                                JsonBuilder.jsonObject
+                                    .plus("type", "minecraft:range_dispatch")
+                                    .plus("property", "minecraft:crossbow/pull")
+                                    .plus("fallback", fallbackObject)
+                                    .plus("entries", pullOverrides.mapNotNull pull@{ pull ->
+                                        val model = pull.model().asString()
+                                        val modelObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", model)
+                                        val pullThreshold = pull.predicate().pull?.takeIf { it > 0 } ?: return@pull null
+                                        JsonBuilder.jsonObject.plus("threshold", pullThreshold).plus("model", modelObject)
+                                    }.toJsonArray())
+                            )
+                    )
+            }.toJsonArray())
+            .plus("fallback", defaultObject)
+            .also { existingItemModel.plus("model", it) }
+    }
+
+
     private fun handleBowEntries(
         existingItemModel: JsonObject,
         baseItemModel: JsonObject,
@@ -254,4 +318,8 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
         get() = firstOrNull { it.name() == "custom_model_data" }?.value().toString().toFloatOrNull()
     private val List<ItemPredicate>.pull: Float?
         get() = firstOrNull { it.name() == "pull" }?.value().toString().toFloatOrNull()
+    private val List<ItemPredicate>.charged: Double?
+        get() = firstOrNull { it.name() == "charged" }?.value().toString().toDoubleOrNull()
+    private val List<ItemPredicate>.firework: Double?
+        get() = firstOrNull { it.name() == "firework" }?.value().toString().toDoubleOrNull()
 }

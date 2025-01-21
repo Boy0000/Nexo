@@ -15,6 +15,7 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
+import org.bukkit.util.BoundingBox
 import java.util.*
 
 interface IFurniturePacketManager {

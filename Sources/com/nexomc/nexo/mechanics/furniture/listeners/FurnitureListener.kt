@@ -41,11 +41,11 @@ class FurnitureListener : Listener {
         val (block, itemId) = (clickedBlock ?: return) to (item?.let(NexoItems::idFromItem) ?: return)
 
         if (hand != EquipmentSlot.HAND || action != Action.RIGHT_CLICK_BLOCK) return
-        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
 
         val mechanic = NexoFurniture.furnitureMechanic(itemId) ?: return
         val limitedPlacing = mechanic.limitedPlacing ?: return
         val belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN)
+        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
 
         when {
             limitedPlacing.isNotPlacableOn(block, blockFace) -> isCancelled = true
@@ -71,10 +71,9 @@ class FurnitureListener : Listener {
 
         if (action != Action.RIGHT_CLICK_BLOCK || (useInteractedBlock() == Event.Result.DENY && !player.isSneaking) || useItemInHand() == Event.Result.DENY) return
         if (!NexoFurniture.isFurniture(item) || BlockHelpers.isStandingInside(player, block)) return
-        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
         if (!ProtectionLib.canBuild(player, block.location)) return
-        if (!player.isSneaking && NexoFurniture.furnitureMechanic(block)?.isInteractable == true) return
         if (mechanic.farmlandRequired && block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(block)) return
 
         val blockPlaceEvent = BlockPlaceEvent(block, block.state, block.getRelative(blockFace), item, player, true, hand)
         val rotation = getRotation(player.eyeLocation.yaw.toDouble(), mechanic)
@@ -132,13 +131,13 @@ class FurnitureListener : Listener {
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
         block.setType(Material.BARRIER, false)
-        Bukkit.getScheduler().scheduleSyncDelayedTask(NexoPlugin.instance()) { block.setType(Material.AIR, false) }
-        Bukkit.getScheduler().scheduleSyncDelayedTask(
-            NexoPlugin.instance(), {
-                FurnitureFactory.instance()?.packetManager()?.sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                FurnitureFactory.instance()?.packetManager()?.sendLightMechanicPacket(baseEntity, mechanic, player)
-            }, 1L
-        )
+        SchedulerUtils.syncDelayedTask { block.setType(Material.AIR, false) }
+        SchedulerUtils.syncDelayedTask(1L) {
+            FurnitureFactory.instance()?.packetManager()?.apply {
+                sendBarrierHitboxPacket(baseEntity, mechanic, player)
+                sendLightMechanicPacket(baseEntity, mechanic, player)
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -168,11 +167,12 @@ class FurnitureListener : Listener {
 
         player.updateInventory()
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(
-            NexoPlugin.instance(), {
-                FurnitureFactory.instance()?.packetManager()?.sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                FurnitureFactory.instance()?.packetManager()?.sendLightMechanicPacket(baseEntity, mechanic, player)
-        }, 1L)
+        SchedulerUtils.syncDelayedTask(1L) {
+            FurnitureFactory.instance()?.packetManager()?.apply {
+                sendBarrierHitboxPacket(baseEntity, mechanic, player)
+                sendLightMechanicPacket(baseEntity, mechanic, player)
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

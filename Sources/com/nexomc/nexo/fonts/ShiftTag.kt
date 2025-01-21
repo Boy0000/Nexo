@@ -20,13 +20,13 @@ object ShiftTag {
     val RESOLVER = TagResolver.resolver(setOf(SHIFT, SHIFT_SHORT)) { args, ctx -> shiftTag(args) }
 
     val REPLACEMENT_CONFIG = TextReplacementConfig.builder()
-        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)).font(Font.MINECRAFT_DEFAULT) }.build()
+        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)).font(FONT) }.build()
 
     val ESCAPE_REPLACEMENT_CONFIG = TextReplacementConfig.builder()
         .match(ESCAPED_PATTERN).replacement { r, b -> b.content(r.group(1).removePrefix("\\\\")) }.build()
 
     private fun shiftTag(args: ArgumentQueue): Tag {
         val shift = args.popOr("A shift value is required").value().toIntOrNull() ?: 0
-        return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(Font.MINECRAFT_DEFAULT))
+        return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(FONT))
     }
 }

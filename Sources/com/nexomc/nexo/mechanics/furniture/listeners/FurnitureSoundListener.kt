@@ -10,6 +10,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.BlockHelpers.entityStandingOn
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -86,17 +87,9 @@ class FurnitureSoundListener : Listener {
         if (instaBreak || block.type == Material.BARRIER || soundGroup.hitSound != Sound.BLOCK_STONE_HIT) return
         if (breakerPlaySound.containsKey(location)) return
 
-        breakerPlaySound[location] = Bukkit.getScheduler().runTaskTimer(
-            NexoPlugin.instance(),
-            Runnable {
-                playCustomBlockSound(
-                    location,
-                    BlockSounds.VANILLA_STONE_HIT,
-                    BlockSounds.VANILLA_HIT_VOLUME,
-                    BlockSounds.VANILLA_HIT_PITCH
-                )
-            }, 2L, 4L
-        )
+        breakerPlaySound[location] = SchedulerUtils.runTaskTimer(2L, 4L) {
+            playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

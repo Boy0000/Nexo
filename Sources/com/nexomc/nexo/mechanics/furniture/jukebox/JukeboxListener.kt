@@ -12,6 +12,7 @@ import com.nexomc.nexo.utils.ItemUtils.isMusicDisc
 import com.nexomc.nexo.utils.VersionUtil
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.filterFast
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import org.bukkit.GameMode
@@ -79,11 +80,11 @@ class JukeboxListener : Listener {
         val furnitureMechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return false
         val jukebox = furnitureMechanic.jukebox?.takeIf { it.hasPermission(player) } ?: return false
         val loc = BlockHelpers.toCenterLocation(baseEntity.location)
+        val songKey = songFromDisc(item)
 
         if (!pdc.has(JukeboxBlock.MUSIC_DISC_KEY, DataType.ITEM_STACK) || !isMusicDisc(item)) return false
 
-        baseEntity.getNearbyEntities(32.0, 32.0, 32.0).filterIsInstance<Player>().forEach { p ->
-            val songKey = songFromDisc(item) ?: return@forEach
+        if (songKey != null) baseEntity.world.players.filterFast { it.canSee(baseEntity) }.forEach { p ->
             NexoPlugin.instance().audience().player(p).stopSound(Sound.sound(songKey, Sound.Source.RECORD, jukebox.volume, jukebox.pitch))
         }
         baseEntity.world.dropItemNaturally(loc, item)

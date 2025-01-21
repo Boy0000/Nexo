@@ -16,6 +16,7 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.flatMapFast
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
@@ -50,12 +51,12 @@ class FurniturePacketListener : Listener {
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+        SchedulerUtils.runTaskLater(2L) {
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
             packetManager.sendInteractionEntityPacket(itemDisplay, mechanic, player)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
-        }, 2L)
+        }
     }
 
     @EventHandler
@@ -134,6 +135,7 @@ class FurniturePacketListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerInteractEvent.onPlayerInteractBarrierHitbox() {
+        if (!IFurniturePacketManager.blockIsHitbox(clickedBlock ?: interactionPoint?.block ?: return)) return
         val mechanic = NexoFurniture.furnitureMechanic(clickedBlock) ?: NexoFurniture.furnitureMechanic(interactionPoint) ?: return
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
 
@@ -160,13 +162,12 @@ class FurniturePacketListener : Listener {
         }
 
         // Resend the hitbox as client removes the "ghost block"
-        Bukkit.getScheduler().scheduleSyncDelayedTask(
-            NexoPlugin.instance(), {
-                val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@scheduleSyncDelayedTask
-                packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
-                packetManager.sendLightMechanicPacket(baseEntity, mechanic)
-            }, 2L
-        )
+        SchedulerUtils.syncDelayedTask(2L) {
+            FurnitureFactory.instance()?.packetManager()?.apply {
+                sendBarrierHitboxPacket(baseEntity, mechanic)
+                sendLightMechanicPacket(baseEntity, mechanic)
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -175,9 +176,9 @@ class FurniturePacketListener : Listener {
         val baseEntity = mount.persistentDataContainer.get(FurnitureSeat.SEAT_KEY, DataType.UUID)?.let(Bukkit::getEntity) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+        SchedulerUtils.runTaskLater(4L) {
             FurnitureFactory.instance()?.packetManager()?.removeBarrierHitboxPacket(baseEntity, mechanic, player)
-        }, 4L)
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

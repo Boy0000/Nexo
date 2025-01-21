@@ -42,6 +42,7 @@ import team.unnamed.creative.sound.SoundRegistry
 import java.io.File
 import java.net.URI
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 class PackGenerator {
     private val packDownloader: PackDownloader = PackDownloader()
@@ -129,7 +130,7 @@ class PackGenerator {
                 runCatching {
                     resourcePack = Bukkit.getScheduler().callSyncMethod(NexoPlugin.instance()) {
                         NexoPostPackGenerateEvent(resourcePack).also { it.call() }.resourcePack
-                    }.get()
+                    }.get(4L, TimeUnit.SECONDS)
                 }
 
                 packValidator.validatePack()

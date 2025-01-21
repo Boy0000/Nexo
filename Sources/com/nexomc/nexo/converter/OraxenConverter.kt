@@ -381,21 +381,26 @@ object OraxenConverter {
     }
 
     fun processPackFolder(packFolder: File) {
-        if (!packFolder.exists() || !packFolder.isDirectory) return
-        val namespaceFolder = packFolder.resolve("assets").resolve("minecraft")
+        runCatching {
+            if (!packFolder.exists() || !packFolder.isDirectory) return
+            val namespaceFolder = packFolder.resolve("assets").resolve("minecraft")
 
-        packFolder.resolve("textures", "required").walkBottomUp().firstOrNull { it.name == "menu_items.png" }?.delete()
-        packFolder.resolve("textures", "models", "armor").walkBottomUp().forEach { file ->
-            if (file.name.startsWith("chainmail_")) return@forEach
-            else file.delete()
-        }
-
-        setOf("models", "textures", "sounds", "font", "lang").associateFastWith { packFolder.resolve(it) }.forEach {
-            val dest = namespaceFolder.resolve(it.key)
-            it.value.copyRecursively(dest, false) { _, _ ->
-                OnErrorAction.SKIP
+            packFolder.resolve("textures", "required").walkBottomUp().firstOrNull { it.name == "menu_items.png" }?.delete()
+            packFolder.resolve("textures", "models", "armor").walkBottomUp().forEach { file ->
+                if (file.name.startsWith("chainmail_")) return@forEach
+                else file.delete()
             }
-            it.value.deleteRecursively()
+
+            setOf("models", "textures", "sounds", "font", "lang").associateFastWith { packFolder.resolve(it) }.forEach {
+                val dest = namespaceFolder.resolve(it.key)
+                it.value.copyRecursively(dest, false) { _, _ ->
+                    OnErrorAction.SKIP
+                }
+                it.value.deleteRecursively()
+            }
+        }.onFailure {
+            if (Settings.DEBUG.toBool()) it.printStackTrace()
+            else Logs.logWarn(it.message!!)
         }
     }
 
