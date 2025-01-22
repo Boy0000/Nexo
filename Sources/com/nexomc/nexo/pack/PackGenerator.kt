@@ -60,13 +60,14 @@ class PackGenerator {
         NexoPrePackGenerateEvent(resourcePack).call()
         val packFolder = NexoPlugin.instance().dataFolder.resolve("pack")
 
-        val futures = mutableListOf<CompletableFuture<*>>()
-        futures += packDownloader.downloadRequiredPack()
-        futures += packDownloader.downloadDefaultPack()
-        futures += DefaultResourcePackExtractor.extractLatest(packReader)
-        futures += ModelEngineCompatibility.modelEngineFuture()
+        val futures = arrayOf(
+            packDownloader.downloadRequiredPack(),
+            packDownloader.downloadDefaultPack(),
+            DefaultResourcePackExtractor.extractLatest(packReader),
+            ModelEngineCompatibility.modelEngineFuture()
+        )
 
-        packGenFuture = CompletableFuture.allOf(*futures.toTypedArray()).thenRunAsync {
+        packGenFuture = CompletableFuture.allOf(*futures).thenRunAsync {
             runCatching {
                 Logs.logInfo("Generating resourcepack...")
                 importRequiredPack()
@@ -89,9 +90,7 @@ class PackGenerator {
                 Settings.PACK_IMPORT_FROM_URL.toStringList().forEach { url ->
                     runCatching {
                         Logs.logInfo("Importing pack from <aqua>${url}")
-                        val pack = URI.create(url).toURL().openStream().use { stream ->
-                            packReader.readFromInputStream(stream)
-                        }
+                        val pack = URI.create(url).toURL().openStream().use(packReader::readFromInputStream)
                         NexoPack.mergePack(resourcePack, pack)
                     }.onFailure {
                         Logs.logError("Failed to read $url to a ResourcePack")
@@ -138,10 +137,10 @@ class PackGenerator {
                 ModernVersionPatcher(resourcePack).patchPack()
                 if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.handler().resourcepackFormat(), "Nexo's default pack.")
 
-                Bukkit.getScheduler().runTaskAsynchronously(NexoPlugin.instance(), Runnable {
-                    val packZip = NexoPlugin.instance().dataFolder.resolve("pack").resolve("pack.zip")
+                SchedulerUtils.runTaskAsync {
+                    val packZip = NexoPlugin.instance().dataFolder.resolve("pack", "pack.zip")
                     if (Settings.PACK_GENERATE_ZIP.toBool()) packWriter.writeToZipFile(packZip, resourcePack)
-                })
+                }
                 builtPack = packWriter.build(resourcePack)
             }.onFailure {
                 Logs.logError("Failed to generate ResourcePack...")
@@ -150,11 +149,12 @@ class PackGenerator {
             }
         }.thenRunAsync {
             Logs.logSuccess("Finished generating resourcepack!", true)
-            NexoPlugin.instance().packServer().uploadPack().thenRun {
-                Bukkit.getScheduler().callSyncMethod(NexoPlugin.instance()) {
-                    NexoPackUploadEvent(builtPack!!.hash(), NexoPlugin.instance().packServer().packUrl()).call()
+            val packServer = NexoPlugin.instance().packServer()
+            packServer.uploadPack().thenRun {
+                SchedulerUtils.callSyncMethod {
+                    NexoPackUploadEvent(builtPack!!.hash(), packServer.packUrl()).call()
                 }
-                if (Settings.PACK_SEND_RELOAD.toBool()) Bukkit.getOnlinePlayers().forEach(NexoPlugin.instance().packServer()::sendPack)
+                if (Settings.PACK_SEND_RELOAD.toBool()) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
             }
         }
     }

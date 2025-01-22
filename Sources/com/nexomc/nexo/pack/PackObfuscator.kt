@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -76,7 +77,7 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
         if (obfuscationType.isNone) return
 
         val hash = PackGenerator.packWriter.build(resourcePack).hash()
-        this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack").resolve(".deobfCachedPacks").resolve(hash)
+        this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack", ".deobfCachedPacks", hash)
         FileUtils.setHidden(obfCachedPack.apply { parentFile.mkdirs() }.toPath().parent)
 
         if (shouldObfuscatePack()) {

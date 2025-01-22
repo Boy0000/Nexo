@@ -1,5 +1,6 @@
 package com.nexomc.nexo.pack.creative;
 
+import com.google.gson.JsonObject;
 import com.nexomc.nexo.configs.Settings;
 import com.nexomc.nexo.utils.KeyUtils;
 import com.nexomc.nexo.utils.logs.Logs;
@@ -81,8 +82,15 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                     case PACK_ZIP: continue;
                     case PACK_METADATA_FILE: {
                         // found pack.mcmeta file, deserialize and add
-                        Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
-                        resourcePack.metadata(metadata);
+                        JsonElement metaObject = parseJson(reader.stream());
+                        try {
+                            Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(metaObject);
+                            resourcePack.metadata(metadata);
+                        } catch (Exception e) {
+                            Logs.logWarn("Failed to parse pack.mcmeta...");
+                            if (Settings.DEBUG.toBool()) e.printStackTrace();
+                            else Logs.logWarn(e.getMessage());
+                        }
                         continue;
                     }
                     case PACK_ICON_FILE: {

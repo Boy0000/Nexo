@@ -42,7 +42,7 @@ class NoteBlockSoundListener : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun BlockPlaceEvent.onPlacingWood() {
         if (blockPlaced.blockData.soundGroup.placeSound != Sound.BLOCK_WOOD_PLACE) return
-        if (NexoBlocks.isNexoNoteBlock(blockPlaced)) return
+        if (NexoBlocks.isNexoNoteBlock(blockPlaced) || NexoBlocks.isNexoChorusBlock(blockPlaced)) return
 
         // Play sound for wood
         playCustomBlockSound(
@@ -59,7 +59,7 @@ class NoteBlockSoundListener : Listener {
 
         breakerPlaySound[location]?.cancel()
         if (block.blockData.soundGroup.breakSound != Sound.BLOCK_WOOD_BREAK) return
-        if (NexoBlocks.isNexoNoteBlock(block)) return
+        if (NexoBlocks.isNexoNoteBlock(block) || NexoBlocks.isNexoChorusBlock(block)) return
         if (isCancelled || !ProtectionLib.canBreak(player, location)) return
 
         playCustomBlockSound(
@@ -74,7 +74,7 @@ class NoteBlockSoundListener : Listener {
     fun BlockDamageEvent.onHitWood() {
         if (VersionUtil.below("1.20.5") || block.blockData.soundGroup.hitSound != Sound.BLOCK_WOOD_HIT) return
         val location = block.location.takeUnless { it in breakerPlaySound } ?: return
-        val blockSounds = NexoBlocks.noteBlockMechanic(block)?.blockSounds
+        val blockSounds = NexoBlocks.customBlockMechanic(block.blockData)?.blockSounds
 
         val sound = blockSounds?.hitSound ?: BlockSounds.VANILLA_WOOD_HIT
         val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
@@ -101,7 +101,7 @@ class NoteBlockSoundListener : Listener {
 
         val blockStandingOn = entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
         if (blockStandingOn.blockData.soundGroup.stepSound != Sound.BLOCK_WOOD_STEP) return
-        val mechanic = NexoBlocks.noteBlockMechanic(blockStandingOn)
+        val mechanic = NexoBlocks.customBlockMechanic(blockStandingOn.blockData)
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

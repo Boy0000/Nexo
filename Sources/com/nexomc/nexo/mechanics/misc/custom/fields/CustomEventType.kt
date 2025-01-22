@@ -17,6 +17,9 @@ enum class CustomEventType(val constructor: CustomListenerConstructor) {
     DROP(CustomListenerConstructor { itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction ->
         DropListener(itemID, cooldown, event, clickAction)
     }),
+    DROP_ALL(CustomListenerConstructor { itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction ->
+        DropAllListener(itemID, cooldown, event, clickAction)
+    }),
     PICKUP(CustomListenerConstructor { itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction ->
         PickupListener(itemID, cooldown, event, clickAction)
     }),

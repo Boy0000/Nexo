@@ -44,9 +44,9 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
         resourcePack.models().filterFast { DefaultResourcePackExtractor.vanillaResourcePack.model(it.key()) != null }
             .associateFast { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
             .forEach { (model, overrides) ->
-                val existingItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
+                val standardItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
                 // If not standard (shield etc.) we need to traverse the tree
-                val finalNewItemModel = existingItemModel?.let { existingItemModel ->
+                val finalNewItemModel = standardItemModel?.let { existingItemModel ->
                     // More complex item-models, like shield etc
                     val baseItemModel =
                         existingItemModel.`object`("model")?.takeUnless { it.isSimpleItemModel } ?: return@let null
@@ -72,12 +72,13 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     existingItemModel
                 } ?: JsonBuilder.jsonObject.plus(
                     "model",
-                    modelObject(existingItemModel?.`object`("model"), overrides, model)
+                    modelObject(standardItemModel?.`object`("model"), overrides, model)
                 )
-                resourcePack.unknownFile(
-                    "assets/minecraft/items/$model",
-                    Writable.stringUtf8(finalNewItemModel.toString())
-                )
+
+                resourcePack.unknownFile("assets/minecraft/items/$model")?.also {
+                    val mergedItemModel = mergeItemModels(Writable.stringUtf8(finalNewItemModel.toString()), it)
+                    resourcePack.unknownFile("assets/minecraft/items/$model", mergedItemModel)
+                }
             }
 
         // Merge any ItemModel in an overlay into the base one

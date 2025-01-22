@@ -3,8 +3,10 @@ package com.nexomc.nexo.mechanics.custom_block
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockInteractEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockInteractEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockInteractEvent
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
@@ -42,6 +44,8 @@ class CustomBlockListener : Listener {
                 NexoNoteBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
             is StringBlockMechanic ->
                 NexoStringBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
+            is ChorusBlockMechanic ->
+                NexoChorusBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
             else -> return
         }
 
@@ -130,7 +134,7 @@ class CustomBlockListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockBreakEvent.onBreakingCustomBlock() {
         if (!NexoBlocks.isCustomBlock(block)) return
-        if (NexoBlocks.isCustomBlock(block)) isDropItems = false
+        isDropItems = false
         if (!NexoBlocks.remove(block.location, player)) isCancelled = true
 
         val blockAbove = block.getRelative(BlockFace.UP)

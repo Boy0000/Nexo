@@ -33,15 +33,6 @@ object CommandsManager {
             dumpLogCommand()
             convertCommand()
             dyeCommand()
-            literalArgument("test") {
-                playerExecutor { player, commandArguments ->
-                    Logs.debug("test", "d" as Any)
-                    player.sendResourcePacks(ResourcePackRequest.addingRequest(ResourcePackInfo.resourcePackInfo(
-                        UUID.randomUUID(), URI.create("http://atlas.oraxen.com:8080/pack.zip?id=53bdb371078286f40a45cdc5f455ae37ed42df95"), "53bdb371078286f40a45cdc5f455ae37ed42df95"
-                    )
-                    ).replace(true) )
-                }
-            }
 
             anyExecutor { sender, _ ->
                 Message.COMMAND_HELP.send(sender)
