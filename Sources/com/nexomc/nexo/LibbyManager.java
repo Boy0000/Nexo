@@ -53,12 +53,12 @@ public class LibbyManager {
         libs.add(getLib("com{}jeff-media", "MorePersistentDataTypes", "2.4.0", "com{}jeff_media").build());
         libs.add(getLib("com{}jeff-media", "persistent-data-serializer", "1.0", "com{}jeff_media").build());
 
-        libs.add(getLib("team{}unnamed", "creative-api", "1.7.6-SNAPSHOT", "team{}unnamed")
-                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/1.7.6-SNAPSHOT/creative-api-1.7.6-SNAPSHOT.jar")
+        libs.add(getLib("team{}unnamed", "creative-api", "1.7.7-SNAPSHOT", "team{}unnamed")
+                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/1.7.7-SNAPSHOT/creative-api-1.7.7-SNAPSHOT.jar")
                 .build());
         libs.add(getLib("team{}unnamed", "creative-server", CREATIVE_VERSION, "team{}unnamed").build());
-        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", "1.7.6-SNAPSHOT", "team{}unnamed")
-                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/1.7.6-SNAPSHOT/creative-serializer-minecraft-1.7.6-SNAPSHOT.jar")
+        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", "1.7.7-SNAPSHOT", "team{}unnamed")
+                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/1.7.7-SNAPSHOT/creative-serializer-minecraft-1.7.7-SNAPSHOT.jar")
                 .build());
 
         libs.add(getLib("io{}th0rgal", "protectionlib", "1.8.0", "io{}th0rgal").build());

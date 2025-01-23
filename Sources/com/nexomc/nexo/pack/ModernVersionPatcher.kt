@@ -75,10 +75,11 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     modelObject(standardItemModel?.`object`("model"), overrides, model)
                 )
 
-                resourcePack.unknownFile("assets/minecraft/items/$model")?.also {
-                    val mergedItemModel = mergeItemModels(Writable.stringUtf8(finalNewItemModel.toString()), it)
-                    resourcePack.unknownFile("assets/minecraft/items/$model", mergedItemModel)
-                }
+                val finalWritable = resourcePack.unknownFile("assets/minecraft/items/$model")?.let {
+                    mergeItemModels(Writable.stringUtf8(finalNewItemModel.toString()), it)
+                } ?: Writable.stringUtf8(finalNewItemModel.toString())
+
+                resourcePack.unknownFile("assets/minecraft/items/$model", finalWritable)
             }
 
         // Merge any ItemModel in an overlay into the base one

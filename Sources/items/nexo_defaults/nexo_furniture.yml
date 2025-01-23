@@ -156,8 +156,9 @@ table_lamp:
         barriers:
         - 0,0,0
       lights:
-      - 0,1,0 15
-      lights_toggleable: true
+        toggleable: true
+        lights:
+          - 0,1,0 15
       drop:
         silktouch: false
         loots:
@@ -267,8 +268,9 @@ table_lamp_dyeable:
         barriers:
         - 0,0,0
       lights:
-      - 0,1,0 15
-      lights_toggleable: true
+        toggleable: true
+        lights:
+          - 0,1,0 15
       drop:
         silktouch: false
         loots:

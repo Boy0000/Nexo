@@ -133,13 +133,13 @@ class FurniturePacketListener : Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerInteractEvent.onPlayerInteractBarrierHitbox() {
         if (!IFurniturePacketManager.blockIsHitbox(clickedBlock ?: interactionPoint?.block ?: return)) return
         val mechanic = NexoFurniture.furnitureMechanic(clickedBlock) ?: NexoFurniture.furnitureMechanic(interactionPoint) ?: return
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
 
-        when {
+        if (useInteractedBlock() != Event.Result.DENY) when {
             action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.location) -> {
                 val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.let { it.isBlock && it != Material.LILY_PAD && it != Material.FROGSPAWN }
                 if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable || player.isSneaking) && ProtectionLib.canBuild(player, baseEntity.location)) {
