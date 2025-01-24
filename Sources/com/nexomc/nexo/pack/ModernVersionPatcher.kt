@@ -48,8 +48,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                 // If not standard (shield etc.) we need to traverse the tree
                 val finalNewItemModel = standardItemModel?.let { existingItemModel ->
                     // More complex item-models, like shield etc
-                    val baseItemModel =
-                        existingItemModel.`object`("model")?.takeUnless { it.isSimpleItemModel } ?: return@let null
+                    val baseItemModel = existingItemModel.`object`("model")?.takeUnless { it.isSimpleItemModel } ?: return@let null
 
                     runCatching {
                         val keys = baseItemModel.keySet()
@@ -75,11 +74,18 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     modelObject(standardItemModel?.`object`("model"), overrides, model)
                 )
 
-                val finalWritable = resourcePack.unknownFile("assets/minecraft/items/$model")?.let {
-                    mergeItemModels(Writable.stringUtf8(finalNewItemModel.toString()), it)
+                val key = "assets/minecraft/items/$model"
+                val existingWritable = resourcePack.unknownFile(key)?.let {
+                    if (!isStandardItemModel(key, it.toJsonObject())) return@let it
+                    resourcePack.removeUnknownFile(key)
+                    null
+                }
+
+                val finalWritable = existingWritable?.let {
+                    mergeItemModels(it, Writable.stringUtf8(finalNewItemModel.toString()))
                 } ?: Writable.stringUtf8(finalNewItemModel.toString())
 
-                resourcePack.unknownFile("assets/minecraft/items/$model", finalWritable)
+                resourcePack.unknownFile(key, finalWritable)
             }
 
         // Merge any ItemModel in an overlay into the base one
@@ -97,7 +103,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
         // Remove all overlay ItemModels
         resourcePack.unknownFiles()
-            .filterKeys { it.matches(overlayItemModelRegex) }
+            .filterKeys { it.matches(overlayItemModelRegex) || resourcePack.unknownFile(it)?.let { w -> isStandardItemModel(it, w.toJsonObject()) } == true }
             .keys.forEach(resourcePack::removeUnknownFile)
     }
 
@@ -287,7 +293,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             .filterKeys { it.startsWith("assets/minecraft/items") }
     }
 
-    private fun isStandardItemModel(key: String, itemModel: JsonObject): Boolean {
+    private fun isStandardItemModel(key: String, itemModel: JsonObject?): Boolean {
         return (standardItemModels[key]?.toJsonObject()?.equals(itemModel) ?: false)
     }
 

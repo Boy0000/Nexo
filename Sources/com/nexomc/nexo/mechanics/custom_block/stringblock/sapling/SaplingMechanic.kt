@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
+import com.nexomc.nexo.utils.appendIfMissing
 import org.apache.commons.lang3.StringUtils
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -9,6 +10,7 @@ import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
 import java.io.File
+import kotlin.random.Random
 
 class SaplingMechanic(itemId: String?, section: ConfigurationSection) {
     val canGrowNaturally: Boolean = section.getBoolean("grows_naturally", true)
@@ -18,7 +20,7 @@ class SaplingMechanic(itemId: String?, section: ConfigurationSection) {
     val growSound: String? = section.getString("grow_sound", null)
     val minLightLevel: Int = section.getInt("min_light_level", 0)
     val requiresWaterSource: Boolean = section.getBoolean("requires_water_source", false)
-    val schematicName: String? = StringUtils.appendIfMissing(section.getString("schematic", null), ".schem")
+    private val schematicConfig: Any? = section.get("schematic")
     val copyBiomes: Boolean = section.getBoolean("copy_biomes", false)
     val copyEntities: Boolean = section.getBoolean("copy_entities", false)
     val replaceBlocks: Boolean = section.getBoolean("replace_blocks", false)
@@ -32,20 +34,65 @@ class SaplingMechanic(itemId: String?, section: ConfigurationSection) {
         return growSound != null
     }
 
-    fun hasSchematic(): Boolean {
-        return (schematicName != null && schematic() != null)
+    fun isUnderWater(block: Block): Boolean {
+        return block.getRelative(BlockFace.DOWN).type == Material.WATER
     }
 
-    fun schematic(): File? {
+    fun selectSchematic(): File? {
+        val schematics = schematics()
+        if (schematics.isEmpty()) return null
+
+        val totalWeight = schematics.sumOf { it.chance }
+        val randomWeight = Random.nextDouble(totalWeight)
+
+        var cumulativeWeight = 0.0
+        for (schematic in schematics) {
+            cumulativeWeight += schematic.chance
+            if (randomWeight <= cumulativeWeight) {
+                return getSchematicFile(schematic.name)
+            }
+        }
+        return null
+    }
+
+    fun hasSchematic(): Boolean {
+        return schematics().isNotEmpty() && schematic() != null
+    }
+
+    fun schematics(): List<SchematicEntry> {
+        return when (schematicConfig) {
+            is String -> listOf(SchematicEntry(schematicConfig.appendIfMissing(".schem"), 1.0))
+            is List<*> -> schematicConfig.mapNotNull {
+                (it as? Map<*, *>)?.let { map ->
+                    val schemName = map["schem"] as? String
+                    val chance = map["chance"] as? Double ?: 1.0
+                    if (schemName != null) SchematicEntry(
+                        schemName.appendIfMissing(".schem"),
+                        chance
+                    ) else null
+                }
+            }
+
+            else -> emptyList()
+        }
+    }
+
+    fun getSchematicFile(schematicName: String): File? {
         val schem = File(ConfigsManager.schematicsFolder.absolutePath + "/" + schematicName)
         return if (!schem.exists()) null else schem
     }
 
-    fun isUnderWater(block: Block): Boolean {
-        return block.getRelative(BlockFace.DOWN).type == Material.WATER
+    fun schematicFiles(): List<File> {
+        return schematics().mapNotNull { getSchematicFile(it.name) }
+    }
+
+    fun schematic(): File? {
+        return schematics().firstOrNull()?.let { getSchematicFile(it.name) }
     }
 
     companion object {
         val SAPLING_KEY = NamespacedKey(NexoPlugin.instance(), "sapling")
     }
+
+    data class SchematicEntry(val name: String, val chance: Double)
 }

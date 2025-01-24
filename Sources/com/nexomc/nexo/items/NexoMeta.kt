@@ -2,11 +2,13 @@ package com.nexomc.nexo.items
 
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.inventory.EquipmentSlot
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
-import java.util.function.Consumer
 
 data class NexoMeta(
     var customModelData: Int? = null,
@@ -25,38 +27,45 @@ data class NexoMeta(
     var excludedFromCommands: Boolean = false,
     var noUpdate: Boolean = false,
     var disableEnchanting: Boolean = false,
-    var generateModel: Boolean = false
+    var generateModel: Boolean = false,
+    var customArmorTextures: CustomArmorTextures? = null,
 ) {
+
+    data class CustomArmorTextures(val layer1: Key, val layer2: Key) {
+        var armorPrefix: String = ""
+
+        constructor(section: ConfigurationSection) : this(KeyUtils.parseKey(section.getString("layer_1", "")!!), KeyUtils.parseKey(section.getString("layer_2", "")!!))
+    }
 
     lateinit var parentModel: Key
 
-    fun packInfo(section: ConfigurationSection) {
+    fun packInfo(packSection: ConfigurationSection) {
         this.containsPackInfo = true
-        this.modelKey = readModelName(section, "model")
-        this.blockingModel = readModelName(section, "blocking_model")
-        this.castModel = readModelName(section, "cast_model")
-        this.chargedModel = readModelName(section, "charged_model")
-        this.fireworkModel = readModelName(section, "firework_model")
-        this.pullingModels = section.getStringList("pulling_models").map(KeyUtils::dropExtension)
-        this.damagedModels = section.getStringList("damaged_models").map(KeyUtils::dropExtension)
+        this.modelKey = readModelName(packSection, "model")
+        this.blockingModel = readModelName(packSection, "blocking_model")
+        this.castModel = readModelName(packSection, "cast_model")
+        this.chargedModel = readModelName(packSection, "charged_model")
+        this.fireworkModel = readModelName(packSection, "firework_model")
+        this.pullingModels = packSection.getStringList("pulling_models").map(KeyUtils::dropExtension)
+        this.damagedModels = packSection.getStringList("damaged_models").map(KeyUtils::dropExtension)
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
         if (pullingModels.isEmpty()) pullingModels =
-            section.getStringList("pulling_textures").map(KeyUtils::dropExtension)
+            packSection.getStringList("pulling_textures").map(KeyUtils::dropExtension)
         if (damagedModels.isEmpty()) damagedModels =
-            section.getStringList("damaged_textures").map(KeyUtils::dropExtension)
+            packSection.getStringList("damaged_textures").map(KeyUtils::dropExtension)
 
-        if (chargedModel == null) chargedModel = dropExtension(section.getString("charged_texture", "")!!)
-        if (fireworkModel == null) fireworkModel = dropExtension(section.getString("firework_texture", "")!!)
-        if (castModel == null) castModel = dropExtension(section.getString("cast_texture", "")!!)
-        if (blockingModel == null) blockingModel = dropExtension(section.getString("blocking_texture", "")!!)
+        if (chargedModel == null) chargedModel = dropExtension(packSection.getString("charged_texture", "")!!)
+        if (fireworkModel == null) fireworkModel = dropExtension(packSection.getString("firework_texture", "")!!)
+        if (castModel == null) castModel = dropExtension(packSection.getString("cast_texture", "")!!)
+        if (blockingModel == null) blockingModel = dropExtension(packSection.getString("blocking_texture", "")!!)
 
-        val textureSection = section.getConfigurationSection("textures")
+        val textureSection = packSection.getConfigurationSection("textures")
         when {
             textureSection != null -> {
-                val texturesSection = checkNotNull(section.getConfigurationSection("textures"))
+                val texturesSection = checkNotNull(packSection.getConfigurationSection("textures"))
                 val variables = HashMap<String, ModelTexture>()
                 texturesSection.getKeys(false).forEach { key: String ->
                     variables[key] = ModelTexture.ofKey(dropExtension(texturesSection.getString(key)!!))
@@ -64,14 +73,14 @@ data class NexoMeta(
                 this.textureVariables = variables
             }
 
-            section.isList("textures") -> this.textureLayers =
-                section.getStringList("textures").map(KeyUtils::dropExtension).map(ModelTexture::ofKey)
+            packSection.isList("textures") -> this.textureLayers =
+                packSection.getStringList("textures").map(KeyUtils::dropExtension).map(ModelTexture::ofKey)
 
-            section.isString("textures") -> this.textureLayers =
-                listOf(ModelTexture.ofKey(dropExtension(section.getString("textures", "")!!)))
+            packSection.isString("textures") -> this.textureLayers =
+                listOf(ModelTexture.ofKey(dropExtension(packSection.getString("textures", "")!!)))
 
-            section.isString("texture") -> this.textureLayers =
-                listOf(ModelTexture.ofKey(dropExtension(section.getString("texture", "")!!)))
+            packSection.isString("texture") -> this.textureLayers =
+                listOf(ModelTexture.ofKey(dropExtension(packSection.getString("texture", "")!!)))
         }
 
         this.modelTextures = ModelTextures.builder()
@@ -80,10 +89,24 @@ data class NexoMeta(
             .layers(textureLayers)
             .build()
 
-        this.parentModel = Key.key(section.getString("parent_model", "item/generated")!!)
-        this.generateModel = section.getString("model") == null
+        val customArmorSection = packSection.getConfigurationSection("CustomArmor")
+        when {
+            customArmorSection != null -> {
+                this.customArmorTextures = CustomArmorTextures(customArmorSection)
+            }
+            else -> apply {
+                val itemId = packSection.parent!!.name
+                val armorPrefix = itemId.substringBeforeLast("_").takeUnless { it == itemId || it.isBlank() } ?: return@apply
+                itemId.substringAfterLast("_").takeIf { itemId.matches(CustomArmorType.itemIdRegex) } ?: return@apply
 
-        this.customModelData = section.getInt("custom_model_data").takeUnless { it == 0 }
+                this.customArmorTextures = CustomArmorTextures(Key.key(armorPrefix.plus("_armor_layer_1.png")), Key.key(armorPrefix.plus("_armor_layer_2.png")))
+            }
+        }
+
+        this.parentModel = Key.key(packSection.getString("parent_model", "item/generated")!!)
+        this.generateModel = packSection.getString("model") == null
+
+        this.customModelData = packSection.getInt("custom_model_data").takeUnless { it == 0 }
     }
 
     private fun readModelName(configSection: ConfigurationSection, configString: String): Key? {

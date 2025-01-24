@@ -22,6 +22,12 @@ object KeyUtils {
     }
 
     private val KEY_REGEX = "[^a-z0-9._/-]".toRegex()
+
+    @JvmStatic
+    fun parseKey(key: String): Key {
+        return parseKey(key.substringBefore(":", "minecraft"), key.substringAfter(":"))
+    }
+
     @JvmStatic
     fun parseKey(namespace: String, key: String, prefix: String? = null): Key {
         var (namespace, key) = namespace to key

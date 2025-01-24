@@ -36,6 +36,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
         instance = this
 
         registerListeners(StringBlockMechanicListener(), SaplingListener())
+        registerSaplingMechanic()
         if (customSounds) registerListeners(StringBlockSoundListener())
 
         if (VersionUtil.isPaperServer) registerListeners(StringBlockMechanicPaperListener())

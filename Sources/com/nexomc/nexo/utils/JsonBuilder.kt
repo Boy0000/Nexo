@@ -8,8 +8,8 @@ typealias JsonArray = com.google.gson.JsonArray
 typealias JsonPrimitive = com.google.gson.JsonPrimitive
 typealias JsonElement = com.google.gson.JsonElement
 
-fun Writable.toJsonObject(): JsonObject? = JsonParser.parseString(toUTF8String()).asJsonObject
-fun Writable.toJsonArray(): JsonArray? = JsonParser.parseString(toUTF8String()).asJsonArray
+fun Writable.toJsonObject(): JsonObject? = runCatching { JsonParser.parseString(toUTF8String()).asJsonObject }.getOrNull()
+fun Writable.toJsonArray(): JsonArray? = runCatching { JsonParser.parseString(toUTF8String()).asJsonArray }.getOrNull()
 fun JsonObject.toWritable(): Writable = Writable.stringUtf8(this.toString())
 
 object JsonBuilder {

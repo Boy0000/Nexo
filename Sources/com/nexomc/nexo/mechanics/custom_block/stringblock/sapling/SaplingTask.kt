@@ -30,18 +30,19 @@ class SaplingTask(private val delay: Int) : BukkitRunnable() {
                             if (!sapling.canGrowNaturally) continue
                             if (sapling.requiresWaterSource && !sapling.isUnderWater(block)) continue
                             if (sapling.requiresLight() && block.lightLevel < sapling.minLightLevel) continue
-                            if (!sapling.replaceBlocks && WrappedWorldEdit.blocksInSchematic(block.location, sapling.schematic()).isNotEmpty()) continue
+
+                            val selectedSchematic = sapling.selectSchematic()
+                            if (selectedSchematic == null || (!sapling.replaceBlocks && WrappedWorldEdit.blocksInSchematic(block.location, selectedSchematic).isNotEmpty())) continue
 
                             val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay
                             if (growthTimeRemains <= 0) {
                                 block.setType(Material.AIR, false)
                                 if (sapling.hasGrowSound())
                                     block.world.playSound(block.location, sapling.growSound!!, 1.0f, 0.8f)
-                                WrappedWorldEdit.pasteSchematic(block.location, sapling.schematic(), sapling.replaceBlocks, sapling.copyBiomes, sapling.copyEntities)
+                                WrappedWorldEdit.pasteSchematic(block.location, selectedSchematic, sapling.replaceBlocks, sapling.copyBiomes, sapling.copyEntities)
                             } else pdc.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains)
                         }
-                        pdc.has(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER) && block.type != Material.TRIPWIRE ->
-                            pdc.remove(SaplingMechanic.SAPLING_KEY)
+                        pdc.has(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER) && block.type != Material.TRIPWIRE -> pdc.remove(SaplingMechanic.SAPLING_KEY)
                     }
                 }
             }

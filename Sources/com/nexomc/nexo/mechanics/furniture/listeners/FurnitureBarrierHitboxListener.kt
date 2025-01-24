@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.event.entity.EntityMoveEvent
+import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -40,6 +41,7 @@ class FurnitureBarrierHitboxListener : Listener {
 
     @EventHandler(ignoreCancelled = true)
     fun PlayerKickEvent.onKick() {
+        if (Bukkit.getServer().allowFlight) return
         if (cause != PlayerKickEvent.Cause.FLYING_PLAYER && player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
         flightCache += player.uniqueId
         isCancelled = true

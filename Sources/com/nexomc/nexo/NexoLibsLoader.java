@@ -15,7 +15,7 @@ import java.util.Optional;
 public class NexoLibsLoader {
     public static boolean loadNexoLibs(JavaPlugin plugin) {
         BukkitLibraryManager manager = new BukkitLibraryManager(plugin, "libs");
-        File[] pluginFiles = Optional.ofNullable(Bukkit.getPluginsFolder().listFiles()).orElse(new File[]{});
+        File[] pluginFiles = Optional.ofNullable(plugin.getDataFolder().getParentFile().listFiles()).orElse(new File[]{});
         File nexoLibs = Arrays.stream(pluginFiles).filter(f -> f.getName().matches("NexoLibs-.*.lib")).findFirst().orElse(null);
         if (nexoLibs == null) return false;
 

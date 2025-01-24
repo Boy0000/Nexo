@@ -17,15 +17,16 @@ import team.unnamed.creative.texture.Texture
 
 object ComponentCustomArmor {
     fun generatePackFiles(resourcePack: ResourcePack) {
-        val armorPrefixes = armorPrefixes(resourcePack)
+        val armorPrefixes = NexoItems.entries().mapNotNullTo(LinkedHashSet()) { (itemId, builder) ->
+            itemId.substringBeforeLast("_").takeUnless { builder.nexoMeta?.customArmorTextures == null }
+        }
         writeArmorModels(resourcePack, armorPrefixes)
         copyArmorLayerTextures(resourcePack)
         parseNexoArmorItems(armorPrefixes)
     }
 
-    private fun writeArmorModels(resourcePack: ResourcePack, armorPrefixes: Set<String?>) {
+    private fun writeArmorModels(resourcePack: ResourcePack, armorPrefixes: Set<String>) {
         armorPrefixes.forEach { armorprefix ->
-
             val armorModelArray = JsonArray().apply {
                 add(JsonObject().apply {
                     addProperty("texture", "nexo:$armorprefix")
@@ -47,13 +48,21 @@ object ComponentCustomArmor {
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        listOf(resourcePack.textures()).flatten().forEach { texture ->
-            val armorFolder = if (texture.key().asString().endsWith("_armor_layer_1.png")) "humanoid" else "humanoid_leggings"
-            val armorPrefix = armorPrefix(texture)
-            if (armorPrefix.isEmpty()) return@forEach
+        NexoItems.entries().forEach { (itemId, item) ->
+            val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
+            val armorPrefix = itemId.substringBeforeLast("_")
+            val layer1 = resourcePack.texture(customArmor.layer1)
+                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
+            val layer2 = resourcePack.texture(customArmor.layer2)
+                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
 
-            resourcePack.removeTexture(texture.key())
-            resourcePack.texture(Key.key("nexo:entity/equipment/$armorFolder/$armorPrefix.png"), texture.data())
+            resourcePack.removeTexture(customArmor.layer1)
+            resourcePack.removeTexture(customArmor.layer2)
+
+            resourcePack.texture(Key.key("nexo:entity/equipment/humanoid/$armorPrefix.png"), layer1.data())
+            resourcePack.texture(Key.key("nexo:entity/equipment/humanoid_leggings/$armorPrefix.png"), layer2.data())
         }
     }
 
@@ -90,9 +99,6 @@ object ComponentCustomArmor {
             else -> null
         }
     }
-
-    private fun armorPrefixes(resourcePack: ResourcePack) =
-        LinkedHashSet(resourcePack.textures().map(::armorPrefix).filter(String::isNotBlank))
 
     private fun armorPrefix(texture: Texture): String {
         val textureKey = texture.key().value()

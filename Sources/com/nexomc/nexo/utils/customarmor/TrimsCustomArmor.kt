@@ -50,7 +50,9 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
     }
 
     fun generateTrimAssets(resourcePack: ResourcePack) {
-        val armorPrefixes = armorPrefixes(resourcePack)
+        val armorPrefixes = NexoItems.entries().mapNotNullTo(LinkedHashSet())  { (itemId, builder) ->
+            itemId.substringBeforeLast("_").takeUnless { builder.nexoMeta?.customArmorTextures == null }
+        }
         writeMCMeta()
         writeVanillaTrimPattern()
         writeCustomTrimPatterns(armorPrefixes)
@@ -133,20 +135,23 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        LinkedHashSet(resourcePack.textures()).forEach { armorTexture: Texture ->
-            val (armorPrefix, armorKey) = armorPrefix(armorTexture) to armorTexture.key().asString()
-            when {
-                armorKey.endsWith("_armor_layer_1.png") -> {
-                    resourcePack.texture(Key.key("nexo:trims/entity/humanoid/$armorPrefix.png"), armorTexture.data())
-                    resourcePack.texture(Key.key("nexo:trims/models/armor/$armorPrefix.png"), armorTexture.data())
-                }
+        NexoItems.entries().forEach { (itemId, item) ->
+            val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
+            val armorPrefix = itemId.substringBeforeLast("_")
+            val layer1 = resourcePack.texture(customArmor.layer1)
+                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
+            val layer2 = resourcePack.texture(customArmor.layer2)
+                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
 
-                armorKey.endsWith("_armor_layer_2.png") -> {
-                    resourcePack.texture(Key.key("nexo:trims/entity/humanoid_leggings/$armorPrefix.png"), armorTexture.data())
-                    resourcePack.texture(Key.key("nexo:trims/models/armor/${armorPrefix}_leggings.png"), armorTexture.data())
-                }
-                else -> return@forEach
-            }
+            resourcePack.removeTexture(customArmor.layer1)
+            resourcePack.removeTexture(customArmor.layer2)
+
+            resourcePack.texture(Key.key("nexo:trims/entity/humanoid/$armorPrefix.png"), layer1.data())
+            resourcePack.texture(Key.key("nexo:trims/models/armor/$armorPrefix.png"), layer1.data())
+            resourcePack.texture(Key.key("nexo:trims/entity/humanoid_leggings/$armorPrefix.png"), layer2.data())
+            resourcePack.texture(Key.key("nexo:trims/models/armor/${armorPrefix}_leggings.png"), layer2.data())
         }
 
         fun handleChainmail(chainmail: Key, chainmail2: Key): Pair<Texture?, Texture?> {
@@ -232,18 +237,6 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
             }
 
             if (changed) itemBuilder.save()
-        }
-    }
-
-    private fun armorPrefixes(resourcePack: ResourcePack) =
-        LinkedHashSet(resourcePack.textures().map(::armorPrefix).filter(String::isNotBlank))
-
-    private fun armorPrefix(texture: Texture): String {
-        val textureKey = texture.key().value()
-        return when {
-            textureKey.endsWith("_armor_layer_1.png") -> textureKey.substringBefore("_armor_layer_1.png").substringAfterLast("/")
-            textureKey.endsWith("_armor_layer_2.png") -> textureKey.substringBefore("_armor_layer_2.png").substringAfterLast("/")
-            else -> ""
         }
     }
 
