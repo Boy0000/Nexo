@@ -1,12 +1,10 @@
 package com.nexomc.nexo.utils.customarmor
 
-import com.nexomc.nexo.NexoPlugin
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
-import com.nexomc.nexo.utils.VersionUtil
 import net.kyori.adventure.key.Key
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.EquipmentSlot
@@ -71,7 +69,7 @@ object ComponentCustomArmor {
             val armorPrefix = itemId.substringBeforeLast("_").takeIf(armorPrefixes::contains) ?: return@forEach
             val slot = slotFromItem(itemId)
 
-            if(slot == null){
+            if (slot == null) {
                 if (!Settings.CUSTOM_ARMOR_ASSIGN.toBool()) {
                     Logs.logWarn("Item $itemId does not have an equippable-component configured properly.")
                     Logs.logWarn("Nexo has been configured to use Components for custom-armor due to ${Settings.CUSTOM_ARMOR_TYPE.path} setting")
@@ -79,10 +77,13 @@ object ComponentCustomArmor {
                 }
                 return@forEach
             }
-            val modelKey = NamespacedKey.fromString(armorPrefix, NexoPlugin.instance())!!
-            val component = (itemBuilder.equippable ?: ItemStack(itemBuilder.type).itemMeta.equippable).takeIf { it.model != modelKey } ?: return@forEach
-            component.model = modelKey
+
+            val modelKey = NamespacedKey.fromString("nexo:$armorPrefix")!!
+            val vanillaComponent = ItemStack(itemBuilder.type).itemMeta.equippable.apply { this.slot = EquipmentSlot.HAND }
+            val component = (itemBuilder.equippable ?: vanillaComponent).takeIf { it.model != modelKey } ?: return@forEach
+            if (itemBuilder.nexoMeta?.generateModel != false) component.model = modelKey
             component.slot = slot
+            if (component == itemBuilder.equippable) return@forEach
             itemBuilder.setEquippableComponent(component)
             itemBuilder.save()
             Logs.logWarn("Item $itemId does not have an equippable-component set.")

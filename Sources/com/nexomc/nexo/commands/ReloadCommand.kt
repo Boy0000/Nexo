@@ -17,6 +17,7 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.NexoPackServer.Companion.initializeServer
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
 import dev.jorel.commandapi.CommandTree
@@ -87,7 +88,7 @@ object ReloadCommand {
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...")
-            Bukkit.getScheduler().runTaskAsynchronously(NexoPlugin.instance(), Runnable {
+            SchedulerUtils.runTaskAsync {
                 Bukkit.getServer().onlinePlayers.forEach { player ->
                     val updates = ObjectArrayList<Pair<Int, ItemStack>>()
 
@@ -97,13 +98,13 @@ object ReloadCommand {
                         updates.add(index to newItem)
                     }
 
-                    Bukkit.getScheduler().runTask(NexoPlugin.instance(), Runnable {
+                    SchedulerUtils.runTask {
                         updates.forEach { (index, newItem) ->
                             player.inventory.setItem(index, newItem)
                         }
-                    })
+                    }
                 }
-            })
+            }
         }
 
         Logs.logInfo("Updating all placed furniture...")

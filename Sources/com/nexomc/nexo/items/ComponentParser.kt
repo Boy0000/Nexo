@@ -101,10 +101,10 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         componentSection.getConfigurationSection("custom_model_data")?.let { cmdSection ->
             ItemStack(itemBuilder.type).itemMeta.customModelDataComponent.also { cmdComponent ->
                 cmdComponent.colors = cmdSection.getStringList("colors").mapNotNull { it.toColor() }
-                cmdComponent.floats = cmdSection.getStringList("colors").mapNotNull { it.toFloatOrNull() }
+                cmdComponent.floats = cmdSection.getStringList("floats").mapNotNull { it.toFloatOrNull() }
                 cmdComponent.strings = cmdSection.getStringList("strings").filterNotNull()
                 cmdComponent.flags = cmdSection.getStringList("flags").mapNotNull { it.toBooleanStrictOrNull() }
-            }.let(itemBuilder::setCustomModelDataComponent)
+            }.also(itemBuilder::setCustomModelDataComponent)
         }
     }
 

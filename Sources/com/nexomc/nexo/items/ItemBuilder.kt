@@ -173,6 +173,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
             enchantable = if (itemMeta.hasEnchantable()) itemMeta.enchantable else null
             isGlider = if (itemMeta.isGlider) true else null
         }
+
+        if (VersionUtil.atleast("1.21.4")) {
+            customModelDataComponent = if (itemMeta.hasCustomModelData()) itemMeta.customModelDataComponent else null
+        }
     }
 
     fun setType(type: Material): ItemBuilder {
@@ -379,7 +383,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     }
 
     fun setCustomModelDataComponent(customModelData: CustomModelDataComponent?): ItemBuilder {
-        this.customModelDataComponent = customModelDataComponent
+        this.customModelDataComponent = customModelData
         return this
     }
 
@@ -554,6 +558,14 @@ class ItemBuilder(private val itemStack: ItemStack) {
         itemFlags?.toTypedArray()?.let(itemMeta::addItemFlags)
         attributeModifiers?.let(itemMeta::setAttributeModifiers)
         itemMeta.setCustomModelData(customModelData)
+
+        if (VersionUtil.atleast("1.21.4")) {
+            if (customModelData != null) customModelDataComponent?.apply {
+                floats = floats.plus(customModelData!!.toFloat())
+            }
+            if (hasCustomModelDataComponent()) itemMeta.setCustomModelDataComponent(customModelDataComponent)
+            else itemMeta.setCustomModelData(customModelData)
+        }
 
         for ((key, value) in persistentDataMap) {
             val dataSpaceKey = key.safeCast<PersistentDataSpace<Any, Any>>() ?: continue

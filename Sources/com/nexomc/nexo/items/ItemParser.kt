@@ -63,7 +63,7 @@ class ItemParser(private val section: ConfigurationSection) {
         nexoMeta = templateItem?.nexoMeta?.copy() ?: NexoMeta()
         mergeWithTemplateSection().getConfigurationSection("Pack")?.also {
             nexoMeta.packInfo(it)
-            nexoMeta.customModelData?.let { CUSTOM_MODEL_DATAS_BY_ID[itemId] = CustomModelData(type, nexoMeta, it) }
+            nexoMeta.customModelData?.also { CUSTOM_MODEL_DATAS_BY_ID[itemId] = CustomModelData(type, nexoMeta, it) }
         }
     }
 
@@ -181,7 +181,7 @@ class ItemParser(private val section: ConfigurationSection) {
         if (!nexoMeta.containsPackInfo) return
         val customModelData = when {
             section.name in CUSTOM_MODEL_DATAS_BY_ID -> CUSTOM_MODEL_DATAS_BY_ID[section.name]?.customModelData
-            !item.hasItemModel() -> {
+            !item.hasItemModel() && !item.hasCustomModelDataComponent() -> {
                 CustomModelData.generateId(nexoMeta.modelKey!!, type).also {
                     isConfigUpdated = true
                     if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())

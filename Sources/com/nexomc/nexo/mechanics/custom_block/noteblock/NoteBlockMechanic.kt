@@ -7,6 +7,7 @@ import com.nexomc.nexo.mechanics.custom_block.noteblock.directional.DirectionalB
 import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripping
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import org.bukkit.NamespacedKey
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.configuration.ConfigurationSection
 
@@ -52,4 +53,8 @@ class NoteBlockMechanic(factory: MechanicFactory, section: ConfigurationSection)
 
     val isInteractable: Boolean
         get() = hasClickActions() || isStorage()
+
+    companion object {
+        val FALLING_KEY = NamespacedKey.fromString("nexo:falling_custom_block")!!
+    }
 }

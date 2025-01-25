@@ -2,12 +2,11 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.FileUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.resolve
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -262,7 +261,7 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
     private fun obfuscateModelTexture(modelTexture: ModelTexture): Texture? {
         val keyPng = modelTexture.key()?.appendSuffix(".png") ?: return null
         return obfuscatedTextures.findObf(keyPng)
-            ?: DefaultResourcePackExtractor.vanillaResourcePack.texture(keyPng)
+            ?: vanillaModelTextures[keyPng]
             ?: resourcePack.texture(keyPng)?.obfuscate()
     }
 
@@ -283,6 +282,16 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
     }
 
     private fun Key.emissiveKey() = removeSuffix(".png").appendSuffix("_e.png")
+
+    private val vanillaModelTextures by lazy {
+        resourcePack.models().filterFast { DefaultResourcePackExtractor.vanillaResourcePack.model(it.key()) != null }
+            .plus(DefaultResourcePackExtractor.vanillaResourcePack.models())
+            .distinctBy { it.key().asString() }
+            .flatMapFast { it.textures().layers().plusFast(it.textures().variables().values).plus(it.textures().particle()) }
+            .mapNotNullFast { it?.key()?.appendSuffix(".png") }
+            .associateFastWith { resourcePack.texture(it) ?: DefaultResourcePackExtractor.vanillaResourcePack.texture(it) }
+            .filterFast { it.value != null }.ensureCast<Object2ObjectOpenHashMap<Key, Texture>>()
+    }
 
 
 }

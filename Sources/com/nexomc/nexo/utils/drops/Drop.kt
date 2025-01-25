@@ -63,7 +63,7 @@ class Drop(
             val type = (itemInHand?.type ?: Material.AIR).name
             return when (bestTool) {
                 itemID, type -> true
-                else -> type.endsWith(bestTool!!.uppercase(Locale.getDefault()))
+                else -> type.endsWith("_${bestTool!!.uppercase()}")
             }
         } else return true
     }

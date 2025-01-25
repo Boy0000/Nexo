@@ -11,7 +11,7 @@ import org.bukkit.event.Listener
 class NoteBlockMechanicPaperListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     fun EntityRemoveFromWorldEvent.onFallingBlockLandOnCarpet() {
-        val fallingBlock = entity as? FallingBlock ?: return
+        val fallingBlock = (entity as? FallingBlock)?.takeIf { it.persistentDataContainer.has(NoteBlockMechanic.FALLING_KEY) } ?: return
         val mechanic = NexoBlocks.noteBlockMechanic(fallingBlock.blockData)?.let { it.directional?.parentMechanic ?: it }?.takeIf { it.isFalling() } ?: return
         if (NexoBlocks.customBlockMechanic(fallingBlock.location) == mechanic) return
 

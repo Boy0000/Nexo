@@ -2,14 +2,11 @@
 # #### Looking for more cool assets for your server?
 # #### Check out the Workshop Six MCModels store: https://mcmodels.net/vendors/18/workshop-six
 
-forest_helm:
+forest_helmet:
   itemname: "Forest Helmet"
   material: CHAINMAIL_HELMET
   Pack:
     model: nexo:item/nexo_armor/forest_helmet
-  Components:
-    equippable:
-      slot: HEAD
 forest_chestplate:
   itemname: "Forest Chestplate"
   material: CHAINMAIL_CHESTPLATE

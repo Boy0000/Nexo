@@ -31,6 +31,7 @@ import org.bukkit.event.Event
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 
 object CustomBlockHelpers {
     fun makePlayerPlaceBlock(
@@ -120,7 +121,10 @@ object CustomBlockHelpers {
                     val fallingLocation = toCenterBlockLocation(target.location)
                     NexoBlocks.remove(target.location, null)
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty())
-                        target.world.spawn(fallingLocation, FallingBlock::class.java).blockData = newData!!
+                        target.world.spawn(fallingLocation, FallingBlock::class.java).apply {
+                            blockData = newData!!
+                            persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
+                        }
                     NoteMechanicHelpers.handleFallingNexoBlockAbove(target)
                 } else {
                     target.type = Material.AIR

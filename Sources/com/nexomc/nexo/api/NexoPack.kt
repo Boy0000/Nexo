@@ -44,6 +44,7 @@ object NexoPack {
         (importedPack.packMeta() ?: resourcePack.packMeta())?.apply(resourcePack::packMeta)
         (importedPack.icon() ?: resourcePack.icon())?.apply(resourcePack::icon)
         (importedPack.overlaysMeta() ?: resourcePack.overlaysMeta())?.apply(resourcePack::overlaysMeta)
+        (importedPack.sodiumMeta() ?: resourcePack.sodiumMeta())?.apply(resourcePack::sodiumMeta)
 
         importedPack.models().forEach { model: Model ->
             model.toBuilder().apply {

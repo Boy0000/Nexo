@@ -96,7 +96,7 @@ data class FurnitureSeat(val offset: Vector) {
         }
 
         fun updateSeats(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-            val seats: Map<FurnitureSeat, Interaction> = baseEntity.persistentDataContainer
+            val seats = baseEntity.persistentDataContainer
                 .get(SEAT_KEY, DataType.asList(DataType.UUID))
                 ?.mapIndexedNotNull { i, uuid ->
                     val furnitureSeat = mechanic.seats.elementAtOrNull(i) ?: return@mapIndexedNotNull null
