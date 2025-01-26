@@ -33,6 +33,7 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.entity.EntityDismountEvent
 import org.bukkit.event.entity.EntityMountEvent
 import org.bukkit.event.entity.EntityTeleportEvent
@@ -123,8 +124,10 @@ class FurniturePacketListener : Listener {
 
         when {
             isAttack && player.gameMode != GameMode.ADVENTURE && ProtectionLib.canBreak(player, baseEntity.location) -> {
-                NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
-                    NexoFurniture.remove(baseEntity, player)
+                BlockBreakEvent(baseEntity.location.block, player).call {
+                    NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
+                        NexoFurniture.remove(baseEntity, player)
+                    }
                 }
             }
 
@@ -155,8 +158,10 @@ class FurniturePacketListener : Listener {
                 }
             }
             action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.location) -> {
-                NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
-                    NexoFurniture.remove(baseEntity, player)
+                BlockBreakEvent(baseEntity.location.block, player).call {
+                    NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
+                        NexoFurniture.remove(baseEntity, player)
+                    }
                 }
             }
         }

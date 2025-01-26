@@ -73,9 +73,9 @@ class FurnitureListener : Listener {
         if (!NexoFurniture.isFurniture(item) || BlockHelpers.isStandingInside(player, block)) return
         if (!ProtectionLib.canBuild(player, block.location)) return
         if (mechanic.farmlandRequired && block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) return
-        if (!player.isSneaking && BlockHelpers.isInteractable(block)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
 
-        val blockPlaceEvent = BlockPlaceEvent(block, block.state, block.getRelative(blockFace), item, player, true, hand)
+        val blockPlaceEvent = BlockPlaceEvent(block, block.state, clickedBlock!!, item, player, true, hand)
         val rotation = getRotation(player.eyeLocation.yaw.toDouble(), mechanic)
         val yaw = FurnitureHelpers.correctedYaw(mechanic, FurnitureHelpers.rotationToYaw(rotation))
 
