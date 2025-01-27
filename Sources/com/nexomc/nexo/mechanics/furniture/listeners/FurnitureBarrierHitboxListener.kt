@@ -41,8 +41,8 @@ class FurnitureBarrierHitboxListener : Listener {
 
     @EventHandler(ignoreCancelled = true)
     fun PlayerKickEvent.onKick() {
-        if (Bukkit.getServer().allowFlight) return
-        if (cause != PlayerKickEvent.Cause.FLYING_PLAYER && player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
+        if (Bukkit.getServer().allowFlight || cause != PlayerKickEvent.Cause.FLYING_PLAYER) return
+        if (player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
         flightCache += player.uniqueId
         isCancelled = true
     }
