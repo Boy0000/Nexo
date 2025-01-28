@@ -6,7 +6,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
+import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
@@ -88,14 +88,14 @@ class Drop(
         val baseItem = NexoItems.itemFromId(sourceID)!!.build()
 
         if (isSilktouch && itemInHand.hasItemMeta() && itemInHand.itemMeta.hasEnchant(EnchantmentWrapper.SILK_TOUCH)) {
-            location.world.dropItemNaturally(toCenterBlockLocation(location), baseItem)
+            location.world.dropItemNaturally(toCenterLocation(location), baseItem)
             return listOf(DroppedLoot(Loot(sourceID, baseItem, 1.0, IntRange(1, 1)), 1))
-        } else return dropLoot(loots, location, fortuneMultiplier(itemInHand))
+        } else return dropLoot(loots, toCenterLocation(location), fortuneMultiplier(itemInHand))
     }
 
     fun furnitureSpawns(baseEntity: ItemDisplay, itemInHand: ItemStack) {
         val baseItem = NexoItems.itemFromId(sourceID)!!.build()
-        val location = BlockHelpers.toBlockLocation(baseEntity.location).takeIf { it.isWorldLoaded } ?: return
+        val location = toCenterLocation(baseEntity.location).takeIf { it.isWorldLoaded } ?: return
         val furnitureItem = FurnitureHelpers.furnitureItem(baseEntity) ?: NexoItems.itemFromId(sourceID)?.build() ?: return
         ItemUtils.editItemMeta(furnitureItem) { itemMeta: ItemMeta ->
             baseItem.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { ItemUtils.displayName(itemMeta, it) }
@@ -106,7 +106,7 @@ class Drop(
 
         when {
             isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true ->
-                location.world.dropItemNaturally(toCenterBlockLocation(location), baseItem)
+                location.world.dropItemNaturally(location, baseItem)
             else -> {
                 dropLoot(loots.filter { it.itemStack() != baseItem }, location, fortuneMultiplier(itemInHand))
                 dropLoot(loots.filter { it.itemStack() == baseItem }.map { Loot(sourceID, furnitureItem, it.probability, it.amount) }, location, fortuneMultiplier(itemInHand))

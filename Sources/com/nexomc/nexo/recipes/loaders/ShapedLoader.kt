@@ -7,9 +7,11 @@ import java.util.*
 class ShapedLoader(section: ConfigurationSection) : RecipeLoader(section) {
     override fun registerRecipe() {
         val recipe = ShapedRecipe(namespacedKey, result)
+        recipe.group = section.getString("group", "")!!
 
         val shape = section.getStringList("shape")
         recipe.shape(*shape.toTypedArray<String>())
+
         val ingredientsSection = section.getConfigurationSection("ingredients")
         for (ingredientLetter in Objects.requireNonNull<ConfigurationSection?>(ingredientsSection).getKeys(false)) {
             val itemSection = ingredientsSection!!.getConfigurationSection(ingredientLetter) ?: continue

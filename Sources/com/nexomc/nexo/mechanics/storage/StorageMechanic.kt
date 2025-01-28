@@ -11,6 +11,8 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.ItemUtils.displayName
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
+import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
 import com.willfp.eco.core.data.get
@@ -88,14 +90,15 @@ class StorageMechanic(section: ConfigurationSection) {
             else -> pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>())
         }
 
+        val loc = toCenterLocation(block.location)
         if (isShulker) {
             val mechanic = NexoBlocks.noteBlockMechanic(block) ?: return
             val shulker = NexoItems.itemFromId(mechanic.itemID)?.build() ?: return
             shulker.editMeta {
                 it.persistentDataContainer.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)
             }
-            block.world.dropItemNaturally(block.location, shulker)
-        } else items.filterNotNull().forEach { block.world.dropItemNaturally(block.location, it) }
+            block.world.dropItemNaturally(loc, shulker)
+        } else items.filterNotNull().forEach { block.world.dropItemNaturally(loc, it) }
         gui?.inventory?.viewers?.filterIsInstance<Player>()?.forEach(gui::close)
         pdc.remove(STORAGE_KEY)
         blockStorages.remove(block)
@@ -109,7 +112,8 @@ class StorageMechanic(section: ConfigurationSection) {
             baseEntity in displayStorages && gui != null -> gui.inventory.contents
             else -> pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>())
         }
-        
+
+        val loc = toCenterLocation(baseEntity.location)
         if (isShulker) {
             val defaultItem = NexoItems.itemFromId(mechanic.itemID)!!.build()
             val shulker = FurnitureHelpers.furnitureItem(baseEntity)
@@ -120,9 +124,9 @@ class StorageMechanic(section: ConfigurationSection) {
                 displayName(shulkerMeta, defaultItem.itemMeta)
                 shulker.itemMeta = shulkerMeta
             }
-            baseEntity.world.dropItemNaturally(baseEntity.location, shulker)
+            baseEntity.world.dropItemNaturally(loc, shulker)
         } else items.filterNotNull().forEach {
-            baseEntity.world.dropItemNaturally(baseEntity.location, it)
+            baseEntity.world.dropItemNaturally(loc, it)
         }
 
         if (gui != null) {
@@ -168,16 +172,9 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(
-                    NexoPlugin.instance(),
-                    Runnable {
-                        storagePDC.set(
-                            STORAGE_KEY,
-                            DataType.ITEM_STACK_ARRAY,
-                            gui.inventory.contents
-                        )
-                    }, 3L
-                )
+                SchedulerUtils.runTaskLater(3L) {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
+                }
             }
         }
 
@@ -208,25 +205,14 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(
-                    NexoPlugin.instance(),
-                    Runnable {
-                        storagePDC.set(
-                            STORAGE_KEY,
-                            DataType.ITEM_STACK_ARRAY,
-                            gui.inventory.contents
-                        )
-                    }, 3L
-                )
+                SchedulerUtils.runTaskLater(3L) {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
+                }
             }
         }
         gui.setOpenGuiAction {
-            if (storagePDC.has(
-                    STORAGE_KEY, DataType.ITEM_STACK_ARRAY
-                )
-            ) gui.inventory.contents = storagePDC.getOrDefault(
-                STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>()
-            )
+            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                gui.inventory.contents = storagePDC.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY) ?: emptyArray()
         }
 
         gui.setCloseGuiAction {
@@ -249,36 +235,22 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(
-                    NexoPlugin.instance(),
-                    Runnable {
-                        storagePDC.set(
-                            STORAGE_KEY,
-                            DataType.ITEM_STACK_ARRAY,
-                            gui.inventory.contents
-                        )
-                    }, 3L
-                )
+                SchedulerUtils.runTaskLater(3L) {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
+                }
             }
         }
 
         // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
         gui.setOpenGuiAction {
-            gui.inventory.contents = (if (!shulker && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>())
-            else
-                if (shulker && shulkerPDC!!.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                    shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf())
-                else
-                    arrayOf<ItemStack>())
+            gui.inventory.contents = storagePDC.takeUnless { shulker }?.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
+                ?: shulkerPDC.takeIf { shulker }?.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY) ?: emptyArray()
         }
 
         gui.setCloseGuiAction {
-            if (gui.inventory.viewers.size <= 1) {
-                when {
-                    shulker -> shulkerPDC!!.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                    else -> storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                }
+            if (gui.inventory.viewers.size <= 1) when {
+                shulker -> shulkerPDC!!.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
+                else -> storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
             }
             if (isLoaded(baseEntity.location)) location.world.playSound(location, closeSound, volume, pitch)
             playOpenAnimation(baseEntity, closeAnimation)

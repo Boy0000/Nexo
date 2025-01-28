@@ -1,7 +1,10 @@
 package com.nexomc.nexo.mechanics.farming.harvesting
 
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Location
 import org.bukkit.Material
@@ -37,22 +40,12 @@ class HarvestingMechanicListener : Listener {
             if (ageable.age == ageable.maximumAge && ProtectionLib.canBreak(player, block.location) && ProtectionLib.canBuild(player, block.location)) {
                 ageable.age = 0
                 block.blockData = ageable
-                val soundGroup = block.blockData.soundGroup
-                block.world.playSound(block.location, soundGroup.breakSound, soundGroup.volume, soundGroup.pitch)
-                mutableListOf<ItemStack>().apply {
-                    when (block.type) {
-                        Material.WHEAT -> {
-                            this += ItemStack(Material.WHEAT)
-                            this += ItemStack(Material.WHEAT_SEEDS)
-                        }
-
-                        Material.BEETROOTS -> {
-                            this += ItemStack(Material.BEETROOT)
-                            this += ItemStack(Material.BEETROOT_SEEDS)
-                        }
-
-                        else -> this += block.drops
-                    }
+                val (sound, volume, pitch) = block.blockData.soundGroup.let { it.breakSound to it.volume to it.pitch }
+                block.world.playSound(block.location, sound, volume, pitch)
+                when (block.type) {
+                    Material.WHEAT -> ItemUtils.itemStacks(Material.WHEAT, Material.WHEAT_SEEDS)
+                    Material.BEETROOTS -> ItemUtils.itemStacks(Material.BEETROOT, Material.BEETROOT_SEEDS)
+                    else -> block.drops
                 }.forEach { itemStack -> giveItem(player, itemStack, location) }
                 durabilityDamage++
             }
@@ -67,26 +60,25 @@ class HarvestingMechanicListener : Listener {
             player.inventory.addItem(item).entries.forEach { itemStack ->
                 player.world.dropItem(player.location, itemStack.value)
             }
-        } else player.world.dropItemNaturally(location, item)
+        } else player.world.dropItemNaturally(toCenterLocation(location), item)
     }
 
-    companion object {
-        private fun getNearbyBlocks(location: Location, radius: Int, height: Int): List<Block> {
-            val blocks = mutableListOf<Block>()
-            var x = location.blockX - Math.floorDiv(radius, 2)
-            while (x <= location.blockX + Math.floorDiv(radius, 2)) {
-                var y = location.blockY - Math.floorDiv(height, 2)
-                while (y <= location.blockY + Math.floorDiv(height, 2)) {
-                    var z = location.blockZ - Math.floorDiv(radius, 2)
-                    while (z <= location.blockZ + Math.floorDiv(radius, 2)) {
-                        blocks.add(Objects.requireNonNull(location.getWorld()).getBlockAt(x, y, z))
-                        z++
-                    }
-                    y++
+    private fun getNearbyBlocks(location: Location, radius: Int, height: Int): List<Block> {
+        val blocks = mutableListOf<Block>()
+
+        var x = location.blockX - radius.floorDiv(2)
+        while (x <= location.blockX + radius.floorDiv(2)) {
+            var y = location.blockY - height.floorDiv(2)
+            while (y <= location.blockY + height.floorDiv(2)) {
+                var z = location.blockZ - radius.floorDiv(2)
+                while (z <= location.blockZ + radius.floorDiv(2)) {
+                    blocks += location.world.getBlockAt(x, y, z)
+                    z++
                 }
-                x++
+                y++
             }
-            return blocks
+            x++
         }
+        return blocks
     }
 }

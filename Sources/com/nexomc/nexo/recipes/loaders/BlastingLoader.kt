@@ -11,6 +11,7 @@ class BlastingLoader(section: ConfigurationSection) : RecipeLoader(section) {
             namespacedKey, result,
             recipeChoice, section.getInt("experience").toFloat(), section.getInt("cookingTime")
         )
+        recipe.group = section.getString("group", "")!!
         loadRecipe(recipe)
     }
 }

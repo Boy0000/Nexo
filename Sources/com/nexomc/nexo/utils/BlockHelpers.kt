@@ -36,7 +36,7 @@ object BlockHelpers {
         return blockFaces.mapFast(blockBelow::getRelative)
             .firstOrNull { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
     }
-    private val blockFaces = BlockFace.entries.filterFast { it.ordinal in 0..3 }
+    private val blockFaces = BlockFace.entries.take(4)
 
     @JvmStatic
     fun playCustomBlockSound(location: Location, sound: String?, volume: Float, pitch: Float) {
@@ -157,7 +157,7 @@ object BlockHelpers {
             Tag.DOORS.isTagged(type) -> false
             !type.isInteractable -> false
             else -> when (type) {
-                Material.PUMPKIN, Material.MOVING_PISTON, Material.REDSTONE_ORE, Material.REDSTONE_WIRE -> false
+                Material.PUMPKIN, Material.MOVING_PISTON, Material.REDSTONE_ORE, Material.REDSTONE_WIRE, Material.IRON_TRAPDOOR -> false
                 else -> true
             }
         }

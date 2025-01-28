@@ -3,6 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block.chorusblock
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
+import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import org.bukkit.entity.FallingBlock
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -16,6 +17,6 @@ class ChorusBlockMechanicPaperListener : Listener {
 
         val itemStack = NexoItems.itemFromId(mechanic.itemID)!!.build()
         fallingBlock.dropItem = false
-        fallingBlock.world.dropItemNaturally(fallingBlock.location, itemStack)
+        fallingBlock.world.dropItemNaturally(toCenterLocation(fallingBlock.location).subtract(0.0, 0.25, 0.0), itemStack)
     }
 }

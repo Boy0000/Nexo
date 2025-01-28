@@ -4,6 +4,7 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
+import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -25,7 +26,7 @@ class LogStripListener : Listener {
         val log = NexoBlocks.noteBlockMechanic(block)?.log()?.takeIf { it.canBeStripped() } ?: return
 
         if (log.hasStrippedDrop())
-            player.world.dropItemNaturally(block.getRelative(player.facing.getOppositeFace()).location, log.logDrop)
+            player.world.dropItemNaturally(toCenterLocation(block.getRelative(player.facing.getOppositeFace()).location), log.logDrop)
 
         (item.itemMeta as? Damageable).takeIf { log.shouldDecreaseAxeDurability() && player.gameMode != GameMode.CREATIVE }?.let { axeMeta ->
             val maxDurability = item.type.maxDurability.toInt()

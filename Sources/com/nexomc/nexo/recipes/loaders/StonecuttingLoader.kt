@@ -8,6 +8,7 @@ class StonecuttingLoader(section: ConfigurationSection) : RecipeLoader(section) 
         val inputSection = section.getConfigurationSection("input") ?: return
         val recipeChoice = recipeChoice(inputSection) ?: return
         val recipe = StonecuttingRecipe(namespacedKey, result, recipeChoice)
+        recipe.group = section.getString("group", "")!!
         loadRecipe(recipe)
     }
 }

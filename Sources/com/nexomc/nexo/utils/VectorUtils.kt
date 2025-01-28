@@ -1,5 +1,7 @@
 package com.nexomc.nexo.utils
 
+import org.bukkit.Location
+import org.bukkit.World
 import org.bukkit.util.Vector
 import org.joml.Quaternionf
 import org.joml.Vector3f
@@ -7,6 +9,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 object VectorUtils {
+
+    fun Vector3f.toLocation(world: World) = Location(world, x.toDouble(), y.toDouble(), z.toDouble())
+
     fun quaternionfFromString(quaternion: String, defaultValue: Float): Quaternionf {
         val floats = quaternion.replace(" ", "").split(",").dropLastWhile(String::isEmpty)
             .map { it.toFloatOrNull() ?: defaultValue }.toMutableList()

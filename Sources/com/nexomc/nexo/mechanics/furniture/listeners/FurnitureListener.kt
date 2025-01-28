@@ -132,12 +132,6 @@ class FurnitureListener : Listener {
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
         block.setType(Material.BARRIER, false)
         SchedulerUtils.syncDelayedTask { block.setType(Material.AIR, false) }
-        SchedulerUtils.syncDelayedTask(1L) {
-            FurnitureFactory.instance()?.packetManager()?.apply {
-                sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                sendLightMechanicPacket(baseEntity, mechanic, player)
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -166,13 +160,6 @@ class FurnitureListener : Listener {
         }
 
         player.updateInventory()
-
-        SchedulerUtils.syncDelayedTask(1L) {
-            FurnitureFactory.instance()?.packetManager()?.apply {
-                sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                sendLightMechanicPacket(baseEntity, mechanic, player)
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

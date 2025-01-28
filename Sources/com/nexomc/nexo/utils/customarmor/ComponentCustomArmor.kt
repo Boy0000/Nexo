@@ -100,13 +100,4 @@ object ComponentCustomArmor {
             else -> null
         }
     }
-
-    private fun armorPrefix(texture: Texture): String {
-        val textureKey = texture.key().value()
-        return when {
-            textureKey.endsWith("_armor_layer_1.png") -> textureKey.substringBefore("_armor_layer_1.png")
-            textureKey.endsWith("_armor_layer_2.png") -> textureKey.substringBefore("_armor_layer_2.png")
-            else -> ""
-        }.substringAfterLast("/")
-    }
 }

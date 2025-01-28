@@ -15,6 +15,11 @@ import javax.annotation.Nullable
 import kotlin.math.max
 
 object ItemUtils {
+
+    fun itemStacks(vararg materials: Material): List<ItemStack> {
+        return materials.map(::ItemStack)
+    }
+
     @JvmStatic
     fun isEmpty(itemStack: ItemStack?): Boolean {
         return itemStack == null || itemStack.type == Material.AIR || itemStack.amount == 0

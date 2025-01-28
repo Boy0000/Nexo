@@ -1,10 +1,14 @@
 package com.nexomc.nexo.mechanics.misc.armor_effects
 
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.utils.VersionUtil
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
 
 class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(section) {
@@ -13,18 +17,24 @@ class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(secti
 
     init {
         instance = this
-        if (VersionUtil.isPaperServer) MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, ArmorEffectsListener())
+        if (VersionUtil.isPaperServer) registerListeners(object : Listener {
+            @EventHandler(priority = EventPriority.HIGHEST)
+            fun PlayerArmorChangeEvent.onItemEquipped() {
+                ArmorEffectsMechanic.addEffects(player)
+            }
+        })
     }
 
     override fun parse(section: ConfigurationSection): ArmorEffectsMechanic {
-        val mechanic = ArmorEffectsMechanic(this, section)
-        addToImplemented(mechanic)
+        val mechanic = ArmorEffectsMechanic(this, section).apply(::addToImplemented)
+
         armorEffectTask?.cancel()
         armorEffectTask = ArmorEffectsTask()
         MechanicsManager.registerTask(
             instance.mechanicID,
             armorEffectTask!!.runTaskTimer(NexoPlugin.instance(), 0, delay.toLong())
         )
+
         return mechanic
     }
 

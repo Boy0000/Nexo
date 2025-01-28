@@ -6,6 +6,9 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.command.CommandSender
@@ -19,9 +22,9 @@ import org.bukkit.inventory.MerchantInventory
 import kotlin.collections.set
 
 class RecipeEventManager(
-    private var permissionsPerRecipe: MutableMap<CustomRecipe, String?> = mutableMapOf(),
-    private var whitelistedCraftRecipes: MutableSet<CustomRecipe> = mutableSetOf(),
-    private var whitelistedCraftRecipesOrdered: MutableList<CustomRecipe> = mutableListOf()
+    private val permissionsPerRecipe: MutableMap<CustomRecipe, String?> = Object2ObjectOpenHashMap<CustomRecipe, String>(),
+    private val whitelistedCraftRecipes: MutableSet<CustomRecipe> = ObjectOpenHashSet(),
+    private val whitelistedCraftRecipesOrdered: MutableList<CustomRecipe> = ObjectArrayList()
 ) : Listener {
 
     fun registerEvents() {
@@ -63,9 +66,9 @@ class RecipeEventManager(
     }
 
     fun resetRecipes() {
-        permissionsPerRecipe = HashMap()
-        whitelistedCraftRecipes = HashSet()
-        whitelistedCraftRecipesOrdered = ArrayList()
+        permissionsPerRecipe.clear()
+        whitelistedCraftRecipes.clear()
+        whitelistedCraftRecipesOrdered.clear()
     }
 
     fun addPermissionRecipe(recipe: CustomRecipe, permission: String?) {

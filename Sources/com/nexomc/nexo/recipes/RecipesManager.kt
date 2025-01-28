@@ -8,6 +8,7 @@ import com.nexomc.nexo.recipes.listeners.RecipeEventManager
 import com.nexomc.nexo.recipes.loaders.*
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapNotNullFast
 import org.bukkit.Bukkit
@@ -19,8 +20,7 @@ import java.io.File
 object RecipesManager {
     fun load(plugin: JavaPlugin) {
         if (Settings.RESET_RECIPES.toBool()) {
-            val recipeIterator = Bukkit.recipeIterator()
-            while (recipeIterator.hasNext()) (recipeIterator.next() as? Keyed)?.key?.takeIf { it.namespace == "nexo" }?.let(Bukkit::removeRecipe)
+            Bukkit.recipeIterator().forEachRemaining { (it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" }?.also(Bukkit::removeRecipe) }
         }
 
         Bukkit.getPluginManager().registerEvents(RecipeBuilderEvents(), plugin)
@@ -47,8 +47,7 @@ object RecipesManager {
     @JvmStatic
     fun reload() {
         if (Settings.RESET_RECIPES.toBool()) {
-            val recipeIterator = Bukkit.recipeIterator()
-            while (recipeIterator.hasNext()) (recipeIterator.next() as? Keyed)?.key?.takeIf { it.namespace == "nexo" }?.let(Bukkit::removeRecipe)
+            Bukkit.recipeIterator().forEachRemaining { (it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" }?.also(Bukkit::removeRecipe) }
         }
 
         RecipeEventManager.instance().resetRecipes()
@@ -60,6 +59,7 @@ object RecipesManager {
         }
         registerAllConfigRecipesFromFolder(recipesFolder)
         RecipeEventManager.instance().registerEvents()
+        if (VersionUtil.isPaperServer) Bukkit.getServer().updateRecipes()
     }
 
     private fun registerAllConfigRecipesFromFolder(recipesFolder: File) {

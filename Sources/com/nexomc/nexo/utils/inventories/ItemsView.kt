@@ -105,7 +105,7 @@ class ItemsView {
         }.create()
         gui.disableAllInteractions()
 
-        items.mapNotNullFast { it.build().takeUnless { it.isEmpty } }.forEach {
+        items.mapNotNullFast { it.build().takeUnless { it.type == Material.AIR } }.forEach {
             gui.addItem(GuiItem(it) { e -> e.whoClicked.inventory.addItem(ItemUpdater.updateItem(e.currentItem!!.clone())) })
         }
 

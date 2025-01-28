@@ -31,7 +31,7 @@ class LimitedPlacing(section: ConfigurationSection) {
     private fun limitedBlockMaterials(list: List<String>) = list.mapNotNull(Material::getMaterial)
 
     private fun limitedNexoBlocks(list: List<String>): List<String> {
-        return list.filter { e -> NexoBlocks.isCustomBlock(e) || NexoFurniture.isFurniture(e) }.toList()
+        return list.filter { e -> NexoBlocks.isCustomBlock(e) || NexoFurniture.isFurniture(e) }
     }
 
     private fun limitedBlockTags(list: List<String>) =

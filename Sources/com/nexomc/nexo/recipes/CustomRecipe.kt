@@ -10,23 +10,38 @@ import org.bukkit.inventory.meta.LeatherArmorMeta
 import java.util.*
 
 class CustomRecipe {
-    /*
-        *
-        */
-    @JvmField
+
     val name: String
+    val group: String
     val result: ItemStack
     val ingredients: List<ItemStack?>
     var isOrdered = false
 
     constructor(name: String, result: ItemStack, ingredients: List<ItemStack?>) {
         this.name = name
+        this.group = ""
+        this.result = result
+        this.ingredients = ingredients
+    }
+
+    constructor(name: String, group: String, result: ItemStack, ingredients: List<ItemStack?>) {
+        this.name = name
+        this.group = group
         this.result = result
         this.ingredients = ingredients
     }
 
     constructor(name: String, result: ItemStack, ingredients: List<ItemStack?>, ordered: Boolean) {
         this.name = name
+        this.group = ""
+        this.result = result
+        this.ingredients = ingredients
+        this.isOrdered = ordered
+    }
+
+    constructor(name: String, group: String, result: ItemStack, ingredients: List<ItemStack?>, ordered: Boolean) {
+        this.name = name
+        this.group = group
         this.result = result
         this.ingredients = ingredients
         this.isOrdered = ordered
@@ -95,13 +110,13 @@ class CustomRecipe {
                             ingredients.add(bukkitRecipe.ingredientMap[chars[charIndex]])
                         }
                     }
-                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.getResult(), ingredients, true)
+                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.getResult(), ingredients, true)
                 }
 
                 is ShapelessRecipe -> {
                     val ingredients = ArrayList<ItemStack?>(9)
                     ingredients.addAll(bukkitRecipe.ingredientList)
-                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.getResult(), ingredients, false)
+                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.getResult(), ingredients, false)
                 }
 
                 else -> return null

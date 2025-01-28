@@ -1,23 +1,19 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.nexomc.nexo.utils.to
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
-import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
-import com.nexomc.nexo.utils.BlockHelpers.entityStandingOn
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import net.minecraft.references.Blocks
 import org.bukkit.*
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -102,12 +98,12 @@ class FurnitureSoundListener : Listener {
         val entity = entity as? Player ?: return
         if (!isLoaded(entity.location)) return
 
-        val blockStandingOn = entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
+        val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
         val (cause, soundGroup) = entity.lastDamageCause to blockStandingOn.blockData.soundGroup
 
-        val mechanic by lazy { NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location) }
         if (event === GameEvent.HIT_GROUND && cause != null && cause.cause != EntityDamageEvent.DamageCause.FALL) return
         if (blockStandingOn.type == Material.TRIPWIRE) return
+        val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location)
         if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
 
         val (sound, volume, pitch) = when {

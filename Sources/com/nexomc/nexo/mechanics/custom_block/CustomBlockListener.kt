@@ -17,6 +17,7 @@ import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
+import org.bukkit.entity.AbstractWindCharge
 import org.bukkit.entity.Player
 import org.bukkit.entity.WindCharge
 import org.bukkit.event.Event
@@ -33,7 +34,7 @@ import org.bukkit.inventory.ItemStack
 import kotlin.random.Random
 
 class CustomBlockListener : Listener {
-    private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE)
+    private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE, Material.CHORUS_PLANT)
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun PlayerInteractEvent.callInteract() {
@@ -113,17 +114,9 @@ class CustomBlockListener : Listener {
 
         // Change mechanic according to subMechanic changes
         when (mechanic) {
-            is NoteBlockMechanic -> mechanic = when {
-                mechanic.directional?.isParentBlock() == true ->
-                    mechanic.directional?.directionMechanic(blockFace, player) ?: mechanic
-                else -> mechanic.directional?.parentMechanic ?: mechanic
-            }
-
+            is NoteBlockMechanic -> mechanic = mechanic.directional?.directionMechanic(blockFace, player) ?: mechanic.directional?.parentMechanic ?: mechanic
             is StringBlockMechanic -> {
-                if (mechanic.hasRandomPlace()) {
-                    val randomList = mechanic.randomPlace()
-                    mechanic = NexoBlocks.stringMechanic(randomList[Random.nextInt(randomList.size)]) ?: mechanic
-                }
+                mechanic = mechanic.randomPlace().randomOrNull()?.let(NexoBlocks::stringMechanic) ?: mechanic
                 if (placedAgainst.getRelative(blockFace).isLiquid) return
             }
         }
@@ -149,7 +142,7 @@ class CustomBlockListener : Listener {
         }.toMap()
 
         customBlocks.forEach { (block, mechanic) ->
-            if (!mechanic.isBlastResistant && entity !is WindCharge) block.type = Material.AIR
+            if (!mechanic.isBlastResistant && entity !is AbstractWindCharge) block.type = Material.AIR
             mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
         blockList().removeAll(customBlocks.keys)

@@ -5,12 +5,10 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.DefaultResourcePackExtractor
-import com.nexomc.nexo.utils.JsonBuilder
+import com.nexomc.nexo.recipes.RecipesManager
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.JsonBuilder.plus
-import com.nexomc.nexo.utils.NexoDatapack
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
 import net.kyori.adventure.key.Key
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
@@ -27,6 +25,7 @@ import team.unnamed.creative.base.Writable
 import team.unnamed.creative.texture.Texture
 import java.nio.charset.StandardCharsets
 import kotlin.collections.set
+import kotlin.io.resolve
 
 @Suppress("DEPRECATION")
 object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos Custom Armor trims") {
@@ -79,6 +78,7 @@ object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos 
         }
 
         enableDatapack(true)
+        SchedulerUtils.syncDelayedTask { RecipesManager.reload() }
     }
 
     private fun writeTrimAtlas(resourcePack: ResourcePack, armorPrefixes: LinkedHashSet<String>) {

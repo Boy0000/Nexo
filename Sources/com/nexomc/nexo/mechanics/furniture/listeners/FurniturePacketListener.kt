@@ -165,14 +165,6 @@ class FurniturePacketListener : Listener {
                 }
             }
         }
-
-        // Resend the hitbox as client removes the "ghost block"
-        SchedulerUtils.syncDelayedTask(2L) {
-            FurnitureFactory.instance()?.packetManager()?.apply {
-                sendBarrierHitboxPacket(baseEntity, mechanic)
-                sendLightMechanicPacket(baseEntity, mechanic)
-            }
-        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
