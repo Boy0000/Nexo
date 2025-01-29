@@ -13,7 +13,6 @@ class ShapedBuilder(player: Player) : WorkbenchBuilder(player, "shaped") {
         var letter = 'A'
         val shapes = arrayOfNulls<String>(3)
         var shape = StringBuilder()
-        val inventory = getInventory()
 
         for (i in 1 until inventory.size) {
             val item = inventory.getItem(i)

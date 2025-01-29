@@ -28,8 +28,9 @@ class FurnitureBarrierHitboxListener : Listener {
 
     @EventHandler(ignoreCancelled = true)
     fun EntityMoveEvent.onMobMove() {
-        val toLoc = to.block.location
-        if (hasExplicitlyChangedBlock() && IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
+        val (to, from) = to.block.location to from.block.location
+        if (!hasExplicitlyChangedBlock() || to.y < from.y) return
+        if (IFurniturePacketManager.barrierHitboxLocationMap.any { to in it.value && from !in it.value  }) isCancelled = true
     }
 
     private val flightCache: MutableSet<UUID> = mutableSetOf()

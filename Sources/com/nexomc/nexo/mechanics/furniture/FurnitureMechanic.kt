@@ -34,6 +34,8 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
+import org.bukkit.block.data.Bisected
+import org.bukkit.block.data.type.TrapDoor
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -180,27 +182,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         }
         baseEntity.setRotation(yaw, pitch)
 
-        baseEntity.transformation = baseEntity.transformation.apply {
-            // If placed on a non-replaceable, non-full block (slabs, carpets...) or against furniture that is
-            val against = baseEntity.location.block.getRelative(blockFace.oppositeFace)
-
-            val offset = baseEntity(against)?.transformation?.translation?.y?.toDouble() ?: let {
-                val bb = baseEntity.location.block.getRelative(blockFace.oppositeFace).takeUnless { it.isReplaceable }?.boundingBox ?: return@apply
-                when (blockFace) {
-                    BlockFace.UP -> bb.height - if (isFixed) 0.99 else 1.01
-                    BlockFace.DOWN -> bb.height - if (isFixed) 0.99 else 0.0
-                    else -> 0.0
-                }.also {
-                    if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
-                    if (bb.contains(baseEntity.location.clone().apply { y += it }.toVector())) return@apply
-                }
-            }
-
-            when {
-                isFixed -> translation.set(0.0, 0.0, offset)
-                else -> translation.set(0.0, offset, 0.0)
-            }
-        }
+        correctFurnitureTranslation(baseEntity, blockFace)
 
         // No Packet-logic for Spigot Servers, so we set this here
         if (!VersionUtil.isPaperServer) {
@@ -215,6 +197,31 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (hasEvolution) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0)
         if (storage?.storageType == StorageType.STORAGE) {
             pdc.set<ByteArray, Array<ItemStack>>(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf())
+        }
+    }
+
+    private fun correctFurnitureTranslation(baseEntity: ItemDisplay, blockFace: BlockFace) {
+        baseEntity.transformation = baseEntity.transformation.apply {
+            // If placed on a non-replaceable, non-full block (slabs, carpets...) or against furniture that is
+            val against = baseEntity.location.block.getRelative(blockFace.oppositeFace)
+            if (against.isReplaceable || (against.blockData as? TrapDoor)?.let { !it.isOpen && it.half == Bisected.Half.TOP } == true) return@apply
+
+            val offset = baseEntity(against)?.transformation?.translation?.y?.toDouble() ?: let {
+                val bb = against.boundingBox
+                when (blockFace) {
+                    BlockFace.UP -> bb.height - if (properties.isFixedTransform) 0.99 else 1.01
+                    BlockFace.DOWN -> bb.height - if (properties.isFixedTransform) 0.99 else 0.0
+                    else -> 0.0
+                }.also {
+                    if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
+                    if (baseEntity.location.clone().apply { y += it }.toVector() in bb) return@apply
+                }
+            }
+
+            when {
+                properties.isFixedTransform -> translation.set(0.0, 0.0, offset)
+                else -> translation.set(0.0, offset, 0.0)
+            }
         }
     }
 

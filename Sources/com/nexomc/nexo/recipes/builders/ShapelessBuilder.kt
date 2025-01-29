@@ -9,7 +9,7 @@ import kotlin.collections.set
 class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, "shapeless") {
     override fun saveRecipe(name: String, permission: String?) {
         val items = mutableMapOf<ItemStack?, Int>()
-        val content = getInventory().contents
+        val content = inventory.contents
         for (i in 1 until content.size) if (content[i] != null)
             items[content[i]] = items.getOrDefault(content[i], 0) + 1
 

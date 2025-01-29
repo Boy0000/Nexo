@@ -5,7 +5,7 @@ import org.bukkit.inventory.ShapelessRecipe
 
 class ShapelessLoader(section: ConfigurationSection) : RecipeLoader(section) {
     override fun registerRecipe() {
-        val recipe = ShapelessRecipe(namespacedKey, result)
+        val recipe = ShapelessRecipe(key, result)
         recipe.group = section.getString("group", "")!!
 
         section.getConfigurationSection("ingredients")?.let { it.getKeys(false).map(it::getConfigurationSection) }

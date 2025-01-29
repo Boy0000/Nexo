@@ -7,11 +7,9 @@ import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
-import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.Utils.removeExtension
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.mapNotNullFast
-import dev.triumphteam.gui.components.InventoryProvider
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.PaginatedGui
@@ -19,7 +17,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import java.io.File
@@ -48,23 +45,22 @@ class ItemsView {
         val emptyGuiItem = GuiItem(Material.AIR)
         val guiItems = Collections.nCopies(highestUsedSlot + 1, emptyGuiItem).toMutableList()
 
-        for ((file, gui) in files) {
-            val slot = file.guiItemSlot().slot.takeUnless { it == -1 } ?: continue
-            guiItems[slot] = GuiItem(file.guiItemSlot().itemStack!!) { e -> gui.open(e.whoClicked) }
+        files.forEach { (file, gui) ->
+            val itemSlot = file.guiItemSlot().takeUnless { it.slot == -1 } ?: return@forEach
+            guiItems[itemSlot.slot] = GuiItem(itemSlot.itemStack!!) { e -> gui.open(e.whoClicked) }
         }
 
-        for ((file, gui) in files) {
-            val guiItemSlot = file.guiItemSlot().takeIf { it.slot == -1 } ?: continue
-            guiItems[guiItems.indexOf(emptyGuiItem)] = GuiItem(guiItemSlot.itemStack!!) { e -> gui.open(e.whoClicked) }
+        files.forEach { (file, gui) ->
+            val itemSlot = file.guiItemSlot().takeUnless { it.slot == -1 } ?: return@forEach
+            guiItems[guiItems.indexOf(emptyGuiItem)] = GuiItem(itemSlot.itemStack!!) { e -> gui.open(e.whoClicked) }
         }
 
         mainGui = Gui.paginated().rows(Settings.NEXO_INV_ROWS.toInt()).pageSize(Settings.NEXO_INV_SIZE.toInt(45))
             .title(Settings.NEXO_INV_TITLE.toComponent()).disableItemSwap().disableItemPlace()
-            .inventory { title, owner, rows ->
-                if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, rows, Settings.NEXO_INV_TITLE.toComponent())
-                else Bukkit.createInventory(owner, rows, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
-            }.create()
-        mainGui.addItem(*guiItems.toTypedArray())
+            .inventory { title, owner, size ->
+                if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, size, title)
+                else Bukkit.createInventory(owner, size, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+            }.create().apply { addItem(*guiItems.toTypedArray()) }
 
         (NexoItems.itemFromId(Settings.NEXO_INV_PREVIOUS_ICON.toString()) ?: ItemBuilder(Material.BARRIER))
             .displayName(Component.text("Previous Page")).build().let {
@@ -99,9 +95,9 @@ class ItemsView {
                     Settings.NEXO_INV_TITLE.toString()
                 )!!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
             )
-        ).inventory { title, owner, rows ->
-            if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, rows, Settings.NEXO_INV_TITLE.toComponent())
-            else Bukkit.createInventory(owner, rows, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+        ).inventory { title, owner, size ->
+            if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, size, title)
+            else Bukkit.createInventory(owner, size, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
         }.create()
         gui.disableAllInteractions()
 

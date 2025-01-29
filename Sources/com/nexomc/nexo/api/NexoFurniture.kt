@@ -99,13 +99,6 @@ object NexoFurniture {
      * @param drop     The drop of the furniture, if null the default drop will be used
      * @return true if the Furniture was removed, false otherwise
      */
-    /**
-     * Removes Furniture at a given location, optionally by a player
-     *
-     * @param location The location to remove the Furniture
-     * @param player   The player who removed the Furniture, can be null
-     * @return true if the Furniture was removed, false otherwise
-     */
     @JvmOverloads
     @JvmStatic
     fun remove(location: Location, player: Player? = null, drop: Drop? = null): Boolean {
@@ -136,13 +129,6 @@ object NexoFurniture {
      * @param baseEntity The entity at which the Furniture should be removed
      * @param player     The player who removed the Furniture, can be null
      * @param drop       The drop of the furniture, if null the default drop will be used
-     * @return true if the Furniture was removed, false otherwise
-     */
-    /**
-     * Removes Furniture at a given Entity, optionally by a player
-     *
-     * @param baseEntity The entity at which the Furniture should be removed
-     * @param player     The player who removed the Furniture, can be null
      * @return true if the Furniture was removed, false otherwise
      */
     @JvmOverloads

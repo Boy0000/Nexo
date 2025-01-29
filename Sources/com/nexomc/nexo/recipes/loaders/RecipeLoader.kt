@@ -79,7 +79,7 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
 
     protected fun recipeChoice(ingredientSection: ConfigurationSection): RecipeChoice? {
         if (ingredientSection.isString("nexo_item")) return RecipeChoice.ExactChoice(
-            ItemUpdater.updateItem(NexoItems.itemFromId(ingredientSection.getString("nexo_item"))!!.build())!!
+            ItemUpdater.updateItem(NexoItems.itemFromId(ingredientSection.getString("nexo_item"))!!.build())
         )
 
         if (ingredientSection.isString("crucible_item")) {
@@ -123,7 +123,7 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
 
     private val recipeName = section.name
 
-    protected val namespacedKey = NamespacedKey(NexoPlugin.instance(), recipeName)
+    protected val key = NamespacedKey(NexoPlugin.instance(), recipeName)
 
     abstract fun registerRecipe()
 

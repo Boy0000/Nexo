@@ -8,7 +8,7 @@ class FurnaceLoader(section: ConfigurationSection) : RecipeLoader(section) {
         val inputSection = section.getConfigurationSection("input") ?: return
         val recipeChoice = recipeChoice(inputSection) ?: return
         val recipe = FurnaceRecipe(
-            namespacedKey, result,
+            key, result,
             recipeChoice, section.getInt("experience").toFloat(), section.getInt("cookingTime")
         )
         recipe.group = section.getString("group", "")!!

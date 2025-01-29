@@ -5,16 +5,15 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.ItemCommand.sendItemInfo
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.*
 import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM.Ne
 import net.kyori.adventure.audience.Audience
+import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 

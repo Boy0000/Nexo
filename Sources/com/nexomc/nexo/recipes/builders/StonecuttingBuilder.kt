@@ -12,10 +12,10 @@ class StonecuttingBuilder(player: Player) :
     }
 
     override fun saveRecipe(name: String, permission: String?) {
-        val input = getInventory().getItem(0)
+        val input = inventory.getItem(0)
         var recipeCount = 0
-        for (i in 1 until getInventory().size) {
-            val result = getInventory().getItem(i) ?: continue
+        for (i in 1 until inventory.size) {
+            val result = inventory.getItem(i) ?: continue
             val newCraftSection = getConfig()!!.createSection(name + "_" + recipeCount)
             setItemStack(newCraftSection.createSection("result"), result)
             setItemStack(newCraftSection.createSection("input"), input!!)

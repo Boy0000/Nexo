@@ -15,7 +15,7 @@ open class CookingBuilder(player: Player, builderName: String) :
     }
 
     override fun saveRecipe(name: String, permission: String?) {
-        val content = getInventory().contents
+        val content = inventory.contents
         val newCraftSection = getConfig()!!.createSection(name)
         setItemStack(newCraftSection.createSection("result"), content[2]!!)
         setItemStack(newCraftSection.createSection("input"), content[0]!!)

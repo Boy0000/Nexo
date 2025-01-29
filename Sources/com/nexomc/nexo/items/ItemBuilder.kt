@@ -14,6 +14,7 @@ import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
+import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.*
@@ -555,8 +556,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
             itemMeta.addEnchant(enchant.key!!, lvl, true)
         }
 
-        itemFlags?.toTypedArray()?.let(itemMeta::addItemFlags)
-        attributeModifiers?.let(itemMeta::setAttributeModifiers)
+        itemFlags?.toTypedArray()?.also(itemMeta::addItemFlags)
+        attributeModifiers?.also(itemMeta::setAttributeModifiers)
         itemMeta.setCustomModelData(customModelData)
 
         if (VersionUtil.atleast("1.21.4")) {
@@ -578,6 +579,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemStack = NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         itemStack = NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
+        itemStack = NMSHandlers.handler().handleItemFlags(itemStack, itemMeta.itemFlags)
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) when {
             itemStack.itemMeta is PotionMeta -> {

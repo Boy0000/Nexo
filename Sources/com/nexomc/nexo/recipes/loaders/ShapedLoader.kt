@@ -6,7 +6,7 @@ import java.util.*
 
 class ShapedLoader(section: ConfigurationSection) : RecipeLoader(section) {
     override fun registerRecipe() {
-        val recipe = ShapedRecipe(namespacedKey, result)
+        val recipe = ShapedRecipe(key, result)
         recipe.group = section.getString("group", "")!!
 
         val shape = section.getStringList("shape")

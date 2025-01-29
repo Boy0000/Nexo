@@ -14,7 +14,8 @@ import java.util.*
 import kotlin.collections.set
 
 abstract class RecipeBuilder protected constructor(val player: Player, private val builderName: String) {
-    private var inventory: Inventory
+    var inventory: Inventory
+    private set
     private var configFile: File? = null
     private var config: YamlConfiguration? = null
     val inventoryTitle = "${player.name} $builderName builder"
@@ -36,10 +37,6 @@ abstract class RecipeBuilder protected constructor(val player: Player, private v
     }
 
     abstract fun saveRecipe(name: String, permission: String?)
-
-    protected fun getInventory(): Inventory {
-        return this.inventory
-    }
 
     protected fun setItemStack(section: ConfigurationSection, itemStack: ItemStack) {
         if (NexoItems.exists(itemStack)) section["nexo_item"] = NexoItems.idFromItem(itemStack)
