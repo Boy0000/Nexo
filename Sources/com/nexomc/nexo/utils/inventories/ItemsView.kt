@@ -51,7 +51,7 @@ class ItemsView {
         }
 
         files.forEach { (file, gui) ->
-            val itemSlot = file.guiItemSlot().takeUnless { it.slot == -1 } ?: return@forEach
+            val itemSlot = file.guiItemSlot().takeIf { it.slot == -1 } ?: return@forEach
             guiItems[guiItems.indexOf(emptyGuiItem)] = GuiItem(itemSlot.itemStack!!) { e -> gui.open(e.whoClicked) }
         }
 
