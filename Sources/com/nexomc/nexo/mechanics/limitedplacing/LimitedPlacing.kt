@@ -2,7 +2,7 @@ package com.nexomc.nexo.mechanics.limitedplacing
 
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.utils.BlockHelpers.isReplaceable
+import com.nexomc.nexo.utils.BlockHelpers
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -39,7 +39,7 @@ class LimitedPlacing(section: ConfigurationSection) {
         list.mapNotNull { Bukkit.getTag(Tag.REGISTRY_BLOCKS, NamespacedKey.minecraft(it), Material::class.java) }.toSet()
 
     fun isNotPlacableOn(block: Block, blockFace: BlockFace): Boolean {
-        val placedBlock = if (isReplaceable(block)) block else block.getRelative(blockFace)
+        val placedBlock = if (BlockHelpers.isReplaceable(block)) block else block.getRelative(blockFace)
         val blockBelow = placedBlock.getRelative(BlockFace.DOWN)
         val blockAbove = placedBlock.getRelative(BlockFace.UP)
 
@@ -49,7 +49,7 @@ class LimitedPlacing(section: ConfigurationSection) {
         return !isRoof || !blockAbove.type.isSolid()
     }
 
-    fun limitedBlocks(): List<Material?> {
+    fun limitedBlocks(): List<Material> {
         return blockTypes
     }
 

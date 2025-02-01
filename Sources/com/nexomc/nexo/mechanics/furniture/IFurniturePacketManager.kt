@@ -15,7 +15,6 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.bukkit.util.BoundingBox
 import java.util.*
 
 interface IFurniturePacketManager {
@@ -29,6 +28,11 @@ interface IFurniturePacketManager {
     fun sendInteractionEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
     fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
     fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
+
+    fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
+    fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
+    fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
+    fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
 
     fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
     fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
@@ -44,6 +48,7 @@ interface IFurniturePacketManager {
         Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach { entity ->
             val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@forEach
             removeInteractionHitboxPacket(entity, mechanic)
+            removeShulkerHitboxPacket(entity, mechanic)
             removeBarrierHitboxPacket(entity, mechanic)
             removeLightMechanicPacket(entity, mechanic)
         }
@@ -65,6 +70,7 @@ interface IFurniturePacketManager {
 
         val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, ObjectOpenHashSet<LightBlock>>()
         val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
+        val shulkerHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
 
         fun furnitureBaseFromBaseEntity(baseEntity: Entity): FurnitureBaseEntity? =
             furnitureBaseMap.firstOrNull { it.baseUuid == baseEntity.uniqueId }
@@ -72,13 +78,14 @@ interface IFurniturePacketManager {
         fun baseEntityFromFurnitureBase(furnitureBaseId: Int): ItemDisplay? =
             furnitureBaseMap.firstOrNull { it.baseId == furnitureBaseId }?.baseEntity()
 
-        fun baseEntityFromHitbox(interactionId: Int): ItemDisplay? =
-            interactionHitboxIdMap.firstOrNull { interactionId in it.entityIds }?.baseEntity()
+        fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
+            interactionHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
+                ?: shulkerHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
 
         fun baseEntityFromHitbox(barrierLocation: BlockLocation): ItemDisplay? =
-            barrierHitboxPositionMap.entries
-                .firstOrNull { (_, hitboxes) -> hitboxes.any { it == barrierLocation } }
-                ?.key?.let { uuid -> Bukkit.getEntity(uuid) as? ItemDisplay }
+            barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
+                uuid.takeIf { hitboxes.any { it == barrierLocation } }?.let(Bukkit::getEntity) as? ItemDisplay
+            }
 
         fun standingOnFurniture(player: Player): Boolean {
             val playerLoc = BlockLocation(player.location)

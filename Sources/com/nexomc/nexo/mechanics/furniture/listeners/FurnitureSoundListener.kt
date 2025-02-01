@@ -4,9 +4,9 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
@@ -44,10 +44,10 @@ class FurnitureSoundListener : Listener {
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPlaceEvent.onPlacingStone() {
-        if (NexoBlocks.isNexoStringBlock(block)) return
+        if (NexoBlocks.isNexoStringBlock(blockPlaced) || blockPlaced.isEmpty) return
         if (block.blockData.soundGroup.placeSound != Sound.BLOCK_STONE_PLACE) return
 
-        playCustomBlockSound(
+        BlockHelpers.playCustomBlockSound(
             block.location,
             BlockSounds.VANILLA_STONE_PLACE,
             BlockSounds.VANILLA_PLACE_VOLUME,
@@ -67,7 +67,7 @@ class FurnitureSoundListener : Listener {
         if (NexoFurniture.isFurniture(location) && block.type == Material.BARRIER || block.isEmpty) return
 
         if (isCancelled || !ProtectionLib.canBreak(player, location)) return
-        playCustomBlockSound(
+        BlockHelpers.playCustomBlockSound(
             location,
             BlockSounds.VANILLA_STONE_BREAK,
             BlockSounds.VANILLA_BREAK_VOLUME,
@@ -84,7 +84,7 @@ class FurnitureSoundListener : Listener {
         if (breakerPlaySound.containsKey(location)) return
 
         breakerPlaySound[location] = SchedulerUtils.runTaskTimer(2L, 4L) {
-            playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
+            BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
         }
     }
 
@@ -116,18 +116,18 @@ class FurnitureSoundListener : Listener {
             else -> return
         }
 
-        playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
+        BlockHelpers.playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun NexoFurniturePlaceEvent.onPlacingFurniture() {
         val blockSounds = mechanic.blockSounds?.takeIf(BlockSounds::hasPlaceSound) ?: return
-        playCustomBlockSound(baseEntity.location, blockSounds.placeSound, blockSounds.placeVolume, blockSounds.placePitch)
+        BlockHelpers.playCustomBlockSound(baseEntity.location, blockSounds.placeSound, blockSounds.placeVolume, blockSounds.placePitch)
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun NexoFurnitureBreakEvent.onBreakingFurniture() {
         val blockSounds = mechanic.blockSounds?.takeIf(BlockSounds::hasBreakSound) ?: return
-        playCustomBlockSound(baseEntity.location, blockSounds.breakSound, blockSounds.breakVolume, blockSounds.breakPitch)
+        BlockHelpers.playCustomBlockSound(baseEntity.location, blockSounds.breakSound, blockSounds.breakVolume, blockSounds.breakPitch)
     }
 }

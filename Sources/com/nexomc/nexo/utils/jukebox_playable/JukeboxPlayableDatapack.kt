@@ -4,7 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.NexoDatapack
 import com.nexomc.nexo.utils.logs.Logs
 
-object JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for Custom Music Discs") {
+class JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for Custom Music Discs") {
 
     init {
         datapackFile.deleteRecursively()

@@ -27,6 +27,18 @@ class EmptyFurniturePacketManager : IFurniturePacketManager {
     override fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
     }
 
+    override fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
+    }
+
+    override fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
+    }
+
+    override fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
+    }
+
+    override fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
+    }
+
     override fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
     }
 

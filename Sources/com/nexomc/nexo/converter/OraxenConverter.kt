@@ -343,7 +343,7 @@ object OraxenConverter {
                                     it.node("interactions").childrenList().isNullOrEmpty()
                         }?.not() ?: false
                     val (width, height) = furnitureNode.node("hitbox").let { it.removeChildNode("width").getDouble(1.0) to it.removeChildNode("height").getDouble(1.0) }
-                    if (!templateHasHitbox) if (width != 1.0 || height != 1.0  || barriers.isEmpty()) {
+                    if (!templateHasHitbox) if (width != 1.0 || height != 1.0  || (barriers.isEmpty() && furnitureNode.node("hitbox", "shulkers").childrenList().isEmpty())) {
                         hitboxNode.node("interactions").takeIf {
                             it.virtual() && hitboxNode.node("barriers").virtual()
                         }?.set(listOf("0,0,0 $width,$height"))

@@ -9,48 +9,20 @@ import org.bukkit.inventory.ShapelessRecipe
 import org.bukkit.inventory.meta.LeatherArmorMeta
 import java.util.*
 
-class CustomRecipe {
+class CustomRecipe(
+    val name: String,
+    val group: String,
+    val result: ItemStack,
+    val ingredients: List<ItemStack?>,
+    ordered: Boolean
+) {
 
-    val name: String
-    val group: String
-    val result: ItemStack
-    val ingredients: List<ItemStack?>
-    var isOrdered = false
+    private var isOrdered = ordered
 
-    constructor(name: String, result: ItemStack, ingredients: List<ItemStack?>) {
-        this.name = name
-        this.group = ""
-        this.result = result
-        this.ingredients = ingredients
-    }
-
-    constructor(name: String, group: String, result: ItemStack, ingredients: List<ItemStack?>) {
-        this.name = name
-        this.group = group
-        this.result = result
-        this.ingredients = ingredients
-    }
-
-    constructor(name: String, result: ItemStack, ingredients: List<ItemStack?>, ordered: Boolean) {
-        this.name = name
-        this.group = ""
-        this.result = result
-        this.ingredients = ingredients
-        this.isOrdered = ordered
-    }
-
-    constructor(name: String, group: String, result: ItemStack, ingredients: List<ItemStack?>, ordered: Boolean) {
-        this.name = name
-        this.group = group
-        this.result = result
-        this.ingredients = ingredients
-        this.isOrdered = ordered
-    }
-
-    override fun equals(`object`: Any?): Boolean {
-        if (`object` == null) return false
-        if (`object` === this) return true
-        if (`object` is CustomRecipe) return result == `object`.result && areEqual(ingredients, `object`.ingredients)
+    override fun equals(other: Any?): Boolean {
+        if (other == null) return false
+        if (other === this) return true
+        if (other is CustomRecipe) return result == other.result && areEqual(ingredients, other.ingredients)
         return false
     }
 
@@ -74,25 +46,17 @@ class CustomRecipe {
     }
 
     val isValidDyeRecipe: Boolean
-        /**
-         * Checks if the recipe is a dye recipe.
-         * This does not ensure the second ingredient is dyeable,
-         * only that the ingredient is not CustomArmor and therefore dyeable
-         */
         get() {
             if (!isDyeRecipe) return false
-            val items = ingredients.stream()
-                .filter { i: ItemStack? -> i != null && !i.type.toString().endsWith("_DYE") }
-                .toList()
+            val items = ingredients.filter { i -> i != null && !i.type.toString().endsWith("_DYE") }
             if (items.size != 1) return false
             val item = items[0] ?: return false
             return !NexoItems.exists(item) || !item.hasItemMeta() || (item.itemMeta !is LeatherArmorMeta) || item.type == Material.LEATHER_HORSE_ARMOR
         }
 
     private val isDyeRecipe: Boolean
-        get() = ingredients.stream().filter { obj: ItemStack? -> Objects.nonNull(obj) }
-            .toList().size == 2 && ingredients.stream().anyMatch { item: ItemStack? ->
-            item != null && item.type.toString().endsWith("_DYE")
+        get() = ingredients.filterNotNull().size == 2 && ingredients.any { item ->
+            item?.type.toString().endsWith("_DYE")
         }
 
     companion object {

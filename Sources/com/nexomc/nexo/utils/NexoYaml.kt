@@ -6,6 +6,10 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 
+fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
+    return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
+}
+
 class NexoYaml : YamlConfiguration() {
     override fun load(file: File) {
         runCatching {

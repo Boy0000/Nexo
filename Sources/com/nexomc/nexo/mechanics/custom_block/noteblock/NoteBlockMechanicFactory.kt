@@ -4,9 +4,8 @@ import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSounds
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconListener
-import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconTagDatapack
 import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
@@ -15,7 +14,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Instrument
-import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.configuration.ConfigurationSection
@@ -27,7 +25,7 @@ import kotlin.collections.set
 
 class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
-    private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
+    private val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
     val reimplementNoteblockFeatures: Boolean = section.getBoolean("reimplement_noteblock_features", false)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<NoteBlockMechanic>()
@@ -37,14 +35,12 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
         instance = this
 
         if (VersionUtil.isPaperServer) {
-            NoteBlockDatapack().generateDatapack()
+            NoteBlockDatapack().createDatapack()
             registerListeners(BeaconListener())
         }
 
         registerListeners(NoteBlockMechanicListener(), LogStripListener())
-        if (customSounds) registerListeners(NoteBlockSoundListener())
-
-        BeaconTagDatapack.generateDatapack()
+        if (customSounds.enabled) registerListeners(NoteBlockSoundListener(customSounds))
 
         // Physics-related stuff
         if (VersionUtil.isPaperServer)

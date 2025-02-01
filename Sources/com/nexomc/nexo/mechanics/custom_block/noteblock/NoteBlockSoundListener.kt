@@ -4,6 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockPlaceEvent
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.utils.BlockHelpers.entityStandingOn
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
@@ -14,6 +15,7 @@ import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.*
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -25,7 +27,7 @@ import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.scheduler.BukkitTask
 
-class NoteBlockSoundListener : Listener {
+class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSounds) : Listener {
     companion object {
         val breakerPlaySound = Object2ObjectOpenHashMap<Location, BukkitTask>()
     }
@@ -93,6 +95,7 @@ class NoteBlockSoundListener : Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
         val entity = entity as? LivingEntity ?: return
+        if (entity !is Player && customSounds.playersOnly) return
         if (!isLoaded(entity.location)) return
         if (event == GameEvent.HIT_GROUND && entity.fallDistance < 4.0) return
         val silent =

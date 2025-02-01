@@ -1,9 +1,7 @@
 package com.nexomc.nexo.mechanics.custom_block
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
@@ -24,6 +22,10 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
     val NOTEBLOCK = DefaultBlockType("NOTEBLOCK", NoteBlockMechanicFactory.instance())
     val STRINGBLOCK = DefaultBlockType("STRINGBLOCK", StringBlockMechanicFactory.instance())
     val CHORUSBLOCK = DefaultBlockType("CHORUSBLOCK", ChorusBlockFactory.instance())
+
+    data class CustomBlockSounds(val enabled: Boolean = true, val playersOnly: Boolean = false) {
+        constructor(section: ConfigurationSection) : this(section.getBoolean("enabled", true), section.getBoolean("players_only", false))
+    }
 
     companion object {
         private var instance: CustomBlockFactory? = null

@@ -226,7 +226,7 @@ class PackGenerator {
                 SoundRegistry.soundRegistry().namespace(existingRegistry.namespace()).sounds(mergedEvents).build().addTo(resourcePack)
             }
         }
-        JukeboxPlayableDatapack.createDatapack()
+        JukeboxPlayableDatapack().createDatapack()
     }
 
     private fun handleScoreboardTablist() {
@@ -346,7 +346,7 @@ class PackGenerator {
         packDownloader.downloadRequiredPack()
         packDownloader.downloadDefaultPack()
 
-        trimsCustomArmor = TrimsCustomArmor.takeIf { setting == CustomArmorType.TRIMS }
+        trimsCustomArmor = TrimsCustomArmor().takeIf { setting == CustomArmorType.TRIMS }
         componentCustomArmor = ComponentCustomArmor.takeIf { setting == CustomArmorType.COMPONENT }
         modelGenerator = ModelGenerator(resourcePack)
     }

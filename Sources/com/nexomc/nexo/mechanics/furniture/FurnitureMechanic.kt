@@ -2,7 +2,6 @@ package com.nexomc.nexo.mechanics.furniture
 
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
 import com.nexomc.nexo.items.ItemBuilder
@@ -41,6 +40,9 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import org.joml.Vector3d
+import org.joml.Vector3f
+import org.joml.plus
 
 class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
     Mechanic(mechanicFactory, section, { itemBuilder: ItemBuilder ->
@@ -206,7 +208,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
             val against = baseEntity.location.block.getRelative(blockFace.oppositeFace)
             if (against.isReplaceable || (against.blockData as? TrapDoor)?.let { !it.isOpen && it.half == Bisected.Half.TOP } == true) return@apply
 
-            val offset = baseEntity(against)?.transformation?.translation?.y?.toDouble() ?: let {
+            val offset = baseEntity(against)?.transformation?.translation?.y ?: let {
                 val bb = against.boundingBox
                 when (blockFace) {
                     BlockFace.UP -> bb.height - if (properties.isFixedTransform) 0.99 else 1.01
@@ -216,11 +218,11 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
                     if (bb.height !in 0.01..0.99 || blockFace.modY == 0) return@apply
                     if (baseEntity.location.clone().apply { y += it }.toVector() in bb) return@apply
                 }
-            }
+            }.toFloat()
 
             when {
-                properties.isFixedTransform -> translation.set(0.0, 0.0, offset)
-                else -> translation.set(0.0, offset, 0.0)
+                properties.isFixedTransform -> translation.set(properties.translation.add(0f, 0f, offset, Vector3f()))
+                else -> translation.set(properties.translation.add(0f, offset, 0f, Vector3f()))
             }
         }
     }
@@ -237,6 +239,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (hasSeats) FurnitureSeat.removeSeats(baseEntity)
         val packetManager = FurnitureFactory.instance()?.packetManager()
         packetManager?.removeInteractionHitboxPacket(baseEntity, this)
+        packetManager?.removeShulkerHitboxPacket(baseEntity, this)
         packetManager?.removeBarrierHitboxPacket(baseEntity, this)
         packetManager?.removeLightMechanicPacket(baseEntity, this)
 

@@ -28,7 +28,11 @@ noteblock:
   # Reimplements noteblock features while using custom blocks
   # Adds instrument option in noteblock mechanics
   reimplement_noteblock_features: false
-  custom_block_sounds: true
+  custom_block_sounds:
+    enabled: true
+    # If false, plays for animals stepping/falling on blocks aswell
+    # Enable this if you are experiencing lag with noteblock-sounds
+    players_only: false
   enabled: true
 stringblock:
     tool_types:
@@ -40,7 +44,11 @@ stringblock:
       - NETHERITE
     sapling_growth_check_delay: 4000
     disable_vanilla_strings: false
-    custom_block_sounds: true
+    custom_block_sounds:
+      enabled: true
+      # If false, plays for animals stepping/falling on blocks aswell
+      # Enable this if you are experiencing lag with stringblock-sounds
+      players_only: false
     enabled: true
 chorusblock:
   tool_types:

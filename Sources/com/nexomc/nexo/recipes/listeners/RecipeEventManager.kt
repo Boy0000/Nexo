@@ -6,6 +6,7 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
+import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -49,12 +50,14 @@ class RecipeEventManager(
     fun PrepareItemCraftEvent.onCrafted() {
         val (customRecipe, player) = CustomRecipe.fromRecipe(recipe) to (playerFromView(this) ?: return)
         if (!hasPermission(player, customRecipe)) inventory.result = null
-        if (inventory.result == null || recipe == null || customRecipe == null || customRecipe.isValidDyeRecipe || MiscMechanicFactory.instance() == null) return
-        if (inventory.matrix.any { MiscMechanicFactory.instance()?.getMechanic(it)?.isAllowedInVanillaRecipes == false }) {
+        if (inventory.result == null || recipe == null || inventory.matrix.none(NexoItems::exists)) return
+
+        val factory = MiscMechanicFactory.instance()
+        if (factory != null && inventory.matrix.any { factory.getMechanic(it)?.isAllowedInVanillaRecipes == false }) {
             inventory.result = null
-            return
         }
-        if (inventory.matrix.none(NexoItems::exists) || whitelistedCraftRecipes.any(customRecipe::equals)) return
+
+        if (customRecipe == null || customRecipe.isValidDyeRecipe || whitelistedCraftRecipes.none(customRecipe::equals)) return
 
         inventory.result = customRecipe.result
     }

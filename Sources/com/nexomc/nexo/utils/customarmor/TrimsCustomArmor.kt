@@ -28,7 +28,7 @@ import kotlin.collections.set
 import kotlin.io.resolve
 
 @Suppress("DEPRECATION")
-object TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos Custom Armor trims") {
+class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos Custom Armor trims") {
 
     private val palleteKey: Key = Key.key("trims/color_palettes/trim_palette")
     private val permutations = linkedMapOf<String, Key>()

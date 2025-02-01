@@ -4,7 +4,6 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
@@ -25,7 +24,6 @@ import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
-import org.bukkit.entity.Interaction
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
@@ -38,12 +36,7 @@ import org.bukkit.event.entity.EntityDismountEvent
 import org.bukkit.event.entity.EntityMountEvent
 import org.bukkit.event.entity.EntityTeleportEvent
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.event.player.PlayerKickEvent
-import org.bukkit.event.player.PlayerMoveEvent
-import org.bukkit.event.vehicle.VehicleEnterEvent
-import org.bukkit.event.vehicle.VehicleExitEvent
 import org.bukkit.inventory.EquipmentSlot
-import java.util.*
 
 class FurniturePacketListener : Listener {
     @EventHandler
@@ -55,6 +48,7 @@ class FurniturePacketListener : Listener {
         SchedulerUtils.runTaskLater(2L) {
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
             packetManager.sendInteractionEntityPacket(itemDisplay, mechanic, player)
+            packetManager.sendShulkerEntityPacket(itemDisplay, mechanic, player)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
         }
@@ -67,6 +61,7 @@ class FurniturePacketListener : Listener {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
         packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player)
+        packetManager.removeShulkerHitboxPacket(itemDisplay, mechanic, player)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player)
     }
@@ -106,6 +101,7 @@ class FurniturePacketListener : Listener {
 
             packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
+            packetManager.sendShulkerEntityPacket(baseEntity, mechanic)
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
         }

@@ -1,16 +1,14 @@
 package com.nexomc.nexo.api
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.*
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
-import com.nexomc.nexo.utils.ItemUtils.dyeColor
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
-import io.lumine.mythiccrucible.items.furniture.Furniture
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -18,7 +16,6 @@ import org.bukkit.entity.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.util.BoundingBox
-import java.util.*
 
 object NexoFurniture {
     /**
@@ -171,7 +168,7 @@ object NexoFurniture {
         return baseEntity?.let(::furnitureMechanic) ?: let {
             val centerLoc = toCenterBlockLocation(location)
             val boundingBox = BoundingBox.of(centerLoc, 0.5, 1.0, 0.5)
-            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it is ItemDisplay}
+            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it is ItemDisplay }
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .associateWith { furnitureMechanic(it) }
                 .entries.firstOrNull { it.value?.hitbox?.interactionBoundingBoxes(centerLoc, centerLoc.yaw)?.any { it.overlaps(boundingBox) } == true }
@@ -224,14 +221,16 @@ object NexoFurniture {
         furnitureBaseMap.removeIf { it.baseUuid == baseEntity.uniqueId }
         packetManager.removeLightMechanicPacket(baseEntity, mechanic)
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
+        packetManager.removeShulkerHitboxPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+        SchedulerUtils.runTaskLater(2L) {
             packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
+            packetManager.sendShulkerEntityPacket(baseEntity, mechanic)
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
-        }, 2L)
+        }
     }
 
     @JvmStatic

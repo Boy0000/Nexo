@@ -4,6 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSounds
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
 import com.nexomc.nexo.nms.NMSHandlers
@@ -26,7 +27,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     val toolTypes: List<String> = section.getStringList("tool_types")
     private var sapling = false
     private val saplingGrowthCheckDelay: Int = section.getInt("sapling_growth_check_delay")
-    private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
+    private val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
     val disableVanillaString: Boolean = section.getBoolean("disable_vanilla_strings", true)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<StringBlockMechanic>()
@@ -37,7 +38,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
 
         registerListeners(StringBlockMechanicListener(), SaplingListener())
         registerSaplingMechanic()
-        if (customSounds) registerListeners(StringBlockSoundListener())
+        if (customSounds.enabled) registerListeners(StringBlockSoundListener(customSounds))
 
         if (VersionUtil.isPaperServer) registerListeners(StringBlockMechanicPaperListener())
         if (!VersionUtil.isPaperServer || !NMSHandlers.handler().tripwireUpdatesDisabled())

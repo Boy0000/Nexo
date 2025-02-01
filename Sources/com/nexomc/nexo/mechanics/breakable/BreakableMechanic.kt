@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.breakable
 
+import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.utils.breaker.ToolTypeSpeedModifier
 import com.nexomc.nexo.utils.drops.Drop
@@ -25,7 +26,7 @@ class BreakableMechanic(section: ConfigurationSection) {
         val dropSection = section.getConfigurationSection("drop")
         drop = when {
             dropSection != null -> Drop.createDrop(FurnitureFactory.instance()!!.toolTypes, dropSection, itemId)
-            else -> Drop(ArrayList<Loot>(), false, false, itemId)
+            else -> Drop(mutableListOf(Loot(NexoItems.itemFromId(itemId)?.build(), 1.0)), false, false, itemId)
         }
     }
 
