@@ -67,14 +67,12 @@ object ComponentCustomArmor {
     private fun parseNexoArmorItems(armorPrefixes: Set<String>) {
         NexoItems.entries().forEach { (itemId, itemBuilder) ->
             val armorPrefix = itemId.substringBeforeLast("_").takeIf(armorPrefixes::contains) ?: return@forEach
-            val slot = slotFromItem(itemId)
+            val slot = slotFromItem(itemId) ?: return@forEach
 
-            if (slot == null) {
-                if (!Settings.CUSTOM_ARMOR_ASSIGN.toBool()) {
-                    Logs.logWarn("Item $itemId does not have an equippable-component configured properly.")
-                    Logs.logWarn("Nexo has been configured to use Components for custom-armor due to ${Settings.CUSTOM_ARMOR_TYPE.path} setting")
-                    Logs.logWarn("Custom Armor will not work unless an equippable-component is set.", true)
-                }
+            if (!Settings.CUSTOM_ARMOR_ASSIGN.toBool()) {
+                Logs.logWarn("Item $itemId does not have an equippable-component configured properly.")
+                Logs.logWarn("Nexo has been configured to use Components for custom-armor due to ${Settings.CUSTOM_ARMOR_TYPE.path} setting")
+                Logs.logWarn("Custom Armor will not work unless an equippable-component is set.", true)
                 return@forEach
             }
 

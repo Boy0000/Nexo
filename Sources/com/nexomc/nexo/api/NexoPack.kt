@@ -2,11 +2,15 @@ package com.nexomc.nexo.api
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.pack.PackGenerator
+import com.nexomc.nexo.utils.plusFast
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.lang.Language
+import team.unnamed.creative.metadata.overlays.OverlayEntry
+import team.unnamed.creative.metadata.overlays.OverlaysMeta
+import team.unnamed.creative.metadata.sodium.SodiumMeta
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.sound.SoundRegistry
 import java.io.File
@@ -43,8 +47,8 @@ object NexoPack {
 
         (importedPack.packMeta() ?: resourcePack.packMeta())?.apply(resourcePack::packMeta)
         (importedPack.icon() ?: resourcePack.icon())?.apply(resourcePack::icon)
-        (importedPack.overlaysMeta() ?: resourcePack.overlaysMeta())?.apply(resourcePack::overlaysMeta)
-        (importedPack.sodiumMeta() ?: resourcePack.sodiumMeta())?.apply(resourcePack::sodiumMeta)
+        resourcePack.overlaysMeta(OverlaysMeta.of(listOf<OverlayEntry>().plus(resourcePack.overlaysMeta()?.entries()).plus(importedPack.overlaysMeta()?.entries()).filterIsInstance<OverlayEntry>()))
+        resourcePack.sodiumMeta(SodiumMeta.of(listOf<String>().plus(resourcePack.sodiumMeta()?.ignoredShaders()).plus(importedPack.sodiumMeta()?.ignoredShaders()).filterIsInstance<String>()))
 
         importedPack.models().forEach { model: Model ->
             model.toBuilder().apply {
