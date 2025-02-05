@@ -3,6 +3,7 @@ package com.nexomc.nexo.mechanics.furniture
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
+import com.nexomc.nexo.utils.VectorUtils.toLocation
 import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -15,6 +16,7 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
+import org.joml.Vector3f
 import java.util.*
 
 interface IFurniturePacketManager {
@@ -56,6 +58,9 @@ interface IFurniturePacketManager {
 
     fun findTargetFurnitureHitbox(player: Player): ItemDisplay? {
         return null
+    }
+
+    fun handleFurnitureHitboxOnChunkForget(packet: Any, player: Player) {
     }
 
     companion object {
