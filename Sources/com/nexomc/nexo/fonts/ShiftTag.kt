@@ -1,5 +1,6 @@
 package com.nexomc.nexo.fonts
 
+import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.substringBetween
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -13,7 +14,7 @@ import java.util.regex.Pattern
 object ShiftTag {
     private const val SHIFT = "shift"
     private const val SHIFT_SHORT = "s"
-    val FONT = Key.key("nexo:shift")
+    val FONT = Key.key(Settings.SHIFT_FONT.toString("nexo:shift"))
     val PATTERN = Pattern.compile("(<shift:(-?\\d+)>)")
     val ESCAPED_PATTERN = Pattern.compile("(\\\\<shift:(-?\\d+)>)")
 
