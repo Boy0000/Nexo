@@ -199,13 +199,13 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                     JsonBuilder.jsonObject
                         .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
                         .plus("when", "rocket")
-                } ?: JsonBuilder.jsonObject
+                }
 
                 val chargedObject = overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
                     JsonBuilder.jsonObject
                         .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
                         .plus("when", "arrow")
-                } ?: JsonBuilder.jsonObject
+                }
 
                 JsonBuilder.jsonObject
                     .plus("threshold", cmd ?: return@mapNotNull null)
@@ -219,7 +219,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                                     .plus("type", "minecraft:select")
                                     .plus("property", "minecraft:charge_type")
                                     .plus("fallback", fallbackObject)
-                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject))
+                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject).filterNotNull().toJsonArray())
                             )
                             .plus("on_true",
                                 JsonBuilder.jsonObject

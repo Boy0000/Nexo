@@ -31,7 +31,7 @@ object JsonBuilder {
             is JsonElement -> add(string, any)
         }
     }
-    fun List<JsonObject>.toJsonArray(): JsonArray = JsonArray().apply {
+    fun List<JsonElement>.toJsonArray(): JsonArray = JsonArray().apply {
         this@toJsonArray.forEach {
             add(it)
         }

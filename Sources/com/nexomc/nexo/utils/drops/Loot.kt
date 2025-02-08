@@ -64,7 +64,7 @@ class Loot(
 
         if (itemStack == null) itemStack = NexoItems.itemFromId(sourceID)?.build()
 
-        return ItemUpdater.updateItem(itemStack!!)
+        return itemStack?.let { ItemUpdater.updateItem(it) } ?: ItemStack(Material.AIR)
     }
 
     fun itemStack(itemStack: ItemStack?): Loot {
