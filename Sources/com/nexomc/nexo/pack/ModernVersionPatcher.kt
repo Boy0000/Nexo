@@ -55,6 +55,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                         when (model) {
                             "crossbow.json" -> handleCrossbowEntries(existingItemModel, baseItemModel, overrides)
                             "bow.json" -> handleBowEntries(existingItemModel, baseItemModel, overrides)
+                            "player_head.json" -> handlePlayerEntries(existingItemModel, baseItemModel, overrides)
                             else -> {
                                 if ("on_false" in keys) handleOnBoolean(false, baseItemModel, overrides)
                                 if ("on_true" in keys) handleOnBoolean(true, baseItemModel, overrides)
@@ -114,17 +115,16 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
     ) {
         JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
             .plus("property", "minecraft:custom_model_data")
+            .plus("fallback", baseItemModel)
             .plus(
-                "entries", JsonBuilder.jsonArray
-                    .plus(JsonBuilder.jsonObject.plus("model", baseItemModel).plus("threshold", 0f))
-                    .plus(overrides.mapNotNull {
-                        val cmd = it.predicate().customModelData ?: return@mapNotNull null
-                        JsonBuilder.jsonObject.plus("threshold", cmd).plus(
-                            "model", JsonBuilder.jsonObject
-                                .plus("model", it.model().asString())
-                                .plus("type", "minecraft:model")
-                        )
-                    }.toJsonArray())
+                "entries", JsonBuilder.jsonArray.plus(overrides.mapNotNull {
+                    val cmd = it.predicate().customModelData ?: return@mapNotNull null
+                    JsonBuilder.jsonObject.plus("threshold", cmd).plus(
+                        "model", JsonBuilder.jsonObject
+                            .plus("model", it.model().asString())
+                            .plus("type", "minecraft:model")
+                    )
+                }.toJsonArray())
             ).let { existingItemModel.plus("model", it) }
     }
 
@@ -239,6 +239,25 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             .also { existingItemModel.plus("model", it) }
     }
 
+    private fun handlePlayerEntries(
+        existingItemModel: JsonObject,
+        baseItemModel: JsonObject,
+        overrides: List<ItemOverride>,
+    ) {
+        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
+            .plus("property", "minecraft:custom_model_data")
+            .plus("fallback", baseItemModel)
+            .plus(
+                "entries", JsonBuilder.jsonArray
+                    .plus(overrides.mapNotNull { override ->
+                        val entry = baseItemModel.deepCopy().also {
+                            it.addProperty("base", override.model().asString())
+                        }
+                        val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                        JsonBuilder.jsonObject.plus("threshold", cmd).plus("model", entry)
+                    }.toJsonArray())
+            ).let { existingItemModel.plus("model", it) }
+    }
 
     private fun handleBowEntries(
         existingItemModel: JsonObject,

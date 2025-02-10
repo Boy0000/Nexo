@@ -18,26 +18,22 @@ import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 
 object RecipesManager {
+    private val recipeFileNames = arrayOf("furnace", "shaped", "shapeless", "blasting", "campfire", "smoking", "stonecutting", "brewing")
     fun load(plugin: JavaPlugin) {
         if (Settings.RESET_RECIPES.toBool()) {
-            Bukkit.recipeIterator().forEachRemaining { (it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" }?.also(Bukkit::removeRecipe) }
+            Bukkit.recipeIterator().forEachRemaining recipes@{
+                Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes)
+            }
             if (VersionUtil.isPaperServer) Bukkit.getServer().potionBrewer.resetPotionMixes()
         }
 
         Bukkit.getPluginManager().registerEvents(RecipeBuilderEvents(), plugin)
         val recipesFolder = File(NexoPlugin.instance().dataFolder, "recipes").apply(File::mkdirs)
         if (!recipesFolder.exists()) {
-            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool()) NexoPlugin.instance().resourceManager()
-                .extractConfigsInFolder("recipes", "yml")
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                NexoPlugin.instance().resourceManager().extractConfigsInFolder("recipes", "yml")
             else runCatching {
-                File(recipesFolder, "furnace.yml").createNewFile()
-                File(recipesFolder, "shaped.yml").createNewFile()
-                File(recipesFolder, "shapeless.yml").createNewFile()
-                File(recipesFolder, "blasting.yml").createNewFile()
-                File(recipesFolder, "campfire.yml").createNewFile()
-                File(recipesFolder, "smoking.yml").createNewFile()
-                File(recipesFolder, "stonecutting.yml").createNewFile()
-                if (VersionUtil.isPaperServer) File(recipesFolder, "brewing.yml").createNewFile()
+                recipeFileNames.forEach { File(recipesFolder, "$it.yml").createNewFile() }
             }.onFailure {
                 Logs.logError("Error while creating recipes files: ${it.message}")
             }
@@ -48,8 +44,8 @@ object RecipesManager {
 
     @JvmStatic
     fun reload() {
-        if (Settings.RESET_RECIPES.toBool()) {
-            Bukkit.recipeIterator().forEachRemaining { (it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" }?.also(Bukkit::removeRecipe) }
+        if (Settings.RESET_RECIPES.toBool()) Bukkit.recipeIterator().forEachRemaining recipes@{
+            Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes)
         }
 
         RecipeEventManager.instance().resetRecipes()

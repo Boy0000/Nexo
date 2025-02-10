@@ -76,7 +76,7 @@ class BreakableMechanic(section: ConfigurationSection) {
         ).map(AttributeInstance::getBaseValue).orElse(1.0).toFloat()
         multiplier *= miningSpeedModifier
 
-        if (player.isUnderWater && (player.equipment.helmet)?.containsEnchantment(EnchantmentWrapper.AQUA_AFFINITY) == true)
+        if (player.isUnderWater && player.equipment?.helmet?.containsEnchantment(EnchantmentWrapper.AQUA_AFFINITY) == true)
             multiplier /= 5f
 
         if (!player.isOnGround) multiplier /= 5f

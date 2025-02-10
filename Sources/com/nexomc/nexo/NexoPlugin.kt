@@ -90,12 +90,12 @@ class NexoPlugin : JavaPlugin() {
 
         NexoMetrics.initializeMetrics()
 
-        Bukkit.getScheduler().runTask(this, Runnable {
+        SchedulerUtils.runTask {
             MechanicsManager.registerNativeMechanics()
             NexoItems.loadItems()
             RecipesManager.load(this)
             packGenerator.generatePack()
-        })
+        }
 
         CompatibilitiesManager.enableCompatibilies()
         if (VersionUtil.isCompiled) NoticeUtils.compileNotice()

@@ -118,7 +118,9 @@ class PackGenerator {
                 addSoundFile()
                 parseLanguageFiles()
 
-                trimsCustomArmor?.generateTrimAssets(resourcePack)
+                runCatching { SchedulerUtils.callSyncMethod {
+                    trimsCustomArmor?.generateTrimAssets(resourcePack)
+                }.get(4L, TimeUnit.SECONDS) }.printOnFailure()
                 componentCustomArmor?.generatePackFiles(resourcePack)
 
                 handleScoreboardTablist()

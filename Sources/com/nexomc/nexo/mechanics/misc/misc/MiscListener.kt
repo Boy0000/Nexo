@@ -101,8 +101,7 @@ class MiscListener : Listener {
     fun EntityTargetLivingEntityEvent.onPiglinAggro() {
         if (entity !is Piglin) return
         val player = target as? Player ?: return
-        val equipment = player.equipment
-
+        val equipment = player.equipment ?: return
 
         if (shouldPreventPiglinAggro(equipment.itemInMainHand)) isCancelled = true
         if (shouldPreventPiglinAggro(equipment.itemInOffHand)) isCancelled = true

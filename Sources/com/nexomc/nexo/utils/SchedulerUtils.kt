@@ -3,6 +3,7 @@ package com.nexomc.nexo.utils
 import com.nexomc.nexo.NexoPlugin
 import org.bukkit.Bukkit
 import org.bukkit.scheduler.BukkitTask
+import java.util.concurrent.Future
 
 object SchedulerUtils {
 
@@ -18,8 +19,8 @@ object SchedulerUtils {
         Bukkit.getScheduler().scheduleSyncDelayedTask(NexoPlugin.instance(), task, delay)
     }
 
-    fun callSyncMethod(task: () -> Unit) {
-        Bukkit.getScheduler().callSyncMethod(NexoPlugin.instance(), task)
+    fun callSyncMethod(task: () -> Unit): Future<*> {
+        return Bukkit.getScheduler().callSyncMethod(NexoPlugin.instance(), task)
     }
 
     fun runTaskAsync(task: () -> Unit) {

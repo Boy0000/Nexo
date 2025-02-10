@@ -3,6 +3,7 @@ package com.nexomc.nexo.pack
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.NexoMeta
+import com.nexomc.nexo.utils.mapFastSet
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import team.unnamed.creative.ResourcePack
@@ -15,8 +16,8 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
 
     fun generateBaseItemModels() {
         // Generate the baseItem model and add all needed overrides
-        NexoItems.items().map(ItemBuilder::type).toSet().forEach { baseMaterial ->
-            val baseModelKey = Key.key("item/" + baseMaterial.toString().lowercase())
+        NexoItems.items().mapFastSet(ItemBuilder::type).forEach { baseMaterial ->
+            val baseModelKey = Key.key("item/${baseMaterial.toString().lowercase()}")
             val model = resourcePack.model(baseModelKey) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey) ?: return@forEach
 
             model.toBuilder().also { builder ->
@@ -33,7 +34,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
             if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
             val model = generateModelBuilder(itemBuilder.type, nexoMeta)
 
-            resourcePack.model(model.key())?.let {
+            resourcePack.model(model.key())?.also {
                 model.toBuilder().also { builder ->
                     it.overrides().forEach { override ->
                         builder.addOverride(override!!)
