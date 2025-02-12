@@ -181,11 +181,11 @@ class ItemParser(private val section: ConfigurationSection) {
         if (!nexoMeta.containsPackInfo) return
         val customModelData = when {
             section.name in CUSTOM_MODEL_DATAS_BY_ID -> CUSTOM_MODEL_DATAS_BY_ID[section.name]?.customModelData
-            !item.hasItemModel() && !item.hasCustomModelDataComponent() -> {
-                CustomModelData.generateId(nexoMeta.modelKey!!, type).also {
+            !item.hasItemModel() && !item.hasCustomModelDataComponent() -> nexoMeta.model?.let {
+                CustomModelData.generateId(it, type).also { cmd ->
                     isConfigUpdated = true
                     if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
-                        section.getConfigurationSection("Pack")?.set("custom_model_data", it)
+                        section.getConfigurationSection("Pack")?.set("custom_model_data", cmd)
                 }
             }
             else -> null

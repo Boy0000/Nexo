@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack
 interface NMSHandler {
 
     val resourcePackListener: Listener?
+    val pluginConverter: IPluginConverter
 
     fun furniturePacketManager(): IFurniturePacketManager = EmptyFurniturePacketManager()
 

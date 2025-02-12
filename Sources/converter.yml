@@ -10,3 +10,12 @@ oraxenConverter:
   convertFurnitureOnLoad: true
   # Do not change unless you want to re-import Oraxen entirely again
   hasBeenConverted: false
+
+itemsadderConverter:
+  convertItems: true
+  convertResourcePack: true
+  convertFurnitureOnLoad: true
+  hasBeenConverted: false
+  # Used by Nexo to track modified item-ids
+  # Mainly used for CustomArmor items that do not follow Nexo's hardcoded scheme
+  changedItemIds: {}

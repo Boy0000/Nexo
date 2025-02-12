@@ -11,10 +11,9 @@ class CustomModelData(val type: Material, nexoMeta: NexoMeta, val customModelDat
     init {
         DATAS.compute(type) { _: Material, datas: MutableMap<Key, Int>? ->
             (datas ?: mutableMapOf()).apply {
-                if (nexoMeta.modelKey == null) {
-                    Logs.logWarn("Failed to assign customModelData due to invalid model")
-                }
-                put(nexoMeta.modelKey ?: return@apply, customModelData)
+                nexoMeta.model?.also {
+                    put(it, customModelData)
+                } ?: Logs.logWarn("Failed to assign customModelData due to invalid model")
             }
         }
     }

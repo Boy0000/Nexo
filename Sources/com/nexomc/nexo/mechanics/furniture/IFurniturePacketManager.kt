@@ -60,7 +60,8 @@ interface IFurniturePacketManager {
         return null
     }
 
-    fun handleFurnitureHitboxOnChunkForget(packet: Any, player: Player) {
+    fun handleFurnitureHitboxOnChunkForget(packet: Any, player: Player): Unit? {
+        return null
     }
 
     companion object {

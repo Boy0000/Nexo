@@ -9,6 +9,7 @@ import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
+import com.nexomc.nexo.utils.filterFastSet
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -24,7 +25,7 @@ object NexoFurniture {
      * @return a Set of all NexoItem IDs that have a FurnitureMechanic
      */
     @JvmStatic
-    fun furnitureIDs() = NexoItems.itemNames().filter(::isFurniture).toSet()
+    fun furnitureIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isFurniture)
     /**
      * Check if a location contains a Furniture
      *

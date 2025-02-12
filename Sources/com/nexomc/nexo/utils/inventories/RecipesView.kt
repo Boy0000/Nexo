@@ -33,13 +33,13 @@ class RecipesView {
         }
 
         // Close RecipeShowcase inventory button
-        val exitBuilder = NexoItems.optionalItemFromId("exit_icon").orElse(ItemBuilder(Material.BARRIER))
+        val exitBuilder = NexoItems.itemFromId("exit_icon") ?: ItemBuilder(Material.BARRIER)
         val exitItem = exitBuilder.displayName(Message.EXIT_MENU.toComponent()).build()
         pane.addItem(GuiItem(exitItem) { event: InventoryClickEvent -> event.whoClicked.closeInventory() }, 4, 5)
 
         // Previous Page button
         if (page > 0) {
-            val builder = NexoItems.optionalItemFromId("arrow_previous_icon").orElse(ItemBuilder(Material.ARROW))
+            val builder = NexoItems.itemFromId("arrow_previous_icon") ?: ItemBuilder(Material.ARROW)
             val guiItem = builder.setAmount(page).displayName(Component.text("Open page $page", NamedTextColor.YELLOW)).build()
             pane.addItem(
                 GuiItem(guiItem) { e: InventoryClickEvent ->
@@ -50,7 +50,7 @@ class RecipesView {
 
         // Next page button
         if (!lastPage) {
-            val builder = NexoItems.optionalItemFromId("arrow_next_icon").orElse(ItemBuilder(Material.ARROW))
+            val builder = NexoItems.itemFromId("arrow_next_icon") ?: ItemBuilder(Material.ARROW)
             val guiItem = builder.setAmount(page + 2).displayName(Component.text("Open page ${(page + 2)}", NamedTextColor.YELLOW)).build()
             pane.addItem(
                 GuiItem(guiItem) { e ->

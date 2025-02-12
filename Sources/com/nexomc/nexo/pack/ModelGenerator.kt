@@ -32,7 +32,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         NexoItems.items().forEach { itemBuilder ->
             val nexoMeta = itemBuilder.nexoMeta ?: return@forEach
             if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
-            val model = generateModelBuilder(itemBuilder.type, nexoMeta)
+            val model = generateModelBuilder(itemBuilder.type, nexoMeta) ?: return@forEach
 
             resourcePack.model(model.key())?.also {
                 model.toBuilder().also { builder ->
@@ -44,7 +44,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         }
     }
 
-    private fun generateModelBuilder(material: Material, nexoMeta: NexoMeta): Model {
+    private fun generateModelBuilder(material: Material, nexoMeta: NexoMeta): Model? {
         val parent = nexoMeta.parentModel.value()
         val textures = nexoMeta.modelTextures?.toBuilder() ?: ModelTextures.builder()
         val layers = nexoMeta.modelTextures?.layers() ?: listOf()
@@ -94,7 +94,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         }
 
         return Model.model()
-            .key(nexoMeta.modelKey!!)
+            .key(nexoMeta.model ?: return null)
             .display(DisplayProperties.fromMaterial(material))
             .parent(nexoMeta.parentModel)
             .textures(textures.build())

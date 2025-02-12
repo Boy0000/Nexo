@@ -26,6 +26,7 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.filterFastSet
 import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -44,7 +45,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
      */
     @JvmStatic
-    fun blockIDs() = NexoItems.itemNames().filter(::isCustomBlock).toSet()
+    fun blockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isCustomBlock)
 
     /**
      * Get all NexoItem ID's that have a NoteBlockMechanic
@@ -52,7 +53,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a NoteBlockMechanic
      */
     @JvmStatic
-    fun noteBlockIDs() = NexoItems.itemNames().filter(::isNexoNoteBlock).toSet()
+    fun noteBlockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isNexoNoteBlock)
 
     /**
      * Get all NexoItem ID's that have a StringBlockMechanic
@@ -60,7 +61,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a StringBlockMechanic
      */
     @JvmStatic
-    fun stringBlockIDs() = NexoItems.itemNames().filter(::isNexoStringBlock).toSet()
+    fun stringBlockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isNexoStringBlock)
 
     /**
      * Get all NexoItem ID's that have a ChorusBlockMechanic
@@ -68,7 +69,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a ChorusBlockMechanic
      */
     @JvmStatic
-    fun chorusBlockIDs() = NexoItems.itemNames().filter(::isNexoChorusBlock).toSet()
+    fun chorusBlockIDs(): Set<String>  = NexoItems.itemNames().filterFastSet(::isNexoChorusBlock)
 
     /**
      * Check if a block is an instance of an NexoBlock

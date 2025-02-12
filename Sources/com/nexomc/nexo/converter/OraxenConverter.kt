@@ -220,7 +220,7 @@ object OraxenConverter {
                     itemNode.node("material").takeIf { "_" in it.getString("") }?.let { it.set("CHAINMAIL_${it.string?.substringAfter("_")}") }
                 }
 
-                if (VersionUtil.atleast("1.20.5")) mechanicsNode.node("food").renameNode(componentNode.node("food"))?.letVirtual { foodNode ->
+                if (VersionUtil.atleast("1.20.5")) mechanicsNode.node("food").renameNode(componentNode.node("food"))?.onExists { foodNode ->
                     foodNode.node("hunger").renameNode("nutrition")
                     val effectProbability = foodNode.removeChildNode("effect_probability").getDouble(1.0)
                     //TODO Convert to Consumable-Component for 1.21.2+ servers
@@ -239,7 +239,7 @@ object OraxenConverter {
                     componentNode.node("jukebox_playable", "show_in_tooltip").set(true)
                 }
 
-                mechanicsNode.node("noteblock")?.alsoVirtual { noteNode ->
+                mechanicsNode.node("noteblock")?.ifExists { noteNode ->
                     noteNode.node("type").set("NOTEBLOCK")
                     noteNode.node("drop").removeChildNode("best_tools").getList(TypeToken.get(String::class.java))?.firstOrNull()?.let {
                         noteNode.node("drop", "best_tool").set(it)
@@ -257,7 +257,7 @@ object OraxenConverter {
                     }
                 }?.renameNode("custom_block")
 
-                mechanicsNode.node("stringblock")?.alsoVirtual { stringNode ->
+                mechanicsNode.node("stringblock")?.ifExists { stringNode ->
                     stringNode.node("type").set("STRINGBLOCK")
                     stringNode.node("drop").removeChildNode("best_tools").getList(TypeToken.get(String::class.java))?.firstOrNull()?.let {
                         stringNode.node("drop", "best_tool").set(it)
@@ -268,7 +268,7 @@ object OraxenConverter {
                         }
                     }
 
-                    stringNode.node("sapling").letVirtual { sapling ->
+                    stringNode.node("sapling").onExists { sapling ->
                         sapling.node("canGrowNaturally").renameNode("grows_naturally")
                         sapling.node("naturalGrowthTime").renameNode("natural_growth_time")
                         sapling.node("canGrowFromBoneMeal").renameNode("grows_from_bonemeal")
@@ -287,7 +287,7 @@ object OraxenConverter {
                     stringNode.node("custom_variation").set(modernVariation)
                 }?.renameNode("custom_block")
 
-                mechanicsNode.node("furniture").alsoVirtual { furnitureNode ->
+                mechanicsNode.node("furniture").ifExists { furnitureNode ->
                     furnitureNode.removeChildNode("type").string?.takeUnless { it == "DISPLAY_ENTITY" }?.also {
                         Logs.logWarn("    Furniture <gold>$itemId</gold> is using ITEM_FRAME type furniture")
                         Logs.logWarn("    This might cause issues due to Nexo only supporting DISPLAY_ENTITY")
@@ -302,7 +302,7 @@ object OraxenConverter {
                         }
                     }
 
-                    furnitureNode.node("display_entity_properties").renameNode("properties")?.letVirtual { propertiesNode ->
+                    furnitureNode.node("display_entity_properties").renameNode("properties")?.onExists { propertiesNode ->
                         propertiesNode.node("displayWidth").renameNode("display_width")
                         propertiesNode.node("displayHeight").renameNode("display_height")
                         propertiesNode.node("scale").takeIf(ConfigurationNode::virtual)?.let { scaleNode ->
@@ -313,7 +313,7 @@ object OraxenConverter {
                     }
 
                     furnitureNode.node("farmblock_required").renameNode("farmland_required")
-                    furnitureNode.node("evolution").letVirtual { evoNode ->
+                    furnitureNode.node("evolution").onExists { evoNode ->
                         evoNode.node("rain_boost", "boost_tick").renameNode(evoNode.node("rain_boost_tick"))
                         evoNode.node("bone_meal", "chance").renameNode(evoNode.node("bone_meal_chance"))
                     }
@@ -326,7 +326,7 @@ object OraxenConverter {
 
                     val barriers = mutableSetOf<String>()
                     if (furnitureNode.removeChildNode("barrier").boolean) barriers += "0,0,0"
-                    furnitureNode.removeChildNode("barriers").letVirtual { barriersNode ->
+                    furnitureNode.removeChildNode("barriers").onExists { barriersNode ->
                         barriersNode.childrenList().forEach barriers@{ barrierNode ->
                             barriers += when {
                                 barrierNode.string == "origin" -> "0,0,0"
@@ -338,7 +338,7 @@ object OraxenConverter {
                     if (barriers.isNotEmpty()) furnitureNode.node("hitbox", "barriers").set(barriers)
 
                     val templateHasHitbox = itemNode.node("template").string?.let { itemNode.parent()?.node(it) }
-                        ?.node("Mechanics", "furniture", "hitbox")?.letVirtual {
+                        ?.node("Mechanics", "furniture", "hitbox")?.onExists {
                             it.node("barriers").childrenList().isNullOrEmpty() &&
                                     it.node("interactions").childrenList().isNullOrEmpty()
                         }?.not() ?: false
@@ -349,11 +349,11 @@ object OraxenConverter {
                         }?.set(listOf("0,0,0 $width,$height"))
                     }
 
-                    furnitureNode.removeChildNode("light")?.takeUnless { barriers.isEmpty() || it.int == 0 }?.alsoVirtual { lightNode ->
+                    furnitureNode.removeChildNode("light")?.takeUnless { barriers.isEmpty() || it.int == 0 }?.ifExists { lightNode ->
                         furnitureNode.node("lights").setList(String::class.java, barriers.map { it.plus(" ${lightNode.raw()}") })
                     }
 
-                    furnitureNode.removeChildNode("seat").node("height")?.takeUnless { barriers.isEmpty() }?.alsoVirtual { seatNode ->
+                    furnitureNode.removeChildNode("seat").node("height")?.takeUnless { barriers.isEmpty() }?.ifExists { seatNode ->
                         val seatOffset = (seatNode.raw().toString().toDoubleOrNull() ?: 0.0).minus(0.6)
                         val seats = barriers.map { FurnitureSeat(it).apply { offset.y -= seatOffset }.offset.toString() }
                         furnitureNode.node("seats").setList(String::class.java, seats)

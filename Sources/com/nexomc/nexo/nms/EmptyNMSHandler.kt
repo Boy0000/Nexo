@@ -11,7 +11,10 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
-class EmptyNMSHandler(override val resourcePackListener: Listener? = null) : NMSHandler {
+class EmptyNMSHandler(
+    override val resourcePackListener: Listener? = null,
+  override val pluginConverter: IPluginConverter = IPluginConverter.EmptyPluginConverter()
+) : NMSHandler {
     override fun packetHandler(): IPacketHandler {
         return EmptyPacketHandler()
     }

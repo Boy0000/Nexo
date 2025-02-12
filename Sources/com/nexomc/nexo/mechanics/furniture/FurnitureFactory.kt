@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.converter.ItemsAdderConverterListener
 import com.nexomc.nexo.converter.OraxenConverterListener
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
@@ -47,6 +48,8 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
         if (NexoPlugin.instance().converter().oraxenConverter.convertFurnitureOnLoad)
             registerListeners(OraxenConverterListener())
+        if (NexoPlugin.instance().converter().itemsadderConverter.convertFurnitureOnLoad)
+            registerListeners(ItemsAdderConverterListener())
 
         if (customSounds) registerListeners(FurnitureSoundListener())
     }

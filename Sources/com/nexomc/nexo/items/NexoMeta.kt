@@ -2,17 +2,16 @@ package com.nexomc.nexo.items
 
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
-import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.inventory.EquipmentSlot
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
 
 data class NexoMeta(
     var customModelData: Int? = null,
-    var modelKey: Key? = null,
+    var model: Key? = null,
     var blockingModel: Key? = null,
     var pullingModels: List<Key> = listOf(),
     var chargedModel: Key? = null,
@@ -32,8 +31,6 @@ data class NexoMeta(
 ) {
 
     data class CustomArmorTextures(val layer1: Key, val layer2: Key) {
-        var armorPrefix: String = ""
-
         constructor(section: ConfigurationSection) : this(KeyUtils.parseKey(section.getString("layer_1", "")!!), KeyUtils.parseKey(section.getString("layer_2", "")!!))
     }
 
@@ -41,26 +38,18 @@ data class NexoMeta(
 
     fun packInfo(packSection: ConfigurationSection) {
         this.containsPackInfo = true
-        this.modelKey = readModelName(packSection, "model")
-        this.blockingModel = readModelName(packSection, "blocking_model")
-        this.castModel = readModelName(packSection, "cast_model")
-        this.chargedModel = readModelName(packSection, "charged_model")
-        this.fireworkModel = readModelName(packSection, "firework_model")
-        this.pullingModels = packSection.getStringList("pulling_models").map(KeyUtils::dropExtension)
-        this.damagedModels = packSection.getStringList("damaged_models").map(KeyUtils::dropExtension)
+        this.model = parseModelKey(packSection, "model")
+        this.blockingModel = parseModelKey(packSection, "blocking_model")
+        this.castModel = parseModelKey(packSection, "cast_model")
+        this.chargedModel = parseModelKey(packSection, "charged_model")
+        this.fireworkModel = parseModelKey(packSection, "firework_model")
+        this.pullingModels = (packSection.getList("pulling_models").safeCast<List<String>>() ?: packSection.getStringList("pulling_textures")).map(KeyUtils::dropExtension)
+        this.damagedModels = (packSection.getList("damaged_models").safeCast<List<String>>() ?: packSection.getStringList("damaged_textures")).map(KeyUtils::dropExtension)
 
-        // By adding the textures to pullingModels aswell,
-        // we can use the same code for both pullingModels
-        // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels.isEmpty()) pullingModels =
-            packSection.getStringList("pulling_textures").map(KeyUtils::dropExtension)
-        if (damagedModels.isEmpty()) damagedModels =
-            packSection.getStringList("damaged_textures").map(KeyUtils::dropExtension)
-
-        if (chargedModel == null) chargedModel = dropExtension(packSection.getString("charged_texture", "")!!)
-        if (fireworkModel == null) fireworkModel = dropExtension(packSection.getString("firework_texture", "")!!)
-        if (castModel == null) castModel = dropExtension(packSection.getString("cast_texture", "")!!)
-        if (blockingModel == null) blockingModel = dropExtension(packSection.getString("blocking_texture", "")!!)
+        chargedModel = chargedModel ?: dropExtension(packSection.getString("charged_texture", "")!!)
+        fireworkModel = fireworkModel ?: dropExtension(packSection.getString("firework_texture", "")!!)
+        castModel = castModel ?: dropExtension(packSection.getString("cast_texture", "")!!)
+        blockingModel = blockingModel ?: dropExtension(packSection.getString("blocking_texture", "")!!)
 
         val textureSection = packSection.getConfigurationSection("textures")
         when {
@@ -104,12 +93,12 @@ data class NexoMeta(
         }
 
         this.parentModel = Key.key(packSection.getString("parent_model", "item/generated")!!)
-        this.generateModel = packSection.getString("model") == null
+        this.generateModel = packSection.getString("model") == null && (textureLayers.isNotEmpty() || textureVariables.isNotEmpty())
 
         this.customModelData = packSection.getInt("custom_model_data").takeUnless { it == 0 }
     }
 
-    private fun readModelName(configSection: ConfigurationSection, configString: String): Key? {
+    private fun parseModelKey(configSection: ConfigurationSection, configString: String): Key? {
         val modelName = configSection.getString(configString)
         val parent = configSection.parent!!.name.lowercase().replace(" ", "_")
 
@@ -120,6 +109,8 @@ data class NexoMeta(
             else -> null
         }
     }
+
+    //fun model(): Key = runCatching { modelKey }.getOrDefault(KeyUtils.MALFORMED_KEY_PLACEHOLDER)
 
     fun hasBlockingModel() = blockingModel?.value()?.isNotEmpty() == true
 

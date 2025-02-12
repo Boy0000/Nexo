@@ -22,12 +22,12 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
     fun generateBaseModelOverrides(material: Material): List<ItemOverride> {
         val itemBuilders = LinkedHashSet(NexoItems.items().filterFast { it.type == material })
         val overrides = DefaultResourcePackExtractor.vanillaResourcePack
-            .model(Key.key("item/${material.toString().lowercase()}"))?.overrides()?.also(::ObjectArrayList) ?: ObjectArrayList()
+            .model(Key.key("item/${material.toString().lowercase()}"))?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
 
         itemBuilders.forEach { itemBuilder ->
             val nexoMeta = itemBuilder.nexoMeta?.takeIf { it.containsPackInfo } ?: return@forEach
             val cmdPredicate = ItemPredicate.customModelData(nexoMeta.customModelData ?: return@forEach)
-            overrides += ItemOverride.of(nexoMeta.modelKey, cmdPredicate)
+            overrides += ItemOverride.of(nexoMeta.model, cmdPredicate)
 
             val parentModel = nexoMeta.parentModel
             if (nexoMeta.hasBlockingModel()) addMissingOverrideModel(itemBuilder.type, nexoMeta.blockingModel!!, parentModel)

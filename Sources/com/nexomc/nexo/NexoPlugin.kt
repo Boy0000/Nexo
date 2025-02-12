@@ -7,6 +7,7 @@ import com.nexomc.nexo.commands.CommandsManager
 import com.nexomc.nexo.compatibilities.CompatibilitiesManager
 import com.nexomc.nexo.configs.*
 import com.nexomc.nexo.converter.Converter
+import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.items.ItemUpdater
@@ -123,6 +124,7 @@ class NexoPlugin : JavaPlugin() {
         configsManager.validatesConfig()
         converter = Converter(resourceManager.converter().config)
         if (!converter.oraxenConverter.hasBeenConverted) OraxenConverter.convert()
+        if (!converter.itemsadderConverter.hasBeenConverted) ItemsAdderConverter.convert()
     }
 
     fun configsManager() = configsManager

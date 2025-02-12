@@ -6,6 +6,7 @@ import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
@@ -39,6 +40,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ArmorMeta
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.persistence.PersistentDataType
 
 @Suppress("UnstableApiUsage")
 class ItemUpdater : Listener {
@@ -140,6 +142,9 @@ class ItemUpdater : Listener {
         private val MF_GUI = NamespacedKey.fromString("nexo:mf-gui")!!
 
         fun updateItem(oldItem: ItemStack): ItemStack {
+
+            // ItemsAdder does fucky stuff with PDC-entry so we need to use NMS for it
+            NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
 
             editItemMeta(oldItem) { itemMeta: ItemMeta ->
                 itemMeta.persistentDataContainer.remove(IF_UUID)

@@ -23,8 +23,10 @@ class PackValidator(val resourcePack: ResourcePack) {
     private val requiredTexture = resourcePack.texture(Glyph.REQUIRED_GLYPH)
 
     private fun Key.appendPng() = Key.key(this.asString().appendIfMissing(".png"))
+    val invalidTextures = mutableListOf<Key>()
 
     fun validatePack() {
+        invalidTextures.clear()
         Logs.logInfo("Validating ResourcePack files...")
         val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()?.flatMapFast { source ->
             source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
@@ -130,6 +132,8 @@ class PackValidator(val resourcePack: ResourcePack) {
     }
 
     private fun logMissingTexture(prefix: String, parentKey: Key, key: Key) {
+        if (key in invalidTextures) return
+        invalidTextures += key
         Logs.logError("$prefix <#E24D47><i>$parentKey</i></#E24D47> is trying to use texture <#E24D47><i>$key</i></#E24D47>, but it does not exist within Nexo's ResourcePacks")
     }
 }

@@ -1,6 +1,7 @@
 package com.nexomc.nexo.utils.wrappers
 
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.prependIfMissing
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.attribute.Attribute
@@ -15,6 +16,13 @@ object AttributeWrapper {
 
     @JvmStatic
     fun fromString(attribute: String) = runCatching {
-        Registry.ATTRIBUTE[NamespacedKey.minecraft(attribute.lowercase().replace("player_", "player.").replace("generic_", "generic."))]
+        if (VersionUtil.atleast("1.21.2")) {
+            Registry.ATTRIBUTE[NamespacedKey.minecraft(attribute.lowercase().removePrefix("player_").removePrefix("generic_"))]
+        } else {
+            val key = attribute.lowercase().replace("player_", "player.").replace("generic_", "generic.")
+            Registry.ATTRIBUTE[NamespacedKey.minecraft(key)]
+                ?: Registry.ATTRIBUTE[NamespacedKey.minecraft(key.prependIfMissing("generic."))]
+                ?: Registry.ATTRIBUTE[NamespacedKey.minecraft(key.prependIfMissing("player."))]
+        }
     }.getOrNull()
 }

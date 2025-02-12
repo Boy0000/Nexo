@@ -71,7 +71,6 @@ enum class RemovedSettings(private val path: String) {
     FORMAT_SCOREBOARD("Plugin.formatting.scoreboard"),
     PACK_GENERATE("Pack.generation.generate"),
     UPDATE_CONFIGS("ConfigsTool.enable_configs_updater"),
-    SHIFT_FONT("Glyphs.shift_font"),
     GLYPH_HANDLER("Glyphs.glyph_handler"),
     TRIMS_ARMOR("CustomArmor.trims_settings"),
     CUSTOM_BLOCKS("CustomBlocks"),

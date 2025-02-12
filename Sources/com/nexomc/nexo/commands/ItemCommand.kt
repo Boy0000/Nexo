@@ -29,7 +29,7 @@ internal fun CommandTree.giveItemCommand() = literalArgument("give") {
     entitySelectorArgumentManyPlayers("targets") {
         stringArgument("item") {
             replaceSuggestions(ArgumentSuggestions.stringsAsync {
-                CompletableFuture.supplyAsync { NexoItems.itemNames() }
+                CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
             })
             integerArgument("amount", 1, optional = true) {
                 anyExecutor { sender, args ->
@@ -68,46 +68,12 @@ internal fun CommandTree.giveItemCommand() = literalArgument("give") {
     }
 }
 
-
-
-/*fun CommandTree.simpleGiveItemCommand() = literalArgument("give") {
-    withPermission("nexo.command.give")
-    entitySelectorArgumentManyPlayers("players") {
-        textArgument("item") {
-            replaceSuggestions(ArgumentSuggestions.strings(*NexoItems.itemNames()))
-            anyExecutor { sender, args ->
-                val targets = args.get("players") as? Collection<Player> ?: return@anyExecutor
-                val itemID = args.get("itemID") as? String ?: return@anyExecutor
-                val itemBuilder = NexoItems.itemById(itemID)
-                    ?: return@anyExecutor Message.ITEM_NOT_FOUND.send(sender, tagResolver("item", itemID))
-
-                targets.forEach { target ->
-                    target.inventory.addItem(ItemUpdater.updateItem(itemBuilder.build()))
-                }
-                when (targets.size) {
-                    1 -> Message.GIVE_PLAYER.send(
-                        sender, tagResolver("player", targets.iterator().next().name),
-                        tagResolver("amount", java.lang.String.valueOf(1)),
-                        tagResolver("item", itemID)
-                    )
-
-                    else -> Message.GIVE_PLAYERS.send(
-                        sender, tagResolver("count", java.lang.String.valueOf(targets.size)),
-                        tagResolver("amount", java.lang.String.valueOf(1)),
-                        tagResolver("item", itemID)
-                    )
-                }
-            }
-        }
-    }
-}*/
-
 internal fun CommandTree.takeItemCommand() = literalArgument("take") {
     withPermission("nexo.command.take")
     entitySelectorArgumentManyPlayers("players") {
         textArgument("item") {
             replaceSuggestions(ArgumentSuggestions.stringsAsync {
-                CompletableFuture.supplyAsync { NexoItems.itemNames() }
+                CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
             })
             integerArgument("amount", min = 1, optional = true) {
                 anyExecutor { sender, args ->
@@ -155,7 +121,7 @@ internal fun CommandTree.itemInfoCommand() = literalArgument("iteminfo") {
     withPermission("nexo.command.iteminfo")
     stringArgument("itemid") {
         replaceSuggestions(ArgumentSuggestions.stringsAsync {
-            CompletableFuture.supplyAsync { NexoItems.itemNames() }
+            CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
         })
         anyExecutor { sender, args ->
             val argument = args.get("itemid") as? String ?: return@anyExecutor
@@ -178,7 +144,7 @@ object ItemCommand {
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>$itemId"))
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>CustomModelData: <green>${builder.nexoMeta?.customModelData}"))
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Material: <green>${builder.referenceCopy().type}"))
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>${builder.nexoMeta?.modelKey?.asString()}"))
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>${builder.nexoMeta?.model?.asString()}"))
         Logs.newline()
     }
 }
