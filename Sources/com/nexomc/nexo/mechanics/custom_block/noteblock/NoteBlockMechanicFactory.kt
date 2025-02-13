@@ -25,7 +25,7 @@ import kotlin.collections.set
 
 class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
-    private val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
+    val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
     val reimplementNoteblockFeatures: Boolean = section.getBoolean("reimplement_noteblock_features", false)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<NoteBlockMechanic>()

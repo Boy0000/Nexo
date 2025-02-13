@@ -28,6 +28,7 @@ class Drop(
     private var bestTool: String? = null,
 ) {
 
+    val isEmpty get() = loots.isEmpty() && !isSilktouch
     val explosionDrops: Drop get() = Drop(loots.filter { it.inExplosion }.toMutableList(), false, false, sourceID)
 
     constructor(loots: MutableList<Loot>, silktouch: Boolean, fortune: Boolean, sourceID: String) :
@@ -85,27 +86,27 @@ class Drop(
 
     fun spawns(location: Location, itemInHand: ItemStack): List<DroppedLoot> {
         if (!canDrop(itemInHand) || !isLoaded(location)) return listOf()
-        val baseItem = NexoItems.itemFromId(sourceID)!!.build()
+        val baseItem = NexoItems.itemFromId(sourceID)?.build()
 
-        if (isSilktouch && itemInHand.hasItemMeta() && itemInHand.itemMeta.hasEnchant(EnchantmentWrapper.SILK_TOUCH)) {
+        if (baseItem != null && isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true) {
             location.world.dropItemNaturally(toCenterLocation(location), baseItem)
             return listOf(DroppedLoot(Loot(sourceID, baseItem, 1.0, IntRange(1, 1)), 1))
         } else return dropLoot(loots, toCenterLocation(location), fortuneMultiplier(itemInHand))
     }
 
     fun furnitureSpawns(baseEntity: ItemDisplay, itemInHand: ItemStack) {
-        val baseItem = NexoItems.itemFromId(sourceID)!!.build()
+        val baseItem = NexoItems.itemFromId(sourceID)?.build()
         val location = toCenterLocation(baseEntity.location).takeIf { it.isWorldLoaded } ?: return
         val furnitureItem = FurnitureHelpers.furnitureItem(baseEntity) ?: NexoItems.itemFromId(sourceID)?.build() ?: return
         ItemUtils.editItemMeta(furnitureItem) { itemMeta: ItemMeta ->
-            baseItem.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { ItemUtils.displayName(itemMeta, it) }
+            baseItem?.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { ItemUtils.displayName(itemMeta, it) }
             baseEntity.persistentDataContainer.get(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING)?.also { ItemUtils.displayName(itemMeta, it.deserialize()) }
         }
 
         if (!canDrop(itemInHand)) return
 
         when {
-            isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true ->
+            baseItem != null && isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true ->
                 location.world.dropItemNaturally(location, baseItem)
             else -> {
                 dropLoot(loots.filter { it.itemStack() != baseItem }, location, fortuneMultiplier(itemInHand))
@@ -133,6 +134,7 @@ class Drop(
     }
 
     companion object {
+        @JvmStatic
         fun createDrop(toolTypes: List<String>?, dropSection: ConfigurationSection, sourceID: String): Drop {
             val loots = (dropSection.getList("loots").safeCast<List<LinkedHashMap<String, Any>>>())?.map { Loot(it, sourceID) }?.toMutableList() ?: mutableListOf()
 
@@ -143,10 +145,13 @@ class Drop(
             )
         }
 
+        @JvmStatic
         fun emptyDrop() = Drop(ArrayList(), false, false, "")
 
+        @JvmStatic
         fun emptyDrop(loots: MutableList<Loot>) = Drop(loots, false, false, "")
 
+        @JvmStatic
         fun clone(drop: Drop, newLoots: MutableList<Loot>) = Drop(
             drop.hierarchy,
             newLoots,

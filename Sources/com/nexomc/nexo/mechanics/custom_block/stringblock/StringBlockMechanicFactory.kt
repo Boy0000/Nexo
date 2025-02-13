@@ -27,7 +27,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     val toolTypes: List<String> = section.getStringList("tool_types")
     private var sapling = false
     private val saplingGrowthCheckDelay: Int = section.getInt("sapling_growth_check_delay")
-    private val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
+    val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
     val disableVanillaString: Boolean = section.getBoolean("disable_vanilla_strings", true)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<StringBlockMechanic>()

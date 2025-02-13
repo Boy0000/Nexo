@@ -26,6 +26,7 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.filterFastSet
 import org.bukkit.*
 import org.bukkit.block.Block
@@ -255,22 +256,19 @@ object NexoBlocks {
         val (itemInHand, loc) = (player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)) to block.location
         val mechanic = noteBlockMechanic(block)?.let { it.directional?.parentMechanic ?: it } ?: return false
 
-        var drop: Drop? = overrideDrop ?: mechanic.breakable.drop
+        var drop = overrideDrop ?: mechanic.breakable.drop
         if (player != null) {
-            val noteBlockBreakEvent = NexoNoteBlockBreakEvent(mechanic, block, player)
+            if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+            val noteBlockBreakEvent = NexoNoteBlockBreakEvent(mechanic, block, player, drop)
             if (!noteBlockBreakEvent.call()) return false
 
-            drop = when {
-                player.gameMode == GameMode.CREATIVE -> null
-                overrideDrop != null || player.gameMode != GameMode.CREATIVE -> noteBlockBreakEvent.drop
-                else -> drop
-            }
+            if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = noteBlockBreakEvent.drop
 
             if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
             loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
         }
 
-        if (drop != null) {
+        if (!drop.isEmpty) {
             val loots = drop.spawns(loc, itemInHand)
             if (loots.isNotEmpty() && player != null) {
                 NexoNoteBlockDropLootEvent(mechanic, block, player, loots).call()
@@ -289,19 +287,19 @@ object NexoBlocks {
         val mechanic = stringMechanic(block) ?: return false
         val itemInHand = player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)
 
-        val hasDropOverride = overrideDrop != null
-        var drop: Drop? = if (hasDropOverride) overrideDrop else mechanic.breakable.drop
+        var drop = overrideDrop ?: mechanic.breakable.drop
         if (player != null) {
-            val wireBlockBreakEvent = NexoStringBlockBreakEvent(mechanic, block, player)
+            if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+
+            val wireBlockBreakEvent = NexoStringBlockBreakEvent(mechanic, block, player, drop)
             if (!wireBlockBreakEvent.call()) return false
 
-            if (player.gameMode == GameMode.CREATIVE) drop = null
-            else if (hasDropOverride || player.gameMode != GameMode.CREATIVE) drop = wireBlockBreakEvent.drop
+            if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = wireBlockBreakEvent.drop
 
             if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.location.toVector())
         }
 
-        if (drop != null) {
+        if (!drop.isEmpty) {
             val loots = drop.spawns(block.location, itemInHand)
             if (loots.isNotEmpty() && player != null) {
                 NexoStringBlockDropLootEvent(mechanic, block, player, loots).call()
@@ -311,10 +309,10 @@ object NexoBlocks {
         val blockAbove = block.getRelative(BlockFace.UP)
         if (mechanic.isTall) blockAbove.type = Material.AIR
         block.type = Material.AIR
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable {
+        SchedulerUtils.runTaskLater(1L) {
             StringMechanicHelpers.fixClientsideUpdate(block.location)
             if (blockAbove.type == Material.TRIPWIRE) removeStringBlock(blockAbove, player, overrideDrop)
-        }, 1L)
+        }
         return true
     }
 
@@ -322,22 +320,20 @@ object NexoBlocks {
         val (itemInHand, loc) = (player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)) to block.location
         val mechanic = chorusBlockMechanic(block) ?: return false
 
-        var drop: Drop? = overrideDrop ?: mechanic.breakable.drop
+        var drop = overrideDrop ?: mechanic.breakable.drop
         if (player != null) {
-            val chorusBlockBreakEvent = NexoChorusBlockBreakEvent(mechanic, block, player)
+            if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+
+            val chorusBlockBreakEvent = NexoChorusBlockBreakEvent(mechanic, block, player, drop)
             if (!chorusBlockBreakEvent.call()) return false
 
-            drop = when {
-                player.gameMode == GameMode.CREATIVE -> null
-                overrideDrop != null || player.gameMode != GameMode.CREATIVE -> chorusBlockBreakEvent.drop
-                else -> drop
-            }
+            if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = chorusBlockBreakEvent.drop
 
             if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
             loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
         }
 
-        if (drop != null) {
+        if (!drop.isEmpty) {
             val loots = drop.spawns(loc, itemInHand)
             if (loots.isNotEmpty() && player != null) {
                 NexoChorusBlockDropLootEvent(mechanic, block, player, loots).call()

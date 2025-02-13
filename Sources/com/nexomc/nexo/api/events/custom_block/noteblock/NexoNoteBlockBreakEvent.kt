@@ -2,6 +2,7 @@ package com.nexomc.nexo.api.events.custom_block.noteblock
 
 import com.nexomc.nexo.api.events.custom_block.NexoBlockBreakEvent
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
+import com.nexomc.nexo.utils.drops.Drop
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable
@@ -17,6 +18,10 @@ class NexoNoteBlockBreakEvent(
     block: Block,
     player: Player,
 ) : NexoBlockBreakEvent(mechanic, block, player), Cancellable {
+
+    constructor(mechanic: NoteBlockMechanic, block: Block, player: Player, drop: Drop) : this(mechanic, block, player) {
+        this.drop = drop
+    }
 
     init {
         drop = mechanic.breakable.drop

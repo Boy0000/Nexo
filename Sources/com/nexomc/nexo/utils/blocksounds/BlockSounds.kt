@@ -8,11 +8,11 @@ import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
 
 class BlockSounds(section: ConfigurationSection) {
-    val placeSound: String? = validateReplacedSounds(getSound(section, "place"))
-    val breakSound: String? = validateReplacedSounds(getSound(section, "break"))
-    val stepSound: String? = validateReplacedSounds(getSound(section, "step"))
-    val hitSound: String? = validateReplacedSounds(getSound(section, "hit"))
-    val fallSound: String? = validateReplacedSounds(getSound(section, "fall"))
+    val placeSound: String? = getSound(section, "place")?.let(::validateReplacedSounds)
+    val breakSound: String? = getSound(section, "break")?.let(::validateReplacedSounds)
+    val stepSound: String? = getSound(section, "step")?.let(::validateReplacedSounds)
+    val hitSound: String? = getSound(section, "hit")?.let(::validateReplacedSounds)
+    val fallSound: String? = getSound(section, "fall")?.let(::validateReplacedSounds)
 
     val placeVolume: Float = getVolume(section, "place", VANILLA_PLACE_VOLUME)
     val breakVolume: Float = getVolume(section, "break", VANILLA_BREAK_VOLUME)

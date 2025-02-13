@@ -4,6 +4,8 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
+import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -46,17 +48,15 @@ object BlockHelpers {
     @JvmStatic
     fun playCustomBlockSound(location: Location?, sound: String?, category: SoundCategory?, volume: Float, pitch: Float) {
         if (sound == null || location == null || location.world == null || category == null) return
-        location.world.playSound(location, validateReplacedSounds(sound)!!, category, volume, pitch)
+        location.world.playSound(location, validateReplacedSounds(sound), category, volume, pitch)
     }
 
     @JvmStatic
-    fun validateReplacedSounds(sound: String?): String? {
-        val sound = sound?.removePrefix("minecraft:") ?: return null
-        val mechanics = NexoPlugin.instance().configsManager().mechanics
-
+    fun validateReplacedSounds(sound: String): String {
+        val soundKey = sound.removePrefix("minecraft:")
         return when {
-            sound.startsWith("block.wood") && mechanics.getBoolean("noteblock.custom_block_sounds") -> sound.prependIfMissing("nexo:")
-            sound.startsWith("block.stone") && mechanics.getBoolean("stringblock.custom_block_sounds") -> sound.prependIfMissing("nexo:")
+            soundKey.startsWith("block.wood") && NoteBlockMechanicFactory.instance()?.customSounds?.enabled == true -> soundKey.prependIfMissing("nexo:")
+            soundKey.startsWith("block.stone") && StringBlockMechanicFactory.instance()?.customSounds?.enabled == true -> soundKey.prependIfMissing("nexo:")
             else -> sound
         }
     }
