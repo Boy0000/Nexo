@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockInteractEvent
@@ -10,16 +9,14 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
-import com.nexomc.nexo.utils.BlockHelpers.isInteractable
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.AbstractWindCharge
 import org.bukkit.entity.Player
-import org.bukkit.entity.WindCharge
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -29,9 +26,7 @@ import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCreativeEvent
 import org.bukkit.event.player.PlayerInteractEvent
-import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
-import kotlin.random.Random
 
 class CustomBlockListener : Listener {
     private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE, Material.CHORUS_PLANT)
@@ -75,11 +70,11 @@ class CustomBlockListener : Listener {
     fun PlayerInteractEvent.onLimitedPlacing() {
         val (block, item) = (clickedBlock ?: return) to (item ?: return)
 
-        if (hand!! != EquipmentSlot.HAND || action != Action.RIGHT_CLICK_BLOCK) return
+        if (action != Action.RIGHT_CLICK_BLOCK) return
         val mechanic = NexoBlocks.customBlockMechanic(NexoItems.idFromItem(item))
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return
 
-        if (!player.isSneaking && isInteractable(block)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(block)) return
 
         val limitedPlacing = mechanic.limitedPlacing
         val belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN)
@@ -110,7 +105,7 @@ class CustomBlockListener : Listener {
         if (action != Action.RIGHT_CLICK_BLOCK) return
 
         var mechanic: CustomBlockMechanic? = NexoBlocks.customBlockMechanic(itemID) ?: return
-        if (!player.isSneaking && isInteractable(placedAgainst)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(placedAgainst)) return
 
         // Change mechanic according to subMechanic changes
         when (mechanic) {

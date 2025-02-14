@@ -54,11 +54,11 @@ public class LibbyManager {
         libs.add(getLib("com{}jeff-media", "MorePersistentDataTypes", "2.4.0", "com{}jeff_media").build());
         libs.add(getLib("com{}jeff-media", "persistent-data-serializer", "1.0", "com{}jeff_media").build());
 
-        libs.add(getLib("team{}unnamed", "creative-api", "1.7.8-SNAPSHOT", "team{}unnamed")
+        libs.add(getLib("team{}unnamed", "creative-api", "1.7.8-SNAPSHOT", null, false)
                 .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/1.7.8-SNAPSHOT/creative-api-1.7.8-SNAPSHOT.jar")
                 .build());
-        libs.add(getLib("team{}unnamed", "creative-server", CREATIVE_VERSION, "team{}unnamed").build());
-        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", "1.7.8-SNAPSHOT", "team{}unnamed")
+        libs.add(getLib("team{}unnamed", "creative-server", CREATIVE_VERSION, null, false).build());
+        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", "1.7.8-SNAPSHOT", null, false)
                 .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/1.7.8-SNAPSHOT/creative-serializer-minecraft-1.7.8-SNAPSHOT.jar")
                 .build());
 
@@ -84,12 +84,15 @@ public class LibbyManager {
     }
 
     private static Library.Builder getLib(String groupId, String artifactId, String version, Relocation relocation) {
+        return getLib(groupId, artifactId, version, relocation, false);
+    }
+
+    private static Library.Builder getLib(String groupId, String artifactId, String version, Relocation relocation, boolean isolated) {
         Library.Builder builder = Library.builder()
                 .groupId(groupId)
                 .artifactId(artifactId)
                 .version(version)
-                .relocate(relocation)
-                .isolatedLoad(false);
+                .isolatedLoad(isolated);
 
         return relocation != null ? builder.relocate(relocation) : builder;
     }

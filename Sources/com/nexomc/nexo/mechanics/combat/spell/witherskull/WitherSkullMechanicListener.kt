@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.combat.spell.witherskull
 
-import com.nexomc.nexo.utils.BlockHelpers.isInteractable
+import com.nexomc.nexo.utils.BlockHelpers
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.entity.WitherSkull
 import org.bukkit.event.Event
@@ -18,7 +18,7 @@ class WitherSkullMechanicListener(private val factory: WitherSkullMechanicFactor
 
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (useItemInHand() == Event.Result.DENY || !ProtectionLib.canUse(player, location)) return
-        if (isInteractable(clickedBlock) && useInteractedBlock() == Event.Result.ALLOW) return
+        if (BlockHelpers.isInteractable(clickedBlock) && useInteractedBlock() == Event.Result.ALLOW) return
 
         mechanic.timer(player).let { it.takeIf { it.isFinished }?.reset() ?: return it.sendToPlayer(player) }
 

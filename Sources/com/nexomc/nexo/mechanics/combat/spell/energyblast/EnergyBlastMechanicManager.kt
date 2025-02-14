@@ -1,8 +1,7 @@
 package com.nexomc.nexo.mechanics.combat.spell.energyblast
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.BlockHelpers.isInteractable
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.EntityDamageByEntityEvent
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisX
@@ -37,7 +36,7 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
 
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (useItemInHand() == Event.Result.DENY || !ProtectionLib.canUse(player, location)) return
-        if (isInteractable(block) && useInteractedBlock() == Event.Result.ALLOW) return
+        if (BlockHelpers.isInteractable(block) && useInteractedBlock() == Event.Result.ALLOW) return
 
         mechanic.timer(player).let { it.takeIf { it.isFinished }?.reset() ?: return it.sendToPlayer(player) }
 

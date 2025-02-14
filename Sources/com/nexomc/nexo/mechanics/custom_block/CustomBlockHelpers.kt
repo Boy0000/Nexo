@@ -1,8 +1,10 @@
 package com.nexomc.nexo.mechanics.custom_block
 
 import com.nexomc.nexo.api.NexoBlocks
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockPlaceEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockPlaceEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockPlaceEvent
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
@@ -107,6 +109,7 @@ object CustomBlockHelpers {
             val customBlockPlaceEvent: Event = when (newMechanic) {
                 is NoteBlockMechanic -> NexoNoteBlockPlaceEvent(newMechanic, target, player, item, hand)
                 is StringBlockMechanic -> NexoStringBlockPlaceEvent(newMechanic, target, player, item, hand)
+                is ChorusBlockMechanic -> NexoChorusBlockPlaceEvent(newMechanic, target, player, item, hand)
                 else -> return
             }
 

@@ -4,7 +4,7 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.BlockHelpers.isInteractable
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import org.bukkit.Instrument
 import org.bukkit.Material
@@ -26,7 +26,7 @@ class NoteBlockMechanicListener : Listener {
         val (block, hand) = (clickedBlock?.takeIf { it.type == Material.NOTE_BLOCK } ?: return) to (hand ?: return)
 
         if (action != Action.RIGHT_CLICK_BLOCK) return
-        if (!player.isSneaking && isInteractable(block)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(block)) return
         if (useInteractedBlock() == Event.Result.DENY || !NexoBlocks.isNexoNoteBlock(block)) return
 
         val type = item?.type?.takeUnless { it.isAir || NexoBlocks.isNexoNoteBlock(item) } ?: return

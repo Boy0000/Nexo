@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -40,12 +39,12 @@ class FurnitureListener : Listener {
     fun PlayerInteractEvent.onLimitedPlacing() {
         val (block, itemId) = (clickedBlock ?: return) to (item?.let(NexoItems::idFromItem) ?: return)
 
-        if (hand != EquipmentSlot.HAND || action != Action.RIGHT_CLICK_BLOCK) return
+        if (action != Action.RIGHT_CLICK_BLOCK) return
 
         val mechanic = NexoFurniture.furnitureMechanic(itemId) ?: return
         val limitedPlacing = mechanic.limitedPlacing ?: return
         val belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN)
-        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock, player)) return
 
         when {
             limitedPlacing.isNotPlacableOn(block, blockFace) -> isCancelled = true
@@ -63,7 +62,7 @@ class FurnitureListener : Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun PlayerInteractEvent.onFurniturePlace() {
         val block = clickedBlock?.let { if (BlockHelpers.isReplaceable(it)) it else it.getRelative(blockFace) } ?: return
         val (item, hand) = (item ?: return) to (hand?.takeIf { it == EquipmentSlot.HAND } ?: return)
@@ -73,7 +72,7 @@ class FurnitureListener : Listener {
         if (!NexoFurniture.isFurniture(item) || BlockHelpers.isStandingInside(player, block)) return
         if (!ProtectionLib.canBuild(player, block.location)) return
         if (mechanic.farmlandRequired && block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) return
-        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock)) return
+        if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock, player)) return
 
         val blockPlaceEvent = BlockPlaceEvent(block, block.state, clickedBlock!!, item, player, true, hand)
         val rotation = getRotation(player.eyeLocation.yaw.toDouble(), mechanic)
@@ -144,7 +143,7 @@ class FurnitureListener : Listener {
             if (mechanic.light.toggleable) FurnitureHelpers.toggleLight(baseEntity)
 
             when {
-                mechanic.rotatable.rotatable && (!mechanic.rotatable.onSneak || player.isSneaking) -> mechanic.rotateFurniture(baseEntity)
+                mechanic.rotatable.shouldRotate(player) -> mechanic.rotateFurniture(baseEntity)
                 mechanic.isStorage && !player.isSneaking -> {
                     val storage = mechanic.storage ?: return
                     when (storage.storageType) {

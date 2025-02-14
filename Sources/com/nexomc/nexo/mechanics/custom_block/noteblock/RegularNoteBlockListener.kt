@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.meta.SkullMeta
 
 class RegularNoteBlockListener : Listener {
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun NotePlayEvent.onNotePlay() {
         isCancelled = true
         if (NexoBlocks.isNexoNoteBlock(block)) return
@@ -23,7 +23,7 @@ class RegularNoteBlockListener : Listener {
         regularNoteBlock.runClickAction(Action.LEFT_CLICK_BLOCK)
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPhysicsEvent.onNoteBlockPower() {
         if (block.type != Material.NOTE_BLOCK || NexoBlocks.isNexoNoteBlock(block)) return
 
@@ -37,7 +37,7 @@ class RegularNoteBlockListener : Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun PlayerInteractEvent.onRightClickNoteBlock() {
         if (action != Action.RIGHT_CLICK_BLOCK) return
         val block = clickedBlock?.takeIf { it.type == Material.NOTE_BLOCK }?.takeUnless(NexoBlocks::isNexoNoteBlock) ?: return

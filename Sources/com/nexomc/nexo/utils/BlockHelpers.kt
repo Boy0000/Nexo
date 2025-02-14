@@ -139,10 +139,10 @@ object BlockHelpers {
     /**
      * Improved version of [Material.isInteractable] intended for replicating vanilla behavior.
      * Checks if the block one places against is interactable in the sense a chest is
-     * Also checks if the block is an Nexo block or not as NoteBlocks are Interacable
+     * Also checks if the block is a Nexo block or not as NoteBlocks are Interacable
      */
     @JvmStatic
-    fun isInteractable(placedAgainst: Block?): Boolean {
+    fun isInteractable(placedAgainst: Block?, player: Player? = null): Boolean {
         if (placedAgainst == null) return false
 
         val noteBlockMechanic = NexoBlocks.noteBlockMechanic(placedAgainst)
@@ -151,7 +151,7 @@ object BlockHelpers {
 
         return when {
             noteBlockMechanic != null -> false
-            furnitureMechanic != null -> furnitureMechanic.isInteractable
+            furnitureMechanic != null -> furnitureMechanic.isInteractable(player)
             Tag.STAIRS.isTagged(type) -> false
             Tag.FENCES.isTagged(type) -> false
             Tag.DOORS.isTagged(type) -> false

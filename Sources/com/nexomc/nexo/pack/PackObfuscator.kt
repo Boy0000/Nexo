@@ -56,6 +56,7 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
         fun find(key: Key) = originalSound.takeIf { it.key() == key } ?: obfuscatedSound.takeIf { it.key() == key }
     }
 
+    val skippedKeys = mutableSetOf<Key>()
     private val obfuscatedModels = mutableSetOf<ObfuscatedModel>()
     private val obfuscatedTextures = mutableSetOf<ObfuscatedTexture>()
     private val obfuscatedSounds = mutableSetOf<ObfuscatedSound>()
@@ -115,7 +116,8 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
 
         obfuscatedModels.forEach {
             resourcePack.removeModel(it.originalModel.key())
-            it.obfuscatedModel.addTo(resourcePack)
+            if (it.originalModel.key() !in skippedKeys) it.obfuscatedModel.addTo(resourcePack)
+            else it.obfuscatedModel.toBuilder().key(it.originalModel.key()).build().addTo(resourcePack)
         }
 
         obfuscateBlockStates()

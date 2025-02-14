@@ -34,8 +34,8 @@ object ItemsAdderConverter {
     private val nexoFolder = NexoPlugin.instance().dataFolder
     private val iaFolder = nexoFolder.parentFile.resolve("ItemsAdder")
     private val tempFolder = iaFolder.resolveSibling("ItemsAdderTemporary")
-    private val vanillaModels = DefaultResourcePackExtractor.vanillaResourcePack.models().map { it.key().asMinimalString().removeSuffix(".json") }
-    private val vanillaTextures = DefaultResourcePackExtractor.vanillaResourcePack.textures().map { it.key().asMinimalString().removeSuffix(".png") }
+    private val vanillaModels by lazy { DefaultResourcePackExtractor.vanillaResourcePack.models().mapFastSet { it.key().asMinimalString().removeSuffix(".json") } }
+    private val vanillaTextures by lazy { DefaultResourcePackExtractor.vanillaResourcePack.textures().mapFastSet { it.key().asMinimalString().removeSuffix(".png") } }
 
     fun convert() {
         val iaConverter = NexoPlugin.instance().converter().itemsadderConverter
