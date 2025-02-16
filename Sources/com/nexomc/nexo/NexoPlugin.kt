@@ -90,9 +90,9 @@ class NexoPlugin : JavaPlugin() {
         packServer.start()
 
         NexoMetrics.initializeMetrics()
+        MechanicsManager.registerNativeMechanics()
 
         SchedulerUtils.runTask {
-            MechanicsManager.registerNativeMechanics()
             NexoItems.loadItems()
             RecipesManager.load(this)
             packGenerator.generatePack()

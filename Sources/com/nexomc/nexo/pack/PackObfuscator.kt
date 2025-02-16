@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -27,7 +28,7 @@ import java.io.File
 import java.util.UUID
 
 class PackObfuscator(private var resourcePack: ResourcePack) {
-    val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
+    private val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
         Logs.logError("Invalid PackObfuscation type: $it, defaulting to ${PackObfuscationType.SIMPLE}", true)
         Logs.logError("Valid options are: ${PackObfuscationType.entries.joinToString()}", true)
         PackObfuscationType.SIMPLE
@@ -56,15 +57,15 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
         fun find(key: Key) = originalSound.takeIf { it.key() == key } ?: obfuscatedSound.takeIf { it.key() == key }
     }
 
-    val skippedKeys = mutableSetOf<Key>()
-    private val obfuscatedModels = mutableSetOf<ObfuscatedModel>()
-    private val obfuscatedTextures = mutableSetOf<ObfuscatedTexture>()
-    private val obfuscatedSounds = mutableSetOf<ObfuscatedSound>()
-    private val obfuscatedNamespaceCache = mutableMapOf<String, String>()
+    val skippedKeys = ObjectOpenHashSet<Key>()
+    private val obfuscatedModels = ObjectOpenHashSet<ObfuscatedModel>()
+    private val obfuscatedTextures = ObjectOpenHashSet<ObfuscatedTexture>()
+    private val obfuscatedSounds = ObjectOpenHashSet<ObfuscatedSound>()
+    private val obfuscatedNamespaceCache = Object2ObjectOpenHashMap<String, String>()
 
-    private fun Set<ObfuscatedModel>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedModel
-    private fun Set<ObfuscatedTexture>.findObf(key: Key) = key.appendSuffix(".png").let { k -> firstOrNull { it.find(k) != null }?.obfuscatedTexture }
-    private fun Set<ObfuscatedSound>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedSound
+    private fun ObjectOpenHashSet<ObfuscatedModel>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedModel
+    private fun ObjectOpenHashSet<ObfuscatedTexture>.findObf(key: Key) = key.appendSuffix(".png").let { k -> firstOrNull { it.find(k) != null }?.obfuscatedTexture }
+    private fun ObjectOpenHashSet<ObfuscatedSound>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedSound
 
     enum class PackObfuscationType {
         SIMPLE, FULL, NONE;
@@ -276,7 +277,7 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
 
     private fun Key.obfuscateKey() = when (obfuscationType) {
         PackObfuscationType.NONE -> this
-        PackObfuscationType.FULL -> Key.key(obfuscatedNamespaceCache.computeIfAbsent(namespace()) {
+        PackObfuscationType.FULL -> Key.key(obfuscatedNamespaceCache.getOrPut(namespace()) {
             UUID.randomUUID().toString()
         }, UUID.randomUUID().toString())
 

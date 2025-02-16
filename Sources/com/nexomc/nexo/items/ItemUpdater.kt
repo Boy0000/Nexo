@@ -189,7 +189,8 @@ class ItemUpdater : Listener {
 
                 itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
 
-                if (itemMeta is ArmorMeta && oldMeta is ArmorMeta) itemMeta.trim = oldMeta.trim
+                if (itemMeta is ArmorMeta && newMeta is ArmorMeta) itemMeta.trim = newMeta.trim
+                else if (itemMeta is ArmorMeta && oldMeta is ArmorMeta) itemMeta.trim = oldMeta.trim
 
                 if (VersionUtil.atleast("1.20.5")) {
                     when {

@@ -23,6 +23,7 @@ import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.mechanics.misc.soulbound.SoulBoundMechanicFactory
 import com.nexomc.nexo.mechanics.repair.RepairMechanicFactory
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.SchedulerUtils
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.HandlerList
@@ -65,7 +66,9 @@ object MechanicsManager {
         registerMechanicFactory("harvesting", ::HarvestingMechanicFactory)
         registerMechanicFactory("repair", ::RepairMechanicFactory)
 
-        NexoMechanicsRegisteredEvent().call()
+        // Schedule sync as this is called during onEnable
+        // Need to register mechanics & listeners first but call the event before items are parsed post-onEnable
+        SchedulerUtils.syncDelayedTask { NexoMechanicsRegisteredEvent().call() }
     }
 
     /**

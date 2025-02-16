@@ -21,8 +21,6 @@ class ItemsAdderConverterListener : Listener {
 
     private val PLACEABLE_BEHAVIOUR_KEY: NamespacedKey = NamespacedKey.fromString("itemsadder:placeable_behaviour_type")!!
     private val PLACEABLE_ITEM_KEY = NamespacedKey.fromString("itemsadder:placeable_entity_item")!!
-    private val BASE_ENTITY_KEY: NamespacedKey = NamespacedKey.fromString("oraxen:base_entity")!!
-    private val SEAT_KEY: NamespacedKey = NamespacedKey.fromString("oraxen:seat")!!
 
     @EventHandler
     fun EntitiesLoadEvent.onLoadFurniture() {

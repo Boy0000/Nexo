@@ -47,16 +47,14 @@ object NexoPack {
 
         (importedPack.packMeta() ?: resourcePack.packMeta())?.apply(resourcePack::packMeta)
         (importedPack.icon() ?: resourcePack.icon())?.apply(resourcePack::icon)
-        resourcePack.overlaysMeta {
-            val overlayEntries = resourcePack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>()
-            importedPack.overlaysMeta()?.entries()?.also(overlayEntries::addAll)
-            return@overlaysMeta overlayEntries
-        }
-        resourcePack.sodiumMeta {
-            val sodiumEntries = resourcePack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>()
-            importedPack.sodiumMeta()?.ignoredShaders()?.also(sodiumEntries::addAll)
-            return@sodiumMeta sodiumEntries
-        }
+
+        (resourcePack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>())
+            .plus(importedPack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>())
+            .also { resourcePack.overlaysMeta(OverlaysMeta.of(it)) }
+
+        (resourcePack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
+            .plus(importedPack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
+            .also { resourcePack.sodiumMeta(SodiumMeta.of(it)) }
 
         importedPack.models().forEach { model: Model ->
             model.toBuilder().apply {
