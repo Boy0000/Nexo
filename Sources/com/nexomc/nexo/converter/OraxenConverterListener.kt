@@ -4,11 +4,9 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
-import com.nexomc.nexo.utils.associateFastWith
-import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFast
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.*
@@ -25,6 +23,15 @@ class OraxenConverterListener : Listener {
     private val BASE_ENTITY_KEY: NamespacedKey = NamespacedKey.fromString("oraxen:base_entity")!!
     private val SEAT_KEY: NamespacedKey = NamespacedKey.fromString("oraxen:seat")!!
 
+    init {
+        // Handles already loaded spawn-chunks
+        SchedulerUtils.callSyncMethod {
+            Bukkit.getWorlds().flatMapFast { it.entities }.forEach { entity ->
+                entity.convertFurniture()
+            }
+        }
+    }
+
     @EventHandler
     fun ChunkLoadEvent.onChunkLoad() {
         CustomBlockData.getBlocksWithCustomData("oraxen", chunk)
@@ -38,16 +45,25 @@ class OraxenConverterListener : Listener {
 
     @EventHandler
     fun EntitiesLoadEvent.onEntitiesLoad() {
-        entities.filterFastIsInstance<Interaction> { it.persistentDataContainer.let { i -> i.has(BASE_ENTITY_KEY) && !i.has(SEAT_KEY) } }.forEach(Interaction::remove)
-        entities.filterFastIsInstance<ArmorStand> { it.persistentDataContainer.has(FURNITURE_KEY) }.forEach(ArmorStand::remove)
-        entities.filterFastIsInstance<ItemFrame> { it.persistentDataContainer.has(FURNITURE_KEY) }.forEach {
-            Logs.logError("Found legacy Oraxen-Furniture ${it.persistentDataContainer.get(FURNITURE_KEY, PersistentDataType.STRING)} using ItemFrame at ${it.location.fineString()}...")
-            Logs.logWarn("Nexo only supports ItemDisplay-Furniture, we suggest manually replacing these")
-        }
-        entities.mapFast(Entity::getPersistentDataContainer).forEach(OraxenConverter::convertOraxenPDCEntries)
-        entities.filterFastIsInstance<ItemDisplay>(NexoFurniture::isFurniture).forEach { baseEntity ->
-            val color = FurnitureHelpers.furnitureDye(baseEntity) ?: baseEntity.itemStack.itemMeta?.asColorable()?.color ?: return@forEach
-            FurnitureHelpers.furnitureDye(baseEntity, color)
+        entities.forEach { it.convertFurniture() }
+    }
+
+    private fun Entity.convertFurniture() {
+        val pdc = persistentDataContainer
+        when (val baseEntity = this) {
+            is Interaction -> baseEntity.takeIf { i -> pdc.has(BASE_ENTITY_KEY) && !pdc.has(SEAT_KEY) }?.remove()
+            is ArmorStand -> baseEntity.takeIf { pdc.has(FURNITURE_KEY) }?.remove()
+            is ItemFrame -> baseEntity.takeIf { pdc.has(FURNITURE_KEY) }?.also {
+                Logs.logError("Found legacy Oraxen-Furniture ${pdc.get(FURNITURE_KEY, PersistentDataType.STRING)} using ItemFrame at ${it.location.fineString()}...")
+                Logs.logWarn("Nexo only supports ItemDisplay-Furniture, we suggest manually replacing these")
+            }
+            is ItemDisplay -> when {
+                !NexoFurniture.isFurniture(baseEntity) -> OraxenConverter.convertOraxenPDCEntries(pdc)
+                else -> {
+                    val color = FurnitureHelpers.furnitureDye(baseEntity) ?: baseEntity.itemStack.itemMeta?.asColorable()?.color ?: return
+                    FurnitureHelpers.furnitureDye(baseEntity, color)
+                }
+            }
         }
     }
 }

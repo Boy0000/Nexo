@@ -4,6 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.sun.net.httpserver.HttpExchange
 import net.kyori.adventure.resource.ResourcePackInfo
@@ -46,7 +47,8 @@ class SelfHostServer : NexoPackServer {
     override fun packUrl(): String {
         val hash = NexoPlugin.instance().packGenerator().builtPack()!!.hash()
         val serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082)
-        return "http://$publicAddress:$serverPort/$hash.zip"
+        val address = publicAddress.takeIf { publicAddress.startsWith("http") } ?: "http://$publicAddress:$serverPort"
+        return "$address/$hash.zip"
     }
 
     override fun sendPack(player: Player) {
@@ -68,8 +70,9 @@ class SelfHostServer : NexoPackServer {
         get() = true
 
     override fun uploadPack(): CompletableFuture<Void> {
-        val hashPart = "/" + NexoPlugin.instance().packGenerator().builtPack()!!.hash() + ".zip"
-        if (Settings.DEBUG.toBool()) Logs.logSuccess("Resourcepack uploaded and will be dispatched with publicAddress http://" + this.publicAddress + ":" + packServer!!.address().port + hashPart)
+        val hashPart = "/${NexoPlugin.instance().packGenerator().builtPack()!!.hash()}.zip"
+        val address = publicAddress.takeIf { it.startsWith("http") } ?: "http://$publicAddress:${packServer!!.address().port}"
+        if (Settings.DEBUG.toBool()) Logs.logSuccess("Resourcepack uploaded and will be dispatched with publicAddress $address$hashPart")
         else Logs.logSuccess("Resourcepack has been uploaded to SelfHost!")
 
         return CompletableFuture.completedFuture(null)

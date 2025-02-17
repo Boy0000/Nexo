@@ -21,7 +21,7 @@ class WrappedMMOItem(
 
     constructor(section: ConfigurationSection, silent: Boolean) : this() {
         when {
-            !PluginUtils.isEnabled("MMOItems") -> return
+            !PluginUtils.isMMOItemsEnabled -> return
             else -> {
                 type = MMOItems.plugin.types.get(section.getString("type"))
                 id = section.getString("id")
@@ -49,7 +49,7 @@ class WrappedMMOItem(
     val material = runCatching { MMOItems.plugin.templates.getTemplate(type, id)?.newBuilder()?.build()?.newBuilder()?.buildSilently()?.type }.getOrNull()
 
     fun build(): ItemStack? {
-        if (PluginUtils.isEnabled("MMOItems")) {
+        if (PluginUtils.isMMOItemsEnabled) {
             return template()?.newBuilder()?.build()?.newBuilder()?.buildSilently()
                 ?: null.apply { Logs.logError("Failed to load MMOItem $id, Item does not exist") }
         } else Logs.logError("Failed to load MMOItem $id, MMOItems is not installed")

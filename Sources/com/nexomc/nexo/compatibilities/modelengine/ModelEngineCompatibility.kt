@@ -2,6 +2,7 @@ package com.nexomc.nexo.compatibilities.modelengine
 
 import com.nexomc.nexo.compatibilities.CompatibilityProvider
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.logs.Logs
 import com.ticxo.modelengine.api.ModelEngineAPI
@@ -32,13 +33,13 @@ class ModelEngineCompatibility : CompatibilityProvider<ModelEngineAPI>() {
 
         init {
             modelEngineFuture = CompletableFuture()
-            if (!isEnabled("ModelEngine") || !Settings.PACK_IMPORT_MODEL_ENGINE.toBool())
+            if (!PluginUtils.isModelEngineEnabled || !Settings.PACK_IMPORT_MODEL_ENGINE.toBool())
                 modelEngineFuture!!.complete(null)
         }
 
         fun modelEngineFuture(): CompletableFuture<Void?> {
             if (modelEngineFuture == null) modelEngineFuture = CompletableFuture()
-            if (!isEnabled("ModelEngine") || !Settings.PACK_IMPORT_MODEL_ENGINE.toBool())
+            if (!PluginUtils.isModelEngineEnabled || !Settings.PACK_IMPORT_MODEL_ENGINE.toBool())
                 modelEngineFuture!!.complete(null)
 
             return modelEngineFuture!!

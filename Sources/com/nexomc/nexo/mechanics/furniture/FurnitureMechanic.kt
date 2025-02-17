@@ -40,9 +40,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import org.joml.Vector3d
 import org.joml.Vector3f
-import org.joml.plus
 
 class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
     Mechanic(mechanicFactory, section, { itemBuilder: ItemBuilder ->
@@ -93,7 +91,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         this.light.lightBlocks.removeIf { it in overlap }
     }
 
-    val isModelEngine: Boolean = modelEngineID != null
+    val isModelEngine: Boolean = PluginUtils.isModelEngineEnabled && modelEngineID != null
 
     fun placedItem(baseEntity: ItemDisplay): ItemBuilder {
         var builder: ItemBuilder? = null
@@ -130,7 +128,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
             setBaseFurnitureData(e, yaw, facing)
         }
 
-        if (this.isModelEngine && isEnabled("ModelEngine")) spawnModelEngineFurniture(baseEntity)
+        if (isModelEngine) spawnModelEngineFurniture(baseEntity)
         FurnitureSeat.spawnSeats(baseEntity, this)
 
         return baseEntity

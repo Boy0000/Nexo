@@ -220,12 +220,12 @@ object ItemsAdderConverter {
                     // Furniture Properties
                     mechanicsNode.node("furniture").takeIf { iaItem.hasChild("behaviours", "furniture") }?.let { furnitureNode ->
                         val iaFurniture = iaItem.node("behaviours", "furniture")
-                        val isArmorStand = iaFurniture.node("entity").string == "ARMOR_STAND"
-                        val isItemFrame = iaFurniture.node("entity").string == "ITEM_FRAME"
                         val iaDisplayTransform = iaFurniture.node("display_transformation")
                         val transform = when {
-                            isArmorStand -> "HEAD"
-                            isItemFrame -> "FIXED"
+                            iaFurniture.node("entity").string == "ARMOR_STAND" -> "HEAD"
+                            iaFurniture.node("entity").string == "ITEM_FRAME" -> "FIXED"
+                            iaDisplayTransform.node("adjust_legacy_model").string == "armor_stand" -> "HEAD"
+                            iaDisplayTransform.node("adjust_legacy_model").string == "item_frame" -> "FIXED"
                             else -> "NONE"
                         }
                         furnitureNode.node("properties", "display_transform").set(iaDisplayTransform.node("transform").getString(transform))
@@ -236,8 +236,18 @@ object ItemsAdderConverter {
                         }
                         iaDisplayTransform.node("scale").ifExists {
                             furnitureNode.node("properties", "scale").set(it.childrenMap().values.joinToString(",") {
-                                it.getDouble(if (isItemFrame) 0.5 else 1.0).toString().removeSuffix(".0")
+                                it.getDouble(if (iaFurniture.node("entity").string == "ITEM_FRAME") 0.5 else 1.0).toString().removeSuffix(".0")
                             })
+                        }
+                        iaDisplayTransform.node("adjust_legacy_model").string?.also {
+                            val (scale, translation) = when (it) {
+                                "armor_stand" -> "0.65,0.65,0.65" to "0,1.7,0"
+                                "item_frame" -> "0.5,0.5,0.5" to "0,0,0"
+                                else -> return@also
+                            }
+                            furnitureNode.node("properties", "scale").set(scale)
+                            furnitureNode.node("properties", "translation").set(translation)
+                            //if (it == "item_frame") furnitureNode.node("properties", "right_rotation").set("0.707,0,0,-0.707")
                         }
 
                         // Solid hitbox

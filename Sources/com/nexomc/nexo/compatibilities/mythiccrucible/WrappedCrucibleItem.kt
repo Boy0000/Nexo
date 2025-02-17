@@ -1,6 +1,7 @@
 package com.nexomc.nexo.compatibilities.mythiccrucible
 
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.logs.Logs
 import io.lumine.mythic.bukkit.BukkitAdapter
@@ -17,7 +18,7 @@ class WrappedCrucibleItem(private val id: String?, val cache: Boolean = true) {
         BukkitAdapter.adapt(MythicBukkit.inst().itemManager.getItem(id).orElseThrow().generateItemStack(1))
     }.onFailure {
         Logs.logError("Failed to load MythicCrucible item $id")
-        if (!isEnabled("MythicCrucible")) Logs.logWarn("MythicCrucible is not installed")
+        if (!PluginUtils.isMythicCrucibleEnabled) Logs.logWarn("MythicCrucible is not installed")
         if (Settings.DEBUG.toBool()) Logs.logWarn(it.message!!)
     }.getOrNull()
 }

@@ -96,7 +96,7 @@ interface IFurniturePacketManager {
         fun standingOnFurniture(player: Player): Boolean {
             val playerLoc = BlockLocation(player.location)
             return barrierHitboxPositionMap.values.any { hitboxes ->
-                hitboxes.any { it.distanceTo(playerLoc) <= 2 }
+                hitboxes.any { it.distanceTo(playerLoc) <= 3 }
             }
         }
 

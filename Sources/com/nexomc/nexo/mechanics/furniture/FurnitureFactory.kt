@@ -41,10 +41,8 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
         evolvingFurnitures = false
 
-        if (PluginUtils.isEnabled("Spartan"))
-            registerListeners(SpartanCompatibility())
-        if (PluginUtils.isEnabled("Vulcan"))
-            registerListeners(VulcanCompatibility())
+        if (PluginUtils.isSpartanEnabled) registerListeners(SpartanCompatibility())
+        if (PluginUtils.isVulcanEnabled) registerListeners(VulcanCompatibility())
 
         if (NexoPlugin.instance().converter().oraxenConverter.convertFurnitureOnLoad)
             registerListeners(OraxenConverterListener())

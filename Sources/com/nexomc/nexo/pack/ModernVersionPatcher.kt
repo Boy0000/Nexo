@@ -8,6 +8,9 @@ import com.nexomc.nexo.utils.JsonBuilder.`object`
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.model.ItemOverride
@@ -41,7 +44,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
     }
 
     fun patchPack() {
-        resourcePack.models().filterFast { DefaultResourcePackExtractor.vanillaResourcePack.model(it.key()) != null }
+        resourcePack.models().filterFast { standardTextureModels.contains(it.key()) }
             .associateFast { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
             .forEach { (model, overrides) ->
                 val standardItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
@@ -306,10 +309,22 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
     private val JsonObject.isSimpleItemModel: Boolean
         get() = keySet().size == 2 && get("type").asString.equals("minecraft:model")
     private val standardItemModels by lazy {
-        runCatching {
+        Object2ObjectOpenHashMap(
+            runCatching {
+                NexoPackReader().readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
+            }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).unknownFiles()
+                .filterKeys { it.startsWith("assets/minecraft/items") }
+        )
+    }
+
+    private val standardTextureModels by lazy {
+        ObjectArrayList(
+            runCatching {
             NexoPackReader().readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-        }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).unknownFiles()
-            .filterKeys { it.startsWith("assets/minecraft/items") }
+        }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).models()
+            .plus(DefaultResourcePackExtractor.vanillaResourcePack.models())
+            .map { it.key() }.distinct()
+        )
     }
 
     private fun isStandardItemModel(key: String, itemModel: JsonObject?): Boolean {

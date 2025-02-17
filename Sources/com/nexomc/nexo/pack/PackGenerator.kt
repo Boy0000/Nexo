@@ -288,7 +288,7 @@ class PackGenerator {
     }
 
     private fun importModelEnginePack() {
-        if (!isEnabled("ModelEngine")) return
+        if (!PluginUtils.isModelEngineEnabled) return
         val megPack = ModelEngineAPI.getAPI().dataFolder.resolve("resource pack.zip").takeIf(File::exists)
             ?: ModelEngineAPI.getAPI().dataFolder.resolve("resource pack").takeIf(File::exists)
             ?: return Logs.logWarn("Could not find ModelEngine ZIP-resourcepack...")
