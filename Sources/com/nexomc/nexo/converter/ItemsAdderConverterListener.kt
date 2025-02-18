@@ -55,14 +55,14 @@ class ItemsAdderConverterListener : Listener {
             pdc.set(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING, it)
         }
         baseEntity.setItemStack(null)
-        baseEntity.transformation = baseEntity.transformation.apply {
-            scale.set(mechanic.properties.scale)
-            translation.set(0.0, 0.0, 0.0)
-            rightRotation.set(0f, 0f, 0f, 1f)
-        }
-        baseEntity.itemDisplayTransform = mechanic.properties.displayTransform
+        //baseEntity.transformation = baseEntity.transformation.apply {
+        //    scale.set(mechanic.properties.scale)
+        //    translation.set(0.0, 0.0, 0.0)
+        //    rightRotation.set(0f, 0f, 0f, 1f)
+        //}
+        //baseEntity.itemDisplayTransform = mechanic.properties.displayTransform
         //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) baseEntity.teleport(baseEntity.location.apply { y += 0.5 })
-        if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) setRotation(baseEntity.location.yaw, -90f)
+        //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) setRotation(baseEntity.location.yaw, -90f)
         NexoFurniture.updateFurniture(baseEntity)
     }
 }

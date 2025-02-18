@@ -247,7 +247,7 @@ object ItemsAdderConverter {
                             }
                             furnitureNode.node("properties", "scale").set(scale)
                             furnitureNode.node("properties", "translation").set(translation)
-                            //if (it == "item_frame") furnitureNode.node("properties", "right_rotation").set("0.707,0,0,-0.707")
+                            if (it == "item_frame") furnitureNode.node("properties", "right_rotation").set("0.707,0,0,-0.707")
                         }
 
                         // Solid hitbox
