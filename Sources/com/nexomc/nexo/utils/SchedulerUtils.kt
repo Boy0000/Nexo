@@ -27,6 +27,10 @@ object SchedulerUtils {
         Bukkit.getScheduler().runTaskAsynchronously(NexoPlugin.instance(), task)
     }
 
+    fun runTaskAsyncLater(delay: Long, task: () -> Unit) {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(NexoPlugin.instance(), task, delay)
+    }
+
     fun runTask(task: () -> Unit) {
         Bukkit.getScheduler().runTask(NexoPlugin.instance(), task)
     }

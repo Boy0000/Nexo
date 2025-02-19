@@ -21,7 +21,7 @@ object NexoConverter {
 
             runCatching {
                 val furnitureNode = itemNode.node("Mechanics", "furniture").takeUnless { it.virtual() || it.empty() } ?: return@runCatching
-                val lightsNode = furnitureNode.node("Lights").takeUnless { it.virtual() || it.empty() } ?: return@runCatching
+                val lightsNode = furnitureNode.node("lights").takeUnless { it.virtual() || it.empty() } ?: return@runCatching
                 lightsNode.stringListOrNull?.apply {
                     lightsNode.node("lights").set(furnitureNode.removeChildNode("lights"))
                 }
@@ -31,6 +31,9 @@ object NexoConverter {
 
                 if (lightsNode.empty()) furnitureNode.removeChildNode("lights")
 
+                furnitureNode.node("properties", "scale").also {
+                    it.set(it.childrenMap().let { m -> "${m["x"]?.raw() ?: "1.0"},${m["y"]?.raw() ?: "1.0"},${m["z"]?.raw() ?: "1.0"}" })
+                }
             }.onFailure {
                 Logs.logError("Failed to convert $itemId: ${it.message}")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()

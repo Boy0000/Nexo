@@ -34,8 +34,6 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
     private val permutations = linkedMapOf<String, Key>()
 
     init {
-        datapackFile.deleteRecursively()
-
         permutations["quartz"] = Key.key("trims/color_palettes/quartz")
         permutations["iron"] = Key.key("trims/color_palettes/iron")
         permutations["gold"] = Key.key("trims/color_palettes/gold")

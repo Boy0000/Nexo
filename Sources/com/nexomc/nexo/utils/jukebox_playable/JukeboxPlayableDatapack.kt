@@ -6,10 +6,6 @@ import com.nexomc.nexo.utils.logs.Logs
 
 class JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for Custom Music Discs") {
 
-    init {
-        datapackFile.deleteRecursively()
-    }
-
     fun createDatapack() {
         writeMCMeta()
 

@@ -32,7 +32,7 @@ noteblock:
     enabled: true
     # If false, plays for animals stepping/falling on blocks aswell
     # Enable this if you are experiencing lag with noteblock-sounds
-    players_only: false
+    players_only: true
   enabled: true
 stringblock:
     tool_types:
@@ -48,7 +48,7 @@ stringblock:
       enabled: true
       # If false, plays for animals stepping/falling on blocks aswell
       # Enable this if you are experiencing lag with stringblock-sounds
-      players_only: false
+      players_only: true
     enabled: true
 chorusblock:
   tool_types:

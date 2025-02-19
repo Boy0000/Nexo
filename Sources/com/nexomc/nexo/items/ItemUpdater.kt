@@ -144,13 +144,18 @@ class ItemUpdater : Listener {
         fun updateItem(oldItem: ItemStack): ItemStack {
 
             // ItemsAdder does fucky stuff with PDC-entry so we need to use NMS for it
-            NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
+            if (NexoPlugin.instance().converter().itemsadderConverter.convertItems)
+                NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
 
             editItemMeta(oldItem) { itemMeta: ItemMeta ->
                 itemMeta.persistentDataContainer.remove(IF_UUID)
                 itemMeta.persistentDataContainer.remove(MF_GUI)
+                itemMeta.persistentDataContainer.get(NexoItems.ITEM_ID, PersistentDataType.STRING)?.also {
+                    if (it.isEmpty()) itemMeta.persistentDataContainer.remove(NexoItems.ITEM_ID)
+                }
 
-                OraxenConverter.convertOraxenPDCEntries(itemMeta.persistentDataContainer)
+                if (NexoPlugin.instance().converter().oraxenConverter.convertItems)
+                    OraxenConverter.convertOraxenPDCEntries(itemMeta.persistentDataContainer)
             }
 
             val id = NexoItems.idFromItem(oldItem) ?: return oldItem
