@@ -127,7 +127,7 @@ class FurniturePacketListener : Listener {
                 }
             }
 
-            ProtectionLib.canInteract(player, baseEntity.location) && clickedRelativePosition != null ->
+            !isAttack && ProtectionLib.canInteract(player, baseEntity.location) && clickedRelativePosition != null ->
                 NexoFurnitureInteractEvent(mechanic, baseEntity, player, itemStack, hand, interactionPoint).call()
         }
     }

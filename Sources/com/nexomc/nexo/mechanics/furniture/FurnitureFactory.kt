@@ -5,6 +5,7 @@ import com.nexomc.nexo.converter.ItemsAdderConverterListener
 import com.nexomc.nexo.converter.OraxenConverterListener
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.mechanics.furniture.compatibility.ModelEngineCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
@@ -43,6 +44,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
         if (PluginUtils.isSpartanEnabled) registerListeners(SpartanCompatibility())
         if (PluginUtils.isVulcanEnabled) registerListeners(VulcanCompatibility())
+        if (PluginUtils.isModelEngineEnabled) registerListeners(ModelEngineCompatibility())
 
         if (NexoPlugin.instance().converter().oraxenConverter.convertFurnitureOnLoad)
             registerListeners(OraxenConverterListener())

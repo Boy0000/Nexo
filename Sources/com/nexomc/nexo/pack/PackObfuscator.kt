@@ -179,6 +179,7 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
 
     private fun obfuscateSounds() {
         resourcePack.sounds().map { sound ->
+            if (sound.key() in DefaultResourcePackExtractor.vanillaSounds) return@map sound
             Sound.sound(sound.key().obfuscateKey(), sound.data()).also {
                 obfuscatedSounds += ObfuscatedSound(sound, it)
             }
