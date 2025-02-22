@@ -22,7 +22,7 @@ object JsonBuilder {
     fun JsonObject.array(key: String): JsonArray? = runCatching { this.getAsJsonArray(key) }.getOrNull()
     fun JsonArray.objects(): List<JsonObject> = this.asJsonArray.asList().filterIsInstance<JsonObject>()
 
-    fun JsonObject.plus(string: String, any: Any) = apply {
+    fun JsonObject.plus(string: String, any: Any?) = apply {
         when (any) {
             is Boolean -> addProperty(string, any)
             is Number -> addProperty(string, any)

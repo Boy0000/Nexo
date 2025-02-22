@@ -2,6 +2,7 @@ package com.nexomc.nexo.utils
 
 import com.google.gson.JsonObject
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
@@ -9,16 +10,11 @@ import org.bukkit.Bukkit
 open class NexoDatapack(key: String, description: String) {
 
     val defaultWorld = Bukkit.getWorlds().first()
-    val isFirstInstall: Boolean get() = Bukkit.getDatapackManager().packs.map { it.name }.none(datapackName::equals)
-    val datapackEnabled: Boolean get() = Bukkit.getDatapackManager().getPack(datapackName)?.isEnabled ?: false
-    private val datapackMeta = JsonObject().apply {
-        add("pack", JsonObject().apply {
-            addProperty("pack_format", NMSHandlers.handler().datapackFormat())
-            addProperty("description", description)
-        })
-    }
     val datapackName = "file/$key"
     val datapackFile = defaultWorld.worldFolder.resolve("datapacks/$key")
+    val isFirstInstall: Boolean get() = Bukkit.getDatapackManager().packs.map { it.name }.none(datapackName::equals)
+    val datapackEnabled: Boolean get() = Bukkit.getDatapackManager().packs.find { it.name == datapackName }?.isEnabled ?: false
+    private val datapackMeta = JsonBuilder.jsonObject.plus("pack", JsonBuilder.jsonObject.plus("description", description).plus("pack_format", NMSHandlers.handler().datapackFormat()))
 
     init {
         datapackFile.resolve("data").deleteRecursively()

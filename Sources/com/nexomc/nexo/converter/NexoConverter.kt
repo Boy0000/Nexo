@@ -31,8 +31,9 @@ object NexoConverter {
 
                 if (lightsNode.empty()) furnitureNode.removeChildNode("lights")
 
-                furnitureNode.node("properties", "scale").also {
-                    it.set(it.childrenMap().let { m -> "${m["x"]?.raw() ?: "1.0"},${m["y"]?.raw() ?: "1.0"},${m["z"]?.raw() ?: "1.0"}" })
+                furnitureNode.node("properties", "scale").takeIf { it.isMap }?.ifExists {
+                    val default = if (furnitureNode.node("properties", "display_transform").getString("NONE") == "FIXED") "1.0" else "0.5"
+                    it.set(it.childrenMap().let { m -> "${m["x"]?.raw() ?: default},${m["y"]?.raw() ?: default},${m["z"]?.raw() ?: default}" })
                 }
             }.onFailure {
                 Logs.logError("Failed to convert $itemId: ${it.message}")

@@ -2,6 +2,8 @@ package com.nexomc.nexo.utils.jukebox_playable
 
 import com.google.gson.JsonObject
 import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.JsonBuilder
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.configuration.ConfigurationSection
@@ -31,15 +33,8 @@ class JukeboxPlayable(
         soundId
     )
 
-    val jukeboxJson = JsonObject().apply {
-        add("sound_event", JsonObject().apply {
-            addProperty("sound_id", soundId.asString())
-            range?.also { addProperty("range", it) }
-        })
-        add("description", JsonObject().apply {
-            addProperty("text", AdventureUtils.LEGACY_SERIALIZER.serialize(description))
-        })
-        addProperty("length_in_seconds", lengthInSeconds.coerceAtLeast(1f))
-        addProperty("comparator_output", comparatorOutput.coerceIn(0..15))
-    }.toString()
+    val jukeboxJson = JsonBuilder.jsonObject
+        .plus("sound_event", JsonBuilder.jsonObject.plus("sound_id", soundId.asString()).plus("range", range))
+        .plus("description", JsonBuilder.jsonObject.plus("text", AdventureUtils.LEGACY_SERIALIZER.serialize(description)))
+        .plus("length_in_seconds", lengthInSeconds).plus("comparator_output", comparatorOutput.coerceIn(0..15))
 }

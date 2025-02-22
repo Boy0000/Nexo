@@ -4,6 +4,8 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.JsonBuilder
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import org.bukkit.NamespacedKey
@@ -25,18 +27,9 @@ object ComponentCustomArmor {
 
     private fun writeArmorModels(resourcePack: ResourcePack, armorPrefixes: Set<String>) {
         armorPrefixes.forEach { armorprefix ->
-            val armorModelArray = JsonArray().apply {
-                add(JsonObject().apply {
-                    addProperty("texture", "nexo:$armorprefix")
-                })
-            }
-
-            val equipmentModel = JsonObject().apply {
-                add("layers", JsonObject().apply {
-                    add("humanoid", armorModelArray)
-                    add("humanoid_leggings", armorModelArray)
-                })
-            }
+            val armorModelArray = JsonBuilder.jsonArray.plus(JsonBuilder.jsonObject.plus("texture", "nexo:$armorprefix"))
+            val layers = JsonBuilder.jsonObject.plus("humanoid", armorModelArray).plus("humanoid_leggings", armorModelArray)
+            val equipmentModel = JsonBuilder.jsonObject.plus("layers", layers)
 
             for (path in setOf("assets/nexo/models/equipment/$armorprefix.json", "assets/nexo/equipment/$armorprefix.json")) {
                 if (path in resourcePack.unknownFiles()) return@forEach

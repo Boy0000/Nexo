@@ -19,10 +19,7 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
-import net.kyori.adventure.text.TextReplacementConfig
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
@@ -194,11 +191,11 @@ class FontListener(private val manager: FontManager) : Listener {
         // If so retain the displayName of inputItem. This also fixes enchantments breaking names
         // If the displayName is null, reset it to the "original" name
         val strippedDownInputDisplay = AdventureUtils.MINI_MESSAGE.stripTags(parseLegacy(inputItem!!.itemMeta.displayName))
-        if ((displayName.isNullOrEmpty() && NexoItems.exists(inputItem)) || strippedDownInputDisplay == displayName) {
+        if (VersionUtil.below("1.20.5") && ((displayName.isNullOrEmpty() && NexoItems.exists(inputItem)) || strippedDownInputDisplay == displayName)) {
             displayName = inputItem.itemMeta.persistentDataContainer.get(ItemBuilder.ORIGINAL_NAME_KEY, PersistentDataType.STRING)
         }
 
-        displayName(resultItem, if (displayName != null) AdventureUtils.MINI_MESSAGE.deserialize(displayName!!) else null)
+        displayName(resultItem, displayName?.deserialize())
     }
 
     @EventHandler

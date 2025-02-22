@@ -93,9 +93,12 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
             }
         }
 
+        // If using a parent-model with display-properties, use instead of getting defaults
+        val display = resourcePack.model(nexoMeta.parentModel)?.display()?.takeUnless { it.isEmpty() } ?: DisplayProperties.fromMaterial(material)
+
         return Model.model()
             .key(nexoMeta.model ?: return null)
-            .display(DisplayProperties.fromMaterial(material))
+            .display(display)
             .parent(nexoMeta.parentModel)
             .textures(textures.build())
             .build()

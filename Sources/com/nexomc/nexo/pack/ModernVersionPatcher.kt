@@ -195,15 +195,16 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
             .plus("property", "minecraft:custom_model_data")
             .plus("entries", pullingOverrides.entries.mapNotNull { (cmd, overrides) ->
                 val pullOverrides = overrides.filter { it.predicate().pull != null }.sortedBy { it.predicate().pull }
-                val fallback = pullOverrides.firstOrNull()?.model()?.asString() ?: overrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
-                val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
+                val pullFallback = pullOverrides.firstOrNull()?.model()?.asString() ?: overrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
+                val pullFallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", pullFallback)
 
+                val fallback = overrides.find { it.predicate().pull == null }?.model()?.asString()
+                val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
                 val fireworkObject = overrides.firstOrNull { it.predicate().firework != null }?.model()?.asString()?.let {
                     JsonBuilder.jsonObject
                         .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
                         .plus("when", "rocket")
                 }
-
                 val chargedObject = overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
                     JsonBuilder.jsonObject
                         .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
@@ -228,7 +229,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                                 JsonBuilder.jsonObject
                                     .plus("type", "minecraft:range_dispatch")
                                     .plus("property", "minecraft:crossbow/pull")
-                                    .plus("fallback", fallbackObject)
+                                    .plus("fallback", pullFallbackObject)
                                     .plus("entries", pullOverrides.mapNotNull pull@{ pull ->
                                         val model = pull.model().asString()
                                         val modelObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", model)

@@ -17,6 +17,7 @@ import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.ItemUtils.itemName
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -282,15 +283,7 @@ class ItemUpdater : Listener {
                 // On 1.20.5+ we use ItemName which is different from userchanged displaynames
                 // Thus removing the need for this logic
                 if (VersionUtil.below("1.20.5")) {
-                    val oldDisplayName = when {
-                        oldMeta.hasDisplayName() -> AdventureUtils.parseLegacy(
-                            when {
-                                VersionUtil.isPaperServer -> AdventureUtils.MINI_MESSAGE.serialize(oldMeta.displayName()!!)
-                                else -> AdventureUtils.parseLegacy(oldMeta.displayName)
-                            }
-                        )
-                        else -> null
-                    }
+                    val oldDisplayName = oldMeta.displayName()?.let { AdventureUtils.parseLegacy(it.serialize()) }
                     val originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ItemBuilder.ORIGINAL_NAME_KEY, DataType.STRING, ""))
 
                     when {

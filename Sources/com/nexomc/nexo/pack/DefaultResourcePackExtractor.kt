@@ -8,6 +8,8 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.FileUtils
+import com.nexomc.nexo.utils.JsonBuilder
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.MinecraftVersion
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
@@ -100,10 +102,7 @@ object DefaultResourcePackExtractor {
             sounds.add(soundKey.asString())
         }
 
-        val soundObject = JsonObject()
-        soundObject.add("sounds", sounds)
-
-        zipPath.resolveSibling("vanilla-sounds.json").writeText(soundObject.toString())
+        zipPath.resolveSibling("vanilla-sounds.json").writeText(JsonBuilder.jsonObject.plus("sounds", sounds).toString())
     }
 
     private fun assetIndex(versionInfo: JsonObject): JsonObject? {
