@@ -1,6 +1,8 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.nexomc.nexo.api.NexoBlocks
+import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
 import com.nexomc.nexo.mechanics.storage.StorageType
@@ -105,6 +107,17 @@ class NoteBlockMechanicListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPistonRetractEvent.onPistonPull() {
         blocks.map { it.getRelative(direction).location }.forEach(NoteMechanicHelpers::checkNoteBlockAbove)
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    fun EntityRemoveFromWorldEvent.onFallingBlockLandOnCarpet() {
+        val fallingBlock = (entity as? FallingBlock)?.takeIf { it.persistentDataContainer.has(NoteBlockMechanic.FALLING_KEY) } ?: return
+        val mechanic = NexoBlocks.noteBlockMechanic(fallingBlock.blockData)?.let { it.directional?.parentMechanic ?: it }?.takeIf { it.isFalling() } ?: return
+        if (NexoBlocks.customBlockMechanic(fallingBlock.location) == mechanic) return
+
+        val itemStack = NexoItems.itemFromId(mechanic.itemID)!!.build()
+        fallingBlock.dropItem = false
+        fallingBlock.world.dropItemNaturally(fallingBlock.location.toCenterLocation().subtract(0.0, 0.25, 0.0), itemStack)
     }
 
     companion object {

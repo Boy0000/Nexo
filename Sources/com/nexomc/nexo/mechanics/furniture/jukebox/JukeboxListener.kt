@@ -6,13 +6,10 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.ItemUtils.isMusicDisc
-import com.nexomc.nexo.utils.VersionUtil
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.utils.BlockHelpers
-import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.*
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import org.bukkit.GameMode
@@ -34,13 +31,13 @@ class JukeboxListener : Listener {
         player.swingMainHand()
 
         when {
-            itemStack.itemMeta?.hasLore() == true -> itemStack.itemMeta.getLore()?.get(0)
-            NexoItems.exists(itemStack) && itemStack.itemMeta?.hasDisplayName() == true -> itemStack.itemMeta.getDisplayName()
+            itemStack.itemMeta?.hasLore() == true -> itemStack.itemMeta.lore()?.firstOrNull()
+            NexoItems.exists(itemStack) && itemStack.itemMeta?.hasDisplayName() == true -> itemStack.itemMeta.displayName()
             else -> null
         }?.let {
             val message = AdventureUtils.MINI_MESSAGE.deserialize(
                 Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
-                tagResolver("disc", it)
+                tagResolver("disc", it.serialize())
             )
             NexoPlugin.instance().audience().player(player).sendActionBar(message)
         }
@@ -61,7 +58,7 @@ class JukeboxListener : Listener {
     }
 
     private fun insertAndPlayDisc(baseEntity: Entity, disc: ItemStack, player: Player?): Boolean {
-        val loc = BlockHelpers.toCenterLocation(baseEntity.location)
+        val loc = baseEntity.location.toCenterLocation()
         val pdc = baseEntity.persistentDataContainer
         val insertedDisc = disc.clone()
         val jukebox = NexoFurniture.furnitureMechanic(baseEntity)?.jukebox?.takeIf { it.hasPermission(player) } ?: return false
@@ -79,7 +76,7 @@ class JukeboxListener : Listener {
         val item = pdc.get(JukeboxBlock.MUSIC_DISC_KEY, DataType.ITEM_STACK) ?: return false
         val furnitureMechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return false
         val jukebox = furnitureMechanic.jukebox?.takeIf { it.hasPermission(player) } ?: return false
-        val loc = BlockHelpers.toCenterLocation(baseEntity.location)
+        val loc = baseEntity.location.toCenterLocation()
         val songKey = songFromDisc(item)
 
         if (!pdc.has(JukeboxBlock.MUSIC_DISC_KEY, DataType.ITEM_STACK) || !isMusicDisc(item)) return false

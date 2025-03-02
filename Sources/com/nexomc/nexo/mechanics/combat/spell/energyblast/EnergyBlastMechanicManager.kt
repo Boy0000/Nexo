@@ -1,8 +1,10 @@
 package com.nexomc.nexo.mechanics.combat.spell.energyblast
 
+import com.google.common.base.Function
+import com.google.common.base.Functions
+import com.google.common.collect.ImmutableMap
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.BlockHelpers
-import com.nexomc.nexo.utils.EventUtils.EntityDamageByEntityEvent
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisX
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisY
@@ -10,6 +12,7 @@ import com.nexomc.nexo.utils.wrappers.ParticleWrapper
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Location
 import org.bukkit.World
+import org.bukkit.damage.DamageSource
 import org.bukkit.damage.DamageType
 import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
@@ -19,10 +22,12 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
+import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Vector
+import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -96,14 +101,14 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
                     for (entity: Entity in playerLoc.getWorld()
                         .getNearbyEntities(playerLoc, 0.5, 0.5, 0.5)) if (entity is LivingEntity && entity !== player) {
                         val event = EntityDamageByEntityEvent(
-                            player,
-                            entity,
-                            EntityDamageEvent.DamageCause.MAGIC,
-                            DamageType.MAGIC,
-                            mechanic.damage * 3.0
+                            player, entity, EntityDamageEvent.DamageCause.MAGIC,
+                            DamageSource.builder(DamageType.MAGIC).withCausingEntity(player).withDirectEntity(player).build(),
+                            EnumMap(ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, mechanic.damage * 3.0)),
+                            EnumMap<EntityDamageEvent.DamageModifier, Function<in Double, Double>>(
+                                ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
+                            ), false
                         )
                         if (entity.isDead() || event.call()) continue
-                        entity.setLastDamageCause(event)
                         entity.damage(mechanic.damage * 3.0, player)
                     }
                     this.cancel()
@@ -114,15 +119,15 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
                 playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius)
                     .filterIsInstance<LivingEntity>().forEach { entity ->
                     if (entity === player) return@forEach
-                    val event = EntityDamageByEntityEvent(
-                        player,
-                        entity,
-                        EntityDamageEvent.DamageCause.MAGIC,
-                        DamageType.MAGIC,
-                        mechanic.damage
-                    )
+                        val event = EntityDamageByEntityEvent(
+                            player, entity, EntityDamageEvent.DamageCause.MAGIC,
+                            DamageSource.builder(DamageType.MAGIC).withCausingEntity(player).withDirectEntity(player).build(),
+                            EnumMap(ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, mechanic.damage)),
+                            EnumMap<EntityDamageEvent.DamageModifier, Function<in Double, Double>>(
+                                ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
+                            ), false
+                        )
                     if (entity.isDead || !event.call()) return@forEach
-                        entity.lastDamageCause = event
                     entity.damage(mechanic.damage, player)
                 }
             }
@@ -130,22 +135,14 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
     }
 
     private fun spawnParticle(world: World, location: Location, mechanic: EnergyBlastMechanic) {
-        if (mechanic.particle == ParticleWrapper.DUST) world.spawnParticle(
-            ParticleWrapper.DUST,
-            location,
-            1,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            mechanic.particleColor
-        )
+        if (mechanic.particle == ParticleWrapper.DUST)
+            world.spawnParticle(mechanic.particle, location, 1, 0.0, 0.0, 0.0, 0.0, mechanic.particleColor)
         else world.spawnParticle(mechanic.particle, location, 1, 0.0, 0.0, 0.0, 0.0)
     }
 
     private fun spawnParticle(
         world: World, location: Location, mechanic: EnergyBlastMechanic, amount: Int, offsetX: Double,
-        offsetY: Double, offsetZ: Double, extra: Double
+        offsetY: Double, offsetZ: Double, extra: Double,
     ) {
         if (mechanic.particle == ParticleWrapper.DUST) world.spawnParticle(
             ParticleWrapper.DUST, location.x, location.y, location.z,

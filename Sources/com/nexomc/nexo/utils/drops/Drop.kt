@@ -6,7 +6,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
+import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
@@ -59,12 +59,22 @@ class Drop(
     }
 
     fun isToolEnough(itemInHand: ItemStack?): Boolean {
+        Logs.logInfo("1")
         if (!bestTool.isNullOrEmpty()) {
+            Logs.logInfo("2")
             val itemID = NexoItems.idFromItem(itemInHand)
+            Logs.logInfo("3")
             val type = (itemInHand?.type ?: Material.AIR).name
+            Logs.logInfo("4")
             return when (bestTool) {
-                itemID, type -> true
-                else -> type.endsWith("_${bestTool!!.uppercase()}")
+                itemID, type -> {
+                    Logs.logInfo("5")
+                    true
+                }
+                else -> {
+                    Logs.logInfo("6")
+                    type.endsWith("_${bestTool!!.uppercase()}")
+                }
             }
         } else return true
     }
@@ -89,18 +99,18 @@ class Drop(
         val baseItem = NexoItems.itemFromId(sourceID)?.build()
 
         if (baseItem != null && isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true) {
-            location.world.dropItemNaturally(toCenterLocation(location), baseItem)
+            location.world.dropItemNaturally(location.toCenterLocation(), baseItem)
             return listOf(DroppedLoot(Loot(sourceID, baseItem, 1.0, IntRange(1, 1)), 1))
-        } else return dropLoot(loots, toCenterLocation(location), fortuneMultiplier(itemInHand))
+        } else return dropLoot(loots, location.toCenterLocation(), fortuneMultiplier(itemInHand))
     }
 
     fun furnitureSpawns(baseEntity: ItemDisplay, itemInHand: ItemStack) {
         val baseItem = NexoItems.itemFromId(sourceID)?.build()
-        val location = toCenterLocation(baseEntity.location).takeIf { it.isWorldLoaded } ?: return
+        val location = baseEntity.location.toCenterLocation().takeIf { it.isWorldLoaded } ?: return
         val furnitureItem = FurnitureHelpers.furnitureItem(baseEntity) ?: NexoItems.itemFromId(sourceID)?.build() ?: return
-        ItemUtils.editItemMeta(furnitureItem) { itemMeta: ItemMeta ->
-            baseItem?.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { ItemUtils.displayName(itemMeta, it) }
-            baseEntity.persistentDataContainer.get(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING)?.also { ItemUtils.displayName(itemMeta, it.deserialize()) }
+        furnitureItem.editMeta { itemMeta: ItemMeta ->
+            baseItem?.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { itemMeta.displayName(it.displayName()) }
+            baseEntity.persistentDataContainer.get(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING)?.also { itemMeta.displayName(it.deserialize()) }
         }
 
         if (!canDrop(itemInHand)) return

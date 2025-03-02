@@ -24,7 +24,7 @@ object RecipesManager {
             Bukkit.recipeIterator().forEachRemaining recipes@{
                 Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes)
             }
-            if (VersionUtil.isPaperServer) Bukkit.getServer().potionBrewer.resetPotionMixes()
+            Bukkit.getServer().potionBrewer.resetPotionMixes()
         }
 
         Bukkit.getPluginManager().registerEvents(RecipeBuilderEvents(), plugin)
@@ -57,7 +57,7 @@ object RecipesManager {
         }
         registerAllConfigRecipesFromFolder(recipesFolder)
         RecipeEventManager.instance().registerEvents()
-        if (VersionUtil.isPaperServer) Bukkit.getServer().updateRecipes()
+        Bukkit.getServer().updateRecipes()
     }
 
     private fun registerAllConfigRecipesFromFolder(recipesFolder: File) {
@@ -79,10 +79,7 @@ object RecipesManager {
                 "blasting.yml" -> BlastingLoader(recipeSection).registerRecipe()
                 "smoking.yml" -> SmokingLoader(recipeSection).registerRecipe()
                 "stonecutting.yml" -> StonecuttingLoader(recipeSection).registerRecipe()
-                "brewing.yml" -> when {
-                    VersionUtil.isPaperServer -> BrewingLoader(recipeSection).registerRecipe()
-                    else -> Logs.logError("BrewingStand recipes are only for Paper-Servers")
-                }
+                "brewing.yml" -> BrewingLoader(recipeSection).registerRecipe()
             }
         }.onFailure {
             Message.BAD_RECIPE.log(tagResolver("recipe", recipeSection.name))

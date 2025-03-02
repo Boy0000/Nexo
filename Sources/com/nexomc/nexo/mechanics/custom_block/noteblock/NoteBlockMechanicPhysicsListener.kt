@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
+import com.nexomc.nexo.utils.SchedulerUtils
 import org.bukkit.Bukkit
 import org.bukkit.GameEvent
 import org.bukkit.Material
@@ -51,7 +52,7 @@ class NoteBlockMechanicPhysicsListener : Listener {
 
         if (!isLoaded(location) || !isLoaded(block.location) || event !== GameEvent.NOTE_BLOCK_PLAY) return
 
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Runnable { block.setBlockData(data, false) }, 1L)
+        SchedulerUtils.foliaScheduler.runAtLocationLater(location, Runnable { block.setBlockData(data, false) }, 1L)
     }
 
     private fun updateBlockAbove(block: Block) {

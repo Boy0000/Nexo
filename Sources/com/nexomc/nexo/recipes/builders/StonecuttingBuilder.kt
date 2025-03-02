@@ -1,14 +1,14 @@
 package com.nexomc.nexo.recipes.builders
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-class StonecuttingBuilder(player: Player) :
-    RecipeBuilder(player, "stonecutting") {
-    override fun createInventory(player: Player?, inventoryTitle: String): Inventory {
-        return Bukkit.createInventory(player, InventoryType.WORKBENCH, "<glyph:recipe_stonecutter>")
+class StonecuttingBuilder(player: Player) : RecipeBuilder(player, Component.text("stonecutting")) {
+    override fun createInventory(player: Player?, inventoryTitle: Component): Inventory {
+        return Bukkit.createInventory(player, InventoryType.WORKBENCH, inventoryTitle)
     }
 
     override fun saveRecipe(name: String, permission: String?) {

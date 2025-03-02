@@ -33,14 +33,14 @@ class StringBlockMechanicPhysicsListener : Listener {
             if (changed.type != Material.TRIPWIRE) return@forEach
 
             val data = changed.blockData.clone()
-            Bukkit.getScheduler().runTaskLater(
-                NexoPlugin.instance(), Consumer { changed.setBlockData(data, false) }, 1L
+            SchedulerUtils.foliaScheduler.runAtLocationLater(
+                changed.location, Consumer { changed.setBlockData(data, false) }, 1L
             )
         }
 
         // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
         val blockData = block.blockData.clone()
-        Bukkit.getScheduler().runTaskLater(NexoPlugin.instance(), Consumer {
+        SchedulerUtils.foliaScheduler.runAtLocationLater(block.location, Consumer {
             if (block.type.isAir()) return@Consumer
             block.setBlockData(blockData, false)
         }, 1L)
@@ -70,9 +70,9 @@ class StringBlockMechanicPhysicsListener : Listener {
             if (player.gameMode != GameMode.CREATIVE) block.breakNaturally(player.inventory.itemInMainHand, true)
             else block.type = Material.AIR
             if (BlockHelpers.isReplaceable(blockAbove.type)) blockAbove.breakNaturally(true)
-            SchedulerUtils.runTaskLater(1L) {
-                StringMechanicHelpers.fixClientsideUpdate(block.location)
-            }
+            SchedulerUtils.foliaScheduler.runAtLocationLater(
+                block.location, Consumer { StringMechanicHelpers.fixClientsideUpdate(block.location) }, 1
+            )
         }
     }
 }

@@ -1,15 +1,17 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
-import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.*
@@ -25,11 +27,10 @@ import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
-import org.bukkit.scheduler.BukkitTask
 
 class FurnitureSoundListener : Listener {
     companion object {
-        val breakerPlaySound = Object2ObjectOpenHashMap<Location, BukkitTask>()
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, WrappedTask>()
     }
 
     @EventHandler
@@ -81,11 +82,17 @@ class FurnitureSoundListener : Listener {
         val soundGroup = block.blockData.soundGroup
 
         if (instaBreak || block.type == Material.BARRIER || soundGroup.hitSound != Sound.BLOCK_STONE_HIT) return
-        if (breakerPlaySound.containsKey(location)) return
+        if (location in breakerPlaySound) return
 
-        breakerPlaySound[location] = SchedulerUtils.runTaskTimer(2L, 4L) {
-            BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
-        }
+        breakerPlaySound[location] = SchedulerUtils.foliaScheduler.runAtLocationTimer(location, Runnable {
+                BlockHelpers.playCustomBlockSound(
+                    location,
+                    BlockSounds.VANILLA_STONE_HIT,
+                    BlockSounds.VANILLA_HIT_VOLUME,
+                    BlockSounds.VANILLA_HIT_PITCH
+                )
+            }, 2L, 4L
+        )
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -105,6 +112,7 @@ class FurnitureSoundListener : Listener {
         if (blockStandingOn.type == Material.TRIPWIRE) return
         val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location)
         if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
+        if (!IFurniturePacketManager.blockIsHitbox(blockStandingOn)) return
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

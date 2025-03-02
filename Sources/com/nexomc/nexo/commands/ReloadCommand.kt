@@ -27,6 +27,7 @@ import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import dev.jorel.commandapi.kotlindsl.textArgument
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.ItemDisplay
@@ -88,7 +89,16 @@ object ReloadCommand {
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...")
-            SchedulerUtils.runTaskAsync {
+            Bukkit.getServer().onlinePlayers.asSequence().associateWith(Player::getInventory).forEach { (player, inventory) ->
+                SchedulerUtils.foliaScheduler.runAtEntity(player) {
+                    for (i in 0..inventory.size) {
+                        val oldItem = inventory.getItem(i) ?: continue
+                        val newItem = ItemUpdater.updateItem(oldItem).takeUnless { it == oldItem } ?: continue
+                        inventory.setItem(i, newItem)
+                    }
+                }
+            }
+            /*SchedulerUtils.runTaskAsync {
                 Bukkit.getServer().onlinePlayers.forEach { player ->
                     val updates = ObjectArrayList<Pair<Int, ItemStack>>()
 
@@ -104,12 +114,13 @@ object ReloadCommand {
                         }
                     }
                 }
-            }
+            }*/
         }
 
         Logs.logInfo("Updating all placed furniture...")
-        for (baseEntity in Bukkit.getWorlds().flatMapFast { it.getEntitiesByClass(ItemDisplay::class.java) })
-            NexoFurniture.updateFurniture(baseEntity)
+        SchedulerUtils.runAtWorldEntities { entity ->
+            (entity as? ItemDisplay)?.let(NexoFurniture::updateFurniture)
+        }
     }
 
     @JvmOverloads

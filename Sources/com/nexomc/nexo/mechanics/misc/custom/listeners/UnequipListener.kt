@@ -9,10 +9,10 @@ import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 
-class UnequipListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction) : CustomListener(itemID, cooldown, event, clickAction, true) {
+class UnequipListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction) : CustomListener(itemID, cooldown, event, clickAction) {
 
     override fun register() {
-        if (VersionUtil.isPaperServer) Bukkit.getPluginManager().registerEvents(this, NexoPlugin.instance())
+        Bukkit.getPluginManager().registerEvents(this, NexoPlugin.instance())
     }
 
     @EventHandler

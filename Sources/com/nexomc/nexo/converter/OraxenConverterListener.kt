@@ -7,6 +7,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.*
@@ -25,10 +26,8 @@ class OraxenConverterListener : Listener {
 
     init {
         // Handles already loaded spawn-chunks
-        SchedulerUtils.callSyncMethod {
-            Bukkit.getWorlds().flatMapFast { it.entities }.forEach { entity ->
-                entity.convertFurniture()
-            }
+        SchedulerUtils.runAtWorldEntities { entity ->
+            entity.convertFurniture()
         }
     }
 

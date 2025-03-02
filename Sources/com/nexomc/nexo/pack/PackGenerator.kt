@@ -19,7 +19,6 @@ import com.nexomc.nexo.pack.creative.NexoPackWriter
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.customarmor.ComponentCustomArmor
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType.Companion.setting
@@ -34,7 +33,6 @@ import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
-import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.font.TrueTypeFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundEvent
@@ -54,6 +52,7 @@ class PackGenerator {
     private val componentCustomArmor: ComponentCustomArmor?
     private val modelGenerator: ModelGenerator
     var packGenFuture: CompletableFuture<Void>? = null
+        private set
 
     fun generatePack() {
         stopPackGeneration()
@@ -129,17 +128,24 @@ class PackGenerator {
                 sortModelOverrides()
 
                 runCatching {
-                    resourcePack = Bukkit.getScheduler().callSyncMethod(NexoPlugin.instance()) {
-                        NexoPostPackGenerateEvent(resourcePack).also { it.call() }.resourcePack
+                    SchedulerUtils.foliaScheduler.runNextTick {
+                        resourcePack = NexoPostPackGenerateEvent(resourcePack).also { it.call() }.resourcePack
                     }.get(4L, TimeUnit.SECONDS)
                 }
 
                 packValidator.validatePack()
-                packObfuscator.obfuscatePack()
-                ModernVersionPatcher(resourcePack).patchPack()
                 if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.handler().resourcepackFormat(), "Nexo's default pack.")
+                removeStandardItemModels()
+                ModernVersionPatcher(resourcePack).patchPack()
 
-                SchedulerUtils.runTaskAsync {
+                val initialHash = packWriter.build(resourcePack).hash().takeIf {
+                    !packObfuscator.obfuscationType.isNone || Settings.PACK_USE_PACKSQUASH.toBool()
+                } ?: ""
+
+                resourcePack = packObfuscator.obfuscatePack(initialHash)
+                resourcePack = NexoPackSquash.squashPack(resourcePack, initialHash)
+
+                SchedulerUtils.foliaScheduler.runAsync {
                     val packZip = NexoPlugin.instance().dataFolder.resolve("pack", "pack.zip")
                     if (Settings.PACK_GENERATE_ZIP.toBool()) packWriter.writeToZipFile(packZip, resourcePack)
                 }
@@ -153,11 +159,23 @@ class PackGenerator {
             Logs.logSuccess("Finished generating resourcepack!", true)
             val packServer = NexoPlugin.instance().packServer()
             packServer.uploadPack().thenRun {
-                SchedulerUtils.callSyncMethod {
+                SchedulerUtils.foliaScheduler.runNextTick {
                     NexoPackUploadEvent(builtPack!!.hash(), packServer.packUrl()).call()
                 }
                 if (Settings.PACK_SEND_RELOAD.toBool()) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
             }
+        }
+    }
+
+    private fun removeStandardItemModels() {
+        // Remove standard ItemModel files as they are no longer needed
+        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
+            runCatching {
+                val itemModelObject = writable.toJsonObject() ?: return@forEach
+                if (!ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
+
+                resourcePack.removeUnknownFile(key)
+            }.printOnFailure(true)
         }
     }
 
@@ -237,13 +255,12 @@ class PackGenerator {
     }
 
     private fun importRequiredPack() {
-        val requiredPack = externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return
-
         runCatching {
-            NexoPack.mergePack(resourcePack, packReader.readFile(requiredPack).apply {
-                if (VersionUtil.atleast("1.21.4"))
-                    unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.keys.forEach(::removeUnknownFile)
-            })
+            val requiredPack = packReader.readFile(externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return)
+            if (VersionUtil.atleast("1.21.4")) requiredPack.unknownFiles().keys.filter { it.startsWith("assets/minecraft/items/") }.forEach {
+                requiredPack.removeUnknownFile(it)
+            }
+            NexoPack.mergePack(resourcePack, requiredPack)
         }.onFailure {
             if (!Settings.DEBUG.toBool()) Logs.logError(it.message!!)
             else it.printStackTrace()
@@ -267,10 +284,9 @@ class PackGenerator {
     private fun importExternalPacks() {
         val externalPacks = externalPacks.listFiles() ?: return
         val externalOrder = Settings.PACK_IMPORT_EXTERNAL_PACK_ORDER.toStringList()
-        externalPacks.sortedWith(Comparator.comparingInt { f: File ->
-            val index = externalOrder.indexOf(f.name)
-            if (index == -1) Int.MAX_VALUE else index
-        }.thenComparing(File::getName)).asSequence().filterNotNull().filter { !it.name.matches(defaultRegex) }.forEach {
+        externalPacks.sortedWith(Comparator.comparingInt<File> {
+            externalOrder.indexOf(it.name).takeIf { it != -1 } ?: Int.MAX_VALUE
+        }.thenComparing(File::getName)).asSequence().filter { !it.name.matches(defaultRegex) }.forEach {
                 if (it.isDirectory || it.name.endsWith(".zip")) {
                     Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
                     runCatching {
@@ -372,6 +388,7 @@ class PackGenerator {
         private val assetsFolder = NexoPlugin.instance().dataFolder.resolve("pack/assets")
         fun stopPackGeneration() {
             runCatching {
+                NexoPackSquash.stopPackSquash()
                 NexoPlugin.instance().packGenerator().let {
                     it.packGenFuture?.also { future ->
                         if (future.isDone) return@also

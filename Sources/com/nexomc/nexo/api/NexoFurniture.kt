@@ -1,5 +1,6 @@
 package com.nexomc.nexo.api
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.*
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
@@ -34,7 +35,7 @@ object NexoFurniture {
      */
     @JvmStatic
     fun isFurniture(location: Location): Boolean {
-        val blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(location), 0.5, 0.5, 0.5)
+        val blockBox = BoundingBox.of(location.toCenterLocation(), 0.5, 0.5, 0.5)
         return (furnitureMechanic(location) != null) || location.getWorld().getNearbyEntities(blockBox).any(::isFurniture)
     }
 
@@ -114,7 +115,7 @@ object NexoFurniture {
         if (player != null) {
             if (player.gameMode != GameMode.CREATIVE) (drop ?: mechanic.breakable.drop).furnitureSpawns(baseEntity, itemStack)
             mechanic.storage?.takeIf { it.isStorage || it.isShulker }?.dropStorageContent(mechanic, baseEntity)
-            if (VersionUtil.isPaperServer) baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
+            baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
         }
 
         mechanic.removeBaseEntity(baseEntity)
@@ -141,7 +142,7 @@ object NexoFurniture {
             val itemStack = player.inventory.itemInMainHand
             if (player.gameMode != GameMode.CREATIVE) (drop ?: mechanic.breakable.drop).furnitureSpawns(baseEntity, itemStack)
             mechanic.storage?.takeIf { it.isStorage || it.isShulker }?.dropStorageContent(mechanic, baseEntity)
-            if (VersionUtil.isPaperServer) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
+            baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
         }
 
         // Check if the mechanic or the baseEntity has barriers tied to it
@@ -225,7 +226,7 @@ object NexoFurniture {
         packetManager.removeShulkerHitboxPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
-        SchedulerUtils.runTaskLater(2L) {
+        SchedulerUtils.foliaScheduler.runAtEntity(baseEntity) {
             packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
             packetManager.sendShulkerEntityPacket(baseEntity, mechanic)

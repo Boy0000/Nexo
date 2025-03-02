@@ -2,23 +2,38 @@ package com.nexomc.nexo.mechanics.breakable
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.breaker.ToolTypeSpeedModifier
 import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.drops.Loot
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.registry.RegistryAccess
+import io.papermc.paper.registry.RegistryKey
+import io.papermc.paper.registry.TypedKey
+import io.papermc.paper.registry.keys.BlockTypeKeys
+import io.papermc.paper.registry.tag.TagKey
+import org.bukkit.Material
+import org.bukkit.Registry
+import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeInstance
+import org.bukkit.block.BlockType
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.ceil
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
 class BreakableMechanic(section: ConfigurationSection) {
     val hardness: Double = section.getInt("hardness", 1).toDouble()
+    //val treatAs: Material = section.getString("treat_as")?.let(Material::matchMaterial) ?: Material.STONE
     val drop: Drop
     private val itemId: String = section.parent!!.parent!!.name
 
@@ -43,41 +58,44 @@ class BreakableMechanic(section: ConfigurationSection) {
 
     fun speedMultiplier(player: Player): Double {
         val itemInMainHand = player.inventory.itemInMainHand
-        val speedMultiplier = AtomicReference(1f)
 
-        ToolTypeSpeedModifier.VANILLA.stream()
-            .filter { t: ToolTypeSpeedModifier -> t.toolTypes().contains(itemInMainHand.type) }
-            .min(Comparator.comparingDouble { it.speedModifier().toDouble() })
-            .ifPresentOrElse(
-                {
-                    speedMultiplier.set(
-                        if (drop.isToolEnough(itemInMainHand)) it.speedModifier()
-                        else ToolTypeSpeedModifier.EMPTY.speedModifier()
-                    )
-                },
-                { speedMultiplier.set(ToolTypeSpeedModifier.EMPTY.speedModifier()) }
-            )
+        //TODO Revisit at a later time
+        /*var multiplier = when {
+            VersionUtil.atleast("1.21.1") -> itemInMainHand.itemMeta?.tool?.let { tool ->
+                tool.rules.firstOrNull { rule -> treatAs in rule.blocks }?.speed ?: tool.defaultMiningSpeed
+            } ?: 1.0f
+            else -> ToolTypeSpeedModifier.VANILLA
+                .filter { itemInMainHand.type in it.toolTypes() }
+                .minByOrNull { it.speedModifier() }?.takeIf { drop.isToolEnough(itemInMainHand) }
+                ?.speedModifier() ?: ToolTypeSpeedModifier.EMPTY.speedModifier()
+        }*/
+        var multiplier = ToolTypeSpeedModifier.VANILLA
+            .filter { itemInMainHand.type in it.toolTypes() }
+            .minByOrNull { it.speedModifier() }?.takeIf { drop.isToolEnough(itemInMainHand) }
+            ?.speedModifier() ?: ToolTypeSpeedModifier.EMPTY.speedModifier()
 
-        var multiplier = speedMultiplier.get()
+        val miningEff = AttributeWrapper.MINING_EFFICIENCY?.let(player::getAttribute)?.value?.toFloat()
+        val effEnchant = itemInMainHand.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY)
+        if (multiplier > 1.0f) multiplier += miningEff ?: (effEnchant.toDouble().pow(2.0) + 1).toFloat()
 
-        val efficiencyLevel = itemInMainHand.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY)
-        if (multiplier > 1.0f && efficiencyLevel != 0) multiplier += (efficiencyLevel.toDouble().pow(2.0) + 1).toFloat()
 
         val haste = player.getPotionEffect(PotionEffectTypeWrapper.HASTE)
-        if (haste != null) multiplier *= 1.0f + (haste.amplifier + 1).toFloat() * 0.2f
+        val conduitPower = player.getPotionEffect(PotionEffectTypeWrapper.CONDUIT_POWER)
+        val amplifier = max(haste?.amplifier ?: 0, conduitPower?.amplifier ?: 0)
+        if (amplifier > 0) multiplier *= 0.2f * amplifier + 1
 
         // Whilst the player has this when they start digging, period is calculated before it is applied
         val miningFatigue = player.getPotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE)
         if (miningFatigue != null) multiplier *= 0.3.pow(min(miningFatigue.amplifier.toDouble(), 4.0)).toFloat()
 
         // 1.20.5+ speed-modifier attribute
-        val miningSpeedModifier = Optional.ofNullable(
-            AttributeWrapper.BLOCK_BREAK_SPEED?.let(player::getAttribute)
-        ).map(AttributeInstance::getBaseValue).orElse(1.0).toFloat()
-        multiplier *= miningSpeedModifier
+        multiplier *= AttributeWrapper.BLOCK_BREAK_SPEED?.let(player::getAttribute)?.value?.toFloat() ?: 1f
 
-        if (player.isUnderWater && player.equipment?.helmet?.containsEnchantment(EnchantmentWrapper.AQUA_AFFINITY) == true)
-            multiplier /= 5f
+        if (player.isUnderWater) {
+            val submerged = AttributeWrapper.SUBMERGED_MINING_SPEED?.let(player::getAttribute)?.value?.toFloat()
+            val aquaAffinity = player.equipment?.helmet?.containsEnchantment(EnchantmentWrapper.AQUA_AFFINITY) == true
+            multiplier *= submerged ?: if (aquaAffinity) 1.0f else 0.2f
+        }
 
         if (!player.isOnGround) multiplier /= 5f
 

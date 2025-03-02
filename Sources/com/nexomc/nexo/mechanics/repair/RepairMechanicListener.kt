@@ -1,7 +1,5 @@
 package com.nexomc.nexo.mechanics.repair
 
-import com.mineinabyss.idofront.items.editItemMeta
-import com.nexomc.nexo.api.NexoItems
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent

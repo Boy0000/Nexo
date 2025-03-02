@@ -1,12 +1,13 @@
 package com.nexomc.nexo.recipes.builders
 
+import net.kyori.adventure.text.Component
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
-class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, "shapeless") {
+class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, Component.text("shapeless")) {
     override fun saveRecipe(name: String, permission: String?) {
         val items = mutableMapOf<ItemStack?, Int>()
         val content = inventory.contents

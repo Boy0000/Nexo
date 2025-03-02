@@ -33,14 +33,15 @@ class CustomRecipe(
     private fun areEqual(ingredients1: List<ItemStack?>, ingredients2: List<ItemStack?>): Boolean {
         for (index in ingredients1.indices) {
             val ingredient1 = ingredients1[index]
-            if (isOrdered) {
-                val ingredient2 = ingredients2[index]
-                if (ingredient1 == null && ingredient2 == null) continue
-                if (ingredient1 == null || ingredient2 == null) return false
-                if (!ingredient1.isSimilar(ingredient2)) return false
-            } else if (ingredient1 != null && ingredients2.stream()
-                    .noneMatch { stack: ItemStack? -> ingredient1.isSimilar(stack) }
-            ) return false
+            when {
+                isOrdered -> {
+                    val ingredient2 = ingredients2[index]
+                    if (ingredient1 == null && ingredient2 == null) continue
+                    if (ingredient1 == null || ingredient2 == null) return false
+                    if (!ingredient1.isSimilar(ingredient2)) return false
+                }
+                ingredient1 != null && ingredients2.none(ingredient1::isSimilar) -> return false
+            }
         }
         return true
     }

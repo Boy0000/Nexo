@@ -44,7 +44,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
     }
 
     fun patchPack() {
-        resourcePack.models().filterFast { standardTextureModels.contains(it.key()) }
+        resourcePack.models().filterFast { it.key() in standardTextureModels }
             .associateFast { it.key().value().removePrefix("item/").appendIfMissing(".json") to it.overrides() }
             .forEach { (model, overrides) ->
                 val standardItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
@@ -200,16 +200,15 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
                 val fallback = overrides.find { it.predicate().pull == null }?.model()?.asString()
                 val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
-                val fireworkObject = overrides.firstOrNull { it.predicate().firework != null }?.model()?.asString()?.let {
-                    JsonBuilder.jsonObject
-                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
-                        .plus("when", "rocket")
-                }
-                val chargedObject = overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
-                    JsonBuilder.jsonObject
-                        .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it))
-                        .plus("when", "arrow")
-                }
+
+                val fireworkObject = JsonBuilder.jsonObject.plus("when", "rocket")
+                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
+                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
+                    } ?: fallbackObject)
+                val chargedObject = JsonBuilder.jsonObject.plus("when", "arrow")
+                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
+                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
+                    } ?: fallbackObject)
 
                 JsonBuilder.jsonObject
                     .plus("threshold", cmd ?: return@mapNotNull null)
@@ -223,7 +222,7 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
                                     .plus("type", "minecraft:select")
                                     .plus("property", "minecraft:charge_type")
                                     .plus("fallback", fallbackObject)
-                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject).filterNotNull().toJsonArray())
+                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject))
                             )
                             .plus("on_true",
                                 JsonBuilder.jsonObject
@@ -309,27 +308,31 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
 
     private val JsonObject.isSimpleItemModel: Boolean
         get() = keySet().size == 2 && get("type").asString.equals("minecraft:model")
-    private val standardItemModels by lazy {
-        Object2ObjectOpenHashMap(
-            runCatching {
-                NexoPackReader().readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-            }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).unknownFiles()
-                .filterKeys { it.startsWith("assets/minecraft/items") }
-        )
-    }
+
 
     private val standardTextureModels by lazy {
         ObjectArrayList(
             runCatching {
-            NexoPackReader().readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
+                PackGenerator.packReader.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
         }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).models()
             .plus(DefaultResourcePackExtractor.vanillaResourcePack.models())
             .map { it.key() }.distinct()
         )
     }
 
-    private fun isStandardItemModel(key: String, itemModel: JsonObject?): Boolean {
-        return (standardItemModels[key]?.toJsonObject()?.equals(itemModel) ?: false)
+    companion object {
+        private val standardItemModels by lazy {
+            Object2ObjectOpenHashMap(
+                runCatching {
+                    PackGenerator.packReader.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
+                }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).unknownFiles()
+                    .filterKeys { it.startsWith("assets/minecraft/items") }
+            )
+        }
+
+        fun isStandardItemModel(key: String, itemModel: JsonObject?): Boolean {
+            return (standardItemModels[key]?.toJsonObject()?.equals(itemModel) ?: false)
+        }
     }
 
     private fun modelObject(

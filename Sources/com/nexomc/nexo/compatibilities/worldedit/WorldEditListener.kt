@@ -1,8 +1,9 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
+import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
-import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent
+import com.nexomc.nexo.utils.mapNotNullFast
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 
@@ -18,6 +19,6 @@ class WorldEditListener : Listener {
     }
 
     companion object {
-        private val nexoBlockIDs = NexoItems.entries().map { entry -> entry.key.lowercase() }.filter(NexoBlocks::isCustomBlock)
+        private val nexoBlockIDs = NexoItems.itemNames().mapNotNullFast { "nexo:$it".takeIf { _ -> NexoBlocks.isCustomBlock(it) } }
     }
 }

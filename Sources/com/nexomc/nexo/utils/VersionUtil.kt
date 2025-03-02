@@ -1,5 +1,6 @@
 package com.nexomc.nexo.utils
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.JarReader.manifestMap
 import com.nexomc.nexo.utils.VersionUtil.NMSVersion.UNKNOWN
 import com.nexomc.nexo.utils.logs.Logs
@@ -17,8 +18,7 @@ object VersionUtil {
         versionMap[NMSVersion.v1_20_R3] = mapOf(1 to MinecraftVersion("1.20.4"))
     }
 
-    fun MinecraftVersion.toNMS() =
-        versionMap.entries.firstOrNull { it.value.containsValue(this) }?.key ?: NMSVersion.UNKNOWN
+    fun MinecraftVersion.toNMS() = versionMap.entries.firstOrNull { it.value.containsValue(this) }?.key ?: UNKNOWN
 
     fun matchesServer(server: String) = MinecraftVersion.currentVersion == MinecraftVersion(server)
 
@@ -33,24 +33,9 @@ object VersionUtil {
      * @return true if the server is Paper or false of not
      * @throws IllegalArgumentException if server is null
      */
-    val isPaperServer: Boolean
-        get() {
-            val server = Bukkit.getServer()
-            Validate.notNull(server, "Server cannot be null")
-            if (server.name.equals("Paper", ignoreCase = true)) return true
+    val isPaperServer: Boolean = NexoPlugin.instance().foliaLib.isPaper
 
-            return runCatching {
-                Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent")
-            }.getOrNull() != null
-        }
-
-    val isFoliaServer: Boolean
-        get() {
-            val server = Bukkit.getServer()
-            Validate.notNull(server, "Server cannot be null")
-
-            return server.name.equals("Folia", ignoreCase = true)
-        }
+    val isFoliaServer: Boolean = NexoPlugin.instance().foliaLib.isFolia
 
     fun isSupportedVersion(serverVersion: NMSVersion, vararg supportedVersions: NMSVersion): Boolean {
         for (version in supportedVersions) if (version == serverVersion) return true
@@ -58,7 +43,7 @@ object VersionUtil {
         Logs.logWarn("The Server version which you are running is unsupported, you are running version '$serverVersion'.")
         Logs.logWarn("The plugin supports following versions ${combineVersions(*supportedVersions)}.")
 
-        if (serverVersion == NMSVersion.UNKNOWN) {
+        if (serverVersion == UNKNOWN) {
             Logs.logWarn("The Version '$serverVersion' can indicate, that you are using a newer Minecraft version than currently supported.")
             Logs.logWarn("In this case please update to the newest version of this plugin. If this is the newest Version, than please be patient. It can take a few weeks until the plugin is updated.")
         }

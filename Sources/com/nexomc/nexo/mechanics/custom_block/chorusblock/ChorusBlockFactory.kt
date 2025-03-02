@@ -30,9 +30,9 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
 
         registerListeners(ChorusBlockListener())
 
-        if (VersionUtil.isPaperServer) registerListeners(ChorusBlockMechanicPaperListener())
+        registerListeners(ChorusBlockMechanicPaperListener())
 
-        if (VersionUtil.isPaperServer && !NMSHandlers.handler().chorusplantUpdateDisabled()) {
+        if (!NMSHandlers.handler().chorusplantUpdateDisabled()) {
             Logs.logError("Papers block-updates.disable-chorus-plant-updates is not enabled.")
             Logs.logError("It is HIGHLY recommended to enable this setting for improved performance and prevent bugs with chorus-plants")
             Logs.logError("Otherwise Nexo needs to listen to very taxing events, which also introduces some bugs")

@@ -14,13 +14,12 @@ import org.bukkit.inventory.ItemStack
 abstract class CustomListener protected constructor(
     protected val itemID: String?, cooldown: Long,
     protected val event: CustomEvent,
-    protected val clickAction: ClickAction,
-    val paperOnly: Boolean = false
+    protected val clickAction: ClickAction
 ) : Listener {
     private val timers = TimersFactory(cooldown * 50)
 
     open fun register() {
-        if (!paperOnly || VersionUtil.isPaperServer) Bukkit.getPluginManager().registerEvents(this, NexoPlugin.instance())
+        Bukkit.getPluginManager().registerEvents(this, NexoPlugin.instance())
     }
 
     fun unregister() {

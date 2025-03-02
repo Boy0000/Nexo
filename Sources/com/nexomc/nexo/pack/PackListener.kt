@@ -18,14 +18,14 @@ class PackListener : Listener {
 
         // If on-join is false and pre-join is true, check sub-conditions
         if (!Settings.PACK_SEND_ON_JOIN.toBool() && Settings.PACK_SEND_PRE_JOIN.toBool()) {
-            if (VersionUtil.atleast("1.21") && VersionUtil.isPaperServer && player.hasResourcePack()) return
+            if (VersionUtil.atleast("1.21") && player.hasResourcePack()) return
         }
 
         val delay = Settings.PACK_SEND_DELAY.toInt(-1)
         if (delay <= 0) NexoPlugin.instance().packServer().sendPack(player)
-        else SchedulerUtils.runTaskAsyncLater(delay * 20L) {
-            NexoPlugin.instance().packServer().sendPack(player)
-        }
+        else SchedulerUtils.foliaScheduler.runAtEntityLater(
+            player, Runnable { NexoPlugin.instance().packServer().sendPack(player) }, delay * 20L
+        )
     }
 
 }

@@ -34,22 +34,17 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
     init {
         instance = this
 
-        if (VersionUtil.isPaperServer) {
-            NoteBlockDatapack().createDatapack()
-            registerListeners(BeaconListener())
-        }
+        NoteBlockDatapack().createDatapack()
 
-        registerListeners(NoteBlockMechanicListener(), LogStripListener())
+        registerListeners(NoteBlockMechanicListener(), LogStripListener(), BeaconListener())
         if (customSounds.enabled) registerListeners(NoteBlockSoundListener(customSounds))
 
         // Physics-related stuff
-        if (VersionUtil.isPaperServer)
-            registerListeners(NoteBlockMechanicPaperListener())
-        if (!VersionUtil.isPaperServer || !NMSHandlers.handler().noteblockUpdatesDisabled())
+        if (!NMSHandlers.handler().noteblockUpdatesDisabled())
             registerListeners(NoteBlockMechanicPhysicsListener())
 
         when {
-            VersionUtil.isPaperServer && !NMSHandlers.handler().noteblockUpdatesDisabled() -> {
+            !NMSHandlers.handler().noteblockUpdatesDisabled() -> {
                 Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.")
                 if (reimplementNoteblockFeatures) Logs.logError("reimplement_noteblock_feature mechanic will not be enabled")
                 Logs.logError("It is HIGHLY recommended to enable this setting for improved performance and prevent bugs with noteblocks")

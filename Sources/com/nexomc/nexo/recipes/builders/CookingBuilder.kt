@@ -1,16 +1,16 @@
 package com.nexomc.nexo.recipes.builders
 
+import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-open class CookingBuilder(player: Player, builderName: String) :
-    RecipeBuilder(player, builderName) {
+open class CookingBuilder(player: Player, builderName: Component) : RecipeBuilder(player, builderName) {
     private var cookingTime = 0
     private var experience = 0
 
-    override fun createInventory(player: Player?, inventoryTitle: String): Inventory {
+    override fun createInventory(player: Player?, inventoryTitle: Component): Inventory {
         return Bukkit.createInventory(player, InventoryType.FURNACE, inventoryTitle)
     }
 

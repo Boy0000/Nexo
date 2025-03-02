@@ -5,6 +5,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.utils.VersionUtil
+import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -17,7 +18,7 @@ class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(secti
 
     init {
         instance = this
-        if (VersionUtil.isPaperServer) registerListeners(object : Listener {
+        registerListeners(object : Listener {
             @EventHandler(priority = EventPriority.HIGHEST)
             fun PlayerArmorChangeEvent.onItemEquipped() {
                 ArmorEffectsMechanic.addEffects(player)
@@ -32,7 +33,7 @@ class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(secti
         armorEffectTask = ArmorEffectsTask()
         MechanicsManager.registerTask(
             instance.mechanicID,
-            armorEffectTask!!.runTaskTimer(NexoPlugin.instance(), 0, delay.toLong())
+            WrappedBukkitTask(armorEffectTask!!.runTaskTimer(NexoPlugin.instance(), 0, delay.toLong()))
         )
 
         return mechanic

@@ -203,6 +203,7 @@ object OraxenConverter {
             if (itemNode.empty()) return@forEach
 
             runCatching {
+                itemNode.node("Pack").removeChild("generate_model")
                 itemNode.node("displayname").renameNode("itemname")
                 itemNode.node("injectID").renameNode("injectId")
                 itemNode.node("trim_pattern")?.let { it.set(it.string?.replace("oraxen", "nexo")) }

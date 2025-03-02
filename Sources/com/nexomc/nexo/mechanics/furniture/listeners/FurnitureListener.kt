@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -106,7 +107,7 @@ class FurnitureListener : Listener {
         if (!mechanic.waterloggable || block.type != Material.WATER) block.type = Material.AIR
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
         setUseInteractedBlock(Event.Result.DENY)
-        if (VersionUtil.isPaperServer) baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.location.toVector())
+        baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.location.toVector())
     }
 
     @EventHandler
@@ -130,7 +131,7 @@ class FurnitureListener : Listener {
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
         block.setType(Material.BARRIER, false)
-        SchedulerUtils.syncDelayedTask { block.setType(Material.AIR, false) }
+        SchedulerUtils.foliaScheduler.runAtLocation(block.location) { block.setType(Material.AIR, false) }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

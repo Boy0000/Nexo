@@ -1,6 +1,7 @@
 package com.nexomc.nexo.items
 
 import com.mineinabyss.idofront.util.toColor
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
@@ -24,10 +25,6 @@ import org.bukkit.tag.DamageTypeTags
 class ComponentParser(section: ConfigurationSection, private val itemBuilder: ItemBuilder) {
     private val componentSection: ConfigurationSection? = section.getConfigurationSection("Components")
     private val itemId: String = section.name
-
-    companion object {
-        val usedInItemModel = mutableSetOf<Key>()
-    }
 
     fun parseComponents() {
         if (componentSection == null || VersionUtil.below("1.20.5")) return
@@ -81,9 +78,9 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
 
         componentSection.getString("tooltip_style")?.let(NamespacedKey::fromString)?.apply(itemBuilder::setTooltipStyle)
 
-        componentSection.getString("item_model")?.let(NamespacedKey::fromString)?.also {
-            usedInItemModel += Key.key(it.toString())
-        }?.apply(itemBuilder::setItemModel)
+        componentSection.getString("item_model")?.also {
+            NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += Key.key(it)
+        }?.let(NamespacedKey::fromString)?.apply(itemBuilder::setItemModel)
 
         if ("enchantable" in componentSection) itemBuilder.setEnchantable(componentSection.getInt("enchantable"))
         if ("glider" in componentSection) itemBuilder.setGlider(componentSection.getBoolean("glider"))

@@ -27,24 +27,4 @@ object EventUtils {
         Bukkit.getPluginManager().callEvent(this)
         if (this is Cancellable && this.isCancelled.not()) block()
     }
-
-    /** In a recent build of Spigot 1.20.4, they removed undeprecated constructors for EntityDamageByEntityEvent here. This method aims to call the event with backwards compatibility  */
-    @JvmStatic
-    fun EntityDamageByEntityEvent(
-        damager: Entity,
-        entity: Entity,
-        cause: EntityDamageEvent.DamageCause,
-        damageType: DamageType,
-        damage: Double
-    ): EntityDamageByEntityEvent {
-        return runCatching {
-            // Old constructor
-            EntityDamageByEntityEvent::class.java.getConstructor(
-                Entity::class.java,
-                Entity::class.java,
-                EntityDamageEvent.DamageCause::class.java,
-                Double::class.javaPrimitiveType
-            ).newInstance(damager, entity, cause, damage)
-        }.getOrDefault(EntityDamageByEntityEvent(damager, entity, cause, DamageSource.builder(damageType).build(), damage))
-    }
 }

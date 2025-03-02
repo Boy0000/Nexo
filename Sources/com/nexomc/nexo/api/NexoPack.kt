@@ -2,7 +2,6 @@ package com.nexomc.nexo.api
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.pack.PackGenerator
-import com.nexomc.nexo.utils.plusFast
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState

@@ -38,6 +38,7 @@ import org.bukkit.block.data.type.Tripwire
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import java.util.function.Consumer
 
 object NexoBlocks {
     /**
@@ -264,7 +265,7 @@ object NexoBlocks {
 
             if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = noteBlockBreakEvent.drop
 
-            if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
+            block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
             loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
         }
 
@@ -296,7 +297,7 @@ object NexoBlocks {
 
             if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = wireBlockBreakEvent.drop
 
-            if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.location.toVector())
+            block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.location.toVector())
         }
 
         if (!drop.isEmpty) {
@@ -309,7 +310,7 @@ object NexoBlocks {
         val blockAbove = block.getRelative(BlockFace.UP)
         if (mechanic.isTall) blockAbove.type = Material.AIR
         block.type = Material.AIR
-        SchedulerUtils.runTaskLater(1L) {
+        SchedulerUtils.foliaScheduler.runAtLocation(block.location) {
             StringMechanicHelpers.fixClientsideUpdate(block.location)
             if (blockAbove.type == Material.TRIPWIRE) removeStringBlock(blockAbove, player, overrideDrop)
         }
@@ -329,7 +330,7 @@ object NexoBlocks {
 
             if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = chorusBlockBreakEvent.drop
 
-            if (VersionUtil.isPaperServer) block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
+            block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
             loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
         }
 

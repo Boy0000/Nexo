@@ -24,22 +24,15 @@ import org.bukkit.inventory.meta.trim.TrimMaterial
 
 class CustomArmorListener : Listener {
 
-    init {
-        if (VersionUtil.isPaperServer) {
-            Bukkit.getPluginManager().registerEvents(object : Listener {
+    @EventHandler
+    fun PlayerArmorChangeEvent.onPlayerEquipVanilla() {
+        setVanillaArmorTrim(oldItem)
+        setVanillaArmorTrim(newItem)
+    }
 
-                @EventHandler
-                fun PlayerArmorChangeEvent.onPlayerEquipVanilla() {
-                    setVanillaArmorTrim(oldItem)
-                    setVanillaArmorTrim(newItem)
-                }
-
-                @EventHandler
-                fun PlayerAttemptPickupItemEvent.onPlayerPickup() {
-                    this.item.itemStack = item.itemStack.apply(::setVanillaArmorTrim)
-                }
-            }, NexoPlugin.instance())
-        }
+    @EventHandler
+    fun PlayerAttemptPickupItemEvent.onPlayerPickup() {
+        this.item.itemStack = item.itemStack.apply(::setVanillaArmorTrim)
     }
 
     @EventHandler

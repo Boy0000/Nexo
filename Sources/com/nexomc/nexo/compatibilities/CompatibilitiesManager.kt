@@ -6,6 +6,7 @@ import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.compatibilities.mythicmobs.MythicMobsCompatibility
 import com.nexomc.nexo.compatibilities.placeholderapi.PlaceholderAPICompatibility
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
+import com.nexomc.nexo.compatibilities.worldguard.WorldGuardCompatibility
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.PluginUtils
@@ -25,6 +26,7 @@ object CompatibilitiesManager {
         addCompatibility("MythicMobs", MythicMobsCompatibility::class.java, true)
         addCompatibility("BlockLocker", BlockLockerCompatibility::class.java, true)
         addCompatibility("ModelEngine", ModelEngineCompatibility::class.java, true)
+        addCompatibility("WorldGuard", WorldGuardCompatibility::class.java, true)
     }
 
     fun disableCompatibilities() {

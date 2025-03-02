@@ -1,6 +1,8 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
+import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
@@ -8,6 +10,7 @@ import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSoun
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
@@ -40,11 +43,10 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
         registerSaplingMechanic()
         if (customSounds.enabled) registerListeners(StringBlockSoundListener(customSounds))
 
-        if (VersionUtil.isPaperServer) registerListeners(StringBlockMechanicPaperListener())
-        if (!VersionUtil.isPaperServer || !NMSHandlers.handler().tripwireUpdatesDisabled())
-            registerListeners(StringBlockMechanicPhysicsListener())
+        registerListeners(StringBlockMechanicPaperListener())
 
-        if (VersionUtil.isPaperServer && !NMSHandlers.handler().tripwireUpdatesDisabled()) {
+        if (!NMSHandlers.handler().tripwireUpdatesDisabled()) {
+            registerListeners(StringBlockMechanicPhysicsListener())
             Logs.logError("Papers block-updates.disable-tripwire-updates is not enabled.")
             Logs.logError("It is HIGHLY recommended to enable this setting for improved performance and prevent bugs with tripwires")
             Logs.logError("Otherwise Nexo needs to listen to very taxing events, which also introduces some bugs")
@@ -89,15 +91,15 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     }
 
     private fun blockstateVariant(mechanic: StringBlockMechanic): String {
-        val t = mechanic.blockData
-        return "east=${t!!.hasFace(BlockFace.EAST)},west=${t.hasFace(BlockFace.WEST)},south=${t.hasFace(BlockFace.SOUTH)},north=${t.hasFace(BlockFace.NORTH)},attached=${t.isAttached},disarmed=${t.isDisarmed},powered=${t.isPowered}"
+        val (east, west, south, north) = setOf(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH).mapNotNull { mechanic.blockData?.hasFace(it) }
+        val (attached, disarmed, powered) = mechanic.blockData?.let { it.isAttached to it.isDisarmed to it.isPowered } ?: return ""
+        return "east=${east},west=${west},south=${south},north=${north},attached=${attached},disarmed=${disarmed},powered=${powered}"
     }
 
     fun registerSaplingMechanic() {
-        if (sapling) return
-        saplingTask?.cancel()
-        saplingTask = SaplingTask(saplingGrowthCheckDelay)
-        saplingTask!!.runTaskTimer(NexoPlugin.instance(), 0, saplingGrowthCheckDelay.toLong())
+        if (sapling || !WrappedWorldEdit.loaded) return
+        //saplingTask?.cancel()
+        //saplingTask = SaplingTask(saplingGrowthCheckDelay)
         sapling = true
     }
 

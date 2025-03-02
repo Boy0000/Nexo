@@ -1,7 +1,7 @@
 package com.nexomc.nexo.recipes.listeners
 
 import com.nexomc.nexo.recipes.builders.RecipeBuilder
-import com.nexomc.nexo.utils.InventoryUtils.getTitleFromView
+import com.nexomc.nexo.utils.InventoryUtils.titleFromView
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -18,7 +18,7 @@ class RecipeBuilderEvents : Listener {
     @Suppress("DEPRECATION")
     fun InventoryClickEvent.setCursor() {
         val recipeBuilderTitle = RecipeBuilder.get(whoClicked.uniqueId)?.inventoryTitle
-        if (getTitleFromView(this) != recipeBuilderTitle || slotType != InventoryType.SlotType.RESULT) return
+        if (titleFromView(this) != recipeBuilderTitle || slotType != InventoryType.SlotType.RESULT) return
 
         isCancelled = true
         val (currentResult, currentCursor) = (currentItem ?: empty).clone() to cursor.clone()
@@ -29,7 +29,7 @@ class RecipeBuilderEvents : Listener {
     @EventHandler(priority = EventPriority.HIGH)
     fun InventoryCloseEvent.onInventoryClosed() {
         val recipeBuilder = RecipeBuilder.get(player.uniqueId) ?: return
-        if (getTitleFromView(this) != recipeBuilder.inventoryTitle) return
+        if (titleFromView(this) != recipeBuilder.inventoryTitle) return
 
         recipeBuilder.setInventory(inventory)
     }

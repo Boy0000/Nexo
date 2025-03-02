@@ -95,7 +95,6 @@ class PolymathServer : NexoPackServer {
             .required(NexoPackServer.mandatory).replace(true)
             .prompt(NexoPackServer.prompt).packs(ResourcePackInfo.resourcePackInfo(packUUID!!, URI.create(packUrl!!), hash!!))
             .build()
-        if (VersionUtil.isPaperServer) player.sendResourcePacks(request)
-        else player.setResourcePack(packUUID!!, packUrl!!, NexoPackServer.hashArray(hash!!), AdventureUtils.LEGACY_SERIALIZER.serialize(NexoPackServer.prompt), NexoPackServer.mandatory)
+        player.sendResourcePacks(request)
     }
 }

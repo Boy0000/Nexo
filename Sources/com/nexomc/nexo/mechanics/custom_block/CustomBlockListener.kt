@@ -29,7 +29,6 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 
 class CustomBlockListener : Listener {
-    private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE, Material.CHORUS_PLANT)
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun PlayerInteractEvent.callInteract() {
@@ -175,25 +174,22 @@ class CustomBlockListener : Listener {
         blockPlaced.setBlockData(blockPlaced.type.createBlockData(), false)
     }
 
+    private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE, Material.CHORUS_PLANT)
     @EventHandler(priority = EventPriority.LOWEST)
     fun InventoryCreativeEvent.onMiddleClick() {
         if (click != ClickType.CREATIVE || cursor.type !in matArray) return
-        val player = inventory.holder as Player? ?: return
+        val player = inventory.holder as? Player ?: return
 
         val block = player.rayTraceBlocks(6.0)?.hitBlock ?: return
-        var mechanic = NexoBlocks.customBlockMechanic(block.blockData)
-
-        if (mechanic == null) {
-            val mechanicBelow = NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))
-            if (mechanicBelow == null || !mechanicBelow.isTall) return
-            mechanic = mechanicBelow
-        }
+        val mechanic = NexoBlocks.customBlockMechanic(block.blockData)
+            ?: NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))?.takeIf { it.isTall } ?: return
 
         val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()
+        val itemId = NexoItems.idFromItem(item)
 
         for (i in 0..8) {
             if (player.inventory.getItem(i) == null) continue
-            if (NexoItems.idFromItem(player.inventory.getItem(i)) == NexoItems.idFromItem(item)) {
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) == itemId) {
                 player.inventory.heldItemSlot = i
                 isCancelled = true
                 return

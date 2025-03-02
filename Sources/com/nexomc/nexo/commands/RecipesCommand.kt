@@ -41,6 +41,12 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
     }
     literalArgument("builder") {
         withPermission("nexo.command.recipes.builder")
+        literalArgument("brewing") {
+            anyExecutor { sender, _ ->
+                if (sender is Player) (get(sender.uniqueId) ?: BrewingBuilder(sender)).open()
+                else Message.NOT_PLAYER.send(sender)
+            }
+        }
         literalArgument("shaped") {
             anyExecutor { sender, _ ->
                 if (sender is Player) (get(sender.uniqueId) ?: ShapedBuilder(sender)).open()

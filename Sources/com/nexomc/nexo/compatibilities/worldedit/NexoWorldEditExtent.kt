@@ -1,5 +1,6 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.configs.Settings
@@ -61,27 +62,29 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
     @Throws(WorldEditException::class)
     override fun <T : BlockStateHolder<T>?> setBlock(pos: BlockVector3, block: T): Boolean {
         val blockData = BukkitAdapter.adapt(block)
+        val world = Bukkit.getWorld(world.name)
         val loc = org.bukkit.Location(world, pos.x.toDouble(), pos.y.toDouble(), pos.z.toDouble())
         val mechanic = NexoBlocks.customBlockMechanic(blockData)
         when (blockData.material) {
             Material.NOTE_BLOCK -> {
-                if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) SchedulerUtils.syncDelayedTask(1L) {
-                    NexoBlocks.place(mechanic.itemID, loc)
+                if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
+                    SchedulerUtils.foliaScheduler.runAtLocationLater(loc, Runnable { NexoBlocks.place(mechanic.itemID, loc) }, 1L)
                 }
             }
             Material.TRIPWIRE -> {
-                if (mechanic != null && Settings.WORLDEDIT_STRINGBLOCKS.toBool()) SchedulerUtils.syncDelayedTask(1L) {
-                    NexoBlocks.place(mechanic.itemID, loc)
+                if (mechanic != null && Settings.WORLDEDIT_STRINGBLOCKS.toBool()) {
+                    SchedulerUtils.foliaScheduler.runAtLocationLater(loc, Runnable { NexoBlocks.place(mechanic.itemID, loc) }, 1L)
                 }
             }
             else -> {
+                if (world == null) return super.setBlock(pos, block)
                 val replacingMechanic = NexoBlocks.customBlockMechanic(loc) ?: return super.setBlock(pos, block)
                 if (replacingMechanic is StringBlockMechanic && !Settings.WORLDEDIT_STRINGBLOCKS.toBool())
                     return super.setBlock(pos, block)
                 if (replacingMechanic is NoteBlockMechanic && !Settings.WORLDEDIT_NOTEBLOCKS.toBool())
                     return super.setBlock(pos, block)
 
-                SchedulerUtils.syncDelayedTask(1L) { NexoFurniture.remove(loc) }
+                SchedulerUtils.foliaScheduler.runAtLocationLater(loc, Runnable { NexoFurniture.remove(loc) }, 1L)
             }
         }
 

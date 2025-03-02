@@ -28,7 +28,6 @@ open class NexoDatapack(key: String, description: String) {
 
     internal fun enableDatapack(enabled: Boolean) {
         SchedulerUtils.callSyncMethod {
-            if (!VersionUtil.isPaperServer) return@callSyncMethod
             if (VersionUtil.below("1.21.1")) return@callSyncMethod Logs.logWarn("Could not enable $datapackName datapack, use /datapack-command")
             //Bukkit.getDatapackManager().refreshPacks()
             Bukkit.getDatapackManager().getPack(datapackName)?.takeUnless { it.isEnabled == enabled }?.isEnabled = enabled

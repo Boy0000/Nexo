@@ -20,6 +20,7 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 
@@ -31,14 +32,13 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
     init {
         instance = this
-        registerListeners(FurnitureListener(), EvolutionListener(), JukeboxListener())
-
-        if (VersionUtil.isPaperServer) registerListeners(FurniturePacketListener(), FurnitureBarrierHitboxListener())
-        else {
-            Logs.logWarn("Seems that your server is a Spigot-server")
-            Logs.logWarn("FurnitureHitboxes will not work properly due to it relying on Paper-only events")
-            Logs.logWarn("It is heavily recommended to make the upgrade to Paper", true)
-        }
+        registerListeners(
+            FurnitureListener(),
+            FurniturePacketListener(),
+            FurnitureBarrierHitboxListener(),
+            EvolutionListener(),
+            JukeboxListener()
+        )
 
         evolvingFurnitures = false
 
@@ -54,7 +54,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         if (customSounds) registerListeners(FurnitureSoundListener())
     }
 
-    fun packetManager(): IFurniturePacketManager = if (VersionUtil.isPaperServer) NMSHandlers.handler().furniturePacketManager() else EmptyFurniturePacketManager()
+    fun packetManager(): IFurniturePacketManager = NMSHandlers.handler().furniturePacketManager()
 
     override fun parse(section: ConfigurationSection) = FurnitureMechanic(this, section).apply(::addToImplemented)
 
@@ -63,7 +63,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         evolutionTask?.cancel()
         evolutionTask = EvolutionTask(this, evolutionCheckDelay)
         val task = evolutionTask!!.runTaskTimer(NexoPlugin.instance(), 0, evolutionCheckDelay.toLong())
-        MechanicsManager.registerTask(mechanicID, task)
+        MechanicsManager.registerTask(mechanicID, WrappedBukkitTask(task))
         evolvingFurnitures = true
     }
 

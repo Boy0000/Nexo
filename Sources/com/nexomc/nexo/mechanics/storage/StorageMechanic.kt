@@ -1,36 +1,31 @@
 package com.nexomc.nexo.mechanics.storage
 
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.BlockHelpers.getPersistentDataContainer
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.ItemUtils.displayName
-import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
-import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
-import com.willfp.eco.core.data.get
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.entity.Entity
 import org.bukkit.entity.HumanEntity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import java.util.*
+import kotlin.collections.set
 
 class StorageMechanic(section: ConfigurationSection) {
     private val rows: Int = section.getInt("rows", 6)
@@ -90,7 +85,7 @@ class StorageMechanic(section: ConfigurationSection) {
             else -> pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>())
         }
 
-        val loc = toCenterLocation(block.location)
+        val loc = block.location.toCenterLocation()
         if (isShulker) {
             val mechanic = NexoBlocks.noteBlockMechanic(block) ?: return
             val shulker = NexoItems.itemFromId(mechanic.itemID)?.build() ?: return
@@ -113,17 +108,17 @@ class StorageMechanic(section: ConfigurationSection) {
             else -> pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf<ItemStack>())
         }
 
-        val loc = toCenterLocation(baseEntity.location)
+        val loc = baseEntity.location.toCenterLocation()
         if (isShulker) {
             val defaultItem = NexoItems.itemFromId(mechanic.itemID)!!.build()
             val shulker = FurnitureHelpers.furnitureItem(baseEntity)
             val shulkerMeta = shulker!!.itemMeta
 
-            if (shulkerMeta != null) {
-                shulkerMeta.persistentDataContainer.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)
-                displayName(shulkerMeta, defaultItem.itemMeta)
-                shulker.itemMeta = shulkerMeta
+            shulker.editMeta {
+                it.persistentDataContainer.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)
+                it.displayName(defaultItem.itemMeta.displayName())
             }
+
             baseEntity.world.dropItemNaturally(loc, shulker)
         } else items.filterNotNull().forEach {
             baseEntity.world.dropItemNaturally(loc, it)
@@ -172,9 +167,9 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtils.runTaskLater(3L) {
+                SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                }
+                }, 3L)
             }
         }
 
@@ -205,9 +200,10 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtils.runTaskLater(3L) {
-                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                }
+                SchedulerUtils.foliaScheduler.runAtLocationLater(
+                    block.location, Runnable { storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents) }
+                    , 3L
+                )
             }
         }
         gui.setOpenGuiAction {
@@ -235,9 +231,9 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtils.runTaskLater(3L) {
+                SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                }
+                }, 3L)
             }
         }
 

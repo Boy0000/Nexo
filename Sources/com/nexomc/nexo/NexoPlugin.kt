@@ -5,6 +5,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
 import com.nexomc.nexo.commands.CommandsManager
 import com.nexomc.nexo.compatibilities.CompatibilitiesManager
+import com.nexomc.nexo.compatibilities.worldguard.NexoWorldguardFlags
 import com.nexomc.nexo.configs.*
 import com.nexomc.nexo.converter.Converter
 import com.nexomc.nexo.converter.ItemsAdderConverter
@@ -25,17 +26,15 @@ import com.nexomc.nexo.utils.breaker.LegacyBreakerManager
 import com.nexomc.nexo.utils.breaker.ModernBreakerManager
 import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
+import com.tcoded.folialib.FoliaLib
+import dev.jorel.commandapi.CommandAPI
+import dev.jorel.commandapi.CommandAPIBukkitConfig
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import io.th0rgal.protectionlib.ProtectionLib
-import net.byteflux.libby.BukkitLibraryManager
-import net.byteflux.libby.Library
-import net.byteflux.libby.classloader.URLClassLoaderHelper
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
-import org.bstats.bukkit.Metrics
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
 import kotlin.io.resolve
@@ -52,12 +51,17 @@ class NexoPlugin : JavaPlugin() {
     private lateinit var clickActionManager: ClickActionManager
     private lateinit var breakerManager: BreakerManager
     private lateinit var converter: Converter
+    lateinit var foliaLib: FoliaLib
+        private set
 
     override fun onLoad() {
         if (!NexoLibsLoader.loadNexoLibs(this)) LibbyManager.loadLibs(this)
         dataFolder.resolve("lib").deleteRecursively()
         nexo = this
+        foliaLib = FoliaLib(this)
         CommandAPIManager(this).load()
+
+        NexoWorldguardFlags.registerFlags()
     }
 
     override fun onEnable() {
@@ -91,8 +95,9 @@ class NexoPlugin : JavaPlugin() {
 
         NexoMetrics.initializeMetrics()
         MechanicsManager.registerNativeMechanics()
+        NexoItems.loadItems()
 
-        SchedulerUtils.runTask {
+        foliaLib.scheduler.runNextTick {
             NexoItems.loadItems()
             RecipesManager.load(this)
             packGenerator.generatePack()

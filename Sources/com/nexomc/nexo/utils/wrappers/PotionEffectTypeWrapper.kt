@@ -9,6 +9,8 @@ object PotionEffectTypeWrapper {
     @JvmField
     val HASTE = getEffectType("haste")!!
     @JvmField
+    val CONDUIT_POWER = getEffectType("conduit_power")!!
+    @JvmField
     val MINING_FATIGUE = getEffectType("mining_fatigue")!!
 
     private fun getEffectType(effect: String?): PotionEffectType? {

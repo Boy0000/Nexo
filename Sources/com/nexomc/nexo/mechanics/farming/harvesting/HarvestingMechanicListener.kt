@@ -1,10 +1,9 @@
 package com.nexomc.nexo.mechanics.farming.harvesting
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.BlockHelpers.toCenterLocation
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils
+import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Location
 import org.bukkit.Material
@@ -20,7 +19,6 @@ import org.bukkit.event.player.PlayerItemDamageEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.Damageable
-import java.util.*
 
 class HarvestingMechanicListener : Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -60,7 +58,7 @@ class HarvestingMechanicListener : Listener {
             player.inventory.addItem(item).entries.forEach { itemStack ->
                 player.world.dropItem(player.location, itemStack.value)
             }
-        } else player.world.dropItemNaturally(toCenterLocation(location), item)
+        } else player.world.dropItemNaturally(location.toCenterLocation(), item)
     }
 
     private fun getNearbyBlocks(location: Location, radius: Int, height: Int): List<Block> {

@@ -6,18 +6,11 @@ import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.ItemUtils
-import com.nexomc.nexo.utils.ItemUtils.displayName
-import com.nexomc.nexo.utils.ItemUtils.editItemMeta
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.ItemUtils.isTool
-import com.nexomc.nexo.utils.ItemUtils.itemName
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
@@ -126,7 +119,7 @@ class ItemUpdater : Listener {
 
         val inventory = player.inventory
         if (inventory.firstEmpty() == -1) setItem(item.add(usingConvertsTo.amount))
-        else Bukkit.getScheduler().runTask(NexoPlugin.instance(), Runnable {
+        else SchedulerUtils.foliaScheduler.runAtEntity(player) {
             for (i in 0..inventory.size) {
                 val oldItem = inventory.getItem(i) ?: continue
                 val newItem = updateItem(oldItem).takeIf(item::isSimilar) ?: continue
@@ -135,7 +128,7 @@ class ItemUpdater : Listener {
                 inventory.setItem(i, null)
                 inventory.addItem(newItem)
             }
-        })
+        }
     }
 
     companion object {
@@ -148,7 +141,7 @@ class ItemUpdater : Listener {
             if (NexoPlugin.instance().converter().itemsadderConverter.convertItems)
                 NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
 
-            editItemMeta(oldItem) { itemMeta: ItemMeta ->
+            oldItem.editMeta { itemMeta: ItemMeta ->
                 itemMeta.persistentDataContainer.remove(IF_UUID)
                 itemMeta.persistentDataContainer.remove(MF_GUI)
                 itemMeta.persistentDataContainer.get(NexoItems.ITEM_ID, PersistentDataType.STRING)?.also {
@@ -165,8 +158,8 @@ class ItemUpdater : Listener {
             val newItem = NMSHandlers.handler().copyItemNBTTags(oldItem, newItemBuilder.build().clone())
             newItem.amount = oldItem.amount
 
-            editItemMeta(newItem) { itemMeta ->
-                val (oldMeta, newMeta) = (oldItem.itemMeta ?: return@editItemMeta) to (newItem.itemMeta ?: return@editItemMeta)
+            newItem.editMeta { itemMeta ->
+                val (oldMeta, newMeta) = (oldItem.itemMeta ?: return@editMeta) to (newItem.itemMeta ?: return@editMeta)
                 val (oldPdc, itemPdc) = oldMeta.persistentDataContainer to itemMeta.persistentDataContainer
 
                 PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc)
@@ -184,7 +177,7 @@ class ItemUpdater : Listener {
                     else -> null
                 }.let(itemMeta::setCustomModelData)
 
-                ItemUtils.lore(itemMeta, if (Settings.OVERRIDE_ITEM_LORE.toBool()) newMeta else oldMeta)
+                itemMeta.lore((if (Settings.OVERRIDE_ITEM_LORE.toBool()) newMeta else oldMeta).lore())
 
                 if (newMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = newMeta.attributeModifiers
                 else if (oldMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = oldMeta.attributeModifiers
@@ -195,8 +188,10 @@ class ItemUpdater : Listener {
 
                 itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
 
-                if (itemMeta is ArmorMeta && newMeta is ArmorMeta) itemMeta.trim = newMeta.trim
-                else if (itemMeta is ArmorMeta && oldMeta is ArmorMeta) itemMeta.trim = oldMeta.trim
+                if (itemMeta is ArmorMeta) when {
+                    newMeta is ArmorMeta && newMeta.hasTrim() -> itemMeta.trim = newMeta.trim
+                    oldMeta is ArmorMeta && oldMeta.hasTrim() -> itemMeta.trim = oldMeta.trim
+                }
 
                 if (VersionUtil.atleast("1.20.5")) {
                     when {
@@ -215,13 +210,13 @@ class ItemUpdater : Listener {
                     }
 
                     when {
-                        newMeta.hasItemName() -> itemName(itemMeta, newMeta)
-                        oldMeta.hasItemName() -> itemName(itemMeta, oldMeta)
+                        newMeta.hasItemName() -> itemMeta.itemName(newMeta.itemName())
+                        oldMeta.hasItemName() -> itemMeta.itemName(oldMeta.itemName())
                     }
 
                     when {
-                        newMeta.hasDisplayName() -> displayName(itemMeta, newMeta)
-                        oldMeta.hasDisplayName() -> displayName(itemMeta, oldMeta)
+                        newMeta.hasDisplayName() -> itemMeta.displayName(newMeta.displayName())
+                        oldMeta.hasDisplayName() -> itemMeta.displayName(oldMeta.displayName())
                     }
                 }
 
@@ -286,22 +281,8 @@ class ItemUpdater : Listener {
                     val oldDisplayName = oldMeta.displayName()?.let { AdventureUtils.parseLegacy(it.serialize()) }
                     val originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ItemBuilder.ORIGINAL_NAME_KEY, DataType.STRING, ""))
 
-                    when {
-                        originalName != oldDisplayName -> displayName(itemMeta, oldMeta)
-                        else -> displayName(itemMeta, newMeta)
-                    }
-
-                    itemPdc.set(
-                        ItemBuilder.ORIGINAL_NAME_KEY, DataType.STRING,
-                        when {
-                            VersionUtil.isPaperServer -> AdventureUtils.MINI_MESSAGE.serialize(
-                                newMeta.displayName() ?: translatable(newItem.type)
-                            )
-
-                            newMeta.hasDisplayName() -> newMeta.displayName
-                            else -> AdventureUtils.MINI_MESSAGE.serialize(translatable(newItem.type))
-                        }
-                    )
+                    itemMeta.displayName((if (originalName != oldDisplayName) oldMeta else newMeta).displayName())
+                    itemPdc.set(ItemBuilder.ORIGINAL_NAME_KEY, PersistentDataType.STRING, (newMeta.displayName() ?: translatable(newItem.type)).serialize())
                 }
             }
 

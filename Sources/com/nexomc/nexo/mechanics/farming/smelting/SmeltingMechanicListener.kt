@@ -17,7 +17,7 @@ class SmeltingMechanicListener(private val factory: SmeltingMechanicFactory) : L
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     fun BlockBreakEvent.onBlockBreak() {
         val item = player.inventory.itemInMainHand
-        val location = BlockHelpers.toCenterLocation(block.location).takeIf(Location::isWorldLoaded) ?: return
+        val location = block.location.toCenterLocation().takeIf(Location::isWorldLoaded) ?: return
         val mechanic = factory.getMechanic(item) ?: return
 
         if (block.drops.isEmpty() || player.gameMode == GameMode.CREATIVE || !item.hasItemMeta()) return

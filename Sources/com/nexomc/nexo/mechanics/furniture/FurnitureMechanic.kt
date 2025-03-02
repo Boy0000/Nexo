@@ -142,7 +142,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         val correctedLocation = when {
             isFixed && (facing == BlockFace.UP || (facing.modY == 0 && solidBelow && !isWall)) -> toCenterBlockLocation(baseLocation)
-            else -> BlockHelpers.toCenterLocation(baseLocation)
+            else -> baseLocation.toCenterLocation()
         }.apply {
             if (isRoof && facing == BlockFace.DOWN) y += -hitboxOffset
         }
@@ -165,8 +165,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         baseEntity.isCustomNameVisible = false
         val item = NexoItems.itemFromId(itemID)
         val customName = item?.itemName ?: item?.displayName ?: Component.text(itemID)
-        if (VersionUtil.isPaperServer) baseEntity.customName(customName)
-        else baseEntity.customName = AdventureUtils.LEGACY_SERIALIZER.serialize(customName)
+        baseEntity.customName(customName)
 
         val (isWall, isFloor) = (limitedPlacing?.isWall == true) to (limitedPlacing?.isFloor == true)
         val (isRoof, isFixed) = (limitedPlacing?.isRoof == true) to properties.isFixedTransform
@@ -183,14 +182,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         baseEntity.setRotation(yaw, pitch)
 
         correctFurnitureTranslation(baseEntity, blockFace)
-
-        // No Packet-logic for Spigot Servers, so we set this here
-        if (!VersionUtil.isPaperServer) {
-            baseEntity.itemDisplayTransform = properties.displayTransform
-            if (properties.isFixedTransform)
-                baseEntity.transformation = baseEntity.transformation.apply { scale.set(0.5) }
-            if (!VersionUtil.isPaperServer) baseEntity.setItemStack(item?.build())
-        }
 
         val pdc = baseEntity.persistentDataContainer
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, itemID)

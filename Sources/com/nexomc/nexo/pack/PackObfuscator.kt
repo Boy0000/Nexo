@@ -1,8 +1,12 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.JsonBuilder.array
+import com.nexomc.nexo.utils.JsonBuilder.`object`
+import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.logs.Logs
@@ -27,8 +31,8 @@ import team.unnamed.creative.texture.Texture
 import java.io.File
 import java.util.UUID
 
-class PackObfuscator(private var resourcePack: ResourcePack) {
-    private val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
+class PackObfuscator(private val resourcePack: ResourcePack) {
+    val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
         Logs.logError("Invalid PackObfuscation type: $it, defaulting to ${PackObfuscationType.SIMPLE}", true)
         Logs.logError("Valid options are: ${PackObfuscationType.entries.joinToString()}", true)
         PackObfuscationType.SIMPLE
@@ -74,14 +78,13 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
             get() = this == NONE
     }
 
-    fun obfuscatePack() {
-        if (obfuscationType.isNone) return
+    fun obfuscatePack(hash: String): ResourcePack {
+        if (obfuscationType.isNone) return resourcePack
 
-        val hash = PackGenerator.packWriter.build(resourcePack).hash()
-        this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack", ".deobfCachedPacks", hash)
-        FileUtils.setHidden(obfCachedPack.apply { parentFile.mkdirs() }.toPath().parent)
+        this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack", ".deobfCachedPacks", "$hash.zip")
+        FileUtils.setHidden(obfCachedPack.apply { parentFile.mkdirs() }.parentFile.toPath())
 
-        if (shouldObfuscatePack()) {
+        if (!cache || !obfCachedPack.exists()) {
             Logs.logInfo("Obfuscating NexoPack...")
             obfuscatedModels.clear()
 
@@ -91,30 +94,23 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
             obfuscateSounds()
 
             if (cache) {
-                obfCachedPack.mkdirs()
-                PackGenerator.packWriter.writeToDirectory(obfCachedPack, resourcePack)
+                PackGenerator.packWriter.writeToZipFile(obfCachedPack, resourcePack)
                 Logs.logInfo("Caching obfuscated ResourcePack...")
             }
         }
 
         obfCachedPack.parentFile.listFiles()?.asSequence()
-            ?.filter { it.isDirectory && it.name != obfCachedPack.name }
+            ?.filter { it.name != obfCachedPack.name }
             ?.forEach { runCatching { it.deleteRecursively() } }
-    }
 
-    private fun shouldObfuscatePack(): Boolean {
-        // We do not want to cache it or use a cached version
-        // We want to use cached version, but it does not exist
-        if (!cache || !obfCachedPack.exists()) return true
-
-        // We want to use cached version, and it exists, so read it to pack
-        resourcePack = PackGenerator.packReader.readFromDirectory(obfCachedPack)
-        return false
+        return if (cache) PackGenerator.packReader.readFromZipFile(obfCachedPack) else resourcePack
     }
 
     private fun obfuscateModels() {
         resourcePack.models().filterNot { it.key().value().startsWith("equipment/") }.forEach(::obfuscateModel)
 
+        // Remove the original model and add the obfuscated one
+        // If the original was marked to be skipped, still use the obfuscated but change the model-key to keep obf textures...
         obfuscatedModels.forEach {
             resourcePack.removeModel(it.originalModel.key())
             if (it.originalModel.key() !in skippedKeys) it.obfuscatedModel.addTo(resourcePack)
@@ -122,6 +118,48 @@ class PackObfuscator(private var resourcePack: ResourcePack) {
         }
 
         obfuscateBlockStates()
+        obfuscateItemModels()
+    }
+
+    private fun obfuscateItemModels() {
+
+        fun obfuscateItemModel(obj: JsonObject) {
+            val modelObj = obj.`object`("model") ?: return
+            modelObj.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
+                obj.`object`("model")!!.plus("model", it.key().asString())
+            }
+            obj.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
+                obj.`object`("fallback")!!.plus("model", it.key().asString())
+            }
+
+            modelObj.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+            modelObj.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+
+            modelObj.`object`("on_false")?.let { onFalse ->
+                onFalse.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+                onFalse.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+                onFalse.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
+                    onFalse.`object`("fallback")!!.plus("model", it.key().asString())
+                }
+            }
+            modelObj.`object`("on_true")?.let { onTrue ->
+                onTrue.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+                onTrue.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
+                onTrue.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
+                    onTrue.`object`("fallback")!!.plus("model", it.key().asString())
+                }
+            }
+        }
+
+        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
+            runCatching {
+                val itemModelObject = writable.toJsonObject() ?: return@forEach
+                if (ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
+                obfuscateItemModel(itemModelObject)
+
+                resourcePack.unknownFile(key, itemModelObject.toWritable())
+            }.printOnFailure(true)
+        }
     }
 
     private fun obfuscateBlockStates() {

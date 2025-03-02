@@ -39,7 +39,7 @@ enum class Settings {
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
 
     // Chat
-    CHAT_HANDLER("Chat.chat_handler", if (VersionUtil.isPaperServer) ChatHandler.MODERN.name else ChatHandler.LEGACY.name),
+    CHAT_HANDLER("Chat.chat_handler", ChatHandler.MODERN.name),
 
     // Config Tools
     GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),
@@ -80,6 +80,9 @@ enum class Settings {
     PACK_IMPORT_MODEL_ENGINE("Pack.import.model_engine.import_pack", true),
     PACK_EXCLUDE_MODEL_ENGINE_SHADERS("Pack.import.model_engine.exclude_shaders", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", listOf(".zip", ".tar.gz")),
+    PACK_USE_PACKSQUASH("Pack.generation.packsquash.enabled", false),
+    PACKSQUASH_EXEC_PATH("Pack.generation.packsquash.executable_path", "plugins/Nexo/pack/packsquash/packsquash"),
+    PACKSQUASH_SETTINGS_PATH("Pack.generation.packsquash.settings_path", "plugins/Nexo/pack/packsquash/packsquash.toml"),
 
     PACK_VALIDATE_MODELS("Pack.validate.models", true),
     PACK_VALIDATE_FONTS("Pack.validate.fonts", true),
@@ -91,9 +94,16 @@ enum class Settings {
     SELFHOST_DISPATCH_THREADS("Pack.server.selfhost.dispatch_threads", 10),
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.nexomc.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "nexomc"),
+    LOBFILE_API_KEY("Pack.server.lobfile.api_key", "API-KEY"),
+    S3_PUBLIC_URL("Pack.server.s3.public_url", "https://public_url.com"),
+    S3_REGION("Pack.server.s3.region", "EU_WEST_1"),
+    S3_BUCKET_NAME("Pack.server.s3.bucket", "packs"),
+    S3_KEY("Pack.server.s3.key", "resource_pack"),
+    S3_SECRET_KEY("Pack.server.s3.secret_key", "SECRET"),
+    S3_ACCESS_KEY("Pack.server.s3.access_key", "SECRET"),
 
-    PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21") && VersionUtil.isPaperServer),
-    PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", !VersionUtil.isPaperServer || VersionUtil.below("1.21")),
+    PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21")),
+    PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", VersionUtil.below("1.21")),
     PACK_SEND_RELOAD("Pack.dispatch.send_on_reload", true),
     PACK_SEND_DELAY("Pack.dispatch.delay", -1),
     PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),

@@ -6,7 +6,7 @@ import com.nexomc.nexo.utils.actions.ClickAction
 import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import org.bukkit.event.EventHandler
 
-class EquipListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction) : CustomListener(itemID, cooldown, event, clickAction, true) {
+class EquipListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAction: ClickAction) : CustomListener(itemID, cooldown, event, clickAction) {
 
     @EventHandler
     fun PlayerArmorChangeEvent.onEquipArmor() {

@@ -58,8 +58,7 @@ class ItemsView {
         mainGui = Gui.paginated().rows(Settings.NEXO_INV_ROWS.toInt()).pageSize(Settings.NEXO_INV_SIZE.toInt(45))
             .title(Settings.NEXO_INV_TITLE.toComponent()).disableItemSwap().disableItemPlace()
             .inventory { title, owner, size ->
-                if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, size, title)
-                else Bukkit.createInventory(owner, size, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+                Bukkit.createInventory(owner, size, title)
             }.create().apply { addItem(*guiItems.toTypedArray()) }
 
         (NexoItems.itemFromId(Settings.NEXO_INV_PREVIOUS_ICON.toString()) ?: ItemBuilder(Material.BARRIER))
@@ -96,8 +95,7 @@ class ItemsView {
                 )!!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
             )
         ).inventory { title, owner, size ->
-            if (VersionUtil.isPaperServer) Bukkit.createInventory(owner, size, title)
-            else Bukkit.createInventory(owner, size, AdventureUtils.LEGACY_SERIALIZER.serialize(title))
+            Bukkit.createInventory(owner, size, title)
         }.create()
         gui.disableAllInteractions()
 

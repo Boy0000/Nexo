@@ -1,5 +1,6 @@
 package com.nexomc.nexo.recipes.builders
 
+import net.kyori.adventure.text.Component
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -7,7 +8,7 @@ import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
 
-class ShapedBuilder(player: Player) : WorkbenchBuilder(player, "shaped") {
+class ShapedBuilder(player: Player) : WorkbenchBuilder(player, Component.text("shaped")) {
     override fun saveRecipe(name: String, permission: String?) {
         val letterByItem = mutableMapOf<ItemStack?, Char>()
         var letter = 'A'

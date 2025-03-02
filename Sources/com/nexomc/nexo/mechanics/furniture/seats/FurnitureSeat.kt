@@ -68,10 +68,15 @@ data class FurnitureSeat(val offset: Vector) {
             else -> null
         }
 
+        fun getSeats(baseEntity: ItemDisplay, mechanic: FurnitureMechanic): List<Interaction> {
+            return baseEntity.takeIf { mechanic.hasSeats }?.persistentDataContainer?.get(SEAT_KEY, DataType.asList(DataType.UUID))
+                ?.mapNotNull { Bukkit.getEntity(it) as? Interaction } ?: emptyList()
+        }
+
         fun isSeat(entity: Entity?) = entity?.persistentDataContainer?.has(SEAT_KEY, DataType.UUID) == true
 
         fun sitOnSeat(baseEntity: ItemDisplay, player: Player, interactionPoint: Location?) {
-            val centeredLoc = BlockHelpers.toCenterLocation(interactionPoint ?: baseEntity.location)
+            val centeredLoc = (interactionPoint ?: baseEntity.location).toCenterLocation()
             baseEntity.persistentDataContainer.get(SEAT_KEY, DataType.asList(DataType.UUID))
                 ?.mapNotNull { Bukkit.getEntity(it).takeIf { i -> i is Interaction && i.passengers.isEmpty() } }
                 ?.minWithOrNull(Comparator.comparingDouble { centeredLoc.distanceSquared(it.location) })
@@ -109,7 +114,7 @@ data class FurnitureSeat(val offset: Vector) {
             else seats.forEach { (seat, entity) ->
                 val passengers = entity.passengers.toList().onEach(entity::removePassenger)
                 val translation = Vector.fromJOML(baseEntity.transformation.translation)
-                entity.teleport(baseEntity.location.plus(translation).plus(seat.offset(baseEntity.location.yaw)))
+                entity.teleportAsync(baseEntity.location.plus(translation).plus(seat.offset(baseEntity.location.yaw)))
                 passengers.onEach(entity::addPassenger)
             }
         }

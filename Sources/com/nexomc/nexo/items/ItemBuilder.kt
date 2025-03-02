@@ -1,6 +1,10 @@
 package com.nexomc.nexo.items
 
+import com.google.common.collect.HashMultimap
+import com.google.common.collect.Multimap
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
@@ -8,13 +12,7 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
-import com.nexomc.nexo.utils.ItemUtils.lore
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
-import com.google.common.collect.HashMultimap
-import com.google.common.collect.Multimap
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.*
@@ -22,7 +20,6 @@ import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.damage.DamageType
 import org.bukkit.enchantments.Enchantment
-import org.bukkit.entity.EntityType
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemRarity
@@ -122,15 +119,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         if ((itemMeta as? ArmorMeta)?.hasTrim() == true) trimPattern = itemMeta.trim?.material?.key()
 
-        if (itemMeta.hasDisplayName()) {
-            displayName = if (VersionUtil.isPaperServer) itemMeta.displayName()
-            else AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.displayName)
-        }
-
-        if (itemMeta.hasLore()) {
-            lore = if (VersionUtil.isPaperServer) itemMeta.lore()
-            else itemMeta.lore!!.map { AdventureUtils.LEGACY_SERIALIZER.deserialize(it).asComponent() }
-        }
+        displayName = itemMeta.displayName()
+        lore = itemMeta.lore()
 
         unbreakable = itemMeta.isUnbreakable
 
@@ -146,10 +136,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         enchantments = HashMap()
 
         if (VersionUtil.atleast("1.20.5")) {
-            itemName = if (itemMeta.hasItemName()) {
-                if (VersionUtil.isPaperServer) itemMeta.itemName()
-                else AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.itemName)
-            } else null
+            itemName = if (itemMeta.hasItemName()) itemMeta.itemName() else null
 
             durability = if ((itemMeta is Damageable) && itemMeta.hasMaxDamage()) itemMeta.maxDamage else null
             fireResistant = if (itemMeta.isFireResistant) true else null
@@ -515,7 +502,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         // 1.20.5+ properties
         if (VersionUtil.atleast("1.20.5")) {
             if (itemMeta is Damageable) itemMeta.setMaxDamage(durability)
-            if (itemName != null) ItemUtils.itemName(itemMeta, itemName)
+            if (itemName != null) itemMeta.itemName(itemName)
             if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize)
             if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlindOverride)
             if (hasRarity()) itemMeta.setRarity(rarity)
@@ -547,7 +534,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         if (displayName != null) {
             if (VersionUtil.below("1.20.5"))
                 pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName!!))
-            ItemUtils.displayName(itemMeta, displayName?.setDefaultStyle())
+            itemMeta.displayName(displayName?.setDefaultStyle())
         }
 
         enchantments.entries.forEach { enchant: Map.Entry<Enchantment?, Int?> ->
@@ -573,7 +560,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             pdc.set(dataSpaceKey.namespacedKey, dataSpaceKey.dataType, value)
         }
 
-        lore(itemMeta, lore)
+        itemMeta.lore(lore)
 
         itemStack.itemMeta = itemMeta
 
@@ -584,12 +571,12 @@ class ItemBuilder(private val itemStack: ItemStack) {
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) when {
             itemStack.itemMeta is PotionMeta -> {
                 itemStack = NMSHandlers.handler().consumableComponent(itemStack, null)
-                ItemUtils.editItemMeta(itemStack) {
+                itemStack.editMeta {
                     it.setFood(null)
                 }
             }
             itemStack.itemMeta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") -> {
-                ItemUtils.editItemMeta(itemStack) {
+                itemStack.editMeta {
                     it.setEquippable(it.equippable.apply { slot = EquipmentSlot.HAND })
                 }
             }

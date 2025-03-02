@@ -58,6 +58,7 @@ interface NexoPackServer {
             return when (type) {
                 PackServerType.SELFHOST -> SelfHostServer()
                 PackServerType.POLYMATH -> PolymathServer()
+                PackServerType.LOBFILE -> LobFileServer()
                 PackServerType.NONE -> EmptyServer()
             }
         }

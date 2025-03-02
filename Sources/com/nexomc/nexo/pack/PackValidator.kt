@@ -5,8 +5,8 @@ import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
-import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
+import com.vagdedes.spartan.functionality.g.f
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas
@@ -17,6 +17,9 @@ import team.unnamed.creative.texture.Texture
 import java.awt.Dimension
 import javax.imageio.ImageIO
 import javax.imageio.stream.MemoryCacheImageInputStream
+import kotlin.math.ceil
+import kotlin.math.floor
+import kotlin.math.log2
 import kotlin.math.max
 
 class PackValidator(val resourcePack: ResourcePack) {
@@ -28,38 +31,46 @@ class PackValidator(val resourcePack: ResourcePack) {
     fun validatePack() {
         invalidTextures.clear()
         Logs.logInfo("Validating ResourcePack files...")
-        val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()?.flatMapFast { source ->
-            source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
-                if (resourcePack.texture(texture) == null && DefaultResourcePackExtractor.vanillaResourcePack.texture(texture) == null) {
-                    logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
-                    return@textures emptyList()
-                }
-                source.permutations().keys.map { permutation ->
-                    texture.key().removeSuffix(".png").appendSuffix("_$permutation").appendPng()
-                }
-            }
-        } ?: emptyList()
+        val palettedPermutations =
+            resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()
+                ?.flatMapFast { source ->
+                    source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
+                        if (resourcePack.texture(texture) == null && DefaultResourcePackExtractor.vanillaResourcePack.texture(
+                                texture
+                            ) == null
+                        ) {
+                            logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
+                            return@textures emptyList()
+                        }
+                        source.permutations().keys.map { permutation ->
+                            texture.key().removeSuffix(".png").appendSuffix("_$permutation").appendPng()
+                        }
+                    }
+                } ?: emptyList()
 
         if (Settings.PACK_VALIDATE_MODELS.toBool()) resourcePack.models().forEach { model ->
             model.textures().layers().forEach layers@{
                 val key = it.key()?.appendPng() ?: return@layers
                 if (key in palettedPermutations) return@layers
                 if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@layers
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512) } ?: logMissingTexture("Model", model.key(), key)
+                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                    ?: logMissingTexture("Model", model.key(), key)
             }
 
             model.textures().variables().entries.forEach variables@{
                 val key = it.value.key()?.appendPng() ?: return@variables
                 if (key in palettedPermutations) return@variables
                 if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@variables
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512) } ?: logMissingTexture("Model", model.key(), key)
+                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                    ?: logMissingTexture("Model", model.key(), key)
             }
 
             model.textures().particle()?.also {
                 val key = it.key()?.appendPng() ?: return@also
                 if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@also
                 if (key in palettedPermutations) return@also
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512) } ?: logMissingTexture("Model", model.key(), key)
+                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                    ?: logMissingTexture("Model", model.key(), key)
             }
         }
 
@@ -70,12 +81,14 @@ class PackValidator(val resourcePack: ResourcePack) {
                         val key = provider.file().appendPng()
                         if (key in palettedPermutations || provider.characters().size > 1) return@providers provider
                         if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@providers provider
-                        resourcePack.texture(key)?.also { validateTextureSize(it, 256) }?.let { return@providers provider }
+                        resourcePack.texture(key)?.also { validateTextureSize(it, 256, false) }
+                            ?.let { return@providers provider }
 
                         logMissingTexture("Font", font.key(), key)
                         Logs.logWarn("It has been temporarily replaced with a placeholder-image to not break the pack")
                         provider.file(Glyph.REQUIRED_GLYPH)
                     }
+
                     else -> provider
                 }
             }.let(font::providers)
@@ -117,17 +130,25 @@ class PackValidator(val resourcePack: ResourcePack) {
         }.flatten().toSet()
     }
 
-    private fun validateTextureSize(texture: Texture, maxResolution: Int) {
+    private fun Double.isPowerOfTwo(): Boolean = ceil(log2(this)) == floor(log2(this)) && this != 0.0
+    private fun validateTextureSize(texture: Texture, maxResolution: Int, checkMipmap: Boolean) {
         runCatching {
             if (texture.key().removeSuffix(".png") in uvTextures) return
             if (texture.hasMetadata() || resourcePack.unknownFile("assets/${texture.key().namespace()}/textures/${texture.key().value()}.mcmeta") != null) return
-            val dimensions = texture.dimensions() ?: return
 
-            if (max(dimensions.width, dimensions.height) > maxResolution) {
+            val (width, height) = texture.dimensions()?.let { it.width to it.height } ?: return
+            if (checkMipmap && (!width.toDouble().isPowerOfTwo() || !height.toDouble().isPowerOfTwo())) {
+                Logs.logWarn("Texture <#E24D47><i>${texture.key()}</i></#E24D47> has bad resolution-ratio ${width}x${height}")
+                Logs.logWarn("Textures not using ^2 will lower mipmap-level, causing blurry visuals")
+                Logs.logWarn("Recommend converting it to a resolution in ^2, 2x2, 4x4, 8x8, 16x16, 32x32...")
+            }
+
+            if (max(width, height) > maxResolution) {
                 Logs.logError("Texture <#E24D47><i>${texture.key()}</i></#E24D47> is above allowed ${maxResolution}x$maxResolution resolution...")
                 Logs.logWarn("It has been temporarily replaced with a placeholder-image to not break the pack")
                 texture.toBuilder().data(requiredTexture?.data() ?: texture.data()).build()
             }
+
         }.printOnFailure(true)
     }
 

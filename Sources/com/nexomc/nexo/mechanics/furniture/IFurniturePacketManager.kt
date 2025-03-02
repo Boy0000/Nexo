@@ -1,8 +1,10 @@
 package com.nexomc.nexo.mechanics.furniture
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VectorUtils.toLocation
 import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.flatMapFast
@@ -18,6 +20,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.joml.Vector3f
 import java.util.*
+import java.util.function.Consumer
 
 interface IFurniturePacketManager {
     fun nextEntityId(): Int
@@ -47,8 +50,8 @@ interface IFurniturePacketManager {
     fun removeLightMechanicPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {}
 
     fun removeAllFurniturePackets() {
-        Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach { entity ->
-            val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@forEach
+        SchedulerUtils.runAtWorldEntities { entity ->
+            val mechanic = (entity as? ItemDisplay)?.let(NexoFurniture::furnitureMechanic) ?: return@runAtWorldEntities
             removeInteractionHitboxPacket(entity, mechanic)
             removeShulkerHitboxPacket(entity, mechanic)
             removeBarrierHitboxPacket(entity, mechanic)

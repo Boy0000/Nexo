@@ -21,6 +21,7 @@ import com.nexomc.nexo.mechanics.misc.custom.CustomMechanicFactory
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.mechanics.misc.soulbound.SoulBoundMechanicFactory
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import com.nexomc.nexo.mechanics.repair.RepairMechanicFactory
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
@@ -34,7 +35,7 @@ import java.util.*
 
 object MechanicsManager {
     private val FACTORIES_BY_MECHANIC_ID = mutableMapOf<String, MechanicFactory>()
-    private val MECHANIC_TASKS = mutableMapOf<String, MutableList<Int>>()
+    private val MECHANIC_TASKS = mutableMapOf<String, MutableList<WrappedTask>>()
     private val MECHANICS_LISTENERS = mutableMapOf<String, MutableList<Listener>>()
 
     fun registerNativeMechanics() {
@@ -94,15 +95,15 @@ object MechanicsManager {
             constructor.create(factorySection)
     }
 
-    fun registerTask(mechanicId: String, task: BukkitTask) {
+    fun registerTask(mechanicId: String, task: WrappedTask) {
         MECHANIC_TASKS.compute(mechanicId) { _, value ->
-            (value ?: mutableListOf()).also { it.add(task.taskId) }
+            (value ?: mutableListOf()).also { it += task }
         }
     }
 
     fun unregisterTasks() {
         MECHANIC_TASKS.values.forEach { tasks ->
-            tasks.forEach { taskId -> Bukkit.getScheduler().cancelTask(taskId) }
+            tasks.forEach { taskId -> SchedulerUtils.foliaScheduler.cancelTask(taskId) }
         }
         MECHANIC_TASKS.clear()
     }
@@ -110,7 +111,7 @@ object MechanicsManager {
     fun unregisterTasks(mechanicId: String) {
         MECHANIC_TASKS.computeIfPresent(mechanicId) { _, value ->
             value.forEach { taskId ->
-                Bukkit.getScheduler().cancelTask(taskId)
+                SchedulerUtils.foliaScheduler.cancelTask(taskId)
             }
             Collections.emptyList()
         }

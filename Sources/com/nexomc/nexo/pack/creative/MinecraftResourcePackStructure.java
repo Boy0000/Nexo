@@ -64,7 +64,8 @@ final class MinecraftResourcePackStructure {
     public static final String EXTERNAL_PACKS_FOLDER = "external_packs";
     public static final String ASSET_CACHE_FOLDER = ".assetCache";
     public static final String DEOBF_CACHE_FOLDER = ".deobfCachedPacks";
-    public static final Set<String> IGNORED_NEXO_FOLDERS = Set.of(PACK_ZIP, EXTERNAL_PACKS_FOLDER, ASSET_CACHE_FOLDER, DEOBF_CACHE_FOLDER);
+    public static final String PACKSQUASH_FOLDER = "packsquash";
+    public static final Set<String> IGNORED_NEXO_FOLDERS = Set.of(PACK_ZIP, EXTERNAL_PACKS_FOLDER, ASSET_CACHE_FOLDER, DEOBF_CACHE_FOLDER, PACKSQUASH_FOLDER);
 
     private MinecraftResourcePackStructure() {
     }

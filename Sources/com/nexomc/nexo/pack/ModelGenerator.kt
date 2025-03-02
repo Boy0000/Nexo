@@ -16,7 +16,8 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
 
     fun generateBaseItemModels() {
         // Generate the baseItem model and add all needed overrides
-        NexoItems.items().mapFastSet(ItemBuilder::type).forEach { baseMaterial ->
+        NexoItems.items().forEach { itemBuilder ->
+            val baseMaterial = itemBuilder.type
             val baseModelKey = Key.key("item/${baseMaterial.toString().lowercase()}")
             val model = resourcePack.model(baseModelKey) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey) ?: return@forEach
 

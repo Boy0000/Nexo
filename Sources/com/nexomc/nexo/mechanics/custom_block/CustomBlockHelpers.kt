@@ -142,6 +142,6 @@ object CustomBlockHelpers {
 
             swingHand(player, hand)
         }
-        if (VersionUtil.isPaperServer) target.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, target.location.toVector())
+        target.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, target.location.toVector())
     }
 }

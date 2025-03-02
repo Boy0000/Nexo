@@ -7,7 +7,6 @@ import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryView
 
 object InventoryUtils {
-    private var getTitleMethod = runCatching { InventoryView::class.java.getDeclaredMethod("getTitle") }.getOrNull()
     private var titleMethod = runCatching { InventoryView::class.java.getDeclaredMethod("title") }.getOrNull()
     private var topInventoryMethod = runCatching { InventoryView::class.java.getDeclaredMethod("getTopInventory") }.getOrNull()
     private var playerFromViewMethod = runCatching { InventoryView::class.java.getDeclaredMethod("getPlayer") }.getOrNull()
@@ -25,14 +24,6 @@ object InventoryUtils {
         return runCatching {
             playerFromViewMethod!!.invoke(event.view) as Player
         }.printOnFailure(true).getOrNull()
-    }
-
-    @JvmStatic
-    fun getTitleFromView(event: InventoryEvent): String {
-        if (VersionUtil.atleast("1.21")) return event.view.title
-        return runCatching {
-            getTitleMethod!!.invoke(event.view) as String
-        }.printOnFailure(true).getOrNull() ?: ""
     }
 
     @JvmStatic

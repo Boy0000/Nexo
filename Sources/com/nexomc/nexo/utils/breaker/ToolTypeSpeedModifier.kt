@@ -18,12 +18,6 @@ class ToolTypeSpeedModifier {
         this.customBlocks = HashSet()
     }
 
-    //TODO allow for specifying a ToolTypeSpeedModifier in CustomBlockMechanic Drops bestTools
-    /*public ToolTypeSpeedModifier(String bestTool) {
-        String tool = StringUtils.substringBefore(bestTool, " ");
-        double modifier = ParseUtils.parseDouble(StringUtils.substringAfter(bestTool, " "), 1.0);
-        VANILLA.stream().filter(t -> t.toolTypes())
-    }*/
     constructor(toolType: Set<Material>, speedModifier: Float, materials: Set<Material>) {
         this.toolType = toolType
         this.speedModifier = speedModifier
@@ -63,7 +57,6 @@ class ToolTypeSpeedModifier {
         init {
             VANILLA.add(EMPTY)
 
-            NMSHandlers.handler()
             val itemTools = mutableSetOf<Material>()
             itemTools += Tag.ITEMS_SHOVELS.values
             itemTools += Tag.ITEMS_SWORDS.values

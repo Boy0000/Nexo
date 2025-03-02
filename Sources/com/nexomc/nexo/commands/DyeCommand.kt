@@ -1,11 +1,8 @@
 package com.nexomc.nexo.commands
 
 import com.mineinabyss.idofront.items.asColorable
-import com.mineinabyss.idofront.items.editItemMeta
 import com.mineinabyss.idofront.util.removeSpaces
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.utils.deserialize
-import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
@@ -34,12 +31,12 @@ internal fun CommandTree.dyeCommand() = literalArgument("dye") {
             val item = player.inventory.itemInMainHand.takeIf { it.type != Material.AIR }
                 ?: player.inventory.itemInOffHand.takeIf { it.type != Material.AIR }
                 ?: return@playerExecutor Message.DYE_FAILED.send(player)
-            item.editItemMeta {
-                asColorable()?.apply {
+            item.editMeta {
+                it.asColorable()?.apply {
                     this.color = color
-                } ?: return@playerExecutor Message.DYE_FAILED.send(player)
+                } ?: return@editMeta Message.DYE_FAILED.send(player)
+                Message.DYE_SUCCESS.send(player)
             }
-            Message.DYE_SUCCESS.send(player)
         }
     }
 }

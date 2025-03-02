@@ -42,7 +42,7 @@ object BlockHelpers {
 
     @JvmStatic
     fun playCustomBlockSound(location: Location, sound: String?, volume: Float, pitch: Float) {
-        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch)
+        playCustomBlockSound(location.toCenterLocation(), sound, SoundCategory.BLOCKS, volume, pitch)
     }
 
     @JvmStatic
@@ -62,26 +62,8 @@ object BlockHelpers {
     }
 
     @JvmStatic
-    fun toBlockLocation(location: Location): Location {
-        return location.clone().also {
-            it.x = location.blockX.toDouble()
-            it.y = location.blockY.toDouble()
-            it.z = location.blockZ.toDouble()
-        }
-    }
-
-    @JvmStatic
-    fun toCenterLocation(location: Location): Location {
-        return location.clone().also {
-            it.x = location.blockX + 0.5
-            it.y = location.blockY + 0.5
-            it.z = location.blockZ + 0.5
-        }
-    }
-
-    @JvmStatic
     fun toCenterBlockLocation(location: Location): Location {
-        return toCenterLocation(location).subtract(0.0, 0.5, 0.0)
+        return location.toCenterLocation().subtract(0.0, 0.5, 0.0)
     }
 
     @JvmStatic
@@ -96,7 +78,7 @@ object BlockHelpers {
         if (player == null || block == null) return false
         // Since the block might be AIR, Block#getBoundingBox returns an empty one
         // Get the block-center and expand it 0.5 to cover the block
-        val blockBox = BoundingBox.of(toCenterLocation(block.location), 0.5, 0.5, 0.5)
+        val blockBox = BoundingBox.of(block.location.toCenterLocation(), 0.5, 0.5, 0.5)
 
         return block.world.getNearbyEntities(blockBox).any { it is LivingEntity && (it !is Player || it.gameMode != GameMode.SPECTATOR) }
     }

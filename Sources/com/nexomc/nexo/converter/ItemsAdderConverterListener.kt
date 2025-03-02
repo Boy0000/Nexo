@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.serialize
 import org.bukkit.Bukkit
+import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
@@ -25,11 +26,7 @@ class ItemsAdderConverterListener : Listener {
 
     init {
         // Handles already loaded spawn-chunks
-        SchedulerUtils.callSyncMethod {
-            Bukkit.getWorlds().flatMapFast { it.entities }.forEach { entity ->
-                entity.convertFurniture()
-            }
-        }
+        SchedulerUtils.runAtWorldEntities { entity -> entity.convertFurniture() }
     }
 
     @EventHandler
@@ -61,7 +58,7 @@ class ItemsAdderConverterListener : Listener {
         //    rightRotation.set(0f, 0f, 0f, 1f)
         //}
         //baseEntity.itemDisplayTransform = mechanic.properties.displayTransform
-        //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) baseEntity.teleport(baseEntity.location.apply { y += 0.5 })
+        //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) baseEntity.teleportAsync(baseEntity.location.apply { y += 0.5 })
         //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) setRotation(baseEntity.location.yaw, -90f)
         NexoFurniture.updateFurniture(baseEntity)
     }

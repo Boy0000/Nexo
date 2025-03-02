@@ -7,16 +7,12 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacy
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import com.nexomc.nexo.utils.ItemUtils.displayName
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.TextComponent
@@ -34,8 +30,8 @@ import org.bukkit.inventory.meta.BookMeta
 import org.bukkit.persistence.PersistentDataType
 
 class FontListener(private val manager: FontManager) : Listener {
-    private var paperChatHandler: PaperChatHandler? = null
-    private var spigotChatHandler: SpigotChatHandler
+    private val paperChatHandler: PaperChatHandler = PaperChatHandler()
+    private val spigotChatHandler: SpigotChatHandler = SpigotChatHandler()
 
     enum class ChatHandler {
         LEGACY, MODERN;
@@ -47,28 +43,22 @@ class FontListener(private val manager: FontManager) : Listener {
 
             fun get(): ChatHandler {
                 return Settings.CHAT_HANDLER.toEnumOrGet(ChatHandler::class.java) { handler: String ->
-                    val chatHandler = if (VersionUtil.isPaperServer) MODERN else LEGACY
-                    Logs.logError("Invalid chat-handler $handler defined in settings.yml, defaulting to $chatHandler", false)
+                    Logs.logError("Invalid chat-handler $handler defined in settings.yml, defaulting to $MODERN", false)
                     Logs.logError("Valid options are: ${entries.toTypedArray().contentToString()}", true)
-                    chatHandler
+                    MODERN
                 }
             }
         }
     }
 
-    init {
-        if (VersionUtil.isPaperServer) paperChatHandler = PaperChatHandler()
-        spigotChatHandler = SpigotChatHandler()
-    }
-
     fun registerChatHandlers() {
-        paperChatHandler?.let { Bukkit.getPluginManager().registerEvents(it, NexoPlugin.instance()) }
+        Bukkit.getPluginManager().registerEvents(paperChatHandler, NexoPlugin.instance())
         Bukkit.getPluginManager().registerEvents(spigotChatHandler, NexoPlugin.instance())
     }
 
     fun unregisterChatHandlers() {
-        paperChatHandler?.let(HandlerList::unregisterAll)
-        spigotChatHandler?.let(HandlerList::unregisterAll)
+        HandlerList.unregisterAll(paperChatHandler)
+        HandlerList.unregisterAll(spigotChatHandler)
     }
 
     @EventHandler
@@ -122,7 +112,7 @@ class FontListener(private val manager: FontManager) : Listener {
             }
         }
 
-        val pages = if (VersionUtil.isPaperServer) meta.pages().map(AdventureUtils.MINI_MESSAGE::serialize) else meta.pages
+        val pages = meta.pages().map(AdventureUtils.MINI_MESSAGE::serialize)
         val tagResolver = GlyphTag.getResolverForPlayer(player)
 
         val book = Book.builder()
@@ -158,7 +148,7 @@ class FontListener(private val manager: FontManager) : Listener {
         }
     }
 
-    @EventHandler
+    /*@EventHandler
     fun InventoryClickEvent.onPlayerRename() {
         val clickedInv = clickedInventory as? AnvilInventory ?: return
         if (!Settings.FORMAT_ANVIL.toBool() || slot != 2) return
@@ -195,8 +185,8 @@ class FontListener(private val manager: FontManager) : Listener {
             displayName = inputItem.itemMeta.persistentDataContainer.get(ItemBuilder.ORIGINAL_NAME_KEY, PersistentDataType.STRING)
         }
 
-        displayName(resultItem, displayName?.deserialize())
-    }
+        resultItem.editMeta { it.displayName(displayName?.deserialize()) }
+    }*/
 
     @EventHandler
     fun PlayerJoinEvent.onPlayerJoin() {

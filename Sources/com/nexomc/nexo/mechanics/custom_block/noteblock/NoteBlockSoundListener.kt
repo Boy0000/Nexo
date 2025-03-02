@@ -8,8 +8,11 @@ import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.utils.BlockHelpers.entityStandingOn
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.to
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -29,7 +32,7 @@ import org.bukkit.scheduler.BukkitTask
 
 class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSounds) : Listener {
     companion object {
-        val breakerPlaySound = Object2ObjectOpenHashMap<Location, BukkitTask>()
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, WrappedTask>()
     }
 
     @EventHandler
@@ -82,7 +85,8 @@ class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSou
         val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
         val pitch = blockSounds?.hitPitch ?: BlockSounds.VANILLA_HIT_PITCH
 
-        breakerPlaySound[location] = Bukkit.getScheduler().runTaskTimer(NexoPlugin.instance(), Runnable {
+        breakerPlaySound[location] = SchedulerUtils.foliaScheduler.runAtLocationTimer(
+            location, Runnable {
             playCustomBlockSound(location, sound, volume, pitch)
         }, 2L, 4L)
     }
@@ -98,8 +102,7 @@ class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSou
         if (entity !is Player && customSounds.playersOnly) return
         if (!isLoaded(entity.location)) return
         if (event == GameEvent.HIT_GROUND && entity.fallDistance < 4.0) return
-        val silent =
-            entity.isInWater || entity.isSwimming || (VersionUtil.isPaperServer && (entity.isSneaking || entity.isInLava))
+        val silent = entity.isInWater || entity.isSwimming || (entity.isSneaking || entity.isInLava)
         if (event == GameEvent.STEP && silent) return
 
         val blockStandingOn = entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return

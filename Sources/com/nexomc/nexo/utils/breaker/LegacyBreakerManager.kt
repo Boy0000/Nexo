@@ -17,6 +17,8 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
+import com.nexomc.nexo.utils.SchedulerUtils
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -92,8 +94,8 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         activeBreakerData.sendBreakProgress()
     }
 
-    private fun createBreakScheduler(blockBreakTime: Double, breakerUUID: UUID): BukkitTask {
-        return Bukkit.getScheduler().runTaskTimer(NexoPlugin.instance(), Runnable {
+    private fun createBreakScheduler(blockBreakTime: Double, breakerUUID: UUID): WrappedTask {
+        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
@@ -132,8 +134,8 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         }, 1, 1)
     }
 
-    private fun createBreakSoundScheduler(breakerUUID: UUID): BukkitTask {
-        return Bukkit.getScheduler().runTaskTimer(NexoPlugin.instance(), Runnable {
+    private fun createBreakSoundScheduler(breakerUUID: UUID): WrappedTask {
+        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
@@ -183,8 +185,8 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         private val breakable: BreakableMechanic,
         private val totalBreakTime: Int,
         breakTimeProgress: Int,
-        private val breakerTask: BukkitTask?,
-        val breakerSoundTask: BukkitTask?
+        private val breakerTask: WrappedTask?,
+        val breakerSoundTask: WrappedTask?
     ) {
         private val sourceId = SOURCE_RANDOM.nextInt()
         private var breakTimeProgress: Double

@@ -4,7 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.utils.ItemUtils.editItemMeta
 import com.nexomc.nexo.utils.timers.TimersFactory
 import net.kyori.adventure.text.Component
 import org.bukkit.NamespacedKey
@@ -41,19 +40,19 @@ abstract class SpellMechanic protected constructor(factory: MechanicFactory?, se
     open fun timer(player: Player) = timersFactory.getTimer(player)
 
     fun removeCharge(item: ItemStack) {
-        editItemMeta(item) { itemMeta: ItemMeta ->
+        item.editMeta { itemMeta: ItemMeta ->
             val pdc = itemMeta.persistentDataContainer
-            if (!pdc.has<Int, Int>(NAMESPACED_KEY, PersistentDataType.INTEGER)) return@editItemMeta
+            if (!pdc.has<Int, Int>(NAMESPACED_KEY, PersistentDataType.INTEGER)) return@editMeta
 
             val chargesLeft = pdc.getOrDefault(NAMESPACED_KEY, PersistentDataType.INTEGER, -1)
-            if (chargesLeft == -1) return@editItemMeta
+            if (chargesLeft == -1) return@editMeta
             if (chargesLeft == 1) item.amount = 0
             else {
                 pdc.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1)
 
-                val lore = itemMeta.lore ?: return@editItemMeta
-                lore[0] = "Charges ${(chargesLeft - 1)}/${this.maxCharges()}"
-                itemMeta.lore = lore
+                itemMeta.lore((itemMeta.lore() ?: mutableListOf()).also {
+                    it.addFirst(Component.text("Charges ${(chargesLeft - 1)}/${this.maxCharges()}"))
+                })
             }
         }
     }

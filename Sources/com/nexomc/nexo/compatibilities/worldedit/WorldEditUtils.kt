@@ -5,7 +5,6 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
 import com.nexomc.nexo.utils.BlockHelpers.isReplaceable
-import com.nexomc.nexo.utils.BlockHelpers.toBlockLocation
 import com.nexomc.nexo.utils.logs.Logs
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitAdapter
@@ -112,7 +111,7 @@ object WorldEditUtils {
                     )
 
                     val block = world.getBlockAt(loc.clone().add(offset))
-                    if (isReplaceable(block) || toBlockLocation(loc) == toBlockLocation(loc)) return@forEach
+                    if (isReplaceable(block) || loc.toBlockLocation() == loc.toBlockLocation()) return@forEach
                     list += block
                 }
             }
@@ -145,7 +144,7 @@ object WorldEditUtils {
                         )
                     }
                     .map { world.getBlockAt(loc.clone().add(it)) }
-                    .filterTo(list) { !isReplaceable(it) && toBlockLocation(loc) != toBlockLocation(loc) }
+                    .filterTo(list) { !isReplaceable(it) && loc.toBlockLocation() != loc.toBlockLocation() }
             }
         }
 

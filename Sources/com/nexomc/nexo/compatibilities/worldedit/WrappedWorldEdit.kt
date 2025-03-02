@@ -20,7 +20,7 @@ object WrappedWorldEdit {
         if (loaded) {
             NexoBlockInputParser()
             WorldEditHandlers(true)
-            if (VersionUtil.isPaperServer) Bukkit.getPluginManager().registerEvents(WorldEditListener(), NexoPlugin.instance())
+            Bukkit.getPluginManager().registerEvents(WorldEditListener(), NexoPlugin.instance())
         }
     }
 
