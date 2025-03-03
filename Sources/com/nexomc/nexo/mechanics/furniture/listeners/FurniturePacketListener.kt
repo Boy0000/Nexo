@@ -1,10 +1,11 @@
+@file:Suppress("UnusedReceiverParameter", "UnusedReceiverParameter", "UnusedReceiverParameter")
+
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
@@ -17,14 +18,11 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.fur
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.filterFastIsInstance
-import com.nexomc.nexo.utils.flatMapFast
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
-import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player

@@ -76,7 +76,7 @@ class MiscListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun PlayerInteractEvent.onStripLog() {
         val block = clickedBlock?.takeIf { it.type == Material.COMPOSTER } ?: return
-        val (item, hand) = (item ?: return) to (hand ?: return)
+        val (item, _) = (item ?: return) to (hand ?: return)
         MiscMechanicFactory.instance()?.getMechanic(item)?.takeIf { it.canStripLogs } ?: return
 
         if (!Tag.LOGS.isTagged(block.type)) return
@@ -164,7 +164,7 @@ class MiscListener : Listener {
     fun PlayerInteractEntityEvent.onDisableHorseArmorEquip() {
         if (rightClicked !is Horse) return
         val item = player.inventory.itemInMainHand
-        val mechanic = MiscMechanicFactory.instance()?.getMechanic(item)?.takeIf { it.isVanillaInteractionDisabled } ?: return
+        MiscMechanicFactory.instance()?.getMechanic(item)?.takeIf { it.isVanillaInteractionDisabled } ?: return
         if (item.type.name.endsWith("_HORSE_ARMOR")) {
             isCancelled = true
             //player.updateInventory();

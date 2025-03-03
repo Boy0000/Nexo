@@ -2,7 +2,6 @@ package com.nexomc.nexo.api.events.custom_block.chorusblock
 
 import com.nexomc.nexo.api.events.custom_block.NexoBlockInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
-import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player

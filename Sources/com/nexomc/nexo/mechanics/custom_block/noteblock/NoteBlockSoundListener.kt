@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockPlaceEvent
@@ -13,10 +12,12 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
 import com.tcoded.folialib.wrapper.task.WrappedTask
-import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.Location
+import org.bukkit.Sound
+import org.bukkit.SoundCategory
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -28,7 +29,6 @@ import org.bukkit.event.block.BlockDamageEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
-import org.bukkit.scheduler.BukkitTask
 
 class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSounds) : Listener {
     companion object {

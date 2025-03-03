@@ -4,8 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.JarReader.manifestMap
 import com.nexomc.nexo.utils.VersionUtil.NMSVersion.UNKNOWN
 import com.nexomc.nexo.utils.logs.Logs
-import org.apache.commons.lang3.Validate
-import org.bukkit.Bukkit
 
 object VersionUtil {
     private val versionMap = mutableMapOf<NMSVersion, Map<Int, MinecraftVersion>>()

@@ -1,7 +1,5 @@
 package com.nexomc.nexo.utils.customarmor
 
-import com.google.gson.JsonArray
-import com.google.gson.JsonObject
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.JsonBuilder
@@ -13,7 +11,6 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.texture.Texture
 
 object ComponentCustomArmor {
     fun generatePackFiles(resourcePack: ResourcePack) {

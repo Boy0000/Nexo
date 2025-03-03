@@ -1,16 +1,8 @@
 package com.nexomc.nexo.converter
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.ensureCast
-import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.safeCast
-import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.configuration.MemorySection
 import org.bukkit.configuration.file.YamlConfiguration
-import org.spongepowered.configurate.yaml.internal.snakeyaml.Yaml
 
 data class Converter(
     val oraxenConverter: OraxenConverter,

@@ -1,8 +1,6 @@
 package com.nexomc.nexo.items
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType
-import com.jeff_media.persistentdataserializer.PersistentDataSerializer
 import com.mineinabyss.idofront.util.toColor
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
@@ -10,10 +8,15 @@ import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
+import com.nexomc.nexo.utils.PotionUtils
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
@@ -23,7 +26,6 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.enchantments.EnchantmentWrapper
 import org.bukkit.inventory.ItemFlag
-import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffect
 import java.util.*

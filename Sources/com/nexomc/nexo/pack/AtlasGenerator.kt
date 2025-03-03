@@ -1,7 +1,6 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.utils.mapNotNullFast
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas

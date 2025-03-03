@@ -1,12 +1,9 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
-import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.entity.Player
 

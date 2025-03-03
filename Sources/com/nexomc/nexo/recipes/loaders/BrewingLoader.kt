@@ -1,13 +1,8 @@
 package com.nexomc.nexo.recipes.loaders
 
 import io.papermc.paper.potion.PotionMix
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Bukkit
-import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.inventory.Recipe
-import org.bukkit.inventory.ShapelessRecipe
 
 class BrewingLoader(section: ConfigurationSection) : RecipeLoader(section) {
 

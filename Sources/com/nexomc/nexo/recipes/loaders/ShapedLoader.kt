@@ -2,7 +2,6 @@ package com.nexomc.nexo.recipes.loaders
 
 import com.nexomc.nexo.utils.childSections
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.inventory.ShapedRecipe
 
 class ShapedLoader(section: ConfigurationSection) : RecipeLoader(section) {

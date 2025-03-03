@@ -2,18 +2,19 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
-import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconTagDatapack
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.plus
+import com.nexomc.nexo.utils.NexoDatapack
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import io.papermc.paper.registry.tag.TagKey
 import net.kyori.adventure.key.Key
-import org.apache.commons.io.FileUtils
 import org.bukkit.Tag
-import java.nio.charset.StandardCharsets
 
 class NoteBlockDatapack : NexoDatapack("nexo_custom_blocks", "Datapack for allowing Custom Blocks in Beacons") {
 

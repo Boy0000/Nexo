@@ -2,9 +2,7 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
 import com.tcoded.folialib.impl.PlatformScheduler
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import org.bukkit.Bukkit
-import org.bukkit.Chunk
 import org.bukkit.Location
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay

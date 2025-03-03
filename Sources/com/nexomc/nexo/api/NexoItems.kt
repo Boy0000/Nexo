@@ -7,11 +7,13 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
-import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.ItemUtils
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
@@ -20,7 +22,6 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.components.FoodComponent
 import org.bukkit.persistence.PersistentDataType
 import java.io.File
 import java.util.*

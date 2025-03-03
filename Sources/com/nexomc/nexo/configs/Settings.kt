@@ -2,7 +2,6 @@ package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.FontListener.ChatHandler
-import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.pack.PackObfuscator
 import com.nexomc.nexo.pack.server.PackServerType
 import com.nexomc.nexo.utils.AdventureUtils

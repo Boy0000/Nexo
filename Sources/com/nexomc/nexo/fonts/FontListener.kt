@@ -1,18 +1,18 @@
 package com.nexomc.nexo.fonts
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacy
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
+import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.TextComponent
@@ -20,14 +20,19 @@ import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.event.*
+import org.bukkit.event.Event
+import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.SignChangeEvent
-import org.bukkit.event.inventory.InventoryClickEvent
-import org.bukkit.event.player.*
-import org.bukkit.inventory.AnvilInventory
+import org.bukkit.event.player.AsyncPlayerChatEvent
+import org.bukkit.event.player.PlayerEditBookEvent
+import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.meta.BookMeta
-import org.bukkit.persistence.PersistentDataType
 
 class FontListener(private val manager: FontManager) : Listener {
     private val paperChatHandler: PaperChatHandler = PaperChatHandler()

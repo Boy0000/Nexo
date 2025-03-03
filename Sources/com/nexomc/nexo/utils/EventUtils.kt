@@ -1,13 +1,8 @@
 package com.nexomc.nexo.utils
 
 import org.bukkit.Bukkit
-import org.bukkit.damage.DamageSource
-import org.bukkit.damage.DamageType
-import org.bukkit.entity.Entity
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
-import org.bukkit.event.entity.EntityDamageByEntityEvent
-import org.bukkit.event.entity.EntityDamageEvent
 
 object EventUtils {
     /**

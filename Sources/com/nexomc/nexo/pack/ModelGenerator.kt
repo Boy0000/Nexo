@@ -1,9 +1,7 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.NexoMeta
-import com.nexomc.nexo.utils.mapFastSet
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import team.unnamed.creative.ResourcePack

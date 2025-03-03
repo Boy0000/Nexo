@@ -1,3 +1,5 @@
+@file:Suppress("FunctionName")
+
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.configs.Message
@@ -12,7 +14,6 @@ import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
-import kotlin.properties.Delegates
 
 fun Component.serialize(): String = AdventureUtils.MINI_MESSAGE.serialize(this)
 fun String.deserialize(): Component = AdventureUtils.MINI_MESSAGE.deserialize(this)

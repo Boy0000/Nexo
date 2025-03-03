@@ -1,16 +1,20 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
-import com.nexomc.nexo.pack.creative.NexoPackReader
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.`object`
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
+import com.nexomc.nexo.utils.JsonObject
+import com.nexomc.nexo.utils.appendIfMissing
+import com.nexomc.nexo.utils.associateFast
+import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.prependIfMissing
+import com.nexomc.nexo.utils.toJsonObject
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.model.ItemOverride

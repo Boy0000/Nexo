@@ -8,15 +8,14 @@ import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import team.unnamed.creative.font.Font
 import java.util.regex.Pattern
 
 object ShiftTag {
     private const val SHIFT = "shift"
     private const val SHIFT_SHORT = "s"
     val FONT = Key.key(Settings.SHIFT_FONT.toString("nexo:shift"))
-    val PATTERN = Pattern.compile("(<shift:(-?\\d+)>)")
-    val ESCAPED_PATTERN = Pattern.compile("(\\\\<shift:(-?\\d+)>)")
+    val PATTERN: Pattern = Pattern.compile("(<shift:(-?\\d+)>)")
+    val ESCAPED_PATTERN: Pattern = Pattern.compile("(\\\\<shift:(-?\\d+)>)")
 
     val RESOLVER = TagResolver.resolver(setOf(SHIFT, SHIFT_SHORT)) { args, ctx -> shiftTag(args) }
 

@@ -7,7 +7,6 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.kotlindsl.anyExecutor
-import dev.jorel.commandapi.kotlindsl.literalArgument
 import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import gs.mclo.java.Log
 import gs.mclo.java.MclogsAPI

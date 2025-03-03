@@ -134,7 +134,7 @@ class MinecraftVersion : Comparable<MinecraftVersion?>, Serializable {
      * @param major       - major version number.
      * @param minor       - minor version number.
      * @param build       - build version number.
-     * @param development - development stage.
+     * @param developmentStage - development stage.
      */
     /**
      * Construct a version object directly.
@@ -157,7 +157,7 @@ class MinecraftVersion : Comparable<MinecraftVersion?>, Serializable {
         val numbers = IntArray(3)
 
         // Make sure it's even a valid version
-        check(elements.size >= 1) { "Corrupt MC version: $version" }
+        check(elements.isNotEmpty()) { "Corrupt MC version: $version" }
 
         // The String 1 or 1.2 is interpreted as 1.0.0 and 1.2.0 respectively.
         for (i in 0..<min(numbers.size.toDouble(), elements.size.toDouble()).toInt()) {

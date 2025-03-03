@@ -3,7 +3,6 @@ package com.nexomc.nexo.compatibilities.worldedit
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.worldedit.WorldEditUtils.NexoBlockInputParser
 import com.nexomc.nexo.utils.PluginUtils.isEnabled
-import com.nexomc.nexo.utils.VersionUtil
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Block

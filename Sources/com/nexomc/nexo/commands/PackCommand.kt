@@ -20,6 +20,4 @@ internal fun CommandTree.packCommand() = literalArgument("pack") {
     }
 }
 
-object PackCommand {
-
-}
+object PackCommand

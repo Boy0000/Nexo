@@ -8,7 +8,6 @@ import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.Utils.removeExtension
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.mapNotNullFast
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem

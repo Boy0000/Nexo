@@ -1,13 +1,9 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VectorUtils.toLocation
-import com.nexomc.nexo.utils.filterFastIsInstance
-import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
@@ -18,9 +14,7 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.joml.Vector3f
 import java.util.*
-import java.util.function.Consumer
 
 interface IFurniturePacketManager {
     fun nextEntityId(): Int

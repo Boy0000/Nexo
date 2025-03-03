@@ -16,7 +16,6 @@ import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.InteractionResult
 import com.nexomc.nexo.utils.Utils.swingHand
-import com.nexomc.nexo.utils.VersionUtil
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode

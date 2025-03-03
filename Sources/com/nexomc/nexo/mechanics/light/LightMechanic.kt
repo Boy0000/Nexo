@@ -1,13 +1,9 @@
 package com.nexomc.nexo.mechanics.light
 
-import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.utils.VersionUtil
 import net.kyori.adventure.key.Key
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.entity.ItemDisplay
 
 class LightMechanic(
     val lightBlocks: MutableList<LightBlock>,

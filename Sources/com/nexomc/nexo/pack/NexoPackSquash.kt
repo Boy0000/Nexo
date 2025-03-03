@@ -1,7 +1,6 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.logs.Logs
@@ -14,7 +13,7 @@ object NexoPackSquash {
 
     private val packSquashCache = NexoPlugin.instance().dataFolder.resolve("pack", "packsquash", ".cache").apply { mkdirs() }
     private var process: Process? = null
-        private set(value) {
+        set(value) {
             process?.destroy()
             field = value
         }

@@ -75,13 +75,13 @@ class CustomRecipe(
                             ingredients.add(bukkitRecipe.ingredientMap[chars[charIndex]])
                         }
                     }
-                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.getResult(), ingredients, true)
+                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.result, ingredients, true)
                 }
 
                 is ShapelessRecipe -> {
                     val ingredients = ArrayList<ItemStack?>(9)
                     ingredients.addAll(bukkitRecipe.ingredientList)
-                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.getResult(), ingredients, false)
+                    return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.result, ingredients, false)
                 }
 
                 else -> return null

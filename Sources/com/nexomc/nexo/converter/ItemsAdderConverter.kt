@@ -1,6 +1,5 @@
 package com.nexomc.nexo.converter
 
-import com.google.gson.JsonElement
 import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
 import com.jeff_media.morepersistentdatatypes.DataType
@@ -9,20 +8,18 @@ import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.pack.DefaultResourcePackExtractor
 import com.nexomc.nexo.pack.creative.NexoPackReader
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapFastSet
+import com.nexomc.nexo.utils.plusFast
 import com.nexomc.nexo.utils.prependIfMissing
+import com.nexomc.nexo.utils.resolve
+import com.nexomc.nexo.utils.toFastList
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
-import io.leangen.geantyref.TypeFactory
-import io.leangen.geantyref.TypeToken
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.EquipmentSlot
-import org.bukkit.persistence.PersistentDataType
-import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.NodePath
-import org.spongepowered.configurate.kotlin.extensions.set
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.io.File

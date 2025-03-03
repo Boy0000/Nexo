@@ -1,18 +1,15 @@
 package com.nexomc.nexo.utils.inventories
 
-import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.fonts.Shift
-import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.recipes.CustomRecipe
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
 import com.github.stefvanschie.inventoryframework.pane.StaticPane
+import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.items.ItemBuilder
+import com.nexomc.nexo.recipes.CustomRecipe
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
-import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.event.inventory.InventoryClickEvent
 

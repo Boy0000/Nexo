@@ -1,8 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.evolution
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers

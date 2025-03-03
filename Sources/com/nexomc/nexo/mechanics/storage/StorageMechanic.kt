@@ -112,7 +112,7 @@ class StorageMechanic(section: ConfigurationSection) {
         if (isShulker) {
             val defaultItem = NexoItems.itemFromId(mechanic.itemID)!!.build()
             val shulker = FurnitureHelpers.furnitureItem(baseEntity)
-            val shulkerMeta = shulker!!.itemMeta
+            shulker!!.itemMeta
 
             shulker.editMeta {
                 it.persistentDataContainer.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)

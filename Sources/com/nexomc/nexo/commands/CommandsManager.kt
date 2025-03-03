@@ -1,15 +1,8 @@
 package com.nexomc.nexo.commands
 
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.utils.logs.Logs
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.commandTree
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.playerExecutor
-import net.kyori.adventure.resource.ResourcePackInfo
-import net.kyori.adventure.resource.ResourcePackRequest
-import java.net.URI
-import java.util.*
 
 object CommandsManager {
     fun loadCommands() {

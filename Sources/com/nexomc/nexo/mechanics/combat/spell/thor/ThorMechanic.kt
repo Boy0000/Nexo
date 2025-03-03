@@ -2,10 +2,8 @@ package com.nexomc.nexo.mechanics.combat.spell.thor
 
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.combat.spell.SpellMechanic
-import com.nexomc.nexo.utils.timers.TimersFactory
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.entity.Player
 import kotlin.random.Random
 
 class ThorMechanic(factory: MechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {

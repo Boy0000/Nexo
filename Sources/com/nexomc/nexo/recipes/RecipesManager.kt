@@ -5,10 +5,15 @@ import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.recipes.listeners.RecipeBuilderEvents
 import com.nexomc.nexo.recipes.listeners.RecipeEventManager
-import com.nexomc.nexo.recipes.loaders.*
+import com.nexomc.nexo.recipes.loaders.BlastingLoader
+import com.nexomc.nexo.recipes.loaders.BrewingLoader
+import com.nexomc.nexo.recipes.loaders.FurnaceLoader
+import com.nexomc.nexo.recipes.loaders.ShapedLoader
+import com.nexomc.nexo.recipes.loaders.ShapelessLoader
+import com.nexomc.nexo.recipes.loaders.SmokingLoader
+import com.nexomc.nexo.recipes.loaders.StonecuttingLoader
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapNotNullFast
 import org.bukkit.Bukkit

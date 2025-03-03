@@ -2,22 +2,19 @@ package com.nexomc.nexo.pack.server
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.sun.net.httpserver.HttpExchange
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URI
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import org.bukkit.entity.Player
 import team.unnamed.creative.server.ResourcePackServer
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.URI
-import java.util.*
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
 
 class SelfHostServer : NexoPackServer {
     private var packServer: ResourcePackServer? = null
@@ -54,13 +51,12 @@ class SelfHostServer : NexoPackServer {
     override fun sendPack(player: Player) {
         NexoPlugin.instance().packGenerator().packGenFuture?.thenRun {
             val hash = NexoPlugin.instance().packGenerator().builtPack()!!.hash()
-            val hashArray = NexoPackServer.hashArray(hash)
-            val url = packUrl()
-            val packUUID = UUID.nameUUIDFromBytes(hashArray)
+            val packUUID = UUID.nameUUIDFromBytes(NexoPackServer.hashArray(hash))
+            val packUrl = URI.create(packUrl())
 
             val request = ResourcePackRequest.resourcePackRequest()
                 .required(NexoPackServer.mandatory).replace(true).prompt(NexoPackServer.prompt)
-                .packs(ResourcePackInfo.resourcePackInfo(packUUID, URI.create(url), hash)).build()
+                .packs(ResourcePackInfo.resourcePackInfo(packUUID, packUrl, hash)).build()
             player.sendResourcePacks(request)
         }
     }

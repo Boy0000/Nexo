@@ -3,7 +3,6 @@ package com.nexomc.nexo.compatibilities.worldedit
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.event.extent.EditSessionEvent
 import com.sk89q.worldedit.util.eventbus.Subscribe
-import io.lumine.mythic.bukkit.BukkitAdapter
 import org.bukkit.Bukkit
 
 class WorldEditHandlers(register: Boolean) {

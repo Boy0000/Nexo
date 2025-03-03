@@ -2,7 +2,6 @@ package com.nexomc.nexo.mechanics.misc.custom.listeners
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.misc.custom.fields.CustomEvent
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.timers.TimersFactory
 import org.bukkit.Bukkit

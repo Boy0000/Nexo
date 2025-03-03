@@ -2,11 +2,16 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.fonts.Glyph
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
+import com.nexomc.nexo.utils.appendIfMissing
+import com.nexomc.nexo.utils.associateFast
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
-import com.vagdedes.spartan.functionality.g.f
+import com.nexomc.nexo.utils.mapFast
+import com.nexomc.nexo.utils.printOnFailure
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas

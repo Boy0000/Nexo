@@ -3,7 +3,6 @@ package com.nexomc.nexo.mechanics.repair
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import org.bukkit.configuration.ConfigurationSection
-import kotlin.math.max
 
 class RepairMechanic(mechanicFactory: MechanicFactory, section: ConfigurationSection) : Mechanic(mechanicFactory, section) {
     private var ratio = section.getDouble("ratio", -1.0)

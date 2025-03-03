@@ -12,7 +12,7 @@ class DropAllListener(itemID: String?, cooldown: Long, event: CustomEvent, click
     @EventHandler
     fun PlayerDropItemEvent.onDropped() {
         val item = itemDrop.itemStack
-        if (itemID != NexoItems.idFromItem(item)) return;
+        if (itemID != NexoItems.idFromItem(item)) return
         if (itemID != null && player.inventory.containsItemWithId(itemID)) return
         perform(player, item)
     }

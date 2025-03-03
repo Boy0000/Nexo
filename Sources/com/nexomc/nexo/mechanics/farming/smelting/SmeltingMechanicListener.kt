@@ -1,16 +1,17 @@
 package com.nexomc.nexo.mechanics.farming.smelting
 
-import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Sound
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.inventory.CookingRecipe
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.Recipe
 import kotlin.random.Random
 
 class SmeltingMechanicListener(private val factory: SmeltingMechanicFactory) : Listener {

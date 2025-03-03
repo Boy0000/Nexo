@@ -1,22 +1,33 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.mechanics.furniture.*
+import com.nexomc.nexo.mechanics.furniture.BlockLocation
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic.RestrictedRotation
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.dyeColor
+import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.Utils
+import com.nexomc.nexo.utils.serialize
+import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Rotation
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -49,10 +60,8 @@ class FurnitureListener : Listener {
 
         when {
             limitedPlacing.isNotPlacableOn(block, blockFace) -> isCancelled = true
-            limitedPlacing.type == LimitedPlacingType.ALLOW && !limitedPlacing.checkLimited(belowPlaced) ->
-                isCancelled = true
-            limitedPlacing.type == LimitedPlacingType.DENY && limitedPlacing.checkLimited(belowPlaced) ->
-                isCancelled = true
+            limitedPlacing.type == LimitedPlacingType.ALLOW && !limitedPlacing.checkLimited(belowPlaced) -> isCancelled = true
+            limitedPlacing.type == LimitedPlacingType.DENY && limitedPlacing.checkLimited(belowPlaced) -> isCancelled = true
             limitedPlacing.isRadiusLimited -> {
                 val (radius, amount) = limitedPlacing.radiusLimitation!!.let { it.radius.toDouble() to it.amount.toDouble()}
                 if (block.world.getNearbyEntities(block.location, radius, radius, radius)
@@ -121,7 +130,7 @@ class FurnitureListener : Listener {
         if (!itemStack.type.isBlock && !isItemFrame && !isArmorStand && !isPainting) return
 
         val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(blockLoc) ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        NexoFurniture.furnitureMechanic(baseEntity) ?: return
         if (itemStack.type.hasGravity() || isItemFrame || isArmorStand || isPainting) {
             setUseItemInHand(Event.Result.DENY)
             player.updateInventory()
@@ -145,14 +154,12 @@ class FurnitureListener : Listener {
 
             when {
                 mechanic.rotatable.shouldRotate(player) -> mechanic.rotateFurniture(baseEntity)
-                mechanic.isStorage && !player.isSneaking -> {
-                    val storage = mechanic.storage ?: return
-                    when (storage.storageType) {
-                        StorageType.STORAGE, StorageType.SHULKER -> storage.openStorage(baseEntity, player)
-                        StorageType.PERSONAL -> storage.openPersonalStorage(player, baseEntity.location, baseEntity)
-                        StorageType.DISPOSAL -> storage.openDisposal(player, baseEntity.location, baseEntity)
-                        StorageType.ENDERCHEST -> player.openInventory(player.enderChest)
-                    }
+                mechanic.isStorage && !player.isSneaking -> when (mechanic.storage?.storageType) {
+                    StorageType.STORAGE, StorageType.SHULKER -> mechanic.storage.openStorage(baseEntity, player)
+                    StorageType.PERSONAL -> mechanic.storage.openPersonalStorage(player, baseEntity.location, baseEntity)
+                    StorageType.DISPOSAL -> mechanic.storage.openDisposal(player, baseEntity.location, baseEntity)
+                    StorageType.ENDERCHEST -> player.openInventory(player.enderChest)
+                    null -> return
                 }
                 mechanic.hasSeats && !player.isSneaking -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
                 mechanic.clickActions.isEmpty() && !mechanic.light.toggleable -> useItemInHand = allowUseItem
@@ -164,11 +171,9 @@ class FurnitureListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun InventoryCreativeEvent.onMiddleClick() {
-        val player = inventory.holder as Player?
-        if (clickedInventory == null || player == null) return
-        if (click != ClickType.CREATIVE) return
-        if (slotType != InventoryType.SlotType.QUICKBAR) return
-        if (cursor.type != Material.BARRIER) return
+        val player = inventory.holder as? Player ?: return
+        if (clickedInventory == null || click != ClickType.CREATIVE) return
+        if (slotType != InventoryType.SlotType.QUICKBAR || cursor.type != Material.BARRIER) return
 
         val baseEntity = FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
@@ -176,11 +181,11 @@ class FurnitureListener : Listener {
 
         val item = builder.build()
         (0..8).forEach { i ->
-            if (NexoItems.idFromItem(player.inventory.getItem(i)) == mechanic.itemID) {
-                player.inventory.heldItemSlot = i
-                isCancelled = true
-                return
-            }
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) != mechanic.itemID) return@forEach
+
+            player.inventory.heldItemSlot = i
+            isCancelled = true
+            return
         }
         cursor = item
     }

@@ -87,14 +87,14 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
         gui.setOpenGuiAction { event: InventoryOpenEvent ->
             val player = event.player as Player
-            val contents = pdc.get<ByteArray, Array<ItemStack?>>(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)
+            val contents = pdc.get(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)
             if (contents != null) gui.inventory.contents = contents
             player.playSound(player.location, mechanic.openSound, mechanic.volume, mechanic.pitch)
         }
 
         gui.setCloseGuiAction { event: InventoryCloseEvent ->
             val player = event.player as Player
-            pdc.set<ByteArray, Array<ItemStack?>>(
+            pdc.set(
                 BackpackMechanic.BACKPACK_KEY,
                 DataType.ITEM_STACK_ARRAY,
                 gui.inventory.contents

@@ -2,7 +2,6 @@ package com.nexomc.nexo.api.events.furniture
 
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.drops.Drop
-import org.bukkit.block.Block
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.Cancellable

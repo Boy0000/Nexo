@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
@@ -14,7 +13,11 @@ import com.nexomc.nexo.utils.to
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import io.th0rgal.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.SoundCategory
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler

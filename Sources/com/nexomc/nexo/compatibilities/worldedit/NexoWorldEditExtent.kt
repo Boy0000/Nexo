@@ -1,6 +1,5 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.configs.Settings

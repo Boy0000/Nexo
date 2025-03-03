@@ -6,7 +6,6 @@ import com.nexomc.nexo.utils.printOnFailure
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
-import java.util.*
 
 class ResourceManager(val plugin: JavaPlugin) {
     private var settings: Resource? = null

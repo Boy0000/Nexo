@@ -13,7 +13,6 @@ import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
-import kotlin.random.Random
 
 class SaplingListener : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

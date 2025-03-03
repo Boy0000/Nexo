@@ -2,11 +2,15 @@ package com.nexomc.nexo
 
 import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
 import com.nexomc.nexo.commands.CommandsManager
 import com.nexomc.nexo.compatibilities.CompatibilitiesManager
 import com.nexomc.nexo.compatibilities.worldguard.NexoWorldguardFlags
-import com.nexomc.nexo.configs.*
+import com.nexomc.nexo.configs.ConfigsManager
+import com.nexomc.nexo.configs.Message
+import com.nexomc.nexo.configs.ResourceManager
+import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.configs.SettingsUpdater
+import com.nexomc.nexo.configs.SoundManager
 import com.nexomc.nexo.converter.Converter
 import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
@@ -18,18 +22,17 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.EmptyServer
 import com.nexomc.nexo.pack.server.NexoPackServer
 import com.nexomc.nexo.recipes.RecipesManager
-import com.nexomc.nexo.utils.*
-import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.NexoMetrics
+import com.nexomc.nexo.utils.NoticeUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickActionManager
 import com.nexomc.nexo.utils.breaker.BreakerManager
 import com.nexomc.nexo.utils.breaker.LegacyBreakerManager
 import com.nexomc.nexo.utils.breaker.ModernBreakerManager
 import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
-import com.tcoded.folialib.FoliaLib
-import dev.jorel.commandapi.CommandAPI
-import dev.jorel.commandapi.CommandAPIBukkitConfig
 import com.nexomc.nexo.utils.libs.CommandAPIManager
+import com.tcoded.folialib.FoliaLib
 import io.th0rgal.protectionlib.ProtectionLib
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Bukkit
@@ -37,7 +40,6 @@ import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
-import kotlin.io.resolve
 
 class NexoPlugin : JavaPlugin() {
     private lateinit var configsManager: ConfigsManager

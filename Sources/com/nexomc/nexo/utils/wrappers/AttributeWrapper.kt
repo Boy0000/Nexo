@@ -8,15 +8,15 @@ import org.bukkit.attribute.Attribute
 
 object AttributeWrapper {
     @JvmField
-    val MAX_HEALTH = if (VersionUtil.atleast("1.21.2")) Attribute.MAX_HEALTH else Registry.ATTRIBUTE[NamespacedKey.minecraft("generic.max_health")]!!
+    val MAX_HEALTH: Attribute = if (VersionUtil.atleast("1.21.2")) Attribute.MAX_HEALTH else Registry.ATTRIBUTE[NamespacedKey.minecraft("generic.max_health")]!!
     @JvmField
-    val BLOCK_BREAK_SPEED = if (VersionUtil.atleast("1.21.2")) Attribute.BLOCK_BREAK_SPEED else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.block_break_speed"))
+    val BLOCK_BREAK_SPEED: Attribute? = if (VersionUtil.atleast("1.21.2")) Attribute.BLOCK_BREAK_SPEED else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.block_break_speed"))
     @JvmField
-    val MINING_EFFICIENCY = if (VersionUtil.atleast("1.21.2")) Attribute.MINING_EFFICIENCY else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.mining_efficiency"))
+    val MINING_EFFICIENCY: Attribute? = if (VersionUtil.atleast("1.21.2")) Attribute.MINING_EFFICIENCY else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.mining_efficiency"))
     @JvmField
-    val SUBMERGED_MINING_SPEED = if (VersionUtil.atleast("1.21.2")) Attribute.SUBMERGED_MINING_SPEED else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.submerged_mining_speed"))
+    val SUBMERGED_MINING_SPEED: Attribute? = if (VersionUtil.atleast("1.21.2")) Attribute.SUBMERGED_MINING_SPEED else Registry.ATTRIBUTE.get(NamespacedKey.minecraft("player.submerged_mining_speed"))
     @JvmField
-    val INTERACTION_RANGE = if (VersionUtil.atleast("1.21.2")) Attribute.ENTITY_INTERACTION_RANGE else Registry.ATTRIBUTE[NamespacedKey.minecraft("player.entity_interact_range")]
+    val INTERACTION_RANGE: Attribute? = if (VersionUtil.atleast("1.21.2")) Attribute.ENTITY_INTERACTION_RANGE else Registry.ATTRIBUTE[NamespacedKey.minecraft("player.entity_interact_range")]
 
     @JvmStatic
     fun fromString(attribute: String) = runCatching {

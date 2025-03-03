@@ -1,11 +1,9 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.SchedulerUtils
-import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.Block

@@ -35,7 +35,7 @@ object GlyphHandlers {
 
     fun escapeGlyphs(component: Component, player: Player?): Component {
         var component = component
-        val serialized = component.asFlatTextContent()
+        component.asFlatTextContent()
 
         // Replace all unicodes found in default font with a random one
         // This is to prevent use of unicodes from the font the chat is in

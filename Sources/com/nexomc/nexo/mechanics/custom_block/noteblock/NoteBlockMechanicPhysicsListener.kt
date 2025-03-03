@@ -1,9 +1,7 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
-import org.bukkit.Bukkit
 import org.bukkit.GameEvent
 import org.bukkit.Material
 import org.bukkit.block.Block

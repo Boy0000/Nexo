@@ -1,7 +1,6 @@
 package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.nms.IPacketHandler.EmptyPacketHandler
-import com.nexomc.nexo.utils.InteractionResult
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace

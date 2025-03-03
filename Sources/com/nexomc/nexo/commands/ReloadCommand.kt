@@ -18,21 +18,16 @@ import com.nexomc.nexo.pack.server.NexoPackServer.Companion.initializeServer
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import dev.jorel.commandapi.kotlindsl.textArgument
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import org.bukkit.Bukkit
-import org.bukkit.Location
-import org.bukkit.World
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import kotlin.jvm.optionals.getOrDefault
 
 internal fun CommandTree.reloadCommand() = multiLiteralArgument(nodeName = "reload", "reload", "rl") {

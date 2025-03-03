@@ -1,20 +1,12 @@
 package com.nexomc.nexo.pack.server
 
-import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
-import org.apache.hc.client5.http.classic.methods.HttpPost
-import org.apache.hc.client5.http.entity.mime.ByteArrayBody
-import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
-import org.apache.hc.client5.http.impl.classic.HttpClients
-import org.apache.hc.core5.http.io.entity.EntityUtils
 import org.bukkit.entity.Player
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client

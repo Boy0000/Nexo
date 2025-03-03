@@ -2,18 +2,23 @@ package com.nexomc.nexo.commands
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.recipes.builders.*
+import com.nexomc.nexo.recipes.builders.BlastingBuilder
+import com.nexomc.nexo.recipes.builders.BrewingBuilder
+import com.nexomc.nexo.recipes.builders.FurnaceBuilder
 import com.nexomc.nexo.recipes.builders.RecipeBuilder.Companion.get
+import com.nexomc.nexo.recipes.builders.ShapedBuilder
+import com.nexomc.nexo.recipes.builders.ShapelessBuilder
+import com.nexomc.nexo.recipes.builders.SmokingBuilder
+import com.nexomc.nexo.recipes.builders.StonecuttingBuilder
 import com.nexomc.nexo.recipes.listeners.RecipeEventManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import dev.jorel.commandapi.CommandAPICommand
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.arguments.IntegerArgument
-import dev.jorel.commandapi.executors.CommandArguments
-import dev.jorel.commandapi.executors.CommandExecutor
-import dev.jorel.commandapi.kotlindsl.*
-import org.bukkit.command.CommandSender
+import dev.jorel.commandapi.kotlindsl.anyExecutor
+import dev.jorel.commandapi.kotlindsl.integerArgument
+import dev.jorel.commandapi.kotlindsl.literalArgument
+import dev.jorel.commandapi.kotlindsl.stringArgument
+import dev.jorel.commandapi.kotlindsl.textArgument
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 

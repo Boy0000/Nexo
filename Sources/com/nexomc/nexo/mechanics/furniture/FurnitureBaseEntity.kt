@@ -3,12 +3,11 @@ package com.nexomc.nexo.mechanics.furniture
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.ItemUtils
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import java.util.*
+import java.util.UUID
 
 class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechanic) {
     fun refreshItem(baseEntity: ItemDisplay) {
@@ -57,6 +56,18 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechan
     }
 
     override fun equals(other: Any?): Boolean {
-        return other is FurnitureBaseEntity && this.baseUuid == other.baseUuid && this.baseId == other.baseId && mechanic.itemID == other.mechanic().itemID
+        return other is FurnitureBaseEntity &&
+                this.baseUuid == other.baseUuid &&
+                this.baseId == other.baseId &&
+                mechanic.itemID == other.mechanic().itemID
+    }
+
+    override fun hashCode(): Int {
+        var result = baseId
+        result = 31 * result + mechanic.hashCode()
+        result = 31 * result + itemStack.hashCode()
+        result = 31 * result + baseUuid.hashCode()
+        result = 31 * result + furnitureId.hashCode()
+        return result
     }
 }

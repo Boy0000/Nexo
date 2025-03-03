@@ -1,7 +1,6 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
-import org.apache.commons.io.IOUtils
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min

@@ -4,7 +4,6 @@ import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.VersionUtil
 import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.EventHandler

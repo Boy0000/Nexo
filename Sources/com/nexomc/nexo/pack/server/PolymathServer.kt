@@ -1,13 +1,11 @@
 package com.nexomc.nexo.pack.server
 
+import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
-import com.google.gson.JsonParser
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.VersionUtil
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import org.apache.hc.client5.http.classic.methods.HttpPost

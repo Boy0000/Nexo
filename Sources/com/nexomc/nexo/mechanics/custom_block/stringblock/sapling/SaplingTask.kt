@@ -6,7 +6,6 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.persistence.PersistentDataType

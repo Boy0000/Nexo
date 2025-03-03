@@ -1,6 +1,5 @@
 package com.nexomc.nexo.utils.breaker
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockDamageEvent
@@ -20,14 +19,12 @@ import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import io.th0rgal.protectionlib.ProtectionLib
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.scheduler.BukkitTask
 import java.util.*
 import kotlin.math.min
 
@@ -171,7 +168,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
                         activeBreakerData.breakerSoundTask!!.cancel()
 
                     furnitureMechanic.blockSounds?.hasHitSound() == true -> {
-                        val sound = furnitureMechanic.blockSounds.hitSound
+                        furnitureMechanic.blockSounds.hitSound
                     }
                 }
             }

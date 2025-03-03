@@ -1,19 +1,17 @@
 package com.nexomc.nexo.utils.jukebox_playable
 
-import com.google.gson.JsonObject
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.configuration.ConfigurationSection
-import team.unnamed.creative.sound.SoundEvent
 
 class JukeboxPlayable(
-    val comparatorOutput: Int,
-    val range: Int?,
-    val lengthInSeconds: Float,
-    val description: Component,
+    comparatorOutput: Int,
+    range: Int?,
+    lengthInSeconds: Float,
+    description: Component,
     val soundId: Key,
 ) {
 

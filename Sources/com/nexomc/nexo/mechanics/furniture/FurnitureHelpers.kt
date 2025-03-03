@@ -34,7 +34,7 @@ object FurnitureHelpers {
 
     @JvmStatic
     fun furnitureItem(baseEntity: ItemDisplay, itemStack: ItemStack) {
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        NexoFurniture.furnitureMechanic(baseEntity) ?: return
         IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.itemStack(itemStack, baseEntity)
     }
 

@@ -1,7 +1,6 @@
 package com.nexomc.nexo.utils.breaker
 
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
-import com.nexomc.nexo.nms.NMSHandlers
 import org.bukkit.Material
 import org.bukkit.Tag
 

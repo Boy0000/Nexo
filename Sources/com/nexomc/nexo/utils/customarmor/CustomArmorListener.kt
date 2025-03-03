@@ -1,13 +1,10 @@
 package com.nexomc.nexo.utils.customarmor
 
-import com.nexomc.nexo.NexoPlugin
+import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import net.kyori.adventure.key.Key
-import org.bukkit.Bukkit
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.event.EventHandler

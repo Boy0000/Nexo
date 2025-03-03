@@ -1,19 +1,13 @@
 package com.nexomc.nexo.utils
 
 import com.mineinabyss.idofront.items.asColorable
-import com.nexomc.nexo.utils.EventUtils.call
-import net.kyori.adventure.text.Component
 import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.event.player.PlayerItemDamageEvent
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.*
+import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.components.FoodComponent
-import java.util.*
-import java.util.function.Consumer
 import javax.annotation.Nullable
-import kotlin.math.max
 
 object ItemUtils {
 

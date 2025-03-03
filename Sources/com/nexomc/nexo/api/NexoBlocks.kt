@@ -1,13 +1,18 @@
 package com.nexomc.nexo.api
 
-import com.nexomc.nexo.NexoPlugin
+import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockBreakEvent
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockDropLootEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockDropLootEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockDropLootEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
@@ -15,20 +20,17 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechani
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
-import com.nexomc.nexo.utils.ItemUtils.damageItem
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.drops.Drop
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockBreakEvent
-import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockDropLootEvent
-import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
-import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
-import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.filterFastSet
-import org.bukkit.*
+import org.bukkit.Effect
+import org.bukkit.GameEvent
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
@@ -38,7 +40,6 @@ import org.bukkit.block.data.type.Tripwire
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import java.util.function.Consumer
 
 object NexoBlocks {
     /**
@@ -189,7 +190,7 @@ object NexoBlocks {
         val mechanic = noteBlockMechanic(block) ?: return
 
         if (mechanic.storage()?.storageType == StorageType.STORAGE) {
-            pdc.set<ByteArray, Array<ItemStack>>(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, emptyArray())
+            pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, emptyArray())
         }
         NoteMechanicHelpers.checkNoteBlockAbove(location)
     }

@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.furniture.compatibility
 
-import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.utils.logs.Logs
 import me.vagdedes.spartan.api.PlayerViolationEvent

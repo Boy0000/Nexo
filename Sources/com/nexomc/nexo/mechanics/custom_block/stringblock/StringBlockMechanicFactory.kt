@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.mechanics.Mechanic
@@ -10,9 +9,8 @@ import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSoun
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
@@ -24,7 +22,6 @@ import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Variant
-import kotlin.collections.set
 
 class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")

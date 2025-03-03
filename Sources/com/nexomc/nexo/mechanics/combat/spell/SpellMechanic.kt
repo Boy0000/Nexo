@@ -42,7 +42,7 @@ abstract class SpellMechanic protected constructor(factory: MechanicFactory?, se
     fun removeCharge(item: ItemStack) {
         item.editMeta { itemMeta: ItemMeta ->
             val pdc = itemMeta.persistentDataContainer
-            if (!pdc.has<Int, Int>(NAMESPACED_KEY, PersistentDataType.INTEGER)) return@editMeta
+            if (!pdc.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) return@editMeta
 
             val chargesLeft = pdc.getOrDefault(NAMESPACED_KEY, PersistentDataType.INTEGER, -1)
             if (chargesLeft == -1) return@editMeta

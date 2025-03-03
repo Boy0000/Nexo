@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.MechanicFactory
@@ -8,8 +7,8 @@ import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSoun
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconListener
 import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripListener
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
@@ -21,7 +20,6 @@ import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Variant
-import kotlin.collections.set
 
 class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")

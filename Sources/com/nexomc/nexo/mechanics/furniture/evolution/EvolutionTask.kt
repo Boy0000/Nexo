@@ -1,21 +1,15 @@
 package com.nexomc.nexo.mechanics.furniture.evolution
 
-import com.nexomc.nexo.utils.to
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
-import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.filterFastIsInstance
-import com.nexomc.nexo.utils.flatMapFast
+import com.nexomc.nexo.utils.to
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.World
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.scheduler.BukkitRunnable
 import kotlin.random.Random

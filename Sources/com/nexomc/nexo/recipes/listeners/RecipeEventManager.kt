@@ -6,7 +6,6 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
-import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -20,7 +19,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.MerchantInventory
-import kotlin.collections.set
 
 class RecipeEventManager(
     private val permissionsPerRecipe: MutableMap<CustomRecipe, String?> = Object2ObjectOpenHashMap<CustomRecipe, String>(),

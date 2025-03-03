@@ -3,7 +3,6 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.utils.appendIfMissing
-import org.apache.commons.lang3.StringUtils
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.Block

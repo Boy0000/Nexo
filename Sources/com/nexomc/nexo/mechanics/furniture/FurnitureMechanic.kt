@@ -18,13 +18,17 @@ import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
+import com.nexomc.nexo.utils.PluginUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapFast
+import com.nexomc.nexo.utils.mapNotNullFast
 import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -38,7 +42,6 @@ import org.bukkit.block.data.type.TrapDoor
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.joml.Vector3f
 
@@ -187,7 +190,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, itemID)
         if (hasEvolution) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0)
         if (storage?.storageType == StorageType.STORAGE) {
-            pdc.set<ByteArray, Array<ItemStack>>(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf())
+            pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, arrayOf())
         }
     }
 

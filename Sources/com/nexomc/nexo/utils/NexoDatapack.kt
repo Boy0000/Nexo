@@ -1,15 +1,14 @@
 package com.nexomc.nexo.utils
 
-import com.google.gson.JsonObject
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
-import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
+import org.bukkit.World
 
 open class NexoDatapack(key: String, description: String) {
 
-    val defaultWorld = Bukkit.getWorlds().first()
+    val defaultWorld: World = Bukkit.getWorlds().first()
     val datapackName = "file/$key"
     val datapackFile = defaultWorld.worldFolder.resolve("datapacks/$key")
     val isFirstInstall: Boolean get() = Bukkit.getDatapackManager().packs.map { it.name }.none(datapackName::equals)

@@ -1,20 +1,29 @@
 package com.nexomc.nexo.api
 
-import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.mechanics.furniture.*
+import com.nexomc.nexo.mechanics.furniture.BlockLocation
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
+import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
-import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.filterFastSet
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Rotation
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.*
+import org.bukkit.entity.Entity
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Interaction
+import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.util.BoundingBox
@@ -142,7 +151,7 @@ object NexoFurniture {
             val itemStack = player.inventory.itemInMainHand
             if (player.gameMode != GameMode.CREATIVE) (drop ?: mechanic.breakable.drop).furnitureSpawns(baseEntity, itemStack)
             mechanic.storage?.takeIf { it.isStorage || it.isShulker }?.dropStorageContent(mechanic, baseEntity)
-            baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
+            baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, baseEntity.location.toVector())
         }
 
         // Check if the mechanic or the baseEntity has barriers tied to it

@@ -4,7 +4,6 @@ import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import org.bukkit.Location
 import org.bukkit.Material
-import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.Waterlogged
 
 class BarrierHitbox : BlockLocation {

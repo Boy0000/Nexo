@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.repair
 
-import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack

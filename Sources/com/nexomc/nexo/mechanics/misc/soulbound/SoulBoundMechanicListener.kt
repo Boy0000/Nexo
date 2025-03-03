@@ -27,7 +27,7 @@ class SoulBoundMechanicListener(private val factory: SoulBoundMechanicFactory) :
         if (items.isNotEmpty()) {
             val player = entity
             val pdc = player.persistentDataContainer
-            pdc.set<ByteArray, Array<ItemStack>>(
+            pdc.set(
                 SoulBoundMechanic.NAMESPACED_KEY,
                 DataType.ITEM_STACK_ARRAY,
                 items.toTypedArray())
@@ -38,9 +38,9 @@ class SoulBoundMechanicListener(private val factory: SoulBoundMechanicFactory) :
     @EventHandler
     fun PlayerRespawnEvent.onPlayerRespawn() {
         val pdc = player.persistentDataContainer
-        if (!pdc.has<ByteArray, Array<ItemStack>>(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY)) return
+        if (!pdc.has(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY)) return
 
-        val items = pdc.getOrDefault<ByteArray, Array<ItemStack>>(
+        val items = pdc.getOrDefault(
             SoulBoundMechanic.NAMESPACED_KEY,
             DataType.ITEM_STACK_ARRAY,
             emptyArray()

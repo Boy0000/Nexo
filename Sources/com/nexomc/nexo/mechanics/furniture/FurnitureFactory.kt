@@ -15,11 +15,8 @@ import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBarrierHitboxListe
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurniturePacketListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
-import com.nexomc.nexo.nms.EmptyFurniturePacketManager
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.logs.Logs
 import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack

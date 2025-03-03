@@ -108,7 +108,7 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
                                 ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
                             ), false
                         )
-                        if (entity.isDead() || event.call()) continue
+                        if (entity.isDead || event.call()) continue
                         entity.damage(mechanic.damage * 3.0, player)
                     }
                     this.cancel()

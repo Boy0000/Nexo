@@ -1,16 +1,9 @@
 package com.nexomc.nexo.utils
 
-import com.mineinabyss.idofront.util.Quadruple
 import com.nexomc.nexo.configs.Settings
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import org.bukkit.Color
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
-import java.io.Serializable
 import java.nio.file.FileSystems
-import java.util.*
 import kotlin.random.Random
 
 inline fun <reified T> Any?.safeCast(): T? = this as? T

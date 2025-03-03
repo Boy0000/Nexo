@@ -11,14 +11,22 @@ import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.items.ItemTemplate
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
+import com.nexomc.nexo.utils.KeyUtils
+import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.Utils.firstEmptyChar
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapFast
+import com.nexomc.nexo.utils.mapNotNullFast
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.toFastList
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -27,7 +35,6 @@ import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.io.InputStreamReader
-import kotlin.io.resolve
 
 class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null

@@ -7,10 +7,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.serialize
-import org.bukkit.Bukkit
-import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay

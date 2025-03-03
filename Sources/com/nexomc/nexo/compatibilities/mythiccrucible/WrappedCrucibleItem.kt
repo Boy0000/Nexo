@@ -2,7 +2,6 @@ package com.nexomc.nexo.compatibilities.mythiccrucible
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.PluginUtils
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.logs.Logs
 import io.lumine.mythic.bukkit.BukkitAdapter
 import io.lumine.mythic.bukkit.MythicBukkit

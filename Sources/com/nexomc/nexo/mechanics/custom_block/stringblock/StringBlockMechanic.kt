@@ -3,7 +3,6 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechanic
-import org.bukkit.block.BlockFace
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
 

@@ -14,6 +14,4 @@ internal fun CommandTree.versionCommand() = literalArgument("version") {
     }
 }
 
-object VersionCommand {
-
-}
+object VersionCommand

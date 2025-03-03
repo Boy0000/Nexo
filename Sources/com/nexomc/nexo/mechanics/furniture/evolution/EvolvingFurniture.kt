@@ -1,7 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.evolution
 
 import org.bukkit.configuration.ConfigurationSection
-import kotlin.random.Random
 
 class EvolvingFurniture(
     val delay: Int,
