@@ -1,17 +1,29 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.`object`
 import com.nexomc.nexo.utils.JsonBuilder.plus
+import com.nexomc.nexo.utils.JsonObject
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
+import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.ensureCast
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapNotNullFast
+import com.nexomc.nexo.utils.plusFast
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
+import com.nexomc.nexo.utils.toJsonObject
+import com.nexomc.nexo.utils.toWritable
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import java.io.File
+import java.util.UUID
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -28,8 +40,6 @@ import team.unnamed.creative.model.ModelTextures
 import team.unnamed.creative.sound.Sound
 import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
-import java.io.File
-import java.util.UUID
 
 class PackObfuscator(private val resourcePack: ResourcePack) {
     val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
@@ -123,31 +133,32 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun obfuscateItemModels() {
 
+        fun obfuscateModelKey(jsonObject: JsonObject?, key: String) {
+            jsonObject?.get(key)?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
+                jsonObject.plus(key, it)
+            }
+        }
+
         fun obfuscateItemModel(obj: JsonObject) {
             val modelObj = obj.`object`("model") ?: return
-            modelObj.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
-                obj.`object`("model")!!.plus("model", it.key().asString())
-            }
-            obj.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
-                obj.`object`("fallback")!!.plus("model", it.key().asString())
-            }
+
+            obfuscateModelKey(modelObj, "model")
+            obfuscateModelKey(modelObj, "base")
+            obfuscateModelKey(obj.`object`("fallback"), "model")
 
             modelObj.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
             modelObj.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
 
             modelObj.`object`("on_false")?.let { onFalse ->
+                obfuscateModelKey(onFalse, "model")
                 onFalse.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
                 onFalse.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                onFalse.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
-                    onFalse.`object`("fallback")!!.plus("model", it.key().asString())
-                }
+                obfuscateModelKey(onFalse.`object`("fallback"), "model")
             }
             modelObj.`object`("on_true")?.let { onTrue ->
                 onTrue.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
                 onTrue.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                onTrue.`object`("fallback")?.get("model")?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.let {
-                    onTrue.`object`("fallback")!!.plus("model", it.key().asString())
-                }
+                obfuscateModelKey(onTrue.`object`("fallback"), "model")
             }
         }
 

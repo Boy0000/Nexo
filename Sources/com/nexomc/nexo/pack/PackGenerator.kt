@@ -16,17 +16,29 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.PluginUtils
+import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.customarmor.ComponentCustomArmor
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType.Companion.setting
 import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.prependIfMissing
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
+import com.nexomc.nexo.utils.toJsonObject
 import com.ticxo.modelengine.api.ModelEngineAPI
+import java.io.File
+import java.net.URI
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.BuiltResourcePack
@@ -37,10 +49,6 @@ import team.unnamed.creative.font.TrueTypeFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
-import java.io.File
-import java.net.URI
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 class PackGenerator {
     private val packDownloader: PackDownloader = PackDownloader()
@@ -135,8 +143,8 @@ class PackGenerator {
 
                 packValidator.validatePack()
                 if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.handler().resourcepackFormat(), "Nexo's default pack.")
-                removeStandardItemModels()
                 ModernVersionPatcher(resourcePack).patchPack()
+                removeStandardItemModels()
 
                 val initialHash = packWriter.build(resourcePack).hash().takeIf {
                     !packObfuscator.obfuscationType.isNone || Settings.PACK_USE_PACKSQUASH.toBool()
