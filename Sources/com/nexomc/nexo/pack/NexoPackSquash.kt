@@ -6,8 +6,8 @@ import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
-import team.unnamed.creative.ResourcePack
 import java.io.File
+import team.unnamed.creative.ResourcePack
 
 object NexoPackSquash {
 
@@ -25,7 +25,7 @@ object NexoPackSquash {
     fun squashPack(resourcePack: ResourcePack, hash: String): ResourcePack {
         runCatching {
             if (!Settings.PACK_USE_PACKSQUASH.toBool()) return resourcePack
-            val packSquashExe = File(Settings.PACKSQUASH_EXEC_PATH.toString())
+            val packSquashExe = File(Settings.PACKSQUASH_EXEC_PATH.toString()).apply { setExecutable(true) }
             val packSquashSettings = File(Settings.PACKSQUASH_SETTINGS_PATH.toString())
             if (!packSquashSettings.exists() || !packSquashExe.exists()) return resourcePack
 
