@@ -1,9 +1,9 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.configs.Settings
+import java.nio.file.FileSystems
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlot
-import java.nio.file.FileSystems
 import kotlin.random.Random
 
 inline fun <reified T> Any?.safeCast(): T? = this as? T

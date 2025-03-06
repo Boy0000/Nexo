@@ -70,13 +70,13 @@ class PackValidator(val resourcePack: ResourcePack) {
                     ?: logMissingTexture("Model", model.key(), key)
             }
 
-            model.textures().particle()?.also {
-                val key = it.key()?.appendPng() ?: return@also
-                if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@also
-                if (key in palettedPermutations) return@also
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
-                    ?: logMissingTexture("Model", model.key(), key)
-            }
+            //model.textures().particle()?.also {
+            //    val key = it.key()?.appendPng() ?: return@also
+            //    if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@also
+            //    if (key in palettedPermutations) return@also
+            //    resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+            //        ?: logMissingTexture("Model", model.key(), key)
+            //}
         }
 
         if (Settings.PACK_VALIDATE_FONTS.toBool()) resourcePack.fonts().map { font ->

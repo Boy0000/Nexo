@@ -145,14 +145,15 @@ class ItemUpdater : Listener {
                 NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
 
             oldItem.editMeta { itemMeta: ItemMeta ->
-                itemMeta.persistentDataContainer.remove(IF_UUID)
-                itemMeta.persistentDataContainer.remove(MF_GUI)
-                itemMeta.persistentDataContainer.get(NexoItems.ITEM_ID, PersistentDataType.STRING)?.also {
-                    if (it.isEmpty()) itemMeta.persistentDataContainer.remove(NexoItems.ITEM_ID)
+                val pdc = itemMeta.persistentDataContainer
+                pdc.remove(IF_UUID)
+                pdc.remove(MF_GUI)
+                pdc.get(NexoItems.ITEM_ID, PersistentDataType.STRING)?.takeIf { it.isEmpty() }?.apply {
+                    pdc.remove(NexoItems.ITEM_ID)
                 }
 
                 if (NexoPlugin.instance().converter().oraxenConverter.convertItems)
-                    OraxenConverter.convertOraxenPDCEntries(itemMeta.persistentDataContainer)
+                    OraxenConverter.convertOraxenPDCEntries(pdc)
             }
 
             val id = NexoItems.idFromItem(oldItem) ?: return oldItem

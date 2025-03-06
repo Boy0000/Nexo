@@ -18,6 +18,7 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
+import java.util.UUID
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -28,7 +29,6 @@ import org.bukkit.enchantments.EnchantmentWrapper
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffect
-import java.util.*
 
 class ItemParser(private val section: ConfigurationSection) {
     private val nexoMeta: NexoMeta
@@ -175,8 +175,7 @@ class ItemParser(private val section: ConfigurationSection) {
         mechanicsSection?.getKeys(false)?.forEach { mechanicID: String ->
             val factory = MechanicsManager.getMechanicFactory(mechanicID) ?: return@forEach
 
-            val mechanicSection = mechanicsSection.getConfigurationSection(mechanicID) ?: return@forEach
-            val mechanic = factory.parse(mechanicSection) ?: return@forEach
+            val mechanic = mechanicsSection.getConfigurationSection(mechanicID)?.let(factory::parse) ?: return@forEach
             for (itemModifier in mechanic.itemModifiers) itemModifier.apply(item)
         }
 

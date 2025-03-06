@@ -5,6 +5,7 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
 import org.bukkit.NamespacedKey
 import org.bukkit.inventory.EquipmentSlot
@@ -14,7 +15,7 @@ import team.unnamed.creative.base.Writable
 
 object ComponentCustomArmor {
     fun generatePackFiles(resourcePack: ResourcePack) {
-        val armorPrefixes = NexoItems.entries().mapNotNullTo(LinkedHashSet()) { (itemId, builder) ->
+        val armorPrefixes = NexoItems.entries().entries.mapNotNullTo(ObjectLinkedOpenHashSet()) { (itemId, builder) ->
             itemId.substringBeforeLast("_").takeUnless { builder.nexoMeta?.customArmorTextures == null }
         }
         writeArmorModels(resourcePack, armorPrefixes)
@@ -36,14 +37,14 @@ object ComponentCustomArmor {
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        NexoItems.entries().forEach { (itemId, item) ->
+        NexoItems.entries().entries.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
             val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
             val armorPrefix = itemId.substringBeforeLast("_")
             val layer1 = resourcePack.texture(customArmor.layer1)
-                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
+                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
                 ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
             val layer2 = resourcePack.texture(customArmor.layer2)
-                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
+                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
                 ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
 
             resourcePack.removeTexture(customArmor.layer1)

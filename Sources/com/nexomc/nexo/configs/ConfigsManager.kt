@@ -27,14 +27,14 @@ import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.toFastList
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import java.io.File
+import java.io.InputStreamReader
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
-import java.io.File
-import java.io.InputStreamReader
 
 class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null
@@ -159,7 +159,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     fun assignAllUsedCustomModelDatas() {
-        val assignedModelDatas = linkedMapOf<Material, LinkedHashMap<Int, Key>>()
+        val assignedModelDatas = Object2ObjectLinkedOpenHashMap<Material, Object2ObjectLinkedOpenHashMap<Int, Key>>()
         itemFiles().forEach file@{ file ->
             val config = loadConfiguration(file)
 
@@ -169,17 +169,16 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     ?: WrappedCrucibleItem(itemSection).material
                     ?: WrappedMMOItem(itemSection, true).material
                     ?: return@forEach
-                val parsedKey = KeyUtils.parseKey(itemId.substringBefore(":", "minecraft"), itemId.substringAfter(":"), "model")
 
                 validatePackSection(itemId, packSection)
                 val modelData = packSection.getInt("custom_model_data", -1).takeUnless { it == -1 } ?: return@forEach
                 val model = (packSection.getString("model")?.takeUnless(String::isNullOrEmpty) ?: itemId).takeIf(Key::parseable)?.let(Key::key) ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER
 
-                CustomModelData.DATAS[material]?.entries?.firstOrNull { it.value == modelData && it.key != parsedKey }?.key?.asString()?.also { existingId ->
-                    Logs.logError("$itemId in ${file.path} is using CustomModelData $modelData, which is already assigned to $existingId")
+                CustomModelData.DATAS[material]?.entries?.find { it.value == modelData && it.key != model }?.key?.asString()?.also { existingModel ->
+                    Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomModelData <yellow>$modelData</yellow>, which is already assigned to <red>$existingModel")
                 } ?: also {
-                    assignedModelDatas.computeIfAbsent(material) { LinkedHashMap() }[modelData] = model
-                    CustomModelData.DATAS.computeIfAbsent(material) { LinkedHashMap() }[parsedKey] = modelData
+                    assignedModelDatas.getOrPut(material) { Object2ObjectLinkedOpenHashMap<Int, Key>() }[modelData] = model
+                    CustomModelData.DATAS.getOrPut(material) { Object2ObjectLinkedOpenHashMap() }[model] = modelData
                 }
             }
         }

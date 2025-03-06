@@ -9,6 +9,7 @@ import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
@@ -47,7 +48,7 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
     }
 
     fun generateTrimAssets(resourcePack: ResourcePack) {
-        val armorPrefixes = NexoItems.entries().mapNotNullTo(LinkedHashSet())  { (itemId, builder) ->
+        val armorPrefixes = NexoItems.entries().mapNotNullTo(ObjectLinkedOpenHashSet())  { (itemId, builder) ->
             itemId.substringBeforeLast("_").takeUnless { builder.nexoMeta?.customArmorTextures == null }
         }
         writeMCMeta()
@@ -79,7 +80,7 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
         SchedulerUtils.syncDelayedTask { RecipesManager.reload() }
     }
 
-    private fun writeTrimAtlas(resourcePack: ResourcePack, armorPrefixes: LinkedHashSet<String>) {
+    private fun writeTrimAtlas(resourcePack: ResourcePack, armorPrefixes: ObjectLinkedOpenHashSet<String>) {
         val trimsAtlas = resourcePack.atlas(Key.key("armor_trims"))
 
         // If for some reason the atlas exists already, we append to it
@@ -133,14 +134,14 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        NexoItems.entries().forEach { (itemId, item) ->
+        NexoItems.entries().entries.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
             val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
             val armorPrefix = itemId.substringBeforeLast("_")
             val layer1 = resourcePack.texture(customArmor.layer1)
-                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
+                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
                 ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
             val layer2 = resourcePack.texture(customArmor.layer2)
-                ?: resourcePack.textures().firstOrNull { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
+                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
                 ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
 
             resourcePack.removeTexture(customArmor.layer1)
@@ -249,7 +250,7 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
         )
     }
 
-    private fun writeCustomTrimPatterns(armorPrefixes: LinkedHashSet<String>) {
+    private fun writeCustomTrimPatterns(armorPrefixes: ObjectLinkedOpenHashSet<String>) {
         armorPrefixes.forEach { armorPrefix ->
             val armorJson = datapackFile.resolve("data/nexo/trim_pattern/$armorPrefix.json").apply { parentFile.mkdirs() }
             armorJson.writeText(JsonBuilder.jsonObject

@@ -17,7 +17,7 @@ class LightBlock : BlockLocation {
     }
 
     constructor(hitboxString: String) : super(hitboxString.substringBefore(" ")) {
-        this.lightLevel = hitboxString.substringAfter(" ").toIntOrNull() ?: 15
+        this.lightLevel = hitboxString.substringAfter(" ").toIntOrNull()?.coerceIn(0..15) ?: 15
         this.lightData = Material.LIGHT.createBlockData { (it as Light).level = lightLevel } as Light
     }
 

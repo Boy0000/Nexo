@@ -2,12 +2,15 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
-import com.nexomc.nexo.utils.filterFast
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.model.*
+import team.unnamed.creative.model.ItemOverride
+import team.unnamed.creative.model.ItemPredicate
+import team.unnamed.creative.model.Model
+import team.unnamed.creative.model.ModelTexture
+import team.unnamed.creative.model.ModelTextures
 import kotlin.math.min
 import kotlin.math.round
 
@@ -20,11 +23,11 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
      * @return the generated overrides
      */
     fun generateBaseModelOverrides(material: Material): List<ItemOverride> {
-        val itemBuilders = LinkedHashSet(NexoItems.items().filterFast { it.type == material })
         val overrides = DefaultResourcePackExtractor.vanillaResourcePack
             .model(Key.key("item/${material.toString().lowercase()}"))?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
 
-        itemBuilders.forEach { itemBuilder ->
+        NexoItems.items().forEach { itemBuilder ->
+            if (itemBuilder.type != material) return@forEach
             val nexoMeta = itemBuilder.nexoMeta?.takeIf { it.containsPackInfo } ?: return@forEach
             val cmdPredicate = ItemPredicate.customModelData(nexoMeta.customModelData ?: return@forEach)
             overrides += ItemOverride.of(nexoMeta.model, cmdPredicate)

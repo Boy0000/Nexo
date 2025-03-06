@@ -334,8 +334,7 @@ class PackGenerator {
     }
 
     private fun addItemPackFiles() {
-        modelGenerator.generateBaseItemModels()
-        modelGenerator.generateItemModels()
+        modelGenerator.generateModels()
         AtlasGenerator.generateAtlasFile(resourcePack)
     }
 

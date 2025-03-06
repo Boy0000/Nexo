@@ -45,10 +45,9 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.joml.Vector3f
 
-class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section, { itemBuilder: ItemBuilder ->
-        itemBuilder.customTag<Byte, Byte>(FURNITURE_KEY, PersistentDataType.BYTE, 1.toByte())
-    }) {
+class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) : Mechanic(mechanicFactory, section,
+    { itemBuilder: ItemBuilder -> itemBuilder.customTag<Byte, Byte>(FURNITURE_KEY, PersistentDataType.BYTE, 1.toByte()) }
+) {
     val limitedPlacing: LimitedPlacing? = section.getConfigurationSection("limited_placing")?.let(::LimitedPlacing)
     val storage: StorageMechanic? = section.getConfigurationSection("storage")?.let(::StorageMechanic)
     val blockSounds: BlockSounds? = section.getConfigurationSection("block_sounds")?.let(::BlockSounds)

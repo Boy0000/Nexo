@@ -2,8 +2,10 @@ package com.nexomc.nexo.items
 
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
-import com.nexomc.nexo.utils.safeCast
+import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.safeCast
 import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
 import team.unnamed.creative.model.ModelTexture
@@ -31,7 +33,10 @@ data class NexoMeta(
 ) {
 
     data class CustomArmorTextures(val layer1: Key, val layer2: Key) {
-        constructor(section: ConfigurationSection) : this(KeyUtils.parseKey(section.getString("layer_1", "")!!), KeyUtils.parseKey(section.getString("layer_2", "")!!))
+        constructor(section: ConfigurationSection) : this(
+            Key.key(section.getString("layer1")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("layer2")?.appendIfMissing(".png")!!)
+        )
     }
 
     lateinit var parentModel: Key
@@ -78,18 +83,12 @@ data class NexoMeta(
             .layers(textureLayers)
             .build()
 
-        val customArmorSection = packSection.getConfigurationSection("CustomArmor")
-        when {
-            customArmorSection != null -> {
-                this.customArmorTextures = CustomArmorTextures(customArmorSection)
-            }
-            else -> apply {
-                val itemId = packSection.parent!!.name
-                val armorPrefix = itemId.substringBeforeLast("_").takeUnless { it == itemId || it.isBlank() } ?: return@apply
-                itemId.substringAfterLast("_").takeIf { itemId.matches(CustomArmorType.itemIdRegex) } ?: return@apply
+        this.customArmorTextures = runCatching { packSection.getConfigurationSection("CustomArmor")?.let(::CustomArmorTextures) }.printOnFailure().getOrNull() ?: let {
+            val itemId = packSection.parent!!.name
+            val armorPrefix = itemId.substringBeforeLast("_").takeUnless { it == itemId || it.isBlank() } ?: return@let null
+            itemId.substringAfterLast("_").takeIf { itemId.matches(CustomArmorType.itemIdRegex) } ?: return@let null
 
-                this.customArmorTextures = CustomArmorTextures(Key.key(armorPrefix.plus("_armor_layer_1.png")), Key.key(armorPrefix.plus("_armor_layer_2.png")))
-            }
+            CustomArmorTextures(Key.key(armorPrefix.plus("_armor_layer_1.png")), Key.key(armorPrefix.plus("_armor_layer_2.png")))
         }
 
         this.parentModel = Key.key(packSection.getString("parent_model", "item/generated")!!)

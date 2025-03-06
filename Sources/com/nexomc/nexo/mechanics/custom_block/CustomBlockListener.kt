@@ -21,7 +21,12 @@ import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.*
+import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockExplodeEvent
+import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.event.block.BlockPistonRetractEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityExplodeEvent
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCreativeEvent
@@ -177,7 +182,7 @@ class CustomBlockListener : Listener {
     private val matArray = arrayOf(Material.NOTE_BLOCK, Material.STRING, Material.TRIPWIRE, Material.CHORUS_PLANT)
     @EventHandler(priority = EventPriority.LOWEST)
     fun InventoryCreativeEvent.onMiddleClick() {
-        if (click != ClickType.CREATIVE || cursor.type !in matArray) return
+        if (click != ClickType.CREATIVE || cursor?.type !in matArray) return
         val player = inventory.holder as? Player ?: return
 
         val block = player.rayTraceBlocks(6.0)?.hitBlock ?: return

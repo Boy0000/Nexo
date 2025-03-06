@@ -3,82 +3,74 @@ package com.nexomc.nexo.items
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.toIntRangeOrNull
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 
 class CustomModelData(val type: Material, nexoMeta: NexoMeta, val customModelData: Int) {
 
     init {
-        DATAS.compute(type) { _: Material, datas: MutableMap<Key, Int>? ->
+        DATAS.compute(type) { _, datas ->
             (datas ?: mutableMapOf()).apply {
-                nexoMeta.model?.also {
-                    put(it, customModelData)
-                } ?: Logs.logWarn("Failed to assign customModelData due to invalid model")
+                nexoMeta.model?.let { put(it, customModelData) }
+                    ?: Logs.logWarn("Failed to assign customModelData due to invalid model")
             }
         }
     }
 
     companion object {
-        val DATAS: MutableMap<Material, MutableMap<Key, Int>> = mutableMapOf()
+        val DATAS = Object2ObjectOpenHashMap<Material, MutableMap<Key, Int>>()
 
         fun generateId(model: Key, type: Material): Int {
-            val STARTING_CMD = Settings.INITIAL_CUSTOM_MODEL_DATA.toInt(1000)
-            var usedModelDatas = mutableMapOf<Key, Int>()
-            if (type !in DATAS && STARTING_CMD !in skippedCustomModelData(type)) {
-                usedModelDatas[model] = STARTING_CMD
-                DATAS[type] = usedModelDatas
-                return STARTING_CMD
-            } else usedModelDatas = DATAS.getOrDefault(type, HashMap())
+            val startingCMD = Settings.INITIAL_CUSTOM_MODEL_DATA.toInt(1000)
+            val usedModelDatas = DATAS.getOrDefault(type, Object2ObjectOpenHashMap())
 
             usedModelDatas[model]?.let { return it }
 
-            val currentHighestModelData = usedModelDatas.values.max()
-            for (i in STARTING_CMD..currentHighestModelData) {
-                if (!usedModelDatas.containsValue(i)) { // if the id is available
-                    if (i in skippedCustomModelData(type)) continue  // if the id should be skipped
+            val currentHighestModelData = usedModelDatas.values.maxOrNull() ?: startingCMD
+            val skippedData = skippedCustomModelData(type)
 
+            for (i in startingCMD..currentHighestModelData) {
+                if (i !in usedModelDatas.values && i !in skippedData) {
                     usedModelDatas[model] = i
                     DATAS[type] = usedModelDatas
                     return i
                 }
             }
 
-            val newHighestModelData = nextNotSkippedCustomModelData(type, currentHighestModelData + 1)
-            usedModelDatas[model] = newHighestModelData
-            DATAS[type] = usedModelDatas
-            return newHighestModelData
+            return nextNotSkippedCustomModelData(type, currentHighestModelData + 1).also {
+                usedModelDatas[model] = it
+                DATAS[type] = usedModelDatas
+            }
         }
 
-        private fun nextNotSkippedCustomModelData(type: Material, i: Int): Int {
-            val sorted = ArrayList(skippedCustomModelData(type))
-            sorted.sortWith(Comparator.naturalOrder())
-            return if (i !in sorted) i else sorted.first { it > i }
+        private fun nextNotSkippedCustomModelData(type: Material, start: Int): Int {
+            val skipped = skippedCustomModelData(type).sorted()
+            return skipped.firstOrNull { it > start } ?: start
         }
 
         private fun skippedCustomModelData(type: Material): Set<Int> {
-            val skippedCustomModelData = mutableSetOf<Int>()
-            val section = Settings.SKIPPED_MODEL_DATA_NUMBERS.toConfigSection()
-            if (section?.get(type.name) == null) return skippedCustomModelData
-
+            val skippedData = mutableSetOf<Int>()
+            val section = Settings.SKIPPED_MODEL_DATA_NUMBERS.toConfigSection() ?: return skippedData
             val skippedString = section.getString(type.name.lowercase()) ?: section.getString(type.name)
-            if (skippedString != null) {
-                if (".." in skippedString) {
-                    skippedString.toIntRangeOrNull()?.forEach(skippedCustomModelData::add) ?: apply {
-                        Logs.logError("Invalid skipped model-data range for ${type.name} in settings.yml")
-                        return skippedCustomModelData
-                    }
-                } else skippedString.toIntOrNull()?.let(skippedCustomModelData::add)
-                    ?: Logs.logError("Invalid skipped model-data number for ${type.name} in settings.yml")
-            } else section.getStringList(type.name.lowercase()).forEach { s: String ->
-                if (".." in s) runCatching {
-                    s.toIntRangeOrNull()?.forEach(skippedCustomModelData::add)
-                }.onFailure {
-                    Logs.logError("Invalid skipped model-data range for " + type.name + " in settings.yml")
-                } else skippedCustomModelData += s.toIntOrNull()
-                    ?: return@forEach Logs.logError("Invalid skipped model-data number for " + type.name + " in settings.yml")
+
+            skippedString?.let {
+                if (".." in it) {
+                    it.toIntRangeOrNull()?.forEach(skippedData::add) ?: Logs.logError("Invalid range for ${type.name} in settings.yml")
+                } else {
+                    it.toIntOrNull()?.let(skippedData::add) ?: Logs.logError("Invalid number for ${type.name} in settings.yml")
+                }
             }
 
-            return skippedCustomModelData
+            section.getStringList(type.name.lowercase()).forEach { s ->
+                if (".." in s) {
+                    s.toIntRangeOrNull()?.forEach(skippedData::add) ?: Logs.logError("Invalid range for ${type.name} in settings.yml")
+                } else {
+                    s.toIntOrNull()?.let(skippedData::add) ?: Logs.logError("Invalid number for ${type.name} in settings.yml")
+                }
+            }
+
+            return skippedData
         }
     }
 }

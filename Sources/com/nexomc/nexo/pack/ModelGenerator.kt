@@ -12,23 +12,19 @@ import team.unnamed.creative.model.ModelTextures
 class ModelGenerator(private val resourcePack: ResourcePack) {
     private val predicateGenerator = PredicateGenerator(resourcePack)
 
-    fun generateBaseItemModels() {
-        // Generate the baseItem model and add all needed overrides
+    fun generateModels() {
         NexoItems.items().forEach { itemBuilder ->
+            // Generate the baseItem model and add all needed overrides
             val baseMaterial = itemBuilder.type
             val baseModelKey = Key.key("item/${baseMaterial.toString().lowercase()}")
-            val model = resourcePack.model(baseModelKey) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey) ?: return@forEach
 
-            model.toBuilder().also { builder ->
+            resourcePack.model(baseModelKey) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey)?.toBuilder()?.also { builder ->
                 predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach { override ->
                     builder.addOverride(override)
                 }
-            }.build().addTo(resourcePack)
-        }
-    }
+            }?.build()?.addTo(resourcePack)
 
-    fun generateItemModels() {
-        NexoItems.items().forEach { itemBuilder ->
+            //generateItemModels
             val nexoMeta = itemBuilder.nexoMeta ?: return@forEach
             if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
             val model = generateModelBuilder(itemBuilder.type, nexoMeta) ?: return@forEach
