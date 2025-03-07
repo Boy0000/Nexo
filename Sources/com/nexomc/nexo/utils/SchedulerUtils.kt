@@ -24,7 +24,7 @@ object SchedulerUtils {
                     }
                 }
             }
-        } else Bukkit.getWorlds().flatMapFast { it.entities }.filterFastIsInstance<ItemDisplay>().forEach(task::invoke)
+        } else Bukkit.getWorlds().flatMapFast { it.entities }.forEach(task::invoke)
     }
 
     fun runTaskLater(delay: Long, task: () -> Unit) {

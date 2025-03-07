@@ -4,17 +4,16 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.printOnFailure
+import java.io.File
+import java.util.UUID
 import net.kyori.adventure.text.Component
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import java.io.File
-import java.util.*
-import kotlin.collections.set
 
-abstract class RecipeBuilder protected constructor(val player: Player, private val builderName: Component) {
+abstract class RecipeBuilder(val player: Player, private val builderName: String) {
     var inventory: Inventory
     private set
     private var configFile: File? = null
@@ -24,7 +23,7 @@ abstract class RecipeBuilder protected constructor(val player: Player, private v
     init {
         val uuid = player.uniqueId
         inventory = when {
-            BUILDER_MAP.containsKey(uuid) && BUILDER_MAP[uuid]!!.builderName == builderName -> BUILDER_MAP[uuid]!!.inventory
+            BUILDER_MAP[uuid]?.builderName == builderName -> BUILDER_MAP[uuid]!!.inventory
             else -> createInventory(player, inventoryTitle)
         }
         player.openInventory(inventory)

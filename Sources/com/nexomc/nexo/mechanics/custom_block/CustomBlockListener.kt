@@ -12,10 +12,12 @@ import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingTyp
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.to
+import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.AbstractWindCharge
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
@@ -140,8 +142,10 @@ class CustomBlockListener : Listener {
             NexoBlocks.customBlockMechanic(block.blockData)?.let { m -> block to m }
         }.toMap()
 
+        val windCharged = entity is AbstractWindCharge || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
+
         customBlocks.forEach { (block, mechanic) ->
-            if (!mechanic.isBlastResistant && entity !is AbstractWindCharge) block.type = Material.AIR
+            if (!mechanic.isBlastResistant && !windCharged) block.type = Material.AIR
             mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
         blockList().removeAll(customBlocks.keys)

@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.PotionMeta
 import org.bukkit.potion.PotionType
 
-class BrewingBuilder(player: Player) : RecipeBuilder(player, Component.text("brewing")) {
+class BrewingBuilder(player: Player) : RecipeBuilder(player, "brewing") {
     override fun createInventory(player: Player?, inventoryTitle: Component): Inventory {
         return Bukkit.createInventory(player, InventoryType.BREWING, inventoryTitle)
     }

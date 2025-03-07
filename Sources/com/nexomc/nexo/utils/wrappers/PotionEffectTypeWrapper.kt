@@ -12,6 +12,8 @@ object PotionEffectTypeWrapper {
     val CONDUIT_POWER = getEffectType("conduit_power")!!
     @JvmField
     val MINING_FATIGUE = getEffectType("mining_fatigue")!!
+    @JvmField
+    val WIND_CHARGED = getEffectType("wind_charged")
 
     private fun getEffectType(effect: String?): PotionEffectType? {
         if (effect.isNullOrEmpty()) return null

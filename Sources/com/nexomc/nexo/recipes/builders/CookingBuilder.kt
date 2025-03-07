@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-open class CookingBuilder(player: Player, builderName: Component) : RecipeBuilder(player, builderName) {
+open class CookingBuilder(player: Player, builderName: String) : RecipeBuilder(player, builderName) {
     private var cookingTime = 0
     private var experience = 0
 

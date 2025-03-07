@@ -6,7 +6,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-class StonecuttingBuilder(player: Player) : RecipeBuilder(player, Component.text("stonecutting")) {
+class StonecuttingBuilder(player: Player) : RecipeBuilder(player, "stonecutting") {
     override fun createInventory(player: Player?, inventoryTitle: Component): Inventory {
         return Bukkit.createInventory(player, InventoryType.WORKBENCH, inventoryTitle)
     }
