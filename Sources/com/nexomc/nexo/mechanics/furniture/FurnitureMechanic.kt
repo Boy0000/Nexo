@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture
 
+import com.google.common.base.Preconditions
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
@@ -124,7 +125,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     fun place(location: Location, yaw: Float, facing: BlockFace, checkSpace: Boolean): ItemDisplay? {
         if (!location.isWorldLoaded) return null
         if (checkSpace && this.notEnoughSpace(location, yaw)) return null
-        checkNotNull(location.world)
+        Preconditions.checkNotNull(location.world)
 
         val baseEntity = location.world.spawn(correctedSpawnLocation(location, facing), ItemDisplay::class.java) { e ->
             setBaseFurnitureData(e, yaw, facing)
@@ -237,7 +238,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (!baseEntity.isDead) baseEntity.remove()
     }
 
-    fun notEnoughSpace(baseEntity: ItemDisplay, yaw: Float = baseEntity.location.yaw): Boolean {
+    fun notEnoughSpace(baseEntity: ItemDisplay, yaw: Float = baseEntity.yaw): Boolean {
         return hitbox.hitboxLocations(baseEntity.location, yaw).any { !BlockHelpers.isReplaceable(it.block, baseEntity.uniqueId) }
     }
 
@@ -250,9 +251,9 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     }
 
     fun rotateFurniture(baseEntity: ItemDisplay) {
-        val newYaw = baseEntity.location.yaw + (if (restrictedRotation == RestrictedRotation.VERY_STRICT) 45f else 22.5f)
+        val newYaw = baseEntity.yaw + (if (restrictedRotation == RestrictedRotation.VERY_STRICT) 45f else 22.5f)
         if (notEnoughSpace(baseEntity, newYaw)) return
-        baseEntity.setRotation(newYaw, baseEntity.location.pitch)
+        baseEntity.setRotation(newYaw, baseEntity.pitch)
         hitbox.refreshHitboxes(baseEntity, this)
     }
 

@@ -62,9 +62,7 @@ interface NMSHandler {
 
     fun consumableComponent(itemBuilder: ItemBuilder, consumableSection: ConfigurationSection) {}
 
-    fun consumableComponent(itemStack: ItemStack, consumable: Any?): ItemStack {
-        return itemStack
-    }
+    fun consumableComponent(itemStack: ItemStack, consumable: Any?) {}
 
     fun repairableComponent(itemStack: ItemStack?): Any? {
         return null
@@ -72,13 +70,9 @@ interface NMSHandler {
 
     fun repairableComponent(itemBuilder: ItemBuilder, repairableWith: List<String>) {}
 
-    fun repairableComponent(itemStack: ItemStack, repairable: Any?): ItemStack {
-        return itemStack
-    }
+    fun repairableComponent(itemStack: ItemStack, repairable: Any?) {}
 
-    fun handleItemFlags(itemStack: ItemStack, itemFlags: Set<ItemFlag>): ItemStack {
-        return itemStack
-    }
+    fun handleItemFlags(itemStack: ItemStack, itemFlags: Set<ItemFlag>) {}
 
     fun applyMiningEffect(player: Player) {}
 

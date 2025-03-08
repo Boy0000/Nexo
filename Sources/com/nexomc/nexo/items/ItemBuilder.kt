@@ -564,21 +564,18 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemStack.itemMeta = itemMeta
 
-        itemStack = NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
-        itemStack = NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
-        itemStack = NMSHandlers.handler().handleItemFlags(itemStack, itemMeta.itemFlags)
+        NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
+        NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
+        NMSHandlers.handler().handleItemFlags(itemStack, itemMeta.itemFlags)
 
-        if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) when {
-            itemStack.itemMeta is PotionMeta -> {
-                itemStack = NMSHandlers.handler().consumableComponent(itemStack, null)
-                itemStack.editMeta {
-                    it.setFood(null)
+        if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
+            when {
+                meta is PotionMeta -> {
+                    NMSHandlers.handler().consumableComponent(itemStack, null)
+                    meta.setFood(null)
                 }
-            }
-            itemStack.itemMeta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") -> {
-                itemStack.editMeta {
-                    it.setEquippable(it.equippable.apply { slot = EquipmentSlot.HAND })
-                }
+                meta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") ->
+                    meta.setEquippable(meta.equippable.apply { slot = EquipmentSlot.HAND })
             }
         }
 

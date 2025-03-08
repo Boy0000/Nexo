@@ -6,6 +6,7 @@ import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -14,7 +15,7 @@ import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import java.util.*
+import org.bukkit.util.BoundingBox
 
 interface IFurniturePacketManager {
     fun nextEntityId(): Int
@@ -97,8 +98,11 @@ interface IFurniturePacketManager {
             }
         }
 
-        fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean =
-            barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }
+        fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
+            val blockBox = BoundingBox.of(block)
+            if (barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }) return true
+            return interactionHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
+        }
     }
 
 }

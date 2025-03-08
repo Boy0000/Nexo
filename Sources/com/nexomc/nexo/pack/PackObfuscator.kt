@@ -1,11 +1,13 @@
 package com.nexomc.nexo.pack
 
+import com.google.gson.JsonPrimitive
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.`object`
 import com.nexomc.nexo.utils.JsonBuilder.plus
+import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
 import com.nexomc.nexo.utils.JsonObject
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
@@ -77,9 +79,9 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
     private val obfuscatedSounds = ObjectOpenHashSet<ObfuscatedSound>()
     private val obfuscatedNamespaceCache = Object2ObjectOpenHashMap<String, String>()
 
-    private fun ObjectOpenHashSet<ObfuscatedModel>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedModel
+    private fun ObjectOpenHashSet<ObfuscatedModel>.findObf(key: Key) = find { it.find(key) != null }?.obfuscatedModel
     private fun ObjectOpenHashSet<ObfuscatedTexture>.findObf(key: Key) = key.appendSuffix(".png").let { k -> firstOrNull { it.find(k) != null }?.obfuscatedTexture }
-    private fun ObjectOpenHashSet<ObfuscatedSound>.findObf(key: Key) = firstOrNull { it.find(key) != null }?.obfuscatedSound
+    private fun ObjectOpenHashSet<ObfuscatedSound>.findObf(key: Key) = find { it.find(key) != null }?.obfuscatedSound
 
     enum class PackObfuscationType {
         SIMPLE, FULL, NONE;
@@ -133,32 +135,37 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun obfuscateItemModels() {
 
-        fun obfuscateModelKey(jsonObject: JsonObject?, key: String) {
-            jsonObject?.get(key)?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
-                jsonObject.plus(key, it)
+        fun obfuscateModelKey(jsonObject: JsonObject?) {
+            jsonObject?.get("model")?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
+                jsonObject.plus("model", it)
+            }
+            jsonObject?.get("base")?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
+                jsonObject.plus("base", it)
+            }
+            jsonObject?.get("models")?.takeIf { it.isJsonArray }?.asJsonArray?.map { JsonPrimitive(obfuscatedModels.findObf(Key.key(it.asString))?.key()?.asString() ?: it.asString) }?.let {
+                jsonObject.add("models", it.toJsonArray())
             }
         }
 
         fun obfuscateItemModel(obj: JsonObject) {
             val modelObj = obj.`object`("model") ?: return
 
-            obfuscateModelKey(modelObj, "model")
-            obfuscateModelKey(modelObj, "base")
-            obfuscateModelKey(obj.`object`("fallback"), "model")
+            obfuscateModelKey(modelObj)
+            obfuscateModelKey(obj.`object`("fallback"))
 
             modelObj.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
             modelObj.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
 
             modelObj.`object`("on_false")?.let { onFalse ->
-                obfuscateModelKey(onFalse, "model")
+                obfuscateModelKey(onFalse)
                 onFalse.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
                 onFalse.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                obfuscateModelKey(onFalse.`object`("fallback"), "model")
+                obfuscateModelKey(onFalse.`object`("fallback"))
             }
             modelObj.`object`("on_true")?.let { onTrue ->
                 onTrue.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
                 onTrue.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                obfuscateModelKey(onTrue.`object`("fallback"), "model")
+                obfuscateModelKey(onTrue.`object`("fallback"))
             }
         }
 

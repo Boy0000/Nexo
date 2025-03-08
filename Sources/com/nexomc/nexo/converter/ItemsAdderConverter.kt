@@ -328,7 +328,7 @@ object ItemsAdderConverter {
                         packNode.node("custom_model_data").set(it.int)
                     }
 
-                    val prefix = if (!packNode.node("model").empty()) "models" else "textures"
+                    val prefix = if (!packNode.node("model").empty()) "model" else "texture"
                     val path = when {
                         packNode.hasChild("model") -> iaItem.node("resource", "model_path").string
                         packNode.hasChild("textures") -> (packNode.node("textures").getList(String::class.java)?.firstOrNull() ?: itemId)
@@ -336,9 +336,9 @@ object ItemsAdderConverter {
                     }?.prependIfMissing("$namespace:")?.removeSuffix(".png") ?: itemId.prependIfMissing("$namespace:")
 
                     when (nexoItem.node("material").string) {
-                        "BOW" -> packNode.node("pulling_$prefix").set(List(3) { "${path}_$it" })
+                        "BOW" -> packNode.node("pulling_${prefix}s").set(List(3) { "${path}_$it" })
                         "CROSSBOW" -> {
-                            packNode.node("pulling_$prefix").set(List(3) { "${path}_$it" })
+                            packNode.node("pulling_${prefix}s").set(List(3) { "${path}_$it" })
                             packNode.node("charged_$prefix").set("${path}_charged")
                             packNode.node("firework_$prefix").set("${path}_firework")
                         }

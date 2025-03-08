@@ -21,7 +21,7 @@ object FurnitureHelpers {
     fun furnitureYaw(baseEntity: ItemDisplay, yaw: Float) {
         if (!NexoFurniture.isFurniture(baseEntity)) return
 
-        baseEntity.setRotation(yaw, baseEntity.location.pitch)
+        baseEntity.setRotation(yaw, baseEntity.pitch)
     }
 
     @JvmStatic

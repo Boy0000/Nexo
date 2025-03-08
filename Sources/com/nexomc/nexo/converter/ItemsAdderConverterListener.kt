@@ -56,7 +56,7 @@ class ItemsAdderConverterListener : Listener {
         //}
         //baseEntity.itemDisplayTransform = mechanic.properties.displayTransform
         //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) baseEntity.teleportAsync(baseEntity.location.apply { y += 0.5 })
-        //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) setRotation(baseEntity.location.yaw, -90f)
+        //if (baseEntity.itemDisplayTransform == ItemDisplay.ItemDisplayTransform.FIXED) setRotation(baseEntity.yaw, -90f)
         NexoFurniture.updateFurniture(baseEntity)
     }
 }
