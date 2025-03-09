@@ -16,7 +16,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 class BreakableMechanic(section: ConfigurationSection) {
-    val hardness: Double = section.getInt("hardness", 1).toDouble()
+    val hardness: Double = section.getDouble("hardness", 1.0)
     //val treatAs: Material = section.getString("treat_as")?.let(Material::matchMaterial) ?: Material.STONE
     val drop: Drop
     private val itemId: String = section.parent!!.parent!!.name
@@ -36,7 +36,7 @@ class BreakableMechanic(section: ConfigurationSection) {
      * @return Time in ticks it takes for player to break this block / furniture
      */
     fun breakTime(player: Player): Int {
-        val damage = speedMultiplier(player) / hardness / 30
+        val damage = speedMultiplier(player) / hardness / 30.0
         return if (damage > 1) 0 else ceil(1 / damage).toInt()
     }
 

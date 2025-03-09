@@ -218,7 +218,7 @@ object ItemsAdderConverter {
                             else -> iaItem.node("resource", "model_path").string
                         }
                         blockNode.node("model").set(blockModel)
-                        blockNode.node("hardness").set(iaItem.node("block", "hardness").getInt(2))
+                        blockNode.node("hardness").set(iaItem.node("block", "hardness").getDouble(2.0))
                         blockNode.convertBlockSounds(iaItem.node("specific_properties", "block"))
                         blockNode.convertPlaceableOn(iaItem, true)
                     }

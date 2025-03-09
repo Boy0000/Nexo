@@ -4,9 +4,10 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
-import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.deserialize
+import com.nexomc.nexo.utils.randomOrMin
+import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
@@ -16,7 +17,6 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
-import java.util.*
 
 class Drop(
     private var hierarchy: List<String>? = null,
@@ -59,22 +59,12 @@ class Drop(
     }
 
     fun isToolEnough(itemInHand: ItemStack?): Boolean {
-        Logs.logInfo("1")
         if (!bestTool.isNullOrEmpty()) {
-            Logs.logInfo("2")
             val itemID = NexoItems.idFromItem(itemInHand)
-            Logs.logInfo("3")
             val type = (itemInHand?.type ?: Material.AIR).name
-            Logs.logInfo("4")
             return when (bestTool) {
-                itemID, type -> {
-                    Logs.logInfo("5")
-                    true
-                }
-                else -> {
-                    Logs.logInfo("6")
-                    type.endsWith("_${bestTool!!.uppercase()}")
-                }
+                itemID, type -> true
+                else -> type.endsWith("_${bestTool!!.uppercase()}")
             }
         } else return true
     }

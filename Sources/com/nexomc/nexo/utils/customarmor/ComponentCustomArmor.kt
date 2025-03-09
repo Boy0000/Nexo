@@ -12,6 +12,7 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
+import team.unnamed.creative.texture.Texture
 
 object ComponentCustomArmor {
     fun generatePackFiles(resourcePack: ResourcePack) {
@@ -37,15 +38,18 @@ object ComponentCustomArmor {
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        NexoItems.entries().entries.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
+        NexoItems.entries().entries.asSequence().filter { it.value.nexoMeta?.customArmorTextures != null }.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
             val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
             val armorPrefix = itemId.substringBeforeLast("_")
-            val layer1 = resourcePack.texture(customArmor.layer1)
-                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
-                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
-            val layer2 = resourcePack.texture(customArmor.layer2)
-                ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
-                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
+
+            fun fetchTexture(texture: Key, fallbackName: String): Texture? {
+                return resourcePack.texture(texture)
+                    ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == fallbackName }
+                    ?: return Logs.logWarn("Failed to fetch ${texture.asString()} used by $itemId").let { null }
+            }
+
+            val layer1 = fetchTexture(customArmor.layer1, "${armorPrefix}_armor_layer_1.png") ?: return@forEach
+            val layer2 = fetchTexture(customArmor.layer2, "${armorPrefix}_armor_layer_2.png") ?: return@forEach
 
             resourcePack.removeTexture(customArmor.layer1)
             resourcePack.removeTexture(customArmor.layer2)

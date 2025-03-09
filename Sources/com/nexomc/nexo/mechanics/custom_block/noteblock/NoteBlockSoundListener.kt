@@ -100,7 +100,7 @@ class NoteBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSou
     fun GenericGameEvent.onStepFall() {
         val entity = entity as? LivingEntity ?: return
         if (entity !is Player && customSounds.playersOnly) return
-        if (!isLoaded(entity.location)) return
+        if (!isLoaded(entity.location) || isAsynchronous) return
         if (event == GameEvent.HIT_GROUND && entity.fallDistance < 4.0) return
         val silent = entity.isInWater || entity.isSwimming || (entity.isSneaking || entity.isInLava)
         if (event == GameEvent.STEP && silent) return

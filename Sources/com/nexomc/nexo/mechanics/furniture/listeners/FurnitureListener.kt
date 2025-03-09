@@ -49,12 +49,8 @@ import org.bukkit.persistence.PersistentDataType
 class FurnitureListener : Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     fun PlayerInteractEvent.onLimitedPlacing() {
-        val (block, itemId) = (clickedBlock ?: return) to (item?.let(NexoItems::idFromItem) ?: return)
-
-        if (action != Action.RIGHT_CLICK_BLOCK) return
-
-        val mechanic = NexoFurniture.furnitureMechanic(itemId) ?: return
-        val limitedPlacing = mechanic.limitedPlacing ?: return
+        val (block, itemId) = (clickedBlock?.takeIf { action == Action.RIGHT_CLICK_BLOCK } ?: return) to (item?.let(NexoItems::idFromItem) ?: return)
+        val limitedPlacing = NexoFurniture.furnitureMechanic(itemId)?.limitedPlacing ?: return
         val belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN)
         if (!player.isSneaking && BlockHelpers.isInteractable(clickedBlock, player)) return
 
@@ -62,10 +58,10 @@ class FurnitureListener : Listener {
             limitedPlacing.isNotPlacableOn(block, blockFace) -> isCancelled = true
             limitedPlacing.type == LimitedPlacingType.ALLOW && !limitedPlacing.checkLimited(belowPlaced) -> isCancelled = true
             limitedPlacing.type == LimitedPlacingType.DENY && limitedPlacing.checkLimited(belowPlaced) -> isCancelled = true
-            limitedPlacing.isRadiusLimited -> {
-                val (radius, amount) = limitedPlacing.radiusLimitation!!.let { it.radius.toDouble() to it.amount.toDouble()}
+            else -> {
+                val (radius, amount) = limitedPlacing.radiusLimitation?.let { it.radius.toDouble() to it.amount.toDouble()} ?: return
                 if (block.world.getNearbyEntities(block.location, radius, radius, radius)
-                        .filter { NexoFurniture.furnitureMechanic(it)?.itemID == mechanic.itemID }
+                        .filter { NexoFurniture.furnitureMechanic(it)?.itemID == itemId }
                         .count { it.location.distanceSquared(block.location) <= radius * radius } >= amount
                 ) isCancelled = true
             }

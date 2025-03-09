@@ -16,18 +16,23 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
         NexoItems.items().forEach { itemBuilder ->
             // Generate the baseItem model and add all needed overrides
             val baseMaterial = itemBuilder.type
-            val baseModelKey = Key.key("item/${baseMaterial.toString().lowercase()}")
 
-            resourcePack.model(baseModelKey) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(baseModelKey)?.toBuilder()?.also { builder ->
-                predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach { override ->
-                    builder.addOverride(override)
-                }
-            }?.build()?.addTo(resourcePack)
+            fun addOverrides(key: Key) {
+                (resourcePack.model(key) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(key))?.toBuilder()?.also { builder ->
+                    predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach { override ->
+                        builder.addOverride(override)
+                    }
+                }?.build()?.addTo(resourcePack)
+            }
+
+            // Add overrides to base-models unless manually provided
+            addOverrides(Key.key("item/${baseMaterial.toString().lowercase()}"))
+            addOverrides(Key.key("block/${baseMaterial.toString().lowercase()}"))
 
             //generateItemModels
             val nexoMeta = itemBuilder.nexoMeta ?: return@forEach
             if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
-            val model = generateModelBuilder(itemBuilder.type, nexoMeta) ?: return@forEach
+            val model = generateModelBuilder(baseMaterial, nexoMeta) ?: return@forEach
 
             resourcePack.model(model.key())?.also {
                 model.toBuilder().also { builder ->

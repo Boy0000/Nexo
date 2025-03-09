@@ -11,7 +11,6 @@ import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
-import kotlin.random.Random
 
 class Loot(
     val sourceID: String? = null,
@@ -39,27 +38,14 @@ class Loot(
     fun itemStack(): ItemStack {
         if (itemStack != null) return ItemUpdater.updateItem(itemStack!!)
 
-        when {
-            "nexo_item" in config ->
-                itemStack = NexoItems.itemFromId(config["nexo_item"].toString())!!.build()
-
-            "crucible_item" in config ->
-                itemStack = WrappedCrucibleItem(config["crucible_item"].toString()).build()
-
-            "mmoitems_id" in config && "mmoitems_type" in config -> {
-                val type = config["mmoitems_type"].toString()
-                val id = config["mmoitems_id"].toString()
-                itemStack = MMOItems.plugin.getItem(type, id)
-            }
-
-            "ecoitem" in config -> itemStack = WrappedEcoItem(config["ecoitem"].toString()).build()
-            "minecraft_type" in config -> {
-                val itemType = config["minecraft_type"].toString()
-                val material = Material.getMaterial(itemType)
-                itemStack = if (material != null) ItemStack(material) else null
-            }
-
-            "minecraft_item" in config -> itemStack = config["minecraft_item"] as? ItemStack
+        itemStack = when {
+            "nexo_item" in config -> NexoItems.itemFromId(config["nexo_item"].toString())!!.build()
+            "crucible_item" in config -> WrappedCrucibleItem(config["crucible_item"].toString()).build()
+            "mmoitems_id" in config && "mmoitems_type" in config -> MMOItems.plugin.getItem(config["mmoitems_type"].toString(), config["mmoitems_id"].toString())
+            "ecoitem" in config -> WrappedEcoItem(config["ecoitem"].toString()).build()
+            "minecraft_type" in config -> Material.getMaterial(config["minecraft_type"].toString())?.let(::ItemStack)
+            "minecraft_item" in config -> config["minecraft_item"] as? ItemStack
+            else -> null
         }
 
         if (itemStack == null) itemStack = NexoItems.itemFromId(sourceID)?.build()

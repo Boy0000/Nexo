@@ -181,7 +181,10 @@ class ItemUpdater : Listener {
                     else -> null
                 }.let(itemMeta::setCustomModelData)
 
-                itemMeta.lore((if (Settings.OVERRIDE_ITEM_LORE.toBool()) newMeta else oldMeta).lore())
+                when {
+                    !oldMeta.hasLore() || Settings.OVERRIDE_ITEM_LORE.toBool() -> newMeta.lore()
+                    else -> oldMeta.lore()
+                }.let(itemMeta::lore)
 
                 if (newMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = newMeta.attributeModifiers
                 else if (oldMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = oldMeta.attributeModifiers

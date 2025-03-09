@@ -54,7 +54,7 @@ class StringBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun GenericGameEvent.onStepFall() {
-        val entity = (entity as? LivingEntity)?.takeIf { isLoaded(it.location) } ?: return
+        val entity = (entity as? LivingEntity)?.takeIf { isLoaded(it.location) && !isAsynchronous } ?: return
         if (entity !is Player && customSounds.playersOnly) return
 
         if (entity.lastDamageCause?.cause != EntityDamageEvent.DamageCause.FALL || event == GameEvent.HIT_GROUND) return

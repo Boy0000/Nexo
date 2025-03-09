@@ -34,12 +34,12 @@ import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import com.tcoded.folialib.FoliaLib
 import io.th0rgal.protectionlib.ProtectionLib
+import java.util.concurrent.ConcurrentHashMap
+import java.util.jar.JarFile
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.concurrent.ConcurrentHashMap
-import java.util.jar.JarFile
 
 class NexoPlugin : JavaPlugin() {
     private lateinit var configsManager: ConfigsManager
@@ -97,7 +97,6 @@ class NexoPlugin : JavaPlugin() {
 
         NexoMetrics.initializeMetrics()
         MechanicsManager.registerNativeMechanics()
-        NexoItems.loadItems()
 
         foliaLib.scheduler.runNextTick {
             NexoItems.loadItems()
@@ -116,7 +115,6 @@ class NexoPlugin : JavaPlugin() {
         packServer.stop()
         HandlerList.unregisterAll(this)
         FurnitureFactory.unregisterEvolution()
-        FurnitureFactory.removeAllFurniturePackets()
 
         CompatibilitiesManager.disableCompatibilities()
         CommandAPIManager(this).disable()

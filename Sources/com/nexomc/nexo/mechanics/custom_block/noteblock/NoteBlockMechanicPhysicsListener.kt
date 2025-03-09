@@ -48,7 +48,7 @@ class NoteBlockMechanicPhysicsListener : Listener {
         val block = location.block
         val data = block.blockData.clone() as? NoteBlock ?: return
 
-        if (!isLoaded(location) || !isLoaded(block.location) || event !== GameEvent.NOTE_BLOCK_PLAY) return
+        if (!isLoaded(location) || isAsynchronous || event !== GameEvent.NOTE_BLOCK_PLAY) return
 
         SchedulerUtils.foliaScheduler.runAtLocationLater(location, Runnable { block.setBlockData(data, false) }, 1L)
     }

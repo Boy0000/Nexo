@@ -91,7 +91,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
             Logs.logWarn("Nexo will ignore any lights that conflict with a barrier...")
         }
 
-        this.light.lightBlocks.removeIf { it in overlap }
+        this.light.lightBlocks.removeAll(overlap)
     }
 
     val isModelEngine: Boolean = PluginUtils.isModelEngineEnabled && modelEngineID != null

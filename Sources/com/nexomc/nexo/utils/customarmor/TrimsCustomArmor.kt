@@ -134,7 +134,7 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
     }
 
     private fun copyArmorLayerTextures(resourcePack: ResourcePack) {
-        NexoItems.entries().entries.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
+        NexoItems.entries().entries.asSequence().filter { it.value.nexoMeta?.customArmorTextures != null }.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
             val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
             val armorPrefix = itemId.substringBeforeLast("_")
             val layer1 = resourcePack.texture(customArmor.layer1)
