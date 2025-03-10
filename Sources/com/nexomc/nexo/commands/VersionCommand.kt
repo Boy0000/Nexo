@@ -10,7 +10,7 @@ import dev.jorel.commandapi.kotlindsl.literalArgument
 internal fun CommandTree.versionCommand() = literalArgument("version") {
     withPermission("nexo.command.version")
     anyExecutor { sender, _ ->
-        Message.VERSION.send(sender, tagResolver("version", NexoPlugin.instance().description.version))
+        Message.VERSION.send(sender, tagResolver("version", NexoPlugin.instance().pluginMeta.version))
     }
 }
 

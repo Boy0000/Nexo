@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -17,9 +18,7 @@ import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingTyp
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.ItemUtils.dyeColor
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.Utils
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
 import io.th0rgal.protectionlib.ProtectionLib
@@ -95,13 +94,13 @@ class FurnitureListener : Listener {
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
         val pdc = baseEntity.persistentDataContainer
 
-        dyeColor(item)?.asRGB()?.also {
+        item.itemMeta?.asColorable()?.color?.asRGB()?.also {
             pdc.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, it)
         }
         item.itemMeta.displayName()?.serialize()?.also {
             pdc.set(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING, it)
         }
-        Utils.swingHand(player, hand)
+        player.swingHand(hand)
 
         if (!NexoFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand).call()) {
             NexoFurniture.remove(baseEntity)

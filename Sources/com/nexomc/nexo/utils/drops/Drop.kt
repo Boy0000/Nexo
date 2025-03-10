@@ -85,12 +85,12 @@ class Drop(
     }
 
     fun spawns(location: Location, itemInHand: ItemStack): List<DroppedLoot> {
-        if (!canDrop(itemInHand) || !isLoaded(location)) return listOf()
+        if (!canDrop(itemInHand) || !location.isLoaded) return listOf()
         val baseItem = NexoItems.itemFromId(sourceID)?.build()
 
         if (baseItem != null && isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true) {
             location.world.dropItemNaturally(location.toCenterLocation(), baseItem)
-            return listOf(DroppedLoot(Loot(sourceID, baseItem, 1.0, IntRange(1, 1)), 1))
+            return listOf(DroppedLoot(Loot(sourceID, baseItem, 1.0, 1..1), 1))
         } else return dropLoot(loots, location.toCenterLocation(), fortuneMultiplier(itemInHand))
     }
 

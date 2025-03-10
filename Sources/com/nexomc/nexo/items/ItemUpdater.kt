@@ -10,7 +10,6 @@ import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.ItemUtils
-import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
@@ -93,7 +92,7 @@ class ItemUpdater : Listener {
         val itemStack = player.inventory.itemInMainHand
 
         if (VersionUtil.below("1.20.5") || player.gameMode == GameMode.CREATIVE) return
-        if (isEmpty(itemStack) || isTool(itemStack)) return
+        if (itemStack.isEmpty || isTool(itemStack)) return
         if ((itemStack.itemMeta as? Damageable)?.hasMaxDamage() != true) return
 
         itemStack.takeIf { NexoItems.builderFromItem(it)?.isDamagedOnBlockBreak == true }?.damage(1, player)
@@ -103,10 +102,10 @@ class ItemUpdater : Listener {
     fun EntityDamageByEntityEvent.onUseMaxDamageItem() {
         if (VersionUtil.below("1.20.5") || VersionUtil.atleast("1.21.2")) return
         val entity = damager as? LivingEntity ?: return
-        val itemStack = entity.equipment?.itemInMainHand
+        val itemStack = entity.equipment?.itemInMainHand ?: return
 
         if (entity is Player && entity.gameMode == GameMode.CREATIVE) return
-        if (isEmpty(itemStack) || isTool(itemStack!!)) return
+        if (itemStack.isEmpty || isTool(itemStack)) return
         if ((itemStack.itemMeta as? Damageable)?.hasMaxDamage() != true) return
 
         itemStack.takeIf { NexoItems.builderFromItem(it)?.isDamagedOnEntityHit == true }?.damage(1, entity)

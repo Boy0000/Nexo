@@ -3,8 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
-import com.nexomc.nexo.nms.NMSHandlers.handler
-import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import org.bukkit.GameEvent
 import org.bukkit.Material
@@ -39,7 +38,7 @@ class RegularNoteBlock(private val block: Block, private val player: Player?) {
         else -> {
             val blockBelow = block.getRelative(BlockFace.DOWN)
             val noteBlockMechanic = NexoBlocks.noteBlockMechanic(blockBelow)
-            (noteBlockMechanic?.instrument ?: "block.note_block.${handler().noteBlockInstrument(blockBelow)}").lowercase()
+            (noteBlockMechanic?.instrument ?: "block.note_block.${NMSHandlers.handler().noteBlockInstrument(blockBelow)}").lowercase()
         }
     }
 
@@ -65,16 +64,16 @@ class RegularNoteBlock(private val block: Block, private val player: Player?) {
     fun increaseNote() {
         container.set(noteKey, PersistentDataType.BYTE, ((note + 1) % 25).toByte())
 
-        BlockHelpers.updateSurroundingBlocks(block)
+        block.updateSurroundingBlocks()
     }
 
     fun setPowered(powered: Boolean) {
         if (powered) {
-            if (!isPowered) BlockHelpers.updateSurroundingBlocks(block)
+            if (!isPowered) block.updateSurroundingBlocks()
             container.set(poweredKey, PersistentDataType.BOOLEAN, true)
         }
         else {
-            if (isPowered) BlockHelpers.updateSurroundingBlocks(block)
+            if (isPowered) block.updateSurroundingBlocks()
             container.remove(poweredKey)
         }
     }
@@ -89,4 +88,10 @@ class RegularNoteBlock(private val block: Block, private val player: Player?) {
             Material.SKELETON_SKULL, Material.ZOMBIE_HEAD, Material.PIGLIN_HEAD, Material.CREEPER_HEAD, Material.DRAGON_HEAD, Material.WITHER_SKELETON_SKULL, Material.PLAYER_HEAD -> true
             else -> false
         }
+
+    private fun Block.updateSurroundingBlocks() {
+        val oldData = blockData
+        type = Material.BARRIER
+        setBlockData(oldData, false)
+    }
 }

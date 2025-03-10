@@ -17,14 +17,14 @@ import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
+import java.io.File
+import java.util.Optional
 import net.Indyuce.mmoitems.MMOItems
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import java.io.File
-import java.util.*
 
 object NexoItems {
     val ITEM_ID = NamespacedKey(NexoPlugin.instance(), "id")
@@ -73,7 +73,7 @@ object NexoItems {
 
     val itemConfigCache: MutableMap<String, Pair<File, ConfigurationSection>?> = mutableMapOf()
     fun reloadItem(itemId: String) {
-        val (file, config) = itemConfigCache.computeIfAbsent(itemId) {
+        val (file, config) = itemConfigCache.getOrPut(itemId) {
             itemMap.entries.find { it.value.containsKey(itemId) }?.let {
                 it.key to NexoYaml.loadConfiguration(it.key).getConfigurationSection(itemId)!!
             }

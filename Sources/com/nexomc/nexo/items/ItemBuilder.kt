@@ -566,7 +566,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
-        NMSHandlers.handler().handleItemFlags(itemStack, itemMeta.itemFlags)
+        NMSHandlers.handler().handleItemFlagToolTips(itemStack)
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
             when {

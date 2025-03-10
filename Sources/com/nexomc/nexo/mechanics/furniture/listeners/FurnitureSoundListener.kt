@@ -106,7 +106,7 @@ class FurnitureSoundListener : Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
         val entity = entity as? Player ?: return
-        if (!isLoaded(entity.location) || isAsynchronous) return
+        if (!entity.location.isLoaded || isAsynchronous) return
 
         val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
         val (cause, soundGroup) = entity.lastDamageCause to blockStandingOn.blockData.soundGroup

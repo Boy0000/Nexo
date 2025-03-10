@@ -9,6 +9,7 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFac
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import java.util.UUID
 import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.Material
@@ -22,9 +23,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataContainer
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.BoundingBox
-import java.util.*
 
 object BlockHelpers {
     /**
@@ -39,8 +38,7 @@ object BlockHelpers {
 
         val entityBox = entity.boundingBox.expand(0.3)
 
-        return blockFaces.mapFast(blockBelow::getRelative)
-            .firstOrNull { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
+        return blockFaces.mapFast(blockBelow::getRelative).find { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
     }
     private val blockFaces = BlockFace.entries.take(4)
 
@@ -71,13 +69,6 @@ object BlockHelpers {
     }
 
     @JvmStatic
-    fun updateSurroundingBlocks(block: Block) {
-        val oldData = block.blockData
-        block.type = Material.BARRIER
-        block.setBlockData(oldData, false)
-    }
-
-    @JvmStatic
     fun isStandingInside(player: Player?, block: Block?): Boolean {
         if (player == null || block == null) return false
         // Since the block might be AIR, Block#getBoundingBox returns an empty one
@@ -88,14 +79,6 @@ object BlockHelpers {
     }
 
     val Block.persistentDataContainer: PersistentDataContainer get() = CustomBlockData(this, NexoPlugin.instance())
-
-    /** Returns the PersistentDataContainer from CustomBlockData
-     * @param block The block to get the PersistentDataContainer for
-     * @param plugin The plugin to get the CustomBlockData from
-     */
-    fun getPersistentDataContainer(block: Block, plugin: JavaPlugin): PersistentDataContainer {
-        return CustomBlockData(block, plugin)
-    }
 
     @JvmField
     val REPLACEABLE_BLOCKS: ObjectOpenHashSet<Material> = ObjectOpenHashSet(Tag.REPLACEABLE.values)
@@ -146,17 +129,5 @@ object BlockHelpers {
         }
     }
 
-    /*
-     * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
-     * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
-     */
-    @JvmStatic
-    fun isLoaded(world: World, loc: Location): Boolean {
-        return world.isChunkLoaded(loc.blockX shr 4, loc.blockZ shr 4)
-    }
-
-    @JvmStatic
-    fun isLoaded(loc: Location): Boolean {
-        return loc.world != null && isLoaded(loc.world, loc)
-    }
+    val Location.isLoaded get() = this.isWorldLoaded && this.isChunkLoaded
 }

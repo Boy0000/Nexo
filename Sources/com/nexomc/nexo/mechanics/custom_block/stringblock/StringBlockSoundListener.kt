@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.stringblock
 
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockBreakEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockPlaceEvent
@@ -8,6 +7,7 @@ import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.to
 import org.bukkit.GameEvent
 import org.bukkit.Material
 import org.bukkit.SoundCategory
@@ -54,7 +54,7 @@ class StringBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun GenericGameEvent.onStepFall() {
-        val entity = (entity as? LivingEntity)?.takeIf { isLoaded(it.location) && !isAsynchronous } ?: return
+        val entity = (entity as? LivingEntity)?.takeIf { it.location.isLoaded && !isAsynchronous } ?: return
         if (entity !is Player && customSounds.playersOnly) return
 
         if (entity.lastDamageCause?.cause != EntityDamageEvent.DamageCause.FALL || event == GameEvent.HIT_GROUND) return

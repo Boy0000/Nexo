@@ -186,11 +186,10 @@ object NexoBlocks {
     private fun placeNoteBlock(location: Location, itemID: String?) {
         val block = location.block
         NoteBlockMechanicFactory.setBlockModel(block, itemID)
-        val pdc = block.persistentDataContainer
         val mechanic = noteBlockMechanic(block) ?: return
 
         if (mechanic.storage()?.storageType == StorageType.STORAGE) {
-            pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, emptyArray())
+            block.persistentDataContainer.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, emptyArray())
         }
         NoteMechanicHelpers.checkNoteBlockAbove(location)
     }

@@ -1,32 +1,15 @@
 package com.nexomc.nexo.utils
 
-import com.mineinabyss.idofront.items.asColorable
-import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.components.FoodComponent
-import javax.annotation.Nullable
 
 object ItemUtils {
 
     fun itemStacks(vararg materials: Material): List<ItemStack> {
         return materials.map(::ItemStack)
-    }
-
-    @JvmStatic
-    fun isEmpty(itemStack: ItemStack?): Boolean {
-        return itemStack == null || itemStack.type == Material.AIR || itemStack.amount == 0
-    }
-
-    @JvmStatic
-    @Nullable
-    fun dyeColor(itemStack: ItemStack) = itemStack.itemMeta.asColorable()?.color
-
-    @JvmStatic
-    fun dyeItem(itemStack: ItemStack, color: Color?) {
-        itemStack.editMeta { it.asColorable()?.color = color }
     }
 
     /**

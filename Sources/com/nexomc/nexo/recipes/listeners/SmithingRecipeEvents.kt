@@ -2,7 +2,6 @@ package com.nexomc.nexo.recipes.listeners
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
-import com.nexomc.nexo.utils.ItemUtils.isEmpty
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -14,10 +13,10 @@ import org.bukkit.inventory.SmithingTransformRecipe
 class SmithingRecipeEvents : Listener {
     @EventHandler
     fun PrepareSmithingEvent.onSmithingRecipe() {
-        val (template, material) = inventory.let { it.inputTemplate to it.inputMineral }
-        val input = inventory.inputEquipment
+        val (template, material) = inventory.let { (it.inputTemplate ?: return) to (it.inputMineral ?: return) }
+        val input = inventory.inputEquipment ?: return
 
-        if (isEmpty(template) || isEmpty(material) || isEmpty(input)) return
+        if (template.isEmpty || material.isEmpty || input.isEmpty) return
         if (inventory.contents.filterNotNull().any(ItemStack::isEmpty)) return
         if (inventory.contents.filterNotNull().none(NexoItems::exists)) return
 
@@ -26,7 +25,7 @@ class SmithingRecipeEvents : Listener {
 
         Bukkit.recipeIterator().forEachRemaining { recipe: Recipe ->
             if (recipe !is SmithingTransformRecipe) return@forEachRemaining
-            if (!recipe.template.test(template!!) || !recipe.addition.test(material!!)) return@forEachRemaining
+            if (!recipe.template.test(template) || !recipe.addition.test(material)) return@forEachRemaining
             if (nexoItemId == NexoItems.idFromItem(recipe.base.itemStack)) return@forEachRemaining
             result = null
         }

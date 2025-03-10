@@ -11,7 +11,7 @@ class NexoExpansion(private val plugin: NexoPlugin) : PlaceholderExpansion() {
 
     override fun getIdentifier() = "nexo"
 
-    override fun getVersion() = plugin.description.version
+    override fun getVersion(): String = plugin.pluginMeta.version
 
     override fun persist() = true
 

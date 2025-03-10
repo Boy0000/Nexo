@@ -14,6 +14,9 @@ import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import java.util.Objects
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -24,8 +27,6 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
-import java.util.*
-import kotlin.collections.set
 
 class StorageMechanic(section: ConfigurationSection) {
     private val rows: Int = section.getInt("rows", 6)
@@ -213,7 +214,7 @@ class StorageMechanic(section: ConfigurationSection) {
 
         gui.setCloseGuiAction {
             storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-            if (isLoaded(block.location)) location.world.playSound(location, closeSound, volume, pitch)
+            if (block.location.isLoaded) location.world.playSound(location, closeSound, volume, pitch)
         }
 
         return gui
@@ -248,7 +249,7 @@ class StorageMechanic(section: ConfigurationSection) {
                 shulker -> shulkerPDC!!.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 else -> storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
             }
-            if (isLoaded(baseEntity.location)) location.world.playSound(location, closeSound, volume, pitch)
+            if (baseEntity.location.isLoaded) location.world.playSound(location, closeSound, volume, pitch)
             playOpenAnimation(baseEntity, closeAnimation)
         }
 
@@ -256,9 +257,9 @@ class StorageMechanic(section: ConfigurationSection) {
     }
 
     companion object {
-        var playerStorages = mutableSetOf<Player>()
-        var blockStorages = mutableMapOf<Block, StorageGui>()
-        var displayStorages = mutableMapOf<ItemDisplay, StorageGui>()
+        var playerStorages = ObjectOpenHashSet<Player>()
+        var blockStorages = Object2ObjectOpenHashMap<Block, StorageGui>()
+        var displayStorages = Object2ObjectOpenHashMap<ItemDisplay, StorageGui>()
         val STORAGE_KEY = NamespacedKey(NexoPlugin.instance(), "storage")
         val PERSONAL_STORAGE_KEY = NamespacedKey(NexoPlugin.instance(), "personal_storage")
     }

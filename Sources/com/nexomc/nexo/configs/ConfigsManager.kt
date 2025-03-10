@@ -47,6 +47,12 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     var language: YamlConfiguration = defaultLanguage
         private set
 
+    var itemConfigs: Map<File, YamlConfiguration> = Object2ObjectLinkedOpenHashMap()
+
+    init {
+
+    }
+
     fun settings(): YamlConfiguration {
         if (settings == null) settings = Settings.validateSettings()
         return settings!!

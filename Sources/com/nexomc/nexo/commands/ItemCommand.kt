@@ -7,7 +7,6 @@ import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
@@ -20,9 +19,9 @@ import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import dev.jorel.commandapi.kotlindsl.playerExecutor
 import dev.jorel.commandapi.kotlindsl.stringArgument
 import dev.jorel.commandapi.kotlindsl.textArgument
+import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.audience.Audience
 import org.bukkit.entity.Player
-import java.util.concurrent.CompletableFuture
 
 internal fun CommandTree.inventoryCommand() = multiLiteralArgument(nodeName = "inventory", "inventory", "inv") {
     withPermission("nexo.command.inventory")
@@ -92,13 +91,13 @@ internal fun CommandTree.takeItemCommand() = literalArgument("take") {
 
                     targets.forEach { target: Player ->
                         if (amount.isEmpty) target.inventory.contents.asSequence().filterNotNull()
-                            .filter { !ItemUtils.isEmpty(it) && itemID == NexoItems.idFromItem(it) }
+                            .filter { !it.isEmpty && itemID == NexoItems.idFromItem(it) }
                             .forEach { target.inventory.remove(it) }
                         else {
                             var toRemove = amount.get()
                             while (toRemove > 0) {
                                 target.inventory.contents.asSequence().filterNotNull()
-                                    .filter { !ItemUtils.isEmpty(it) && itemID == NexoItems.idFromItem(it) }
+                                    .filter { !it.isEmpty && itemID == NexoItems.idFromItem(it) }
                                     .forEach {
                                         if (toRemove == 0) return@forEach
                                         when {

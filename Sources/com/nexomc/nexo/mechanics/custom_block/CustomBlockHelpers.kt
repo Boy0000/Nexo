@@ -8,14 +8,13 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
-import com.nexomc.nexo.nms.NMSHandlers.handler
+import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isReplaceable
 import com.nexomc.nexo.utils.BlockHelpers.isStandingInside
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.InteractionResult
-import com.nexomc.nexo.utils.Utils.swingHand
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
@@ -58,7 +57,7 @@ object CustomBlockHelpers {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(itemMaterial)) return
-            result = handler().correctBlockStates(player, hand, item, target.getRelative(face.oppositeFace), face)
+            result = NMSHandlers.handler().correctBlockStates(player, hand, item, target.getRelative(face.oppositeFace), face)
             (target.state as? Sign)?.takeIf { it.type != oldData.material }?.let {
                 player.openSign(it, Side.FRONT)
             }
@@ -139,7 +138,7 @@ object CustomBlockHelpers {
 
             if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
 
-            swingHand(player, hand)
+            player.swingHand(hand)
         }
         target.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, target.location.toVector())
     }

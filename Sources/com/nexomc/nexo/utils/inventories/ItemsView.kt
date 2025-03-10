@@ -7,19 +7,18 @@ import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
-import com.nexomc.nexo.utils.Utils.removeExtension
 import com.nexomc.nexo.utils.mapNotNullFast
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.PaginatedGui
+import java.io.File
+import java.util.Collections
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
-import java.io.File
-import java.util.*
 import kotlin.math.max
 
 class ItemsView {
@@ -31,7 +30,7 @@ class ItemsView {
         val files = mutableMapOf<File, PaginatedGui>()
         NexoItems.itemMap().keys.forEach { file ->
             val unexcludedItems = NexoItems.unexcludedItems(file).takeIf { it.isNotEmpty() } ?: return@forEach
-            files[file] = createSubGUI(file.name, unexcludedItems)
+            files[file] = createSubGUI(file.nameWithoutExtension, unexcludedItems)
         }
 
         //Get max between the highest slot and the number of files
@@ -89,7 +88,7 @@ class ItemsView {
         val gui = Gui.paginated().rows(6).pageSize(45).title(
             AdventureUtils.MINI_MESSAGE.deserialize(
                 settings.getString(
-                    "NexoInventory.menu_layout.${removeExtension(fileName)}.title",
+                    "NexoInventory.menu_layout.$fileName.title",
                     Settings.NEXO_INV_TITLE.toString()
                 )!!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
             )
@@ -123,7 +122,7 @@ class ItemsView {
     private data class GuiItemSlot(val itemStack: ItemStack?, val slot: Int)
 
     private fun File.guiItemSlot(): GuiItemSlot {
-        val fileName = removeExtension(name)
+        val fileName = nameWithoutExtension
         val icon = settings.getString("NexoInventory.menu_layout.$fileName.icon")
         val displayName = AdventureUtils.MINI_MESSAGE.deserialize(
             settings.getString("NexoInventory.menu_layout.$fileName.displayname", this.name)!!
@@ -133,7 +132,7 @@ class ItemsView {
             .addItemFlags(ItemFlag.HIDE_ATTRIBUTES).itemName(displayName).displayName(displayName).lore(listOf())
             .build()
 
-        val slot = settings.getInt("NexoInventory.menu_layout.${removeExtension(this.name)}.slot", 0) - 1
+        val slot = settings.getInt("NexoInventory.menu_layout.$fileName.slot", 0) - 1
         return GuiItemSlot(itemStack, slot)
     }
 }

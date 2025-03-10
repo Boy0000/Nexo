@@ -1,12 +1,19 @@
 package com.nexomc.nexo.mechanics.misc.misc
 
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.Utils.swingHand
 import io.th0rgal.protectionlib.ProtectionLib
-import org.bukkit.*
+import org.bukkit.Effect
+import org.bukkit.GameMode
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.Tag
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Levelled
-import org.bukkit.entity.*
+import org.bukkit.entity.Entity
+import org.bukkit.entity.Horse
+import org.bukkit.entity.Item
+import org.bukkit.entity.Piglin
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -70,7 +77,7 @@ class MiscListener : Listener {
         block.blockData = levelled
         block.world.playEffect(block.location, Effect.COMPOSTER_FILL_ATTEMPT, 0, 1)
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
-        swingHand(player, hand)
+        player.swingHand(hand)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

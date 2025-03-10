@@ -1,7 +1,6 @@
 package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.utils.Utils.getStringBeforeLastInSplit
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import org.bukkit.configuration.file.YamlConfiguration
@@ -36,7 +35,7 @@ class SettingsUpdater {
         keys.forEach { key: String ->
             if (key in settings) Logs.logWarn("Found outdated setting $key. This will be removed.")
             settings.set(key, null)
-            val parent = settings.getConfigurationSection(getStringBeforeLastInSplit(key, "\\."))
+            val parent = settings.getConfigurationSection(key.substringBeforeLast("."))
             if (parent != null && parent.getKeys(false).isEmpty()) settings.set(parent.currentPath!!, null)
         }
         return settings

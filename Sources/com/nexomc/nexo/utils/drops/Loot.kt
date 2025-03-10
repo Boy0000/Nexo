@@ -23,14 +23,13 @@ class Loot(
 
     constructor(config: LinkedHashMap<String, Any>, sourceID: String) : this(
         probability = config.getOrDefault("probability", 1).toString().toDouble(),
-        amount = (config.getOrDefault("amount", "") as? String)?.toIntRangeOrNull() ?: IntRange(1, 1),
+        amount = (config.getOrDefault("amount", "") as? String)?.toIntRangeOrNull() ?: 1..1,
         inExplosion = config.getOrDefault("in_explosion", false).safeCast<Boolean>() ?: false,
         config = config,
         sourceID = sourceID
     )
 
-    constructor(itemStack: ItemStack?, probability: Double)
-            : this(null, itemStack, min(1.0, probability), IntRange(1, 1))
+    constructor(itemStack: ItemStack?, probability: Double) : this(null, itemStack, min(1.0, probability), 1..1)
 
     constructor(sourceID: String?, itemStack: ItemStack?, probability: Double, minAmount: Int, maxAmount: Int)
             : this(sourceID, itemStack, min(1.0, probability), IntRange(minAmount, maxAmount))
