@@ -9,9 +9,9 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.literalArgument
 import dev.jorel.commandapi.kotlindsl.stringArgument
+import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.event.HoverEvent
-import java.util.concurrent.CompletableFuture
 
 internal fun CommandTree.glyphInfoCommand() = literalArgument("glyphinfo") {
     withPermission("nexo.command.glyphinfo")
@@ -28,11 +28,10 @@ internal fun CommandTree.glyphInfoCommand() = literalArgument("glyphinfo") {
 
             audience.sendMessage(mm.deserialize("<dark_aqua>GlyphID: <aqua>$glyphId"))
             audience.sendMessage(mm.deserialize("<dark_aqua>Texture: <aqua>${glyph.texture.asString()}"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Font: <aqua>${glyph.font().asString()}"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Bitmap: <aqua>${glyph.isBitMap}"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Unicode: <white>${glyph.character()}")
+            audience.sendMessage(mm.deserialize("<dark_aqua>Font: <aqua>${glyph.font.asString()}"))
+            audience.sendMessage(mm.deserialize("<dark_aqua>Unicode: <white>${glyph.unicodes.joinToString("\n")}")
                 .hoverEvent(HoverEvent.showText(mm.deserialize("<gold>Click to copy to clipboard!")))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.character())))
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.unicodes.joinToString())))
         }
     }
 }

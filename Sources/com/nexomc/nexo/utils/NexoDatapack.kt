@@ -1,6 +1,7 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.Bukkit
@@ -25,11 +26,13 @@ open class NexoDatapack(key: String, description: String) {
         }.writeText(datapackMeta.toString())
     }
 
-    internal fun enableDatapack(enabled: Boolean) {
+    internal fun enableDatapack(enabled: Boolean, reload: Boolean = false) {
         SchedulerUtils.callSyncMethod {
             if (VersionUtil.below("1.21.1")) return@callSyncMethod Logs.logWarn("Could not enable $datapackName datapack, use /datapack-command")
-            //Bukkit.getDatapackManager().refreshPacks()
-            Bukkit.getDatapackManager().getPack(datapackName)?.takeUnless { it.isEnabled == enabled }?.isEnabled = enabled
+            Bukkit.getDatapackManager().getPack(datapackName)?.takeUnless { it.isEnabled == enabled }?.also {
+                it.isEnabled = enabled
+                if (reload) RecipesManager.reload()
+            }
         }
     }
 }

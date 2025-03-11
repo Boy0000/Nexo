@@ -2,12 +2,33 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
+import java.io.File
+import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
-import java.io.File
 
 fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
+}
+
+fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {
+    return getStringList(key).filterNotNull().takeIf { it.isNotEmpty() && it.none(String::isEmpty) }
+}
+
+fun ConfigurationSection.getStringOrNull(key: String): String? {
+    return (get(key) as? String)?.takeIf { it.isNotEmpty() }
+}
+
+fun ConfigurationSection.getKey(key: String): Key? {
+    return runCatching { getString(key)?.let(Key::key) }.getOrNull()
+}
+
+fun ConfigurationSection.getKey(key: String, default: String): Key? {
+    return runCatching { getString(key, default)?.let(Key::key) }.getOrNull()
+}
+
+fun ConfigurationSection.getKey(key: String, default: Key): Key {
+    return runCatching { getString(key)?.let(Key::key) }.getOrNull() ?: default
 }
 
 class NexoYaml : YamlConfiguration() {

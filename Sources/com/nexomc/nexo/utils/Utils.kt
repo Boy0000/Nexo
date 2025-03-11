@@ -26,13 +26,3 @@ internal fun String.toIntRangeOrNull(): IntRange? {
 fun IntRange.randomOrMin(): Int =
     if (start >= endInclusive) start
     else Random.nextInt(start, endInclusive)
-
-object Utils {
-
-    fun firstEmptyChar(map: Map<String, Char>, min: Int = 42000): Char {
-        var min = min
-        val newMap = map.values.map(Char::code).sorted().toList()
-        while (min in newMap) min++
-        return min.toChar()
-    }
-}

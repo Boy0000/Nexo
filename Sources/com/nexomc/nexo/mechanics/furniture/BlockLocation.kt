@@ -7,6 +7,7 @@ import org.bukkit.Utility
 import org.bukkit.World
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 import org.bukkit.util.NumberConversions
+import org.bukkit.util.Vector
 import org.joml.Math
 import org.joml.Vector3f
 import kotlin.math.cos
@@ -29,6 +30,7 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
     override fun toString() = "$x,$y,$z"
 
     fun toVector3f() = Vector3f(x.toFloat(), y.toFloat(), z.toFloat())
+    fun toVector() = Vector(x, y, z)
 
     fun distanceTo(other: BlockLocation): Double {
         val (x, y, z) = x.toDouble() to y.toDouble() to z.toDouble()

@@ -8,7 +8,6 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.converter.OraxenConverter
-import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.fonts.Shift
 import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
@@ -224,15 +223,8 @@ class PackGenerator {
     private fun addGlyphFiles() {
         val fontGlyphs = LinkedHashMap<Key, MutableList<FontProvider>>()
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            if (glyph.hasBitmap()) return@forEach
-            fontGlyphs.compute(glyph.font()) { _, providers ->
-                (providers ?: mutableListOf()).also { it += glyph.fontProvider() }
-            }
-        }
-
-        FontManager.glyphBitMaps.values.forEach { glyphBitMap ->
-            fontGlyphs.compute(glyphBitMap.font) { _, providers: MutableList<FontProvider>? ->
-                (providers ?: mutableListOf()).also { it += glyphBitMap.fontProvider() }
+            fontGlyphs.compute(glyph.font) { _, providers ->
+                (providers ?: mutableListOf()).also { it += glyph.fontProvider }
             }
         }
 

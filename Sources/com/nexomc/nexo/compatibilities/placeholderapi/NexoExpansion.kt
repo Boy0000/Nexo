@@ -1,6 +1,7 @@
 package com.nexomc.nexo.compatibilities.placeholderapi
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.fonts.RequiredGlyph
 import com.nexomc.nexo.fonts.Shift
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import net.kyori.adventure.key.Key
@@ -19,7 +20,7 @@ class NexoExpansion(private val plugin: NexoPlugin) : PlaceholderExpansion() {
         val glyph = plugin.fontManager().glyphFromName(params)
 
         return when {
-            !glyph.isRequired -> if (glyph.font() == DEFAULT_FONT) glyph.character() else glyph.glyphTag()
+            glyph !is RequiredGlyph -> if (glyph.font == DEFAULT_FONT) glyph.formattedUnicodes else glyph.glyphTag()
             params.startsWith("shift_") -> Shift.of(params.substringAfter("shift_").toIntOrNull() ?: return null)
             params == "pack_hash" -> plugin.packGenerator().builtPack()?.hash()
             else -> ""

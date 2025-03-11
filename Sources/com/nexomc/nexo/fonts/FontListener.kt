@@ -84,7 +84,7 @@ class FontListener(private val manager: FontManager) : Listener {
         meta.pages.forEach { page: String ->
             val i = meta.pages.indexOf(page) + 1
             if (i == 0) return@forEach
-            manager.unicodeGlyphMap.keys.forEach { character: Char? ->
+            manager.unicodeGlyphMap.keys.forEach { character ->
                 if (character.toString() !in page) return@forEach
 
                 val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
@@ -109,7 +109,7 @@ class FontListener(private val manager: FontManager) : Listener {
             if (i == 0) return@forEach
 
             manager.placeholderGlyphMap.entries.forEach { (glyphId, glyph) ->
-                val unicode = java.lang.String.valueOf(glyph.character())
+                val unicode = glyph.unicodes.joinToString()
                 if (glyph.hasPermission(player)) page =
                     page.replace(glyphId, ChatColor.WHITE.toString() + unicode + ChatColor.BLACK)
                         .replace(unicode, ChatColor.WHITE.toString() + unicode + ChatColor.BLACK)
@@ -144,9 +144,8 @@ class FontListener(private val manager: FontManager) : Listener {
             }
 
             manager.placeholderGlyphMap.filterValues { it.hasPermission(player) }.entries.forEach { (glyphId, glyph) ->
-                line = line
-                    .replace(glyphId, ChatColor.WHITE.toString() + glyph.character() + ChatColor.BLACK)
-                    .replace(glyph.character(), ChatColor.WHITE.toString() + glyph.character() + ChatColor.BLACK)
+                line = line.replace(glyphId, ChatColor.WHITE.toString() + glyph.formattedUnicodes + ChatColor.BLACK)
+                line = glyph.unicodes.fold(line) { line, unicode -> line.replace(unicode, ChatColor.WHITE.toString() + unicode + ChatColor.BLACK) }
             }
 
             setLine(index, parseLegacy(line))

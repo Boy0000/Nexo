@@ -26,7 +26,6 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import org.bukkit.util.BoundingBox
 
 object NexoFurniture {
     /**
@@ -44,8 +43,7 @@ object NexoFurniture {
      */
     @JvmStatic
     fun isFurniture(location: Location): Boolean {
-        val blockBox = BoundingBox.of(location.toCenterLocation(), 0.5, 0.5, 0.5)
-        return (furnitureMechanic(location) != null) || location.getWorld().getNearbyEntities(blockBox).any(::isFurniture)
+        return (furnitureMechanic(location) != null) || location.getWorld().getNearbyEntities(location.toCenterLocation(), 0.5, 0.5, 0.5) { it is ItemDisplay }.any(::isFurniture)
     }
 
     /**
@@ -110,15 +108,10 @@ object NexoFurniture {
     @JvmOverloads
     @JvmStatic
     fun remove(location: Location, player: Player? = null, drop: Drop? = null): Boolean {
-        if (!FurnitureFactory.isEnabled) return false
-        if (!location.isWorldLoaded) return false
-        checkNotNull(location.world)
+        if (!FurnitureFactory.isEnabled || !location.isLoaded) return false
 
-        val entity = location.world.getNearbyEntities(location, 0.5, 0.5, 0.5).firstOrNull(::isFurniture)
-        val mechanic = furnitureMechanic(location) ?: furnitureMechanic(entity) ?: return false
+        val mechanic = furnitureMechanic(location) ?: location.world.getNearbyEntities(location, 0.5, 0.5, 0.5).firstNotNullOfOrNull(::furnitureMechanic) ?: return false
         val itemStack = player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)
-        checkNotNull(entity)
-
         val baseEntity = FurnitureMechanic.baseEntity(location) ?: return false
 
         if (player != null) {
@@ -142,9 +135,7 @@ object NexoFurniture {
     @JvmOverloads
     @JvmStatic
     fun remove(baseEntity: Entity, player: Player? = null, drop: Drop? = null): Boolean {
-        if (!FurnitureFactory.isEnabled) return false
-        if (baseEntity !is ItemDisplay) return false
-        val mechanic = furnitureMechanic(baseEntity) ?: return false
+        val mechanic = (baseEntity as? ItemDisplay)?.let(::furnitureMechanic) ?: return false
 
         // Allows for changing the FurnitureType in config and still remove old entities
         if (player != null) {
@@ -161,8 +152,7 @@ object NexoFurniture {
 
     @JvmStatic
     fun furnitureMechanic(block: Block?): FurnitureMechanic? {
-        if (!FurnitureFactory.isEnabled || block == null) return null
-        return furnitureMechanic(block.location)
+        return furnitureMechanic(block?.location)
     }
 
     /**
@@ -175,15 +165,13 @@ object NexoFurniture {
     @JvmStatic
     fun furnitureMechanic(location: Location?): FurnitureMechanic? {
         if (!FurnitureFactory.isEnabled || location == null) return null
-        val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))
-        return baseEntity?.let(::furnitureMechanic) ?: let {
+        return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))?.let(::furnitureMechanic) ?: let {
             val block = location.block
             val centerLoc = toCenterBlockLocation(location)
             centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it is ItemDisplay }
                 .sortedBy { it.location.distanceSquared(centerLoc) }
-                .associateWith { furnitureMechanic(it) }
-                .entries.firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
-                ?.key?.let(::furnitureMechanic)
+                .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
+                ?.let(::furnitureMechanic)
         }
     }
 

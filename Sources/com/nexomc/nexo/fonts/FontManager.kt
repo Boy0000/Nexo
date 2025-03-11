@@ -3,16 +3,11 @@ package com.nexomc.nexo.fonts
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.mapNotNullFast
-import com.nexomc.nexo.utils.toFastMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import net.kyori.adventure.key.Key
+import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
-import team.unnamed.creative.font.BitMapFontProvider
-import team.unnamed.creative.font.FontProvider
-import java.util.*
 
 class FontManager(configsManager: ConfigsManager) {
     private val glyphMap: Object2ObjectOpenHashMap<String, Glyph> = Object2ObjectOpenHashMap()
@@ -21,17 +16,6 @@ class FontManager(configsManager: ConfigsManager) {
     private val fontListener: FontListener = FontListener(this)
 
     init {
-        configsManager.bitmaps.getConfigurationSection("bitmaps")?.let {
-            glyphBitMaps = it.getKeys(false).mapNotNullFast { key ->
-                val section = it.getConfigurationSection(key) ?: return@mapNotNullFast null
-                key to GlyphBitMap(
-                    Key.key(section.getString("font", "minecraft:default")!!),
-                    Key.key(section.getString("texture", "")!!.replace("^(?!.*\\.png$)", "") + ".png"),
-                    section.getInt("rows"), section.getInt("columns"),
-                    section.getInt("height", 8), section.getInt("ascent", 8)
-                )
-            }.toFastMap()
-        }
         loadGlyphs(configsManager.parseGlyphConfigs())
     }
 
@@ -47,9 +31,9 @@ class FontManager(configsManager: ConfigsManager) {
 
     private fun loadGlyphs(glyphs: Collection<Glyph>) {
         glyphs.forEach { glyph: Glyph ->
-            if (glyph.character().isBlank()) return@forEach
+            if (glyph.unicodes.none(String::isNotEmpty)) return@forEach
             glyphMap[glyph.id] = glyph
-            unicodeGlyphMap[glyph.character().first()] = glyph.id
+            for (unicodes in glyph.unicodes) for (char in unicodes) unicodeGlyphMap[char] = glyph.id
             for (placeholder in glyph.placeholders) placeholderGlyphMap[placeholder] = glyph
         }
     }
@@ -82,7 +66,7 @@ class FontManager(configsManager: ConfigsManager) {
         val completions = placeholderGlyphMap.values
             .filter(Glyph::tabcomplete)
             .map { glyph: Glyph ->
-                if (Settings.UNICODE_COMPLETIONS.toBool()) listOf(glyph.character())
+                if (Settings.UNICODE_COMPLETIONS.toBool()) glyph.unicodes
                 else glyph.placeholders.toList()
             }.flatten()
 
@@ -93,37 +77,5 @@ class FontManager(configsManager: ConfigsManager) {
 
     fun clearGlyphTabCompletions(player: Player) {
         currentGlyphCompletions.remove(player.uniqueId)
-    }
-
-    @JvmRecord
-    data class GlyphBitMap(
-        val font: Key,
-        val texture: Key,
-        val rows: Int,
-        val columns: Int,
-        val height: Int,
-        val ascent: Int
-    ) {
-        fun fontProvider(): BitMapFontProvider {
-            val bitmapGlyphs = NexoPlugin.instance().fontManager().glyphs().filter { it.hasBitmap() && it.bitmap() == this }
-            val charMap = ArrayList<String>(rows)
-
-            (1..rows).forEach { currentRow ->
-                val glyphsInRow: List<Glyph> = bitmapGlyphs.filter { g -> g.bitmapEntry?.row == currentRow }
-                val charRow = StringBuilder()
-                (1..columns)
-                    .asSequence()
-                    .map { glyphsInRow.firstOrNull { g -> g.bitmapEntry?.column == it } }
-                    .forEach { charRow.append(it?.character() ?: Glyph.WHITESPACE_GLYPH) }
-                charMap.add(currentRow - 1, charRow.toString())
-            }
-
-            return FontProvider.bitMap(texture, height, ascent, charMap)
-        }
-    }
-
-    companion object {
-        var glyphBitMaps: Object2ObjectOpenHashMap<String, GlyphBitMap> = Object2ObjectOpenHashMap<String, GlyphBitMap>()
-        fun glyphBitMap(id: String?) = glyphBitMaps[id]
     }
 }

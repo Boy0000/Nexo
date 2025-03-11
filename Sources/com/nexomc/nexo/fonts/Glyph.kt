@@ -1,37 +1,52 @@
 package com.nexomc.nexo.fonts
 
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.appendIfMissing
+import com.nexomc.nexo.utils.KeyUtils.appendSuffix
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.getStringOrNull
+import com.nexomc.nexo.utils.toIntRangeOrNull
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import java.util.regex.Pattern
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
-import net.kyori.adventure.text.event.HoverEvent
-import net.kyori.adventure.text.event.HoverEventSource
 import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.minimessage.tag.Tag
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
+import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
-import java.util.*
-import java.util.regex.Pattern
 
+object RequiredGlyph : Glyph("required", Font.MINECRAFT_DEFAULT, REQUIRED_GLYPH, 8, 8, REQUIRED_CHAR)
 
-open class Glyph {
-    var isFileChanged = false
-    val id: String
-    val font: Key
-    val isEmoji: Boolean
-    val tabcomplete: Boolean
-    private val character: Char?
-    var texture: Key
-    val ascent: Int
-    val height: Int
-    val permission: String
-    val placeholders: Array<String>
-    val bitmapEntry: BitMapEntry?
-    private val baseRegex: Pattern
+open class Glyph(
+    val id: String,
+    val font: Key,
+    var texture: Key,
+    val ascent: Int,
+    val height: Int,
+    val unicodes: List<String>,
+
+    val permission: String = "",
+    val placeholders: List<String> = listOf(),
+    val tabcomplete: Boolean = false,
+    val isEmoji: Boolean = false,
+) {
+
+    private val chars = unicodes.flatMap { it.toList() }.toCharArray()
+    val formattedUnicodes = unicodes.joinToString("\n") { it.toList().joinToString(Shift.of(-1)) }
+    private val unicodeComponent = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
+        listOfNotNull(Component.text(row.toList().joinToString(Shift.of(-1)), NamedTextColor.WHITE).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
+    }.toTypedArray())
+    private val colorableUnicodeComponent = Component.textOfChildren(*unicodes.flatMap {
+        listOf(Component.text(it.toList().joinToString(Shift.of(-1))).font(font), Component.newline())
+    }.toTypedArray())
+    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, appendSpace: Boolean = false) =
+        Component.text((chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()).toString().plus(if (appendSpace) Shift.MINUS_1 else ""), NamedTextColor.WHITE.takeUnless { colorable }).font(font)
+    private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =
+        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, indexRange.count() > 1) }.toTypedArray())
+
+    val baseRegex: Pattern
     private val escapedRegex: Pattern
     val replacementConfig: TextReplacementConfig
     val placeholderReplacementConfig: TextReplacementConfig?
@@ -39,36 +54,32 @@ open class Glyph {
     val escapeReplacementConfig: TextReplacementConfig
     val unescapeReplacementConfig: TextReplacementConfig
 
-    constructor(id: String, glyphSection: ConfigurationSection, newChars: Char) {
-        this.id = id
+    constructor(id: String, font: Key, texture: Key, ascent: Int, height: Int, unicode: String) : this(id, font, texture, ascent, height, listOf(unicode))
 
-        isEmoji = glyphSection.getBoolean("is_emoji", false)
+    constructor(glyphSection: ConfigurationSection) : this(
+        glyphSection.name,
+        glyphSection.getKey("font", Font.MINECRAFT_DEFAULT),
+        glyphSection.getKey("texture", REQUIRED_GLYPH).appendSuffix(".png"),
+        glyphSection.getInt("ascent", 8),
+        glyphSection.getInt("height", 8),
+        calculateGlyphUnicodes(glyphSection),
 
-        val chatSection = glyphSection.getConfigurationSection("chat")
-        placeholders = chatSection?.getStringList("placeholders")?.toTypedArray() ?: emptyArray()
-        permission = chatSection?.getString("permission") ?: ""
-        tabcomplete = chatSection?.getBoolean("tabcomplete", false) ?: false
+        glyphSection.getString("chat.permission") ?: "",
+        glyphSection.getStringList("chat.placeholders"),
+        glyphSection.getBoolean("chat.tabcomplete"),
+        glyphSection.getBoolean("is_emoji")
+    )
 
-        if ("char" !in glyphSection && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-            glyphSection.set("char", newChars)
-            isFileChanged = true
-        }
-
-        character = glyphSection.getString("char", "")?.firstOrNull()
-
-        bitmapEntry = glyphSection.getConfigurationSection("bitmap")?.let {
-            BitMapEntry(it.getString("id"), it.getInt("row"), it.getInt("column"))
-        }
-        val bitmap = bitmap()
-        ascent = bitmap?.ascent ?: glyphSection.getInt("ascent", 8)
-        height = bitmap?.height ?: glyphSection.getInt("height", 8)
-        texture = bitmap?.texture ?: Key.key(glyphSection.getString("texture", "required/exit_icon")!!.appendIfMissing(".png"))
-        font = bitmap?.font ?: Key.key(glyphSection.getString("font", "minecraft:default")!!)
-
-        val baseRegex = "((<(glyph|g):$id)(:(c|colorable))*>)"
+    init {
+        val baseRegex = "((<(glyph|g):$id)(:(c|colorable|\\d))*>)"
         this.baseRegex = Pattern.compile("(?<!\\\\)$baseRegex")
         escapedRegex = Pattern.compile("\\\\" + baseRegex)
-        replacementConfig = TextReplacementConfig.builder().match(this.baseRegex).replacement(glyphComponent()).build()
+        replacementConfig = TextReplacementConfig.builder().match(this.baseRegex).replacement { match, builder ->
+            val args = match.group(1).substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
+            val colorable = args.any { it == "colorable" || it == "c" }
+            val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
+            glyphComponent(colorable, bitmapIndex)
+        }.build()
         placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
             ?.replacement(glyphComponent())?.build()
@@ -86,72 +97,38 @@ open class Glyph {
         }.build()
     }
 
-    constructor(
-        id: String,
-        character: Char?,
-        ascent: Int,
-        height: Int,
-        texture: Key,
-        font: Key,
-        isEmoji: Boolean,
-        placeholders: List<String>,
-        permission: String?,
-        tabcomplete: Boolean,
-        bitmapEntry: BitMapEntry?
-    ) {
-        this.id = id
-        this.ascent = ascent
-        this.height = height
-        this.texture = texture
-        this.font = font
-        this.character = character
-        this.isEmoji = isEmoji
-        this.placeholders = placeholders.toTypedArray()
-        this.permission = permission ?: ""
-        this.tabcomplete = tabcomplete
-        this.bitmapEntry = bitmapEntry
+    companion object {
+        val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")
+        val REQUIRED_CHAR = Char(41999).toString()
 
-        val baseRegex = "((<(glyph|g):$id)(:(c|colorable))*>)"
-        this.baseRegex = Pattern.compile("(?<!\\\\)$baseRegex")
-        escapedRegex = Pattern.compile("\\\\" + baseRegex)
-        replacementConfig = TextReplacementConfig.builder().match(baseRegex).replacement(glyphComponent()).build()
-        placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
-            ?.replacement(glyphComponent())?.build()
-        escapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
-            ?.replacement { match, b ->
-                b.content("\\\\${match.group(1)}")
-            }?.build()
+        val assignedGlyphUnicodes: MutableMap<String, List<String>> = Object2ObjectOpenHashMap<String, List<String>>()
+        fun definedUnicodes(glyphSection: ConfigurationSection): List<String>? {
+            return (glyphSection.getStringOrNull("char")?.let(::listOf) ?: glyphSection.getStringListOrNull("char"))
+        }
+        fun calculateGlyphUnicodes(glyphSection: ConfigurationSection): List<String> {
+            return assignedGlyphUnicodes.computeIfAbsent(glyphSection.name) {
+                definedUnicodes(glyphSection) ?: let {
+                    var min = 42000
+                    val usedCharIds = assignedGlyphUnicodes.values.flatten().flatMap { it.map(Char::code) }.sorted().toMutableSet()
+                    val (rows, columns) = glyphSection.getInt("rows", 1) to glyphSection.getInt("columns", 1)
 
-        escapeReplacementConfig = TextReplacementConfig.builder().match(baseRegex).replacement { match, b ->
-            b.content("\\\\${match.group(1)}")
-        }.build()
-        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex).replacement { match, b ->
-            b.content(match.group(1).removePrefix("\\"))
-        }.build()
+                    (0 until rows).map { row ->
+                        (0 until columns).map { column ->
+                            while (min in usedCharIds) min++
+                            usedCharIds.add(min)
+                            min.toChar()
+                        }.joinToString("")
+                    }.also { unicodes ->
+                        if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) return@also
+                        if (unicodes.size == 1) glyphSection.set("char", unicodes.first())
+                        else glyphSection.set("char", unicodes)
+                        glyphSection.set("rows", null)
+                        glyphSection.set("columns", null)
+                    }
+                }
+            }
+        }
     }
-
-    @JvmRecord
-    data class BitMapEntry(val id: String?, val row: Int, val column: Int)
-
-    val bitmapId get() = bitmapEntry?.id
-
-    fun hasBitmap() = bitmapId != null
-
-    val isBitMap: Boolean
-        get() = FontManager.glyphBitMap(bitmapId) != null
-
-    fun bitmap() = FontManager.glyphBitMap(bitmapId)
-
-    fun character() = character?.toString() ?: ""
-
-    fun fontProvider() = FontProvider.bitMap()
-        .file(texture)
-        .height(height)
-        .ascent(ascent.coerceAtMost(height))
-        .characters(listOf(character.toString()))
-        .build()
 
     fun hasPermission(player: Player?) = player == null || permission.isEmpty() || player.hasPermission(permission)
 
@@ -160,41 +137,13 @@ open class Glyph {
      */
     fun glyphTag() = "<glyph:$id>"
 
-    fun glyphComponent() = Component.textOfChildren(Component.text(character!!, NamedTextColor.WHITE).font(font))
-
-    fun glyphComponent(colorable: Boolean) = Component.textOfChildren(Component.text(character!!).font(font).hoverEvent(glyphHoverText()))
-
-    fun glyphHoverText(): HoverEventSource<*>? {
-        val hoverText = Settings.GLYPH_HOVER_TEXT.toString()
-        val hoverResolver = TagResolver.builder().tag("glyph_placeholder", Tag.selfClosingInserting(
-            Component.text(Arrays.stream(placeholders).findFirst().orElse(""))
-        )).build()
-
-        val hoverComponent = AdventureUtils.MINI_MESSAGE.deserialize(hoverText, hoverResolver)
-        return hoverComponent.takeUnless { hoverText.isEmpty() || it === Component.empty() }?.let { HoverEvent.showText(it) }
+    @JvmOverloads
+    fun glyphComponent(colorable: Boolean = false, bitmapIndexRange: IntRange = IntRange.EMPTY): Component {
+        return when {
+            bitmapIndexRange == IntRange.EMPTY -> if (colorable) colorableUnicodeComponent else unicodeComponent
+            else -> bitmapComponent(bitmapIndexRange, colorable)
+        }
     }
 
-    fun font() = font
-
-    val isRequired: Boolean
-        get() = this.id == "required"
-
-    class RequiredGlyph(character: Char) : Glyph(
-        "required",
-        character,
-        8,
-        8,
-        REQUIRED_GLYPH,
-        Key.key("minecraft:default"),
-        false,
-        mutableListOf(),
-        "nexo.emoji.required",
-        false,
-        null
-    )
-
-    companion object {
-        const val WHITESPACE_GLYPH = '\ue000'
-        val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")
-    }
+    val fontProvider by lazy { FontProvider.bitMap().file(texture).height(height).ascent(ascent.coerceAtMost(height)).characters(unicodes).build() }
 }

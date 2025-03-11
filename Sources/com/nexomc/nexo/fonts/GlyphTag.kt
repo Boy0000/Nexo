@@ -1,9 +1,8 @@
 package com.nexomc.nexo.fonts
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
-import net.kyori.adventure.text.format.Style
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
@@ -21,11 +20,13 @@ object GlyphTag {
     fun glyphTag(player: Player?, args: ArgumentQueue): Tag {
         val glyphId = args.popOr("A glyph value is required").value()
         val glyph = NexoPlugin.instance().fontManager().glyphFromName(glyphId)
-        val colorable = args.hasNext() && (args.peek()!!.value() == "colorable" || args.peek()!!.value() == "c")
-        var glyphComponent = Component.text(glyph.character()).style(Style.empty()).font(glyph.font())
+        val arguments = mutableListOf<String>()
+        while (args.hasNext()) arguments.add(args.pop().value())
 
-        glyphComponent = when {
-            glyph.hasPermission(player) -> glyphComponent.color(NamedTextColor.WHITE.takeUnless { colorable })
+        val colorable = arguments.any { it == "colorable" || it == "c" }
+        val bitmapIndexRange = arguments.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { IntRange(it, it) } } ?: IntRange.EMPTY
+        val glyphComponent = when {
+            glyph.hasPermission(player) -> glyph.glyphComponent(colorable, bitmapIndexRange)
             else -> Component.text(glyph.glyphTag())
         }
         return Tag.selfClosingInserting(glyphComponent)

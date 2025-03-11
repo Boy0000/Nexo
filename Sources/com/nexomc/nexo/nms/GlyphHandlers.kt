@@ -2,7 +2,10 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.ShiftTag
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.associateFast
+import com.nexomc.nexo.utils.filterFast
+import java.util.Locale
+import java.util.regex.Pattern
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -10,15 +13,13 @@ import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.entity.Player
 import team.unnamed.creative.font.Font
-import java.util.Locale
-import java.util.regex.Pattern
 
 object GlyphHandlers {
 
     private val randomKey = Key.key("random")
     private val randomComponent = NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent()
     private val defaultEmoteReplacementConfigs = NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }
-        .associateFast { it to TextReplacementConfig.builder().match(it.character()).replacement(Component.textOfChildren(randomComponent)).build() }
+        .associateFast { it to TextReplacementConfig.builder().match(it.formattedUnicodes).replacement(Component.textOfChildren(randomComponent)).build() }
 
     private val colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>")
 
@@ -83,7 +84,7 @@ object GlyphHandlers {
         var component = GlobalTranslator.render(this, locale ?: Locale.US)
         val serialized = component.asFlatTextContent()
 
-        NexoPlugin.instance().fontManager().glyphs().filterFast { it.glyphTag() in serialized }.forEach { glyph ->
+        NexoPlugin.instance().fontManager().glyphs().filterFast { serialized.contains(it.baseRegex.toRegex()) }.forEach { glyph ->
             component = component.replaceText(glyph.replacementConfig)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)

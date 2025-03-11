@@ -1,17 +1,14 @@
 package com.nexomc.nexo.utils.customarmor
 
-import com.google.gson.JsonObject
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.DefaultResourcePackExtractor
-import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
-import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
@@ -24,27 +21,26 @@ import team.unnamed.creative.atlas.AtlasSource
 import team.unnamed.creative.atlas.PalettedPermutationsAtlasSource
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.texture.Texture
-import java.nio.charset.StandardCharsets
 import kotlin.collections.set
 import kotlin.io.resolve
 
 @Suppress("DEPRECATION")
 class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos Custom Armor trims") {
 
-    private val palleteKey: Key = Key.key("trims/color_palettes/trim_palette")
-    private val permutations = linkedMapOf<String, Key>()
-
-    init {
-        permutations["quartz"] = Key.key("trims/color_palettes/quartz")
-        permutations["iron"] = Key.key("trims/color_palettes/iron")
-        permutations["gold"] = Key.key("trims/color_palettes/gold")
-        permutations["diamond"] = Key.key("trims/color_palettes/diamond")
-        permutations["netherite"] = Key.key("trims/color_palettes/netherite")
-        permutations["redstone"] = Key.key("trims/color_palettes/redstone")
-        permutations["copper"] = Key.key("trims/color_palettes/copper")
-        permutations["emerald"] = Key.key("trims/color_palettes/emerald")
-        permutations["lapis"] = Key.key("trims/color_palettes/lapis")
-        permutations["amethyst"] = Key.key("trims/color_palettes/amethyst")
+    companion object {
+        private val paletteKey: Key = Key.key("trims/color_palettes/trim_palette")
+        private val permutations = buildMap {
+            put("quartz", Key.key("trims/color_palettes/quartz"))
+            put("iron", Key.key("trims/color_palettes/iron"))
+            put("gold", Key.key("trims/color_palettes/gold"))
+            put("diamond", Key.key("trims/color_palettes/diamond"))
+            put("netherite", Key.key("trims/color_palettes/netherite"))
+            put("redstone", Key.key("trims/color_palettes/redstone"))
+            put("copper", Key.key("trims/color_palettes/copper"))
+            put("emerald", Key.key("trims/color_palettes/emerald"))
+            put("lapis", Key.key("trims/color_palettes/lapis"))
+            put("amethyst", Key.key("trims/color_palettes/amethyst"))
+        }
     }
 
     fun generateTrimAssets(resourcePack: ResourcePack) {
@@ -76,8 +72,7 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
             else -> parseNexoArmorItems()
         }
 
-        enableDatapack(true)
-        SchedulerUtils.syncDelayedTask { RecipesManager.reload() }
+        enableDatapack(true, reload = true)
     }
 
     private fun writeTrimAtlas(resourcePack: ResourcePack, armorPrefixes: ObjectLinkedOpenHashSet<String>) {
@@ -110,26 +105,24 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
 
             resourcePack.atlas(trimsAtlas.toBuilder().sources(sources).build())
         } else {
-            val textures = mutableListOf<Key>()
-            armorPrefixes.forEach { armorPrefix ->
-                textures += Key.key("nexo:trims/entity/humanoid/$armorPrefix")
-                textures += Key.key("nexo:trims/models/armor/$armorPrefix")
+            val textures = buildList {
+                armorPrefixes.forEach { armorPrefix ->
+                    add(Key.key("nexo:trims/entity/humanoid/$armorPrefix"))
+                    add(Key.key("nexo:trims/models/armor/$armorPrefix"))
 
-                textures += Key.key("nexo:trims/entity/humanoid_leggings/$armorPrefix")
-                textures += Key.key("nexo:trims/models/armor/${armorPrefix}_leggings")
+                    add(Key.key("nexo:trims/entity/humanoid_leggings/$armorPrefix"))
+                    add(Key.key("nexo:trims/models/armor/${armorPrefix}_leggings"))
+                }
+
+                add(Key.key("minecraft:trims/entity/humanoid/chainmail"))
+                add(Key.key("minecraft:trims/models/armor/chainmail"))
+
+                add(Key.key("minecraft:trims/entity/humanoid_leggings/chainmail"))
+                add(Key.key("minecraft:trims/models/armor/chainmail_leggings"))
             }
 
-            textures += Key.key("minecraft:trims/entity/humanoid/chainmail")
-            textures += Key.key("minecraft:trims/models/armor/chainmail")
-
-            textures += Key.key("minecraft:trims/entity/humanoid_leggings/chainmail")
-            textures += Key.key("minecraft:trims/models/armor/chainmail_leggings")
-
-            resourcePack.atlas(
-                Atlas.atlas().key(Key.key("armor_trims")).addSource(
-                    AtlasSource.palettedPermutations(textures.toList(), palleteKey, permutations)
-                ).build()
-            )
+            val permutations = AtlasSource.palettedPermutations(textures, paletteKey, permutations)
+            resourcePack.atlas(Atlas.atlas().key(Key.key("armor_trims")).addSource(permutations).build())
         }
     }
 

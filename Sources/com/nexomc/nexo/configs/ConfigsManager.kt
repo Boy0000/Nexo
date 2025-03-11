@@ -6,7 +6,6 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.converter.NexoConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.Glyph
-import com.nexomc.nexo.fonts.Glyph.RequiredGlyph
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
@@ -16,9 +15,9 @@ import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
-import com.nexomc.nexo.utils.Utils.firstEmptyChar
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
@@ -26,7 +25,6 @@ import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.toFastList
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import java.io.File
 import java.io.InputStreamReader
 import net.kyori.adventure.key.Key
@@ -40,18 +38,10 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null
     var mechanics: YamlConfiguration = defaultMechanics
         private set
-    var bitmaps: YamlConfiguration = defaultBitmaps
-        private set
     var sounds: YamlConfiguration = defaultSounds
         private set
     var language: YamlConfiguration = defaultLanguage
         private set
-
-    var itemConfigs: Map<File, YamlConfiguration> = Object2ObjectLinkedOpenHashMap()
-
-    init {
-
-    }
 
     fun settings(): YamlConfiguration {
         if (settings == null) settings = Settings.validateSettings()
@@ -64,7 +54,6 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val resourceManager = NexoPlugin.instance().resourceManager()
         settings = Settings.validateSettings()
         mechanics = validate(resourceManager, "mechanics.yml", defaultMechanics)
-        bitmaps = validate(resourceManager, "bitmaps.yml", defaultBitmaps)
         sounds = validate(resourceManager, "sounds.yml", defaultSounds)
         plugin.dataFolder.resolve("languages").mkdir()
         language = validate(resourceManager, "languages/${Settings.PLUGIN_LANGUAGE}.yml", defaultLanguage)
@@ -114,14 +103,13 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     fun parseGlyphConfigs(): Collection<Glyph> {
         val output = mutableListOf<Glyph>()
-        val charPerGlyph = Object2ObjectOpenHashMap<String, Char>()
+        Glyph.assignedGlyphUnicodes.clear()
 
         glyphFiles().forEach { file: File ->
             if (file.name.startsWith("shift")) return@forEach
-            val configuration = loadConfiguration(file)
-            configuration.getKeys(false).forEach keys@{ key: String ->
-                val glyphSection = configuration.getConfigurationSection(key) ?: return@keys
-                charPerGlyph[key] = glyphSection.getString("char", "")?.firstOrNull() ?: return@keys
+
+            loadConfiguration(file).childSections().forEach { glyphId, glyphSection ->
+                Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@forEach
             }
         }
 
@@ -130,18 +118,12 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             val configuration = loadConfiguration(file)
             var fileChanged = false
 
-            configuration.getKeys(false).forEach { key: String ->
+            configuration.childSections().forEach { glyphId, glyphSection ->
                 runCatching {
-                    var character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE)
-                    if (character == Character.MIN_VALUE) {
-                        character = firstEmptyChar(charPerGlyph)
-                        charPerGlyph[key] = character
-                    }
-                    val glyph = Glyph(key, configuration.getConfigurationSection(key)!!, character)
-                    if (glyph.isFileChanged) fileChanged = true
-                    output += glyph
+                    if (Glyph.definedUnicodes(glyphSection) == null) fileChanged = true
+                    output += Glyph(glyphSection)
                 }.onFailure {
-                    Logs.logWarn("Failed to load glyph $key")
+                    Logs.logWarn("Failed to load glyph $glyphId")
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
                 }
             }
@@ -153,7 +135,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             }
         }
 
-        output += RequiredGlyph(charPerGlyph.getOrDefault("required", firstEmptyChar(charPerGlyph)))
+        runCatching {
+            output += com.nexomc.nexo.fonts.RequiredGlyph
+        }.printOnFailure()
 
         return output
     }
@@ -269,7 +253,6 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")
-        private val defaultBitmaps: YamlConfiguration = extractDefault("bitmaps.yml")
         private val defaultSounds: YamlConfiguration = extractDefault("sounds.yml")
         private val defaultLanguage: YamlConfiguration = extractDefault("languages/english.yml")
         private val itemsFolder: File = NexoPlugin.instance().dataFolder.resolve("items")

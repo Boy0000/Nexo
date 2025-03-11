@@ -86,10 +86,16 @@ interface IFurniturePacketManager {
             interactionHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
                 ?: shulkerHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
 
-        fun baseEntityFromHitbox(barrierLocation: BlockLocation): ItemDisplay? =
-            barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
-                uuid.takeIf { hitboxes.any { it == barrierLocation } }?.let(Bukkit::getEntity) as? ItemDisplay
+        fun baseEntityFromHitbox(location: BlockLocation): ItemDisplay? {
+            val barrierVec = location.toVector()
+            return barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
+                uuid.takeIf { hitboxes.any { it == location } }?.let(Bukkit::getEntity) as? ItemDisplay
+            } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.baseEntity()
+            } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.baseEntity()
             }
+        }
 
         fun standingOnFurniture(player: Player): Boolean {
             val playerLoc = BlockLocation(player.location)
@@ -100,8 +106,9 @@ interface IFurniturePacketManager {
 
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
             val blockBox = BoundingBox.of(block)
-            if (barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }) return true
-            return interactionHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
+            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }
+                    || interactionHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
+                    || shulkerHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
         }
     }
 
