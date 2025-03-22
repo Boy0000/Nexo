@@ -4,7 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.configs.Settings
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import java.util.UUID
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
@@ -13,6 +13,7 @@ class FontManager(configsManager: ConfigsManager) {
     private val glyphMap: Object2ObjectOpenHashMap<String, Glyph> = Object2ObjectOpenHashMap()
     val placeholderGlyphMap: Object2ObjectOpenHashMap<String, Glyph> = Object2ObjectOpenHashMap()
     val unicodeGlyphMap: Object2ObjectOpenHashMap<Char, String> = Object2ObjectOpenHashMap()
+    val tabcompletions: ObjectOpenHashSet<String> = ObjectOpenHashSet()
     private val fontListener: FontListener = FontListener(this)
 
     init {
@@ -30,11 +31,13 @@ class FontManager(configsManager: ConfigsManager) {
     }
 
     private fun loadGlyphs(glyphs: Collection<Glyph>) {
+        val unicodeTabcompletion = Settings.UNICODE_COMPLETIONS.toBool()
         glyphs.forEach { glyph: Glyph ->
             if (glyph.unicodes.none(String::isNotEmpty)) return@forEach
             glyphMap[glyph.id] = glyph
             for (unicodes in glyph.unicodes) for (char in unicodes) unicodeGlyphMap[char] = glyph.id
             for (placeholder in glyph.placeholders) placeholderGlyphMap[placeholder] = glyph
+            if (glyph.tabcomplete) if (unicodeTabcompletion) tabcompletions.add(glyph.formattedUnicodes) else tabcompletions.addAll(glyph.placeholders)
         }
     }
 
@@ -60,22 +63,8 @@ class FontManager(configsManager: ConfigsManager) {
 
     fun glyphFromPlaceholder(word: String?) = placeholderGlyphMap[word]
 
-    private val currentGlyphCompletions = mutableMapOf<UUID, List<String>>()
-
     fun sendGlyphTabCompletion(player: Player) {
-        val completions = placeholderGlyphMap.values
-            .filter(Glyph::tabcomplete)
-            .map { glyph: Glyph ->
-                if (Settings.UNICODE_COMPLETIONS.toBool()) glyph.unicodes
-                else glyph.placeholders.toList()
-            }.flatten()
-
-        player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.uniqueId, ArrayList()))
-        player.addCustomChatCompletions(completions)
-        currentGlyphCompletions[player.uniqueId] = completions
-    }
-
-    fun clearGlyphTabCompletions(player: Player) {
-        currentGlyphCompletions.remove(player.uniqueId)
+        player.removeCustomChatCompletions(tabcompletions)
+        player.addCustomChatCompletions(tabcompletions)
     }
 }

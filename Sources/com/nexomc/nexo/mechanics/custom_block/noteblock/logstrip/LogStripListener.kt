@@ -11,7 +11,6 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.Damageable
 
 class LogStripListener : Listener {
     @EventHandler
@@ -21,27 +20,30 @@ class LogStripListener : Listener {
 
         if (action != Action.RIGHT_CLICK_BLOCK || block.type != Material.NOTE_BLOCK || !canStripLog(item)) return
 
-        val log = NexoBlocks.noteBlockMechanic(block)?.log()?.takeIf { it.canBeStripped() } ?: return
+        val mechanic = NexoBlocks.noteBlockMechanic(block) ?: return
+        val log = mechanic.log()?.takeIf { it.canBeStripped() } ?: return
+        if (log.hasStrippedDrop()) player.world.dropItemNaturally(block.getRelative(player.facing.getOppositeFace()).location.toCenterLocation(), log.logDrop)
+        if (log.decreaseAxeDurability && player.gameMode != GameMode.CREATIVE) item.damage(1, player)
 
-        if (log.hasStrippedDrop())
-            player.world.dropItemNaturally(block.getRelative(player.facing.getOppositeFace()).location.toCenterLocation(), log.logDrop)
-
-        (item.itemMeta as? Damageable).takeIf { log.shouldDecreaseAxeDurability() && player.gameMode != GameMode.CREATIVE }?.let { axeMeta ->
-            val maxDurability = item.type.maxDurability.toInt()
-
+        // If the block being stripped is a directional non-parent
+        // and the log-mechanic returned above links to a stripped directional parent
+        // get the subblock the current block is, and the equivalent child of stripped-directional
+        val strippedBlock = log.stripMechanic?.let {
             when {
-                axeMeta.damage + 1 <= maxDurability -> {
-                    axeMeta.damage += 1
-                    item.itemMeta = axeMeta
+                mechanic.directional?.isParentBlock() == false && it.directional?.isParentBlock() == true -> {
+                    val parent = mechanic.directional.parentMechanic!!.directional!!
+                    when (mechanic.itemID) {
+                        parent.xBlock -> NexoBlocks.noteBlockMechanic(it.directional.xBlock) ?: it
+                        parent.yBlock -> NexoBlocks.noteBlockMechanic(it.directional.yBlock) ?: it
+                        parent.zBlock -> NexoBlocks.noteBlockMechanic(it.directional.zBlock) ?: it
+                        else -> it
+                    }
                 }
-                else -> {
-                    player.playSound(player.location, Sound.ENTITY_ITEM_BREAK, 1f, 1f)
-                    item.type = Material.AIR
-                }
+                else -> it
             }
-        }
+        }?.blockData ?: return
 
-        block.blockData = log.stripBlock ?: return
+        block.blockData = strippedBlock
         player.playSound(block.location, Sound.ITEM_AXE_STRIP, 1.0f, 0.8f)
     }
 

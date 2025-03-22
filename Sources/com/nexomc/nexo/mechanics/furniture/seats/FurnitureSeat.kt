@@ -11,6 +11,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Interaction
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -74,7 +75,7 @@ data class FurnitureSeat(val offset: Vector) {
         fun sitOnSeat(baseEntity: ItemDisplay, player: Player, interactionPoint: Location?) {
             val centeredLoc = (interactionPoint ?: baseEntity.location).toCenterLocation()
             baseEntity.persistentDataContainer.get(SEAT_KEY, DataType.asList(DataType.UUID))
-                ?.mapNotNull { Bukkit.getEntity(it).takeIf { i -> i is Interaction && i.passengers.isEmpty() } }
+                ?.mapNotNull { Bukkit.getEntity(it)?.takeIf { s -> s.type == EntityType.INTERACTION && s.passengers.isEmpty() } }
                 ?.minByOrNull { centeredLoc.distanceSquared(it.location) }
                 ?.addPassenger(player)
         }

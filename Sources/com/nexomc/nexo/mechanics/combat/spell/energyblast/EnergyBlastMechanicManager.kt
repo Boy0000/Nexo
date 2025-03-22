@@ -3,19 +3,18 @@ package com.nexomc.nexo.mechanics.combat.spell.energyblast
 import com.google.common.base.Function
 import com.google.common.base.Functions
 import com.google.common.collect.ImmutableMap
+import com.mineinabyss.idofront.events.call
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.BlockHelpers
-import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisX
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisY
 import com.nexomc.nexo.utils.wrappers.ParticleWrapper
 import io.th0rgal.protectionlib.ProtectionLib
+import java.util.EnumMap
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.damage.DamageSource
 import org.bukkit.damage.DamageType
-import org.bukkit.entity.Entity
-import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
@@ -27,7 +26,6 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Vector
-import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -98,37 +96,30 @@ class EnergyBlastMechanicManager(private val factory: EnergyBlastMechanicFactory
                 radius -= radiusShrinkage
                 if (radius < 0) {
                     spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3)
-                    for (entity: Entity in playerLoc.getWorld()
-                        .getNearbyEntities(playerLoc, 0.5, 0.5, 0.5)) if (entity is LivingEntity && entity !== player) {
-                        val event = EntityDamageByEntityEvent(
+                    playerLoc.getNearbyLivingEntities(0.5) { it.uniqueId != player.uniqueId && !it.isDead }.forEach { entity ->
+                        EntityDamageByEntityEvent(
                             player, entity, EntityDamageEvent.DamageCause.MAGIC,
                             DamageSource.builder(DamageType.MAGIC).withCausingEntity(player).withDirectEntity(player).build(),
                             EnumMap(ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, mechanic.damage * 3.0)),
                             EnumMap<EntityDamageEvent.DamageModifier, Function<in Double, Double>>(
                                 ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
                             ), false
-                        )
-                        if (entity.isDead || event.call()) continue
-                        entity.damage(mechanic.damage * 3.0, player)
+                        ).call { entity.damage(mechanic.damage * 3.0, player) }
                     }
                     this.cancel()
                     return
                 }
 
                 playerLoc.add(dir)
-                playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius)
-                    .filterIsInstance<LivingEntity>().forEach { entity ->
-                    if (entity === player) return@forEach
-                        val event = EntityDamageByEntityEvent(
-                            player, entity, EntityDamageEvent.DamageCause.MAGIC,
-                            DamageSource.builder(DamageType.MAGIC).withCausingEntity(player).withDirectEntity(player).build(),
-                            EnumMap(ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, mechanic.damage)),
-                            EnumMap<EntityDamageEvent.DamageModifier, Function<in Double, Double>>(
-                                ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
-                            ), false
-                        )
-                    if (entity.isDead || !event.call()) return@forEach
-                    entity.damage(mechanic.damage, player)
+                playerLoc.getNearbyLivingEntities(radius) { it.uniqueId != player.uniqueId && !it.isDead }.forEach { entity ->
+                    EntityDamageByEntityEvent(
+                        player, entity, EntityDamageEvent.DamageCause.MAGIC,
+                        DamageSource.builder(DamageType.MAGIC).withCausingEntity(player).withDirectEntity(player).build(),
+                        EnumMap(ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, mechanic.damage)),
+                        EnumMap<EntityDamageEvent.DamageModifier, Function<in Double, Double>>(
+                            ImmutableMap.of(EntityDamageEvent.DamageModifier.BASE, Functions.constant(-0.0))
+                        ), false
+                    ).call { entity.damage(mechanic.damage, player) }
                 }
             }
         }.runTaskTimer(NexoPlugin.instance(), 0, 1)

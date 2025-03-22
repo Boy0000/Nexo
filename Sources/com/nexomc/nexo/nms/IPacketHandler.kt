@@ -9,6 +9,6 @@ interface IPacketHandler {
     fun uninject(player: Player) {}
 
     companion object {
-        const val CHANNEL_NAME = "nexo_channel_handler"
+        const val PACKET_HANDLER = "nexo_packet_handler"
     }
 }

@@ -17,7 +17,9 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.sound.SoundRegistry
 
-class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
+class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(section) {
+    val toolTypes = section.getStringList("tool_types")
+    val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
 
     val NOTEBLOCK = DefaultBlockType("NOTEBLOCK", NoteBlockMechanicFactory.instance())
     val STRINGBLOCK = DefaultBlockType("STRINGBLOCK", StringBlockMechanicFactory.instance())
@@ -29,8 +31,6 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
 
     companion object {
         private var instance: CustomBlockFactory? = null
-
-        val isEnabled = instance != null
 
         fun instance() = instance
 
@@ -48,6 +48,8 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
         CustomBlockRegistry.register(STRINGBLOCK)
         CustomBlockRegistry.register(CHORUSBLOCK)
         registerListeners(CustomBlockListener(), CustomBlockMiningListener())
+
+        if (customSounds.enabled) registerListeners(CustomBlockSoundListener(customSounds))
     }
 
     fun blockStates(resourcePack: ResourcePack) {
@@ -72,35 +74,32 @@ class CustomBlockFactory(mechanicId: String) : MechanicFactory(mechanicId) {
     }
 
     fun soundRegistries(resourcePack: ResourcePack) {
-        val soundRegistries = mutableListOf<SoundRegistry>()
-
         for (type: CustomBlockType in CustomBlockRegistry.types) {
             if (type.factory() == null) continue
 
             //TODO Implement this by having factories inherit and override CustomBlockFactory
             //blockStates.add(type.factory().generateBlockStateFile());
         }
-        if (NoteBlockMechanicFactory.isEnabled) soundRegistries += listOf(
-            BlockSounds.NEXO_WOOD_SOUND_REGISTRY,
-            BlockSounds.VANILLA_WOOD_SOUND_REGISTRY
-        )
-        if (StringBlockMechanicFactory.isEnabled) soundRegistries += listOf(
-            BlockSounds.NEXO_STONE_SOUND_REGISTRY,
-            BlockSounds.VANILLA_STONE_SOUND_REGISTRY
-        )
 
-        soundRegistries.forEach { soundRegistry: SoundRegistry ->
-            (resourcePack.soundRegistry(soundRegistry.namespace())?.let {
-                SoundRegistry.soundRegistry().sounds(soundRegistry.sounds().plus(it.sounds())).namespace(soundRegistry.namespace()).build()
-            } ?: soundRegistry).addTo(resourcePack)
+        if (customSounds.enabled) {
+            arrayOf(
+                BlockSounds.NEXO_WOOD_SOUND_REGISTRY,
+                BlockSounds.VANILLA_WOOD_SOUND_REGISTRY,
+                BlockSounds.NEXO_STONE_SOUND_REGISTRY,
+                BlockSounds.VANILLA_STONE_SOUND_REGISTRY
+            ).forEach { soundRegistry: SoundRegistry ->
+                (resourcePack.soundRegistry(soundRegistry.namespace())?.let {
+                    SoundRegistry.soundRegistry().sounds(soundRegistry.sounds().plus(it.sounds())).namespace(soundRegistry.namespace()).build()
+                } ?: soundRegistry).addTo(resourcePack)
+            }
         }
     }
 
     fun toolTypes(type: CustomBlockType): List<String> {
         return when {
-            type === STRINGBLOCK -> StringBlockMechanicFactory.instance()?.toolTypes ?: listOf()
-            type === NOTEBLOCK -> NoteBlockMechanicFactory.instance()?.toolTypes ?: listOf()
-            type === CHORUSBLOCK -> ChorusBlockFactory.instance()?.toolTypes ?: listOf()
+            type === STRINGBLOCK -> StringBlockMechanicFactory.instance()?.toolTypes ?: toolTypes
+            type === NOTEBLOCK -> NoteBlockMechanicFactory.instance()?.toolTypes ?: toolTypes
+            type === CHORUSBLOCK -> ChorusBlockFactory.instance()?.toolTypes ?: toolTypes
             else -> listOf()
         }
     }

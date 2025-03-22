@@ -14,25 +14,17 @@ import com.nexomc.nexo.recipes.loaders.SmokingLoader
 import com.nexomc.nexo.recipes.loaders.StonecuttingLoader
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
+import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapNotNullFast
-import org.bukkit.Bukkit
-import org.bukkit.Keyed
-import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
+import org.bukkit.Bukkit
+import org.bukkit.configuration.ConfigurationSection
 
 object RecipesManager {
     private val recipeFileNames = arrayOf("furnace", "shaped", "shapeless", "blasting", "campfire", "smoking", "stonecutting", "brewing")
-    fun load(plugin: JavaPlugin) {
-        if (Settings.RESET_RECIPES.toBool()) {
-            Bukkit.recipeIterator().forEachRemaining recipes@{
-                Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes)
-            }
-            Bukkit.getServer().potionBrewer.resetPotionMixes()
-        }
-
-        Bukkit.getPluginManager().registerEvents(RecipeBuilderEvents(), plugin)
+    fun load() {
+        RecipeEventManager.instance().resetRecipes()
+        Bukkit.getPluginManager().registerEvents(RecipeBuilderEvents(), NexoPlugin.instance())
         val recipesFolder = File(NexoPlugin.instance().dataFolder, "recipes").apply(File::mkdirs)
         if (!recipesFolder.exists()) {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
@@ -43,16 +35,13 @@ object RecipesManager {
                 Logs.logError("Error while creating recipes files: ${it.message}")
             }
         }
-        registerAllConfigRecipesFromFolder(recipesFolder)
+
+        recipesFolder.listFiles()?.forEach(::registerConfigRecipes)
         RecipeEventManager.instance().registerEvents()
     }
 
     @JvmStatic
     fun reload() {
-        if (Settings.RESET_RECIPES.toBool()) Bukkit.recipeIterator().forEachRemaining recipes@{
-            Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes)
-        }
-
         RecipeEventManager.instance().resetRecipes()
         val recipesFolder = NexoPlugin.instance().dataFolder.resolve("recipes")
         if (!recipesFolder.exists()) {
@@ -60,18 +49,14 @@ object RecipesManager {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 NexoPlugin.instance().resourceManager().extractConfigsInFolder("recipes", "yml")
         }
-        registerAllConfigRecipesFromFolder(recipesFolder)
-        RecipeEventManager.instance().registerEvents()
-        Bukkit.getServer().updateRecipes()
-    }
 
-    private fun registerAllConfigRecipesFromFolder(recipesFolder: File) {
         recipesFolder.listFiles()?.forEach(::registerConfigRecipes)
+        RecipeEventManager.instance().registerEvents()
     }
 
     private fun registerConfigRecipes(configFile: File) {
-        loadConfiguration(configFile).let { it.getKeys(false).mapNotNullFast(it::getConfigurationSection) }.forEach {
-            registerRecipeByType(configFile, it)
+        loadConfiguration(configFile).childSections().forEach { key, section ->
+            registerRecipeByType(configFile, section)
         }
     }
 

@@ -8,11 +8,18 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.getEnum
+import com.nexomc.nexo.utils.getNamespacedKey
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
+import org.bukkit.Registry
+import org.bukkit.Tag
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.damage.DamageType
 import org.bukkit.entity.EntityType
@@ -40,7 +47,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
             itemBuilder.isDamagedOnEntityHit = componentSection.getBoolean("durability.damage_entity_hit")
             itemBuilder.setDurability(componentSection.getInt("durability.value").coerceAtLeast(componentSection.getInt("durability", 1)))
         }
-        if ("rarity" in componentSection) itemBuilder.setRarity(EnumUtils.getEnum(ItemRarity::class.java, componentSection.getString("rarity")))
+        if ("rarity" in componentSection) itemBuilder.setRarity(componentSection.getEnum("rarity", ItemRarity::class.java))
         if ("fire_resistant" in componentSection) itemBuilder.setFireResistant(componentSection.getBoolean("fire_resistant"))
         if ("hide_tooltip" in componentSection) itemBuilder.setHideToolTip(componentSection.getBoolean("hide_tooltip"))
 
@@ -54,7 +61,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         componentSection.getConfigurationSection("jukebox_playable")?.let { jukeboxSection ->
             ItemStack(itemBuilder.type).itemMeta.jukeboxPlayable.also {
                 it.isShowInTooltip = jukeboxSection.getBoolean("show_in_tooltip")
-                it.songKey = jukeboxSection.getString("song_key")?.let(NamespacedKey::fromString) ?: return@also
+                it.songKey = jukeboxSection.getNamespacedKey("song_key") ?: return@also
             }.let(itemBuilder::setJukeboxPlayable)
         }
 
@@ -65,22 +72,21 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
 
         componentSection.getConfigurationSection("use_cooldown")?.let { cooldownSection: ConfigurationSection ->
                 ItemStack(Material.PAPER).itemMeta.useCooldown.also {
-                    val group = (cooldownSection.getString("group") ?: "nexo:${NexoItems.idFromItem(itemBuilder)}")
-                    if (group.isNotEmpty()) it.cooldownGroup = NamespacedKey.fromString(group)
+                    it.cooldownGroup = cooldownSection.getNamespacedKey("group", "nexo:${NexoItems.idFromItem(itemBuilder)}")
                     it.cooldownSeconds = cooldownSection.getDouble("seconds", 1.0).coerceAtLeast(0.0).toFloat()
                 }.apply(itemBuilder::setUseCooldownComponent)
             }
 
         componentSection.getConfigurationSection("use_remainder")?.let { parseUseRemainderComponent(itemBuilder, it) }
-        componentSection.getString("damage_resistant")?.let(NamespacedKey::fromString)?.let { damageResistantKey ->
+        componentSection.getNamespacedKey("damage_resistant")?.also { damageResistantKey ->
             itemBuilder.setDamageResistant(Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, damageResistantKey, DamageType::class.java))
         }
 
-        componentSection.getString("tooltip_style")?.let(NamespacedKey::fromString)?.apply(itemBuilder::setTooltipStyle)
+        componentSection.getNamespacedKey("tooltip_style")?.apply(itemBuilder::setTooltipStyle)
 
-        componentSection.getString("item_model")?.also {
-            NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += Key.key(it)
-        }?.let(NamespacedKey::fromString)?.apply(itemBuilder::setItemModel)
+        componentSection.getNamespacedKey("item_model")?.also {
+            NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += it.key()
+        }?.apply(itemBuilder::setItemModel)
 
         if ("enchantable" in componentSection) itemBuilder.setEnchantable(componentSection.getInt("enchantable"))
         if ("glider" in componentSection) itemBuilder.setGlider(componentSection.getBoolean("glider"))
@@ -89,8 +95,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
             NMSHandlers.handler().consumableComponent(itemBuilder, consumableSection)
         }
 
-        val repairableWith = componentSection.getStringList("repairable").takeIf { it.isNotEmpty() } ?: listOf(componentSection.getString("repairable"))
-        repairableWith.filterNotNull().takeIf { it.isNotEmpty() }?.let { repairable ->
+        val repairableWith = componentSection.getStringListOrNull("repairable") ?: listOf(componentSection.getString("repairable", ""))
+        repairableWith.filterNotNull().takeIf { it.isNotEmpty() && it.any { it.isNotEmpty() } }?.let { repairable ->
             NMSHandlers.handler().repairableComponent(itemBuilder, repairable)
         }
 

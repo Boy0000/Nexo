@@ -4,6 +4,7 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import java.util.SortedSet
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 
@@ -45,12 +46,11 @@ class CustomModelData(val type: Material, nexoMeta: NexoMeta, val customModelDat
         }
 
         private fun nextNotSkippedCustomModelData(type: Material, start: Int): Int {
-            val skipped = skippedCustomModelData(type).sorted()
-            return skipped.firstOrNull { it > start } ?: start
+            return skippedCustomModelData(type).firstOrNull { it > start } ?: start
         }
 
-        private fun skippedCustomModelData(type: Material): Set<Int> {
-            val skippedData = mutableSetOf<Int>()
+        private fun skippedCustomModelData(type: Material): SortedSet<Int> {
+            val skippedData = sortedSetOf<Int>()
             val section = Settings.SKIPPED_MODEL_DATA_NUMBERS.toConfigSection() ?: return skippedData
             val skippedString = section.getString(type.name.lowercase()) ?: section.getString(type.name)
 

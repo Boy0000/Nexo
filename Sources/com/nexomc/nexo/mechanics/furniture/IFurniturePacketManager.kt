@@ -10,6 +10,7 @@ import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.World
 import org.bukkit.block.Block
 import org.bukkit.block.data.Waterlogged
 import org.bukkit.entity.Entity
@@ -83,8 +84,8 @@ interface IFurniturePacketManager {
             furnitureBaseMap.firstOrNull { it.baseId == furnitureBaseId }?.baseEntity()
 
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
-            interactionHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
-                ?: shulkerHitboxIdMap.firstNotNullOfOrNull { it.takeIf { entityId in it.entityIds }?.baseEntity() }
+            interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
+                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
 
         fun baseEntityFromHitbox(location: BlockLocation): ItemDisplay? {
             val barrierVec = location.toVector()
@@ -97,6 +98,11 @@ interface IFurniturePacketManager {
             }
         }
 
+        fun hitboxLocFromId(entityId: Int, world: World): Location? {
+            val subEntity = interactionHitboxIdMap.find { entityId in it.entityIds } ?: shulkerHitboxIdMap.find { entityId in it.entityIds } ?: return null
+            return subEntity.hitboxLocation(entityId)?.toLocation(world)
+        }
+
         fun standingOnFurniture(player: Player): Boolean {
             val playerLoc = BlockLocation(player.location)
             return barrierHitboxPositionMap.values.any { hitboxes ->
@@ -107,8 +113,8 @@ interface IFurniturePacketManager {
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
             val blockBox = BoundingBox.of(block)
             return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }
-                    || interactionHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
-                    || shulkerHitboxIdMap.any { it.boundingBoxes.any(blockBox::overlaps) }
+                    || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
     }
 

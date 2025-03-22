@@ -197,11 +197,6 @@ class FontListener(private val manager: FontManager) : Listener {
         manager.sendGlyphTabCompletion(player)
     }
 
-    @EventHandler
-    fun PlayerQuitEvent.onPlayerQuit() {
-        manager.clearGlyphTabCompletions(player)
-    }
-
     inner class SpigotChatHandler : Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         fun AsyncPlayerChatEvent.onPlayerChat() {

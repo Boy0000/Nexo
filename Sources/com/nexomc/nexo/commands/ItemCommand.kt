@@ -22,6 +22,7 @@ import dev.jorel.commandapi.kotlindsl.textArgument
 import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.audience.Audience
 import org.bukkit.entity.Player
+import kotlin.jvm.optionals.getOrElse
 
 internal fun CommandTree.inventoryCommand() = multiLiteralArgument(nodeName = "inventory", "inventory", "inv") {
     withPermission("nexo.command.inventory")
@@ -32,17 +33,21 @@ internal fun CommandTree.inventoryCommand() = multiLiteralArgument(nodeName = "i
 
 internal fun CommandTree.giveItemCommand() = literalArgument("give") {
     withPermission("nexo.command.give")
-    entitySelectorArgumentManyPlayers("targets") {
-        stringArgument("item") {
-            replaceSuggestions(ArgumentSuggestions.stringsAsync {
-                CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
-            })
-            integerArgument("amount", 1, optional = true) {
+    stringArgument("item") {
+        replaceSuggestions(ArgumentSuggestions.stringsAsync { info ->
+            CompletableFuture.supplyAsync {
+                NexoItems.unexcludedItemNames().filter { info.currentArg in it }
+                    .sortedWith(compareByDescending<String> { it.startsWith(info.currentArg) }.thenBy { it }).toTypedArray()
+            }
+        })
+        integerArgument("amount", 1, optional = true) {
+            entitySelectorArgumentManyPlayers("targets", optional = true) {
                 anyExecutor { sender, args ->
-                    val targets = args.get("targets").safeCast<Collection<Player>>() ?: return@anyExecutor
                     val itemID = args.get("item") as? String ?: return@anyExecutor
-                    val itemBuilder = NexoItems.itemFromId(itemID)
-                        ?: return@anyExecutor Message.ITEM_NOT_FOUND.send(sender, tagResolver("item", itemID))
+                    val itemBuilder = NexoItems.itemFromId(itemID) ?: return@anyExecutor Message.ITEM_NOT_FOUND.send(sender, tagResolver("item", itemID))
+                    val targets = args.getOptional("targets")?.getOrElse {
+                        if (sender is Player) listOf(sender) else emptyList()
+                    }?.safeCast<Collection<Player>>()?.takeIf { it.isNotEmpty() } ?: return@anyExecutor
 
                     var amount = args.getOptionalByClass("amount", Int::class.java).orElse(1)
                     val maxAmount = itemBuilder.maxStackSize ?: itemBuilder.type.maxStackSize
@@ -76,14 +81,16 @@ internal fun CommandTree.giveItemCommand() = literalArgument("give") {
 
 internal fun CommandTree.takeItemCommand() = literalArgument("take") {
     withPermission("nexo.command.take")
-    entitySelectorArgumentManyPlayers("players") {
-        textArgument("item") {
-            replaceSuggestions(ArgumentSuggestions.stringsAsync {
-                CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
-            })
-            integerArgument("amount", min = 1, optional = true) {
+    textArgument("item") {
+        replaceSuggestions(ArgumentSuggestions.stringsAsync {
+            CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
+        })
+        integerArgument("amount", min = 1, optional = true) {
+            entitySelectorArgumentManyPlayers("players", optional = true) {
                 anyExecutor { sender, args ->
-                    val targets = args.get("players").safeCast<Collection<Player>>() ?: return@anyExecutor
+                    val targets = args.getOptional("players").getOrElse {
+                        if (sender is Player) listOf(sender) else emptyList()
+                    }.safeCast<Collection<Player>>()?.takeIf { it.isNotEmpty() } ?: return@anyExecutor
                     val itemID = args.get("item") as? String ?: return@anyExecutor
                     val amount = args.getOptionalByClass("amount", Int::class.java)
                     if (!NexoItems.exists(itemID))

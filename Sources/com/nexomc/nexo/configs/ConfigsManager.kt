@@ -92,6 +92,14 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             configuration.set(key, null)
         }
 
+        configuration.getKeys(false).associateWith { movedYamlKeys[it] }.forEach { old, new ->
+            if (new == null) return@forEach
+            updated = true
+            Message.UPDATING_CONFIG.log(tagResolver("option", new))
+            configuration.set(new, configuration.get(old))
+            configuration.set(old, null)
+        }
+
         runCatching {
             if (updated) configuration.save(configurationFile)
         }.onFailure {
@@ -270,6 +278,12 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             } ?: YamlConfiguration()
         }
 
+        private val movedYamlKeys = mapOf(
+            "noteblock" to "custom_blocks.noteblock",
+            "stringblock" to "custom_blocks.stringblock",
+            "chorusblock" to "custom_blocks.chorusblock",
+        )
+
         private val removedYamlKeys = listOf(
             "armorpotioneffects",
             "custom_block_sounds",
@@ -288,7 +302,13 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             "bedrockbreak",
             "watering",
             "block",
-            "repair.oraxen_durability_only"
+            "repair.oraxen_durability_only",
+            "noteblock.custom_block_sounds",
+            "stringblock.custom_block_sounds",
+            "chorusblock.custom_block_sounds",
+            "noteblock.tool_types",
+            "stringblock.tool_types",
+            "chorusblock.tool_types"
         )
     }
 }

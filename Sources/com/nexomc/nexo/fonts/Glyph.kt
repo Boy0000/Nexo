@@ -41,10 +41,10 @@ open class Glyph(
     private val colorableUnicodeComponent = Component.textOfChildren(*unicodes.flatMap {
         listOf(Component.text(it.toList().joinToString(Shift.of(-1))).font(font), Component.newline())
     }.toTypedArray())
-    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, appendSpace: Boolean = false) =
-        Component.text((chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()).toString().plus(if (appendSpace) Shift.MINUS_1 else ""), NamedTextColor.WHITE.takeUnless { colorable }).font(font)
+    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shift: Shift = Shift.NULL) =
+        Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift", NamedTextColor.WHITE.takeUnless { colorable }).font(font)
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =
-        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, indexRange.count() > 1) }.toTypedArray())
+        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, Shift.MINUS_1.takeIf { indexRange.count() > 1 } ?: Shift.NULL) }.toTypedArray())
 
     val baseRegex: Pattern
     private val escapedRegex: Pattern

@@ -25,13 +25,13 @@ class NoteBlockMechanic(factory: MechanicFactory, section: ConfigurationSection)
 
     override val blockData = super.blockData as? NoteBlock
 
-    fun isStorage() = storage != null
+    fun isStorage() = storage() != null
 
-    fun storage() = directional?.parentMechanic?.storage ?: storage
+    fun storage() = storage ?: directional?.parentMechanic?.storage
 
-    val isLog: Boolean = (directional?.parentMechanic?.isLog ?: logStripping) != null
+    val isLog: Boolean = log() != null
 
-    fun log() = directional?.parentMechanic?.logStripping ?: logStripping
+    fun log() = logStripping ?: directional?.parentMechanic?.logStripping
 
     fun isFalling() = directional?.parentMechanic?.isFalling ?: isFalling
 

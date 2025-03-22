@@ -4,7 +4,9 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -20,7 +22,7 @@ import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Variant
 
 class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(section) {
-    val toolTypes: List<String> = section.getStringList("tool_types")
+    val toolTypes: List<String> = section.getStringListOrNull("tool_types") ?: CustomBlockFactory.instance()?.toolTypes ?: listOf()
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<ChorusBlockMechanic>()
     private val variants = Object2ObjectOpenHashMap<String, MultiVariant>()
 

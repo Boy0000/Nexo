@@ -17,6 +17,7 @@ import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
@@ -25,10 +26,8 @@ import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType.Companion.setting
 import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
 import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.prependIfMissing
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
@@ -42,17 +41,18 @@ import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.BuiltResourcePack
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.base.Writable
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
-import team.unnamed.creative.font.TrueTypeFontProvider
+import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.lang.Language
-import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
 
 class PackGenerator {
     private val packDownloader: PackDownloader = PackDownloader()
-    private var resourcePack = ResourcePack.resourcePack()
+    private val resourcePack = ResourcePack.resourcePack()
     private val packObfuscator: PackObfuscator = PackObfuscator(resourcePack)
+    private val packSquasher: NexoPackSquash = NexoPackSquash(resourcePack)
     private val packValidator: PackValidator = PackValidator(resourcePack)
     private var builtPack: BuiltResourcePack? = null
     private val trimsCustomArmor: TrimsCustomArmor?
@@ -124,10 +124,8 @@ class PackGenerator {
                 addSoundFile()
                 parseLanguageFiles()
 
-                runCatching { SchedulerUtils.callSyncMethod {
-                    trimsCustomArmor?.generateTrimAssets(resourcePack)
-                }.get(4L, TimeUnit.SECONDS) }.printOnFailure()
-                componentCustomArmor?.generatePackFiles(resourcePack)
+                trimsCustomArmor?.generateTrimAssets(resourcePack)
+                componentCustomArmor?.generatePackFiles()
 
                 handleScoreboardTablist()
 
@@ -136,7 +134,7 @@ class PackGenerator {
 
                 runCatching {
                     SchedulerUtils.foliaScheduler.runNextTick {
-                        resourcePack = NexoPostPackGenerateEvent(resourcePack).also { it.call() }.resourcePack
+                        NexoPostPackGenerateEvent(resourcePack).callEvent()
                     }.get(4L, TimeUnit.SECONDS)
                 }
 
@@ -149,14 +147,19 @@ class PackGenerator {
                     !packObfuscator.obfuscationType.isNone || Settings.PACK_USE_PACKSQUASH.toBool()
                 } ?: ""
 
-                resourcePack = packObfuscator.obfuscatePack(initialHash)
-                resourcePack = NexoPackSquash.squashPack(resourcePack, initialHash)
+                packObfuscator.obfuscatePack(initialHash)
 
-                SchedulerUtils.foliaScheduler.runAsync {
-                    val packZip = NexoPlugin.instance().dataFolder.resolve("pack", "pack.zip")
-                    if (Settings.PACK_GENERATE_ZIP.toBool()) packWriter.writeToZipFile(packZip, resourcePack)
+                val packZip = NexoPlugin.instance().dataFolder.resolve("pack", "pack.zip")
+                if (Settings.PACK_USE_PACKSQUASH.toBool() && packSquasher.squashPack(initialHash)) {
+                    val squashedZip = packSquasher.packSquashCache.resolve("$initialHash.zip")
+                    if (Settings.PACK_GENERATE_ZIP.toBool()) squashedZip.copyTo(packZip, true)
+                    builtPack = BuiltResourcePack.of(Writable.file(packZip), FileUtils.getSha1Hash(packZip))
+                } else {
+                    if (Settings.PACK_GENERATE_ZIP.toBool()) SchedulerUtils.foliaScheduler.runAsync {
+                        packWriter.writeToZipFile(packZip, resourcePack)
+                    }
+                    builtPack = packWriter.build(resourcePack)
                 }
-                builtPack = packWriter.build(resourcePack)
             }.onFailure {
                 Logs.logError("Failed to generate ResourcePack...")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
@@ -200,51 +203,33 @@ class PackGenerator {
     fun resourcePack() = resourcePack
 
     fun resourcePack(resourcePack: ResourcePack) {
-        this.resourcePack = resourcePack
+        NexoPack.overwritePack(this.resourcePack, resourcePack)
     }
 
     fun builtPack() = builtPack
 
     private fun addShiftProvider() {
+        val shiftFontReferences = resourcePack.font(ShiftTag.FONT)?.providers()?.mapNotNull { (it as? ReferenceFontProvider)?.id() } ?: emptyList()
         resourcePack.fonts().toList().forEach { font ->
-            val trueTypes = font.providers().filterFastIsInstance<TrueTypeFontProvider>().mapFast { p ->
-                FontProvider.trueType().size(p.size()).shift(p.shift()).file(p.file()).oversample(p.oversample())
-                    .skip(p.skip().plus(Shift.fontProvider.advances().keys)).build()
-            }
-
-            font.providers(font.providers().filterFast { it !is TrueTypeFontProvider }
-                .plus(FontProvider.reference(ShiftTag.FONT))
-                .plus(trueTypes)
-            ).addTo(resourcePack)
+            if (font.key() == ShiftTag.FONT || font.key() in shiftFontReferences) font.toBuilder().addProvider(Shift.fontProvider).build().addTo(resourcePack)
+            else font.toBuilder().addProvider(FontProvider.reference(ShiftTag.FONT)).build().addTo(resourcePack)
         }
-        resourcePack.font(ShiftTag.FONT, Shift.fontProvider)
+        Font.font(ShiftTag.FONT, (resourcePack.font(ShiftTag.FONT)?.providers()?.plus(Shift.fontProvider) ?: listOf(Shift.fontProvider))).addTo(resourcePack)
     }
 
     private fun addGlyphFiles() {
-        val fontGlyphs = LinkedHashMap<Key, MutableList<FontProvider>>()
-        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            fontGlyphs.compute(glyph.font) { _, providers ->
-                (providers ?: mutableListOf()).also { it += glyph.fontProvider }
-            }
-        }
-
-        fontGlyphs.forEach { (font, providers) ->
-            (resourcePack.font(font)?.toBuilder() ?: Font.font().key(font)).apply {
-                providers.forEach(::addProvider)
-            }.build().addTo(resourcePack)
+        NexoPlugin.instance().fontManager().glyphs().groupBy { it.font }.forEach { (font, glyphs) ->
+            val builder = resourcePack.font(font)?.toBuilder() ?: Font.font().key(font)
+            glyphs.forEach { builder.addProvider(it.fontProvider) }
+            builder.build().addTo(resourcePack)
         }
     }
 
     private fun addSoundFile() {
         NexoPlugin.instance().soundManager().customSoundRegistries().forEach { customSoundRegistry ->
-            val existingRegistry = resourcePack.soundRegistry(customSoundRegistry.namespace())
-            if (existingRegistry == null) customSoundRegistry.addTo(resourcePack)
-            else {
-                val mergedEvents = LinkedHashSet<SoundEvent>()
-                mergedEvents += existingRegistry.sounds()
-                mergedEvents += customSoundRegistry.sounds()
-                SoundRegistry.soundRegistry().namespace(existingRegistry.namespace()).sounds(mergedEvents).build().addTo(resourcePack)
-            }
+            (resourcePack.soundRegistry(customSoundRegistry.namespace())?.let { existing ->
+                SoundRegistry.soundRegistry(existing.namespace(), existing.sounds().plus(customSoundRegistry.sounds()))
+            } ?: customSoundRegistry).addTo(resourcePack)
         }
         JukeboxPlayableDatapack().createDatapack()
     }
@@ -366,7 +351,7 @@ class PackGenerator {
         packDownloader.downloadDefaultPack()
 
         trimsCustomArmor = TrimsCustomArmor().takeIf { setting == CustomArmorType.TRIMS }
-        componentCustomArmor = ComponentCustomArmor.takeIf { setting == CustomArmorType.COMPONENT }
+        componentCustomArmor = ComponentCustomArmor(resourcePack).takeIf { setting == CustomArmorType.COMPONENT }
         modelGenerator = ModelGenerator(resourcePack)
     }
 

@@ -3,10 +3,11 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory.CustomBlockSounds
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconListener
 import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripListener
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
@@ -22,8 +23,7 @@ import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Variant
 
 class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
-    val toolTypes: List<String> = section.getStringList("tool_types")
-    val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
+    val toolTypes: List<String> = section.getStringListOrNull("tool_types") ?: CustomBlockFactory.instance()?.toolTypes ?: listOf()
     val reimplementNoteblockFeatures: Boolean = section.getBoolean("reimplement_noteblock_features", false)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<NoteBlockMechanic>()
@@ -35,7 +35,6 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
         NoteBlockDatapack().createDatapack()
 
         registerListeners(NoteBlockMechanicListener(), LogStripListener(), BeaconListener())
-        if (customSounds.enabled) registerListeners(NoteBlockSoundListener(customSounds))
 
         // Physics-related stuff
         if (!NMSHandlers.handler().noteblockUpdatesDisabled())

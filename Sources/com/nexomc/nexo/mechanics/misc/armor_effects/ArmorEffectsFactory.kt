@@ -30,10 +30,7 @@ class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(secti
 
         armorEffectTask?.cancel()
         armorEffectTask = ArmorEffectsTask()
-        MechanicsManager.registerTask(
-            instance.mechanicID,
-            WrappedBukkitTask(armorEffectTask!!.runTaskTimer(NexoPlugin.instance(), 0, delay.toLong()))
-        )
+        MechanicsManager.registerTask(instance.mechanicID, WrappedBukkitTask(armorEffectTask!!.runTaskTimer(NexoPlugin.instance(), 0, delay.toLong())))
 
         return mechanic
     }

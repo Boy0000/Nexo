@@ -11,14 +11,15 @@ object KeyUtils {
     val MALFORMED_KEY_PLACEHOLDER = Key.key("item/barrier")
 
     @JvmStatic
-    fun dropExtension(key: Key) = dropExtension(key.asString())
-
-    @JvmStatic
     fun dropExtension(key: String): Key {
         if (!Key.parseable(key)) return MALFORMED_KEY_PLACEHOLDER
         val i = key.lastIndexOf(".")
         return if (i == -1) Key.key(key)
         else Key.key(key.substring(0, i))
+    }
+
+    fun Key.dropExtension(): Key {
+        return Key.key(namespace(), value().substringBeforeLast("."))
     }
 
     private val KEY_REGEX = "[^a-z0-9._/-]".toRegex()

@@ -3,13 +3,12 @@ package com.nexomc.nexo.compatibilities.modelengine
 import com.nexomc.nexo.compatibilities.CompatibilityProvider
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.PluginUtils
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
 import com.nexomc.nexo.utils.logs.Logs
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
-import org.bukkit.event.EventHandler
 import java.util.concurrent.CompletableFuture
+import org.bukkit.event.EventHandler
 
 class ModelEngineCompatibility : CompatibilityProvider<ModelEngineAPI>() {
     @EventHandler

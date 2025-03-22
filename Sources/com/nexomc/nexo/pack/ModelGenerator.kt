@@ -2,9 +2,12 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.NexoMeta
+import com.nexomc.nexo.utils.groupByFastSet
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
-import org.bukkit.Material
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
@@ -13,38 +16,34 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
     private val predicateGenerator = PredicateGenerator(resourcePack)
 
     fun generateModels() {
-        NexoItems.items().forEach { itemBuilder ->
-            // Generate the baseItem model and add all needed overrides
-            val baseMaterial = itemBuilder.type
-
-            fun addOverrides(key: Key) {
-                (resourcePack.model(key) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(key))?.toBuilder()?.also { builder ->
-                    predicateGenerator.generateBaseModelOverrides(baseMaterial).forEach { override ->
-                        builder.addOverride(override)
-                    }
-                }?.build()?.addTo(resourcePack)
-            }
+        NexoItems.items().groupByFastSet { it.type }.forEach { (type, items) ->
+            val overrides = predicateGenerator.generateBaseModelOverrides(type, items)
 
             // Add overrides to base-models unless manually provided
-            addOverrides(Key.key("item/${baseMaterial.toString().lowercase()}"))
-            addOverrides(Key.key("block/${baseMaterial.toString().lowercase()}"))
+            addOverrides(Key.key("item/${type.toString().lowercase()}"), overrides)
+            addOverrides(Key.key("block/${type.toString().lowercase()}"), overrides)
 
             //generateItemModels
-            val nexoMeta = itemBuilder.nexoMeta ?: return@forEach
-            if (!nexoMeta.containsPackInfo || !nexoMeta.generateModel) return@forEach
-            val model = generateModelBuilder(baseMaterial, nexoMeta) ?: return@forEach
+            items.forEach { item ->
+                val nexoMeta = item.nexoMeta?.takeIf { it.containsPackInfo && it.generateModel } ?: return@forEach
+                val builder = generateModelBuilder(nexoMeta) ?: return@forEach
 
-            resourcePack.model(model.key())?.also {
-                model.toBuilder().also { builder ->
-                    it.overrides().forEach { override ->
-                        builder.addOverride(override!!)
-                    }
-                }.build().addTo(resourcePack)
-            } ?: model.addTo(resourcePack)
+                // If using a parent-model with display-properties, use instead of getting defaults
+                val display = resourcePack.model(nexoMeta.parentModel)?.display()?.takeUnless { it.isEmpty() }?.let(::Object2ObjectLinkedOpenHashMap) ?: DisplayProperties.fromMaterial(type)
+                val overrides = resourcePack.model(nexoMeta.model ?: return@forEach)?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
+
+                builder.overrides(overrides).display(display).build().addTo(resourcePack)
+            }
         }
     }
 
-    private fun generateModelBuilder(material: Material, nexoMeta: NexoMeta): Model? {
+    private fun addOverrides(key: Key, overrides: List<ItemOverride>) {
+        val model = (resourcePack.model(key) ?: DefaultResourcePackExtractor.vanillaResourcePack.model(key)) ?: return
+        model.apply { overrides().addAll(overrides) }.addTo(resourcePack)
+    }
+
+    private fun generateModelBuilder(nexoMeta: NexoMeta): Model.Builder? {
+        if (nexoMeta.model == null) return null
         val parent = nexoMeta.parentModel.value()
         val textures = nexoMeta.modelTextures?.toBuilder() ?: ModelTextures.builder()
         val layers = nexoMeta.modelTextures?.layers() ?: listOf()
@@ -92,15 +91,6 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 else -> textures.layers(layers)
             }
         }
-
-        // If using a parent-model with display-properties, use instead of getting defaults
-        val display = resourcePack.model(nexoMeta.parentModel)?.display()?.takeUnless { it.isEmpty() } ?: DisplayProperties.fromMaterial(material)
-
-        return Model.model()
-            .key(nexoMeta.model ?: return null)
-            .display(display)
-            .parent(nexoMeta.parentModel)
-            .textures(textures.build())
-            .build()
+        return Model.model().key(nexoMeta.model ?: return null).parent(nexoMeta.parentModel).textures(textures.build())
     }
 }

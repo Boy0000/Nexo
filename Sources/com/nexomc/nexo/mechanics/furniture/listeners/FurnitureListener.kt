@@ -21,6 +21,7 @@ import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
+import io.papermc.paper.event.player.PlayerPickItemEvent
 import io.th0rgal.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
@@ -29,16 +30,12 @@ import org.bukkit.Material
 import org.bukkit.Rotation
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemDisplay
-import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.inventory.ClickType
-import org.bukkit.event.inventory.InventoryCreativeEvent
-import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
@@ -145,7 +142,7 @@ class FurnitureListener : Listener {
 
         if (hand == EquipmentSlot.HAND && useFurniture != Event.Result.DENY) {
             if (mechanic.clickActions.isNotEmpty()) mechanic.runClickActions(player)
-            if (mechanic.light.toggleable) FurnitureHelpers.toggleLight(baseEntity)
+            if (mechanic.light.toggleable) FurnitureHelpers.toggleLight(baseEntity, mechanic = mechanic)
 
             when {
                 mechanic.rotatable.shouldRotate(player) -> mechanic.rotateFurniture(baseEntity)
@@ -164,25 +161,24 @@ class FurnitureListener : Listener {
         player.updateInventory()
     }
 
+    // Does not work for 1.21.4, packets are intercepted for that atm
     @EventHandler(priority = EventPriority.LOWEST)
-    fun InventoryCreativeEvent.onMiddleClick() {
-        val player = inventory.holder as? Player ?: return
-        if (clickedInventory == null || click != ClickType.CREATIVE) return
-        if (slotType != InventoryType.SlotType.QUICKBAR || cursor.type != Material.BARRIER) return
-
+    fun PlayerPickItemEvent.onMiddleClick() {
         val baseEntity = FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        val builder = NexoItems.itemFromId(mechanic.itemID) ?: return
+        val item = NexoItems.itemFromId(mechanic.itemID)?.build() ?: return
 
-        val item = builder.build()
-        (0..8).forEach { i ->
-            if (NexoItems.idFromItem(player.inventory.getItem(i)) != mechanic.itemID) return@forEach
+        for (i in 0..8) {
+            if (player.inventory.getItem(i) == null) continue
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) != mechanic.itemID) continue
 
             player.inventory.heldItemSlot = i
             isCancelled = true
             return
         }
-        cursor = item
+
+        isCancelled = true
+        if (player.gameMode == GameMode.CREATIVE) player.inventory.setItemInMainHand(item)
     }
 
     @EventHandler

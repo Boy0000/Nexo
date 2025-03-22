@@ -87,10 +87,8 @@ class ItemsView {
     private fun createSubGUI(fileName: String, items: List<ItemBuilder>): PaginatedGui {
         val gui = Gui.paginated().rows(6).pageSize(45).title(
             AdventureUtils.MINI_MESSAGE.deserialize(
-                settings.getString(
-                    "NexoInventory.menu_layout.$fileName.title",
-                    Settings.NEXO_INV_TITLE.toString()
-                )!!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
+                settings.getString("NexoInventory.menu_layout.$fileName.title", Settings.NEXO_INV_TITLE.toString())
+                !!.replace("<main_menu_title>", Settings.NEXO_INV_TITLE.toString())
             )
         ).inventory { title, owner, size ->
             Bukkit.createInventory(owner, size, title)

@@ -39,7 +39,8 @@ class DirectionalBlock(directionalSection: ConfigurationSection) {
         LOG, FURNACE, DROPPER
     }
 
-    fun directionMechanic(face: BlockFace, player: Player) = NexoBlocks.noteBlockMechanic(when {
+    fun directionMechanic(face: BlockFace) = directionMechanic(face, null)
+    fun directionMechanic(face: BlockFace, player: Player?) = NexoBlocks.noteBlockMechanic(when {
         isLog -> when (face) {
             BlockFace.NORTH, BlockFace.SOUTH -> xBlock
             BlockFace.EAST, BlockFace.WEST -> zBlock
@@ -47,7 +48,7 @@ class DirectionalBlock(directionalSection: ConfigurationSection) {
             else -> null
         }
 
-        else -> when (relativeFacing(player)) {
+        else -> when (player?.let(::relativeFacing) ?: face) {
             BlockFace.NORTH -> northBlock
             BlockFace.SOUTH -> southBlock
             BlockFace.EAST -> eastBlock

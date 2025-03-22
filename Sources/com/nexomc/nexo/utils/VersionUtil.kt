@@ -65,6 +65,9 @@ object VersionUtil {
     val isCompiled: Boolean
         get() = manifestMap.isEmpty() || ((manifestMap["Compiled"]?.toBoolean() == true) && !isValidCompiler)
 
+    val isDevBuild: Boolean
+        get() = manifestMap.isEmpty() || ((manifestMap["Devbuild"]?.toBoolean() == true) && isValidCompiler)
+
     val isCI: Boolean
         get() = manifestMap["CI"]?.toBoolean() == true
 

@@ -2,10 +2,11 @@ package com.nexomc.nexo.mechanics.furniture
 
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.ints.IntList
+import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
-import java.util.*
 import org.bukkit.util.BoundingBox
+import org.bukkit.util.Vector
 
 class FurnitureSubEntity {
     val baseUuid: UUID
@@ -33,5 +34,11 @@ class FurnitureSubEntity {
 
     fun baseEntity(): ItemDisplay? {
         return Bukkit.getEntity(baseUuid) as ItemDisplay?
+    }
+
+    fun hitboxLocation(entityId: Int): Vector? {
+        return runCatching {
+            boundingBoxes.getOrNull(entityIds.indexOf(entityId))
+        }.getOrNull()?.center
     }
 }

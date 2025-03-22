@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack
 
 import com.google.gson.JsonPrimitive
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.JsonBuilder.array
@@ -90,11 +91,15 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
             get() = this == NONE
     }
 
-    fun obfuscatePack(hash: String): ResourcePack {
-        if (obfuscationType.isNone) return resourcePack
+    fun obfuscatePack(hash: String) {
+        if (obfuscationType.isNone) return
 
         this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack", ".deobfCachedPacks", "$hash.zip")
         FileUtils.setHidden(obfCachedPack.apply { parentFile.mkdirs() }.parentFile.toPath())
+
+        obfCachedPack.parentFile.listFiles()?.asSequence()
+            ?.filter { it.name != obfCachedPack.name }
+            ?.forEach { runCatching { it.deleteRecursively() } }
 
         if (!cache || !obfCachedPack.exists()) {
             Logs.logInfo("Obfuscating NexoPack...")
@@ -111,11 +116,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
             }
         }
 
-        obfCachedPack.parentFile.listFiles()?.asSequence()
-            ?.filter { it.name != obfCachedPack.name }
-            ?.forEach { runCatching { it.deleteRecursively() } }
-
-        return if (cache) PackGenerator.packReader.readFromZipFile(obfCachedPack) else resourcePack
+        if (cache) NexoPack.overwritePack(resourcePack, PackGenerator.packReader.readFromZipFile(obfCachedPack))
     }
 
     private fun obfuscateModels() {

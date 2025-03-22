@@ -3,17 +3,14 @@ package com.nexomc.nexo.pack.server
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
-import net.kyori.adventure.resource.ResourcePackInfo
-import net.kyori.adventure.resource.ResourcePackRequest
-import org.bukkit.entity.Player
+import java.net.URI
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
-import java.net.URI
-import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class S3Server : NexoPackServer {
 
@@ -61,16 +58,5 @@ class S3Server : NexoPackServer {
         }
 
         return uploadFuture!!
-    }
-
-    override fun sendPack(player: Player) {
-        if (NexoPlugin.instance().packGenerator().packGenFuture?.isDone == false) return
-        if (uploadFuture == null || uploadFuture?.isDone == false) return
-
-        val request = ResourcePackRequest.resourcePackRequest()
-            .required(NexoPackServer.mandatory).replace(true)
-            .prompt(NexoPackServer.prompt).packs(ResourcePackInfo.resourcePackInfo(packUUID!!, packURI!!, hash!!))
-            .build()
-        player.sendResourcePacks(request)
     }
 }

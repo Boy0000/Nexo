@@ -1,5 +1,6 @@
 package com.nexomc.nexo.utils
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
@@ -139,4 +140,22 @@ fun <T> Set<T>.plusFast(elements: Iterable<T>): ObjectOpenHashSet<T> {
         result.addAll(elements)
         return result
     }
+}
+
+inline fun <T, K> Iterable<T>.groupByFast(keySelector: (T) -> K): Object2ObjectLinkedOpenHashMap<K, ObjectArrayList<T>> {
+    val map = Object2ObjectLinkedOpenHashMap<K, ObjectArrayList<T>>()
+    for (element in this) {
+        val key = keySelector(element)
+        map.computeIfAbsent(key) { ObjectArrayList() }.add(element)
+    }
+    return map
+}
+
+inline fun <T, K> Iterable<T>.groupByFastSet(keySelector: (T) -> K): Object2ObjectLinkedOpenHashMap<K, ObjectOpenHashSet<T>> {
+    val map = Object2ObjectLinkedOpenHashMap<K, ObjectOpenHashSet<T>>()
+    for (element in this) {
+        val key = keySelector(element)
+        map.computeIfAbsent(key) { ObjectOpenHashSet() }.add(element)
+    }
+    return map
 }

@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.event.Listener
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 
 interface NMSHandler {
@@ -71,7 +72,7 @@ interface NMSHandler {
 
     fun repairableComponent(itemStack: ItemStack, repairable: Any?) {}
 
-    fun handleItemFlagToolTips(itemStack: ItemStack) {}
+    fun handleItemFlagToolTips(itemStack: ItemStack, itemFlags: Set<ItemFlag>) {}
 
     fun applyMiningEffect(player: Player) {}
 

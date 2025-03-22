@@ -4,8 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
-import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -56,9 +55,10 @@ object BlockHelpers {
     @JvmStatic
     fun validateReplacedSounds(sound: String): String {
         val soundKey = sound.removePrefix("minecraft:")
+
         return when {
-            soundKey.startsWith("block.wood") && NoteBlockMechanicFactory.instance()?.customSounds?.enabled == true -> soundKey.prependIfMissing("nexo:")
-            soundKey.startsWith("block.stone") && StringBlockMechanicFactory.instance()?.customSounds?.enabled == true -> soundKey.prependIfMissing("nexo:")
+            CustomBlockFactory.instance()?.customSounds?.enabled != true -> sound
+            soundKey.startsWith("block.wood") || soundKey.startsWith("block.stone") -> soundKey.prependIfMissing("nexo:")
             else -> sound
         }
     }

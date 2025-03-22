@@ -10,6 +10,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
+import org.bukkit.Keyed
 import org.bukkit.NamespacedKey
 import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
@@ -21,9 +22,9 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.inventory.MerchantInventory
 
 class RecipeEventManager(
-    private val permissionsPerRecipe: MutableMap<CustomRecipe, String?> = Object2ObjectOpenHashMap<CustomRecipe, String>(),
-    private val whitelistedCraftRecipes: MutableSet<CustomRecipe> = ObjectOpenHashSet(),
-    private val whitelistedCraftRecipesOrdered: MutableList<CustomRecipe> = ObjectArrayList()
+    private val permissionsPerRecipe: Object2ObjectOpenHashMap<CustomRecipe, String> = Object2ObjectOpenHashMap<CustomRecipe, String>(),
+    private val whitelistedCraftRecipes: ObjectOpenHashSet<CustomRecipe> = ObjectOpenHashSet(),
+    private val whitelistedCraftRecipesOrdered: ObjectArrayList<CustomRecipe> = ObjectArrayList()
 ) : Listener {
 
     fun registerEvents() {
@@ -70,10 +71,17 @@ class RecipeEventManager(
         permissionsPerRecipe.clear()
         whitelistedCraftRecipes.clear()
         whitelistedCraftRecipesOrdered.clear()
+
+        if (Settings.RESET_RECIPES.toBool()) {
+            Bukkit.recipeIterator().forEachRemaining recipes@{
+                Bukkit.removeRecipe((it as? Keyed)?.key?.takeIf { r -> r.namespace == "nexo" } ?: return@recipes, false)
+            }
+            Bukkit.getServer().potionBrewer.resetPotionMixes()
+        }
     }
 
     fun addPermissionRecipe(recipe: CustomRecipe, permission: String?) {
-        permissionsPerRecipe[recipe] = permission
+        permissionsPerRecipe[recipe] = permission ?: return
     }
 
     fun whitelistRecipe(recipe: CustomRecipe) {

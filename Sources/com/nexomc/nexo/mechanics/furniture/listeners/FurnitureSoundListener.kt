@@ -39,7 +39,7 @@ class FurnitureSoundListener : Listener {
     @EventHandler
     fun WorldUnloadEvent.onWorldUnload() {
         for ((location, task) in breakerPlaySound) {
-            if (location.isWorldLoaded() || task.isCancelled) continue
+            if (location.isLoaded || task.isCancelled) continue
             task.cancel()
             breakerPlaySound.remove(location)
         }
@@ -51,12 +51,7 @@ class FurnitureSoundListener : Listener {
         if (NexoBlocks.isNexoStringBlock(blockPlaced) || blockPlaced.isEmpty) return
         if (block.blockData.soundGroup.placeSound != Sound.BLOCK_STONE_PLACE) return
 
-        BlockHelpers.playCustomBlockSound(
-            block.location,
-            BlockSounds.VANILLA_STONE_PLACE,
-            BlockSounds.VANILLA_PLACE_VOLUME,
-            BlockSounds.VANILLA_PLACE_PITCH
-        )
+        BlockHelpers.playCustomBlockSound(block.location, BlockSounds.VANILLA_STONE_PLACE, BlockSounds.VANILLA_PLACE_VOLUME, BlockSounds.VANILLA_PLACE_PITCH)
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
@@ -71,12 +66,7 @@ class FurnitureSoundListener : Listener {
         if (NexoFurniture.isFurniture(location) && block.type == Material.BARRIER || block.isEmpty) return
 
         if (isCancelled || !ProtectionLib.canBreak(player, location)) return
-        BlockHelpers.playCustomBlockSound(
-            location,
-            BlockSounds.VANILLA_STONE_BREAK,
-            BlockSounds.VANILLA_BREAK_VOLUME,
-            BlockSounds.VANILLA_BREAK_PITCH
-        )
+        BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_BREAK, BlockSounds.VANILLA_BREAK_VOLUME, BlockSounds.VANILLA_BREAK_PITCH)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -88,12 +78,7 @@ class FurnitureSoundListener : Listener {
         if (location in breakerPlaySound) return
 
         breakerPlaySound[location] = SchedulerUtils.foliaScheduler.runAtLocationTimer(location, Runnable {
-                BlockHelpers.playCustomBlockSound(
-                    location,
-                    BlockSounds.VANILLA_STONE_HIT,
-                    BlockSounds.VANILLA_HIT_VOLUME,
-                    BlockSounds.VANILLA_HIT_PITCH
-                )
+                BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
             }, 2L, 4L
         )
     }
@@ -115,7 +100,7 @@ class FurnitureSoundListener : Listener {
         if (blockStandingOn.type == Material.TRIPWIRE) return
         val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location)
         if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
-        if (!IFurniturePacketManager.blockIsHitbox(blockStandingOn)) return
+        if (mechanic != null && !IFurniturePacketManager.blockIsHitbox(blockStandingOn)) return
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

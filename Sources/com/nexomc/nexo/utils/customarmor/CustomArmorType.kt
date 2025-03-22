@@ -3,14 +3,14 @@ package com.nexomc.nexo.utils.customarmor
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import java.util.*
+import java.util.Locale
 
 enum class CustomArmorType {
     NONE, TRIMS, COMPONENT;
 
     companion object {
 
-        val itemIdRegex = Regex(".*_(helmet|chestplate|leggings|boots)")
+        val itemIdRegex = Regex(".*_(helmet|chestplate|leggings|boots|elytra|wolf|llama|horse)")
 
         @JvmStatic
         val setting: CustomArmorType = fromString(Settings.CUSTOM_ARMOR_TYPE.toString())

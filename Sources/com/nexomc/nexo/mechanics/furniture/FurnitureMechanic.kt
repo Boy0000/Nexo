@@ -255,6 +255,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (notEnoughSpace(baseEntity, newYaw)) return
         baseEntity.setRotation(newYaw, baseEntity.pitch)
         hitbox.refreshHitboxes(baseEntity, this)
+        light.refreshLights(baseEntity, this)
     }
 
     companion object {
@@ -271,6 +272,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         fun baseEntity(location: Location?): ItemDisplay? {
             return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location ?: return null))
+        }
+
+        fun baseEntity(location: BlockLocation?): ItemDisplay? {
+            return IFurniturePacketManager.baseEntityFromHitbox(location ?: return null)
         }
 
         fun baseEntity(interactionId: Int): ItemDisplay? {

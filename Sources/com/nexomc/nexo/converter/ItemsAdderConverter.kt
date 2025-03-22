@@ -279,8 +279,8 @@ object ItemsAdderConverter {
                             val xOffset = iaHitbox.node("width_offset").double.toString().removeSuffix(".0")
                             val yOffset = iaHitbox.node("height_offset").double.toString().removeSuffix(".0")
                             val zOffset = iaHitbox.node("length_offset").double.toString().removeSuffix(".0")
-                            val width = iaHitbox.node("width").double.toString().removeSuffix(".0")
-                            val height = iaHitbox.node("height").double.toString().removeSuffix(".0")
+                            val width = iaHitbox.node("width").getDouble(1.0).toString().removeSuffix(".0")
+                            val height = iaHitbox.node("height").getDouble(1.0).toString().removeSuffix(".0")
 
                             furnitureNode.node("hitbox", "interactions").set(listOf("$xOffset,$yOffset,$zOffset $width,$height"))
                         }

@@ -2,17 +2,18 @@ package com.nexomc.nexo.api
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.pack.PackGenerator
+import java.io.File
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.lang.Language
+import team.unnamed.creative.metadata.Metadata
 import team.unnamed.creative.metadata.overlays.OverlayEntry
 import team.unnamed.creative.metadata.overlays.OverlaysMeta
 import team.unnamed.creative.metadata.sodium.SodiumMeta
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.sound.SoundRegistry
-import java.io.File
 
 object NexoPack {
     @JvmStatic
@@ -36,6 +37,28 @@ object NexoPack {
     fun mergePackFromDirectory(directory: File) {
         if (!directory.exists() || !directory.isDirectory) return
         mergePack(resourcePack(), PackGenerator.packReader.readFromDirectory(directory))
+    }
+
+    @JvmStatic
+    fun overwritePack(resourcePack: ResourcePack, overwritePack: ResourcePack) {
+        clearPack(resourcePack)
+        mergePack(resourcePack, overwritePack)
+    }
+
+    @JvmStatic
+    fun clearPack(resourcePack: ResourcePack) {
+        resourcePack.icon(null)
+        resourcePack.overlaysMeta(OverlaysMeta.of())
+        resourcePack.metadata(Metadata.empty())
+        resourcePack.models().toList().forEach { resourcePack.removeModel(it.key()) }
+        resourcePack.textures().toList().forEach { resourcePack.removeTexture(it.key()) }
+        resourcePack.atlases().toList().forEach { resourcePack.removeAtlas(it.key()) }
+        resourcePack.languages().toList().forEach { resourcePack.removeLanguage(it.key()) }
+        resourcePack.blockStates().toList().forEach { resourcePack.removeBlockState(it.key()) }
+        resourcePack.fonts().toList().forEach { resourcePack.removeFont(it.key()) }
+        resourcePack.sounds().toList().forEach { resourcePack.removeSound(it.key()) }
+        resourcePack.soundRegistries().toList().forEach { resourcePack.removeSoundRegistry(it.namespace()) }
+        resourcePack.unknownFiles().toMap().forEach { resourcePack.removeUnknownFile(it.key) }
     }
 
     @JvmStatic

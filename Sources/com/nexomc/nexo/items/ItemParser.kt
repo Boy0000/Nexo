@@ -14,6 +14,7 @@ import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
@@ -45,16 +46,11 @@ class ItemParser(private val section: ConfigurationSection) {
 
         if (section.isString("template")) templateItem = ItemTemplate.parserTemplate(section.getString("template")!!)
 
-        val crucibleSection = section.getConfigurationSection("crucible")
-        val mmoSection = section.getConfigurationSection("mmoitem")
-        val ecoItemSection = section.getConfigurationSection("ecoitem")
-        when {
-            crucibleSection != null -> crucibleItem = WrappedCrucibleItem(crucibleSection)
-            section.isString("crucible_id") -> crucibleItem = WrappedCrucibleItem(section.getString("crucible_id"))
-            ecoItemSection != null -> ecoItem = WrappedEcoItem(ecoItemSection)
-            section.isString("ecoitem_id") -> ecoItem = WrappedEcoItem(section.getString("ecoitem_id"))
-            mmoSection != null -> mmoItem = WrappedMMOItem(mmoSection)
-        }
+        section.getConfigurationSection("crucible")?.also { crucibleItem = WrappedCrucibleItem(it) }
+            ?: section.getConfigurationSection("mmoitem")?.also { mmoItem = WrappedMMOItem(it) }
+            ?: section.getConfigurationSection("ecoitem")?.also { ecoItem = WrappedEcoItem(it) }
+            ?: (section.getStringOrNull("crucible_id") ?: section.getStringOrNull("crucible"))?.also { crucibleItem = WrappedCrucibleItem(it) }
+            ?: (section.getStringOrNull("ecoitem_id") ?: section.getStringOrNull("ecoitem"))?.also { ecoItem = WrappedEcoItem(it) }
 
         type = section.getString("material")?.let { material ->
             Material.matchMaterial(material).also {

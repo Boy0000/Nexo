@@ -17,7 +17,6 @@ import kotlin.math.pow
 
 class BreakableMechanic(section: ConfigurationSection) {
     val hardness: Double = section.getDouble("hardness", 1.0)
-    //val treatAs: Material = section.getString("treat_as")?.let(Material::matchMaterial) ?: Material.STONE
     val drop: Drop
     private val itemId: String = section.parent!!.parent!!.name
 
@@ -43,16 +42,6 @@ class BreakableMechanic(section: ConfigurationSection) {
     fun speedMultiplier(player: Player): Double {
         val itemInMainHand = player.inventory.itemInMainHand
 
-        //TODO Revisit at a later time
-        /*var multiplier = when {
-            VersionUtil.atleast("1.21.1") -> itemInMainHand.itemMeta?.tool?.let { tool ->
-                tool.rules.firstOrNull { rule -> treatAs in rule.blocks }?.speed ?: tool.defaultMiningSpeed
-            } ?: 1.0f
-            else -> ToolTypeSpeedModifier.VANILLA
-                .filter { itemInMainHand.type in it.toolTypes() }
-                .minByOrNull { it.speedModifier() }?.takeIf { drop.isToolEnough(itemInMainHand) }
-                ?.speedModifier() ?: ToolTypeSpeedModifier.EMPTY.speedModifier()
-        }*/
         var multiplier = ToolTypeSpeedModifier.VANILLA
             .filter { itemInMainHand.type in it.toolTypes() }
             .minByOrNull { it.speedModifier() }?.takeIf { drop.isToolEnough(itemInMainHand) }

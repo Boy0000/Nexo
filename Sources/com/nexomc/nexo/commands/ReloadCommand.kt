@@ -9,7 +9,7 @@ import com.nexomc.nexo.configs.SoundManager
 import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockSoundListener
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockSoundListener
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
 import com.nexomc.nexo.nms.NMSHandlers.resetHandler
@@ -25,6 +25,7 @@ import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
 import dev.jorel.commandapi.kotlindsl.textArgument
 import org.bukkit.Bukkit
+import org.bukkit.Keyed
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -76,7 +77,7 @@ object ReloadCommand {
     fun reloadItems(sender: CommandSender? = Bukkit.getConsoleSender()) {
         Message.RELOAD.send(sender, tagResolver("reloaded", "items"))
         NexoItems.itemConfigCache.clear()
-        NoteBlockSoundListener.breakerPlaySound.onEach { it.value.cancel() }.clear()
+        CustomBlockSoundListener.breakerPlaySound.onEach { it.value.cancel() }.clear()
         FurnitureSoundListener.breakerPlaySound.onEach { it.value.cancel() }.clear()
         FurnitureFactory.instance()?.packetManager()?.removeAllFurniturePackets()
         NexoItems.loadItems()
@@ -132,6 +133,11 @@ object ReloadCommand {
     @JvmStatic
     fun reloadRecipes(sender: CommandSender? = Bukkit.getConsoleSender()) {
         Message.RELOAD.send(sender, tagResolver("reloaded", "recipes"))
-        RecipesManager.reload()
+        if (Bukkit.recipeIterator().asSequence().filter { (it as? Keyed)?.key?.namespace == "nexo" }.count() < 100) RecipesManager.reload()
+        else {
+            Logs.logWarn("Nexo did not reload recipes due to the number of recipes!")
+            Logs.logWarn("In modern Paper-versions this would cause the server to freeze for very long times")
+            Logs.logWarn("Restart your server fully for recipe-changes to take effect")
+        }
     }
 }

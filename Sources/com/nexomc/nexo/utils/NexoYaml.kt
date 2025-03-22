@@ -4,6 +4,8 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import java.io.File
 import net.kyori.adventure.key.Key
+import org.apache.commons.lang3.EnumUtils
+import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 
@@ -29,6 +31,22 @@ fun ConfigurationSection.getKey(key: String, default: String): Key? {
 
 fun ConfigurationSection.getKey(key: String, default: Key): Key {
     return runCatching { getString(key)?.let(Key::key) }.getOrNull() ?: default
+}
+
+fun ConfigurationSection.getNamespacedKey(key: String, default: String): NamespacedKey {
+    return runCatching { getString(key)?.let(NamespacedKey::fromString) }.getOrNull() ?: NamespacedKey.fromString(default)!!
+}
+
+fun ConfigurationSection.getNamespacedKey(key: String, default: NamespacedKey): NamespacedKey {
+    return runCatching { getString(key)?.let(NamespacedKey::fromString) }.getOrNull() ?: default
+}
+
+fun ConfigurationSection.getNamespacedKey(key: String): NamespacedKey? {
+    return runCatching { getString(key)?.let(NamespacedKey::fromString) }.getOrNull()
+}
+
+fun <T : Enum<T>> ConfigurationSection.getEnum(key: String, enum: Class<T>): T? {
+    return EnumUtils.getEnum(enum, key)
 }
 
 class NexoYaml : YamlConfiguration() {

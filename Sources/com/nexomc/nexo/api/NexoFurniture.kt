@@ -168,7 +168,7 @@ object NexoFurniture {
         return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))?.let(::furnitureMechanic) ?: let {
             val block = location.block
             val centerLoc = toCenterBlockLocation(location)
-            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it is ItemDisplay }
+            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it.type == EntityType.ITEM_DISPLAY }
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
                 ?.let(::furnitureMechanic)

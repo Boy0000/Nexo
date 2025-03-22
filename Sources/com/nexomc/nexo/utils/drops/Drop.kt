@@ -6,7 +6,6 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.deserialize
-import com.nexomc.nexo.utils.randomOrMin
 import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
@@ -116,10 +115,10 @@ class Drop(
     }
 
     fun fortuneMultiplier(itemInHand: ItemStack) =
-        (1..(itemInHand.itemMeta?.takeIf { isFortune }?.getEnchantLevel(EnchantmentWrapper.FORTUNE)?.plus(1) ?: 1)).randomOrMin()
+        (1..(itemInHand.itemMeta?.takeIf { isFortune }?.getEnchantLevel(EnchantmentWrapper.FORTUNE)?.plus(1) ?: 1)).randomOrNull() ?: 1
 
-    fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull {
-        it.dropNaturally(location, fortuneMultiplier).takeIf { it > 0 }?.let { amount -> DroppedLoot(it, amount) }
+    fun dropLoot(loots: List<Loot>, location: Location, fortuneMultiplier: Int) = loots.mapNotNull { loot ->
+        loot.dropNaturally(location, fortuneMultiplier).takeIf { it > 0 }?.let { amount -> DroppedLoot(loot, amount) }
     }
 
     /**

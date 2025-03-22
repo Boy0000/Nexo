@@ -25,12 +25,12 @@ import com.nexomc.nexo.mechanics.repair.RepairMechanicFactory
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.tcoded.folialib.wrapper.task.WrappedTask
+import java.util.Collections
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.*
 
 object MechanicsManager {
     private val FACTORIES_BY_MECHANIC_ID = mutableMapOf<String, MechanicFactory>()
@@ -49,10 +49,10 @@ object MechanicsManager {
 
         // gameplay
         registerMechanicFactory("furniture", ::FurnitureFactory)
-        registerMechanicFactory("noteblock", ::NoteBlockMechanicFactory)
-        registerMechanicFactory("stringblock", ::StringBlockMechanicFactory)
-        registerMechanicFactory("chorusblock", ::ChorusBlockFactory)
-        registerMechanicFactory(CustomBlockFactory("custom_block"), true)
+        registerMechanicFactory("noteblock", ::NoteBlockMechanicFactory, "custom_blocks.noteblock")
+        registerMechanicFactory("stringblock", ::StringBlockMechanicFactory, "custom_blocks.stringblock")
+        registerMechanicFactory("chorusblock", ::ChorusBlockFactory, "custom_blocks.chorusblock")
+        registerMechanicFactory("custom_block", ::CustomBlockFactory, "custom_blocks")
 
         // combat
         registerMechanicFactory("thor", ::ThorMechanicFactory)
@@ -87,11 +87,9 @@ object MechanicsManager {
         unregisterTasks(mechanicId)
     }
 
-    private fun registerMechanicFactory(mechanicId: String, constructor: FactoryConstructor) {
-        val mechanicsEntry = NexoPlugin.instance().resourceManager().mechanicsEntry()
-        val factorySection = mechanicsEntry.config.getConfigurationSection(mechanicId) ?: return
-        if (factorySection.getBoolean("enabled")) FACTORIES_BY_MECHANIC_ID[mechanicId] =
-            constructor.create(factorySection)
+    private fun registerMechanicFactory(mechanicId: String, constructor: FactoryConstructor, configPath: String = mechanicId) {
+        val factorySection = NexoPlugin.instance().resourceManager().mechanics().getConfigurationSection(configPath) ?: return
+        if (factorySection.getBoolean("enabled")) FACTORIES_BY_MECHANIC_ID[mechanicId] = constructor.create(factorySection)
     }
 
     fun registerTask(mechanicId: String, task: WrappedTask) {

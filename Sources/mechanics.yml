@@ -17,7 +17,9 @@ misc:
 
 
 # GAMEPLAY
-noteblock:
+custom_blocks:
+  enabled: true
+  # Can be overriden for sub-mechanics by specifying it in them aswell
   tool_types:
     - WOODEN
     - STONE
@@ -25,40 +27,22 @@ noteblock:
     - GOLDEN
     - DIAMOND
     - NETHERITE
-  # Reimplements noteblock features while using custom blocks
-  # Adds instrument option in noteblock mechanics
-  reimplement_noteblock_features: false
+  noteblock:
+    # Reimplements noteblock features while using custom blocks
+    # Adds instrument option in noteblock mechanics
+    reimplement_noteblock_features: false
+    enabled: true
+  stringblock:
+      sapling_growth_check_delay: 4000
+      disable_vanilla_strings: false
+      enabled: true
+  chorusblock:
+    enabled: true
   custom_block_sounds:
     enabled: true
     # If false, plays for animals stepping/falling on blocks aswell
     # Enable this if you are experiencing lag with noteblock-sounds
     players_only: true
-  enabled: true
-stringblock:
-    tool_types:
-      - WOODEN
-      - STONE
-      - IRON
-      - GOLDEN
-      - DIAMOND
-      - NETHERITE
-    sapling_growth_check_delay: 4000
-    disable_vanilla_strings: false
-    custom_block_sounds:
-      enabled: true
-      # If false, plays for animals stepping/falling on blocks aswell
-      # Enable this if you are experiencing lag with stringblock-sounds
-      players_only: true
-    enabled: true
-chorusblock:
-  tool_types:
-    - WOODEN
-    - STONE
-    - IRON
-    - GOLDEN
-    - DIAMOND
-    - NETHERITE
-  enabled: true
 furniture:
   tool_types:
     - WOODEN

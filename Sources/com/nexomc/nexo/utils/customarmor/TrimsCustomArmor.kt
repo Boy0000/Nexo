@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.StringUtils
+import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.Tag
@@ -130,15 +131,15 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
         NexoItems.entries().entries.asSequence().filter { it.value.nexoMeta?.customArmorTextures != null }.distinctBy { it.key.substringBeforeLast("_") }.forEach { (itemId, item) ->
             val customArmor = item.nexoMeta?.customArmorTextures ?: return@forEach
             val armorPrefix = itemId.substringBeforeLast("_")
-            val layer1 = resourcePack.texture(customArmor.layer1)
+            val layer1 = customArmor.layer1?.let { resourcePack.texture(it) }
                 ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_1.png") }
-                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1.asString()} used by $itemId")
-            val layer2 = resourcePack.texture(customArmor.layer2)
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer1?.asString() ?: "layer1"} used by $itemId")
+            val layer2 = customArmor.layer2?.let { resourcePack.texture(it) }
                 ?: resourcePack.textures().find { it.key().value().substringAfterLast("/") == armorPrefix.plus("_armor_layer_2.png") }
-                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2.asString()} used by $itemId")
+                ?: return@forEach Logs.logWarn("Failed to fetch ${customArmor.layer2?.asString() ?: "layer2"} used by $itemId")
 
-            resourcePack.removeTexture(customArmor.layer1)
-            resourcePack.removeTexture(customArmor.layer2)
+            resourcePack.removeTexture(layer1.key())
+            resourcePack.removeTexture(layer2.key())
 
             resourcePack.texture(Key.key("nexo:trims/entity/humanoid/$armorPrefix.png"), layer1.data())
             resourcePack.texture(Key.key("nexo:trims/models/armor/$armorPrefix.png"), layer1.data())

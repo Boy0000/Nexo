@@ -23,7 +23,7 @@ class Loot(
 
     constructor(config: LinkedHashMap<String, Any>, sourceID: String) : this(
         probability = config.getOrDefault("probability", 1).toString().toDouble(),
-        amount = (config.getOrDefault("amount", "") as? String)?.toIntRangeOrNull() ?: 1..1,
+        amount = config.get("amount").toString().toIntRangeOrNull() ?: 1..1,
         inExplosion = config.getOrDefault("in_explosion", false).safeCast<Boolean>() ?: false,
         config = config,
         sourceID = sourceID
@@ -67,7 +67,7 @@ class Loot(
 
     fun getItem(amountMultiplier: Int): ItemStack {
         return ItemUpdater.updateItem(itemStack().clone()).also {
-            it.amount *= amount.plus(1).random() * amountMultiplier
+            it.amount *= amount.random() * amountMultiplier
         }
     }
 }

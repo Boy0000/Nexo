@@ -38,6 +38,7 @@ import org.bukkit.event.entity.EntityMountEvent
 import org.bukkit.event.entity.EntityTeleportEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.util.Vector
 
 class FurniturePacketListener : Listener {
     @EventHandler
@@ -91,6 +92,7 @@ class FurniturePacketListener : Listener {
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
         mechanic.hitbox.refreshHitboxes(baseEntity, mechanic)
+        mechanic.light.refreshLights(baseEntity, mechanic)
     }
 
     @EventHandler
@@ -114,10 +116,10 @@ class FurniturePacketListener : Listener {
             EquipmentSlot.HAND -> player.inventory.itemInMainHand
             else -> player.inventory.itemInOffHand
         }
-        val interactionPoint = clickedRelativePosition?.toLocation(player.world)
         val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(entityId) ?: return
+        val relativePos = (clickedRelativePosition ?: Vector()).takeIf { isAttack || clickedRelativePosition != null} ?: return
+        val interactionPoint = IFurniturePacketManager.hitboxLocFromId(entityId, baseEntity.world)?.add(relativePos) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        if (FurnitureSeat.isSeat(baseEntity)) return
 
         when {
             isAttack && player.gameMode != GameMode.ADVENTURE && ProtectionLib.canBreak(player, baseEntity.location) -> {
@@ -138,6 +140,7 @@ class FurniturePacketListener : Listener {
         if (!IFurniturePacketManager.blockIsHitbox(clickedBlock ?: interactionPoint?.block ?: return)) return
         val mechanic = NexoFurniture.furnitureMechanic(clickedBlock) ?: NexoFurniture.furnitureMechanic(interactionPoint) ?: return
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
+        val interactionPoint = interactionPoint ?: clickedBlock?.location?.toCenterLocation()
 
         if (useInteractedBlock() != Event.Result.DENY) when {
             action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.location) -> {

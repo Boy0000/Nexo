@@ -5,13 +5,14 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.PackListener
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.logs.Logs
+import java.net.URI
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.resource.ResourcePackInfo
+import net.kyori.adventure.resource.ResourcePackRequest
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
-import java.net.URI
-import java.util.*
-import java.util.concurrent.CompletableFuture
 
 interface NexoPackServer {
     val isPackUploaded: Boolean
@@ -21,7 +22,18 @@ interface NexoPackServer {
         return CompletableFuture.allOf(NexoPlugin.instance().packGenerator().packGenFuture)
     }
 
-    fun sendPack(player: Player)
+    fun sendPack(player: Player) {
+        NexoPlugin.instance().packGenerator().packGenFuture?.thenRun {
+            val hash = NexoPlugin.instance().packGenerator().builtPack()!!.hash()
+            val packUUID = UUID.nameUUIDFromBytes(hashArray(hash))
+            val packUrl = URI.create(packUrl())
+
+            val request = ResourcePackRequest.resourcePackRequest()
+                .required(mandatory).replace(true).prompt(prompt)
+                .packs(ResourcePackInfo.resourcePackInfo(packUUID, packUrl, hash)).build()
+            player.sendResourcePacks(request)
+        }
+    }
 
     fun start() {
     }
@@ -59,6 +71,7 @@ interface NexoPackServer {
                 PackServerType.SELFHOST -> SelfHostServer()
                 PackServerType.POLYMATH -> PolymathServer()
                 PackServerType.LOBFILE -> LobFileServer()
+                PackServerType.S3 -> S3Server()
                 PackServerType.NONE -> EmptyServer()
             }
         }

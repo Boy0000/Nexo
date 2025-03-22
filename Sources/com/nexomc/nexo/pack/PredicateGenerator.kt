@@ -1,6 +1,6 @@
 package com.nexomc.nexo.pack
 
-import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
@@ -22,11 +22,11 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
      * @param material the material to generate the overrides for
      * @return the generated overrides
      */
-    fun generateBaseModelOverrides(material: Material): List<ItemOverride> {
+    fun generateBaseModelOverrides(material: Material, items: Set<ItemBuilder>): List<ItemOverride> {
         val overrides = DefaultResourcePackExtractor.vanillaResourcePack
             .model(Key.key("item/${material.toString().lowercase()}"))?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
 
-        NexoItems.items().forEach { itemBuilder ->
+        items.forEach { itemBuilder ->
             if (itemBuilder.type != material) return@forEach
             val nexoMeta = itemBuilder.nexoMeta?.takeIf { it.containsPackInfo } ?: return@forEach
             val cmdPredicate = ItemPredicate.customModelData(nexoMeta.customModelData ?: return@forEach)
@@ -70,7 +70,7 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
     private fun addMissingOverrideModel(material: Material, modelKey: Key, parentKey: Key) {
         resourcePack.model(
             resourcePack.model(modelKey) ?: Model.model().key(modelKey).parent(parentKey).display(DisplayProperties.fromMaterial(material))
-                .textures(ModelTextures.builder().layers(ModelTexture.ofKey(dropExtension(modelKey))).build()).build()
+                .textures(ModelTextures.builder().layers(ModelTexture.ofKey(modelKey.dropExtension())).build()).build()
         )
     }
 }

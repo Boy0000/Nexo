@@ -57,12 +57,13 @@ object FurnitureHelpers {
 
     @JvmOverloads
     @JvmStatic
-    fun toggleLight(baseEntity: ItemDisplay, state: Boolean? = null): Boolean {
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.light.isEmpty } ?: return false
+    fun toggleLight(baseEntity: ItemDisplay, state: Boolean? = null, mechanic: FurnitureMechanic? = NexoFurniture.furnitureMechanic(baseEntity)): Boolean {
+        val mechanic = mechanic?.takeUnless { it.light.isEmpty } ?: return false
         val newState = state ?: !baseEntity.persistentDataContainer.getOrDefault(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, true)
         if (!mechanic.light.toggleable) return true
         baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, state ?: newState)
         IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.refreshItem(baseEntity)
+        mechanic.light.refreshLights(baseEntity, mechanic)
         return newState
     }
 }

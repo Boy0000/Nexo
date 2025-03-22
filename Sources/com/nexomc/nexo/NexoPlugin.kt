@@ -100,7 +100,7 @@ class NexoPlugin : JavaPlugin() {
 
         foliaLib.scheduler.runNextTick {
             NexoItems.loadItems()
-            RecipesManager.load(this)
+            RecipesManager.load()
             packGenerator.generatePack()
         }
 

@@ -29,11 +29,8 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
                     ItemUpdater.updateItem(NexoItems.itemFromId(resultSection.getString("nexo_item"))!!.build())
                 resultSection.isString("crucible_item") -> result =
                     WrappedCrucibleItem(resultSection.getString("crucible_item")).build()
-                resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type") -> result =
-                    MMOItems.plugin.getItem(
-                        resultSection.getString("mmoitems_type"),
-                        resultSection.getString("mmoitems_id")
-                    )
+                resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type") ->
+                    result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"))
                 resultSection.isString("ecoitem_id") -> result =
                     WrappedEcoItem(resultSection.getString("ecoitem_id")).build()
                 resultSection.isString("minecraft_type") -> {
@@ -48,77 +45,44 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
             return result ?: ItemStack(Material.AIR)
         }
 
-    protected fun ingredientItemStack(ingredientSection: ConfigurationSection): ItemStack? {
-        if (ingredientSection.isString("nexo_item")) return ItemUpdater.updateItem(
-            NexoItems.itemFromId(ingredientSection.getString("nexo_item"))!!.build()
-        )
-
-        if (ingredientSection.isString("crucible_item")) {
-            return WrappedCrucibleItem(ingredientSection.getString("crucible_item")).build()
-        }
-
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
-            return MMOItems.plugin.getItem(
-                ingredientSection.getString("mmoitems_type"),
-                ingredientSection.getString("mmoitems_id")
-            )
-        }
-
-        if (ingredientSection.isString("ecoitem_id")) {
-            return WrappedEcoItem(ingredientSection.getString("ecoitem_id")).build()
-        }
-
-        if (ingredientSection.isString("minecraft_type")) {
-            val material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR")!!)
-            if (material == null || material.isAir) return null
-            return ItemStack(material)
-        }
-
-        return ingredientSection.getItemStack("minecraft_item")
-    }
-
     protected fun recipeChoice(ingredientSection: ConfigurationSection): RecipeChoice? {
-        if (ingredientSection.isString("nexo_item")) return RecipeChoice.ExactChoice(
-            ItemUpdater.updateItem(NexoItems.itemFromId(ingredientSection.getString("nexo_item"))!!.build())
-        )
+        when {
+            ingredientSection.isString("nexo_item") ->
+                return RecipeChoice.ExactChoice(ItemUpdater.updateItem(NexoItems.itemFromId(ingredientSection.getString("nexo_item"))!!.build()))
+            ingredientSection.isString("crucible_item") -> {
+                val ingredient = WrappedCrucibleItem(section.getString("crucible_item")).build()
+                return RecipeChoice.ExactChoice(ingredient ?: ItemStack(Material.AIR))
+            }
+            ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type") -> {
+                val ingredient = MMOItems.plugin.getItem(
+                    ingredientSection.getString("mmoitems_type"),
+                    ingredientSection.getString("mmoitems_id")
+                )
+                return RecipeChoice.ExactChoice(
+                    ingredient
+                        ?: ItemStack(Material.AIR)
+                )
+            }
+            ingredientSection.isString("ecoitem_id") -> {
+                val ingredient = WrappedEcoItem(section.getString("ecoitem_id")).build()
+                return RecipeChoice.ExactChoice(ingredient ?: ItemStack(Material.AIR))
+            }
+            else -> {
+                ingredientSection.getString("minecraft_type")?.let {
+                    val material = Material.getMaterial(it)
+                    if (material == null || material.isAir) return null
+                    return RecipeChoice.MaterialChoice(material)
+                }
 
-        if (ingredientSection.isString("crucible_item")) {
-            val ingredient = WrappedCrucibleItem(section.getString("crucible_item")).build()
-            return RecipeChoice.ExactChoice(ingredient ?: ItemStack(Material.AIR))
+                ingredientSection.getString("tag")?.let {
+                    val tagId = NamespacedKey.fromString(it) ?: NamespacedKey.minecraft("oak_logs")
+                    val tag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagId, Material::class.java) ?: Bukkit.getTag(Tag.REGISTRY_ITEMS, tagId, Material::class.java)
+                    return tag?.let(RecipeChoice::MaterialChoice)
+                }
+
+                return RecipeChoice.ExactChoice(ingredientSection.getItemStack("minecraft_item") ?: return null)
+            }
         }
-
-        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
-            val ingredient = MMOItems.plugin.getItem(
-                ingredientSection.getString("mmoitems_type"),
-                ingredientSection.getString("mmoitems_id")
-            )
-            return RecipeChoice.ExactChoice(
-                ingredient
-                    ?: ItemStack(Material.AIR)
-            )
-        }
-
-        if (ingredientSection.isString("ecoitem_id")) {
-            val ingredient = WrappedEcoItem(section.getString("ecoitem_id")).build()
-            return RecipeChoice.ExactChoice(
-                ingredient
-                    ?: ItemStack(Material.AIR)
-            )
-        }
-
-        ingredientSection.getString("minecraft_type")?.let {
-            val material = Material.getMaterial(it)
-            if (material == null || material.isAir) return null
-            return RecipeChoice.MaterialChoice(material)
-        }
-
-        ingredientSection.getString("tag")?.let {
-            val tagId = NamespacedKey.fromString(it) ?: NamespacedKey.minecraft("oak_logs")
-            val tag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagId, Material::class.java) ?: Bukkit.getTag(Tag.REGISTRY_ITEMS, tagId, Material::class.java)
-            return tag?.let(RecipeChoice::MaterialChoice)
-        }
-
-        return RecipeChoice.ExactChoice(ingredientSection.getItemStack("minecraft_item") ?: return null)
     }
 
     private val recipeName = section.name
@@ -128,18 +92,11 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
     abstract fun registerRecipe()
 
     protected fun loadRecipe(recipe: Recipe?) {
-        Bukkit.addRecipe(recipe)
-        CustomRecipe.fromRecipe(recipe)?.let { handlePermission(it) }
-    }
-
-    private fun handlePermission(recipe: CustomRecipe) {
-        if (section.isString("permission")) {
-            val permission = section.getString("permission")
-            RecipeEventManager.instance().addPermissionRecipe(recipe, permission)
-        }
+        Bukkit.addRecipe(recipe, false)
+        RecipeEventManager.instance().addPermissionRecipe(CustomRecipe.fromRecipe(recipe) ?: return, section.getString("permission"))
     }
 
     protected fun addToWhitelist(recipe: Recipe?) {
-        CustomRecipe.fromRecipe(recipe)?.let { RecipeEventManager.instance().whitelistRecipe(it) }
+        RecipeEventManager.instance().whitelistRecipe(CustomRecipe.fromRecipe(recipe) ?: return)
     }
 }

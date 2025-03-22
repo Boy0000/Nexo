@@ -1,11 +1,10 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.google.gson.JsonParser
 import com.google.gson.JsonPrimitive
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconTagDatapack
 import com.nexomc.nexo.utils.JsonBuilder
-import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.plus
+import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
 import com.nexomc.nexo.utils.NexoDatapack
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.printOnFailure
@@ -33,24 +32,17 @@ class NoteBlockDatapack : NexoDatapack("nexo_custom_blocks", "Datapack for allow
 
     private fun removeFromMineableTag() {
         runCatching {
-            val tagFile = datapackFile.resolve("data", "minecraft", "tags", "block", "mineable", "axe.json")
-            tagFile.parentFile.mkdirs()
-            tagFile.createNewFile()
+            val tagArray = when {
+                VersionUtil.atleast("1.21") -> RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK)
+                    .getTag(TagKey.create(RegistryKey.BLOCK, Key.key("minecraft:mineable/axe")))
+                    .values().map { JsonPrimitive(it.key().asString()) }
+                else -> Tag.MINEABLE_AXE.values.map { JsonPrimitive(it.key().asString()) }
+            }.minus(JsonPrimitive("minecraft:note_block")).toJsonArray()
 
-            val content = tagFile.readText()
-            val tagObject = if (content.isEmpty()) JsonBuilder.jsonObject else JsonParser.parseString(content).asJsonObject
-            val tagArray = tagObject.array("values") ?: JsonBuilder.jsonArray.apply {
-                if (VersionUtil.atleast("1.21")) {
-                    RegistryAccess.registryAccess().getRegistry(RegistryKey.BLOCK)
-                        .getTag(TagKey.create(RegistryKey.BLOCK, Key.key("minecraft:mineable/axe")))
-                        .values().forEach { add(it.key().asString()) }
-                } else Tag.MINEABLE_AXE.values.forEach { add(it.key().asString()) }
-            }
-
-            tagArray.remove(JsonPrimitive("minecraft:note_block"))
-
-            tagObject.plus("replace", true).plus("values", tagArray)
-            tagFile.writeText(tagObject.toString())
+            datapackFile.resolve("data", "minecraft", "tags", "block", "mineable", "axe.json").apply {
+                parentFile.mkdirs()
+                createNewFile()
+            }.writeText(JsonBuilder.jsonObject.plus("replace", true).plus("values", tagArray).toString())
         }.printOnFailure()
     }
 }

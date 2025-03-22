@@ -5,6 +5,7 @@ import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.utils.PotionUtils.getEffectType
 import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -12,7 +13,7 @@ import org.bukkit.potion.PotionEffect
 
 class ArmorEffectsMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
     Mechanic(mechanicFactory, section) {
-    val armorEffects = mutableSetOf<ArmorEffect>()
+    val armorEffects = ObjectOpenHashSet<ArmorEffect>()
 
     init {
         section.getKeys(false).forEach { effect ->
@@ -21,8 +22,7 @@ class ArmorEffectsMechanic(mechanicFactory: MechanicFactory?, section: Configura
     }
 
     fun registersEffectFromSection(section: ConfigurationSection) {
-        val type = section.name.lowercase()
-        val effectType = getEffectType(type) ?: return Logs.logError("Invalid potion effect: ${section.name}, in ${section.currentPath!!.substringBefore(".")}!")
+        val effectType = getEffectType(section.name.lowercase()) ?: return Logs.logError("Invalid potion effect: ${section.name}, in ${section.currentPath!!.substringBefore(".")}!")
 
         val duration = section.getInt("duration", ArmorEffectsFactory.instance().delay)
         val amplifier = section.getInt("amplifier", 0)
@@ -42,18 +42,13 @@ class ArmorEffectsMechanic(mechanicFactory: MechanicFactory?, section: Configura
                 val armorPiece = player.inventory.getItem(armorSlot)
                 val mechanic = ArmorEffectsFactory.instance().getMechanic(armorPiece) ?: return@forEach
 
-                val finalArmorEffects = mechanic.armorEffects.mapNotNull { armorEffect ->
-                    when {
-                        armorEffect.requiresFullSet -> armorEffect.effect.takeIf {
-                            ARMOR_SLOTS.filterNot(armorSlot::equals).all { slot ->
-                                player.inventory.getItem(slot)?.takeIf { isSameArmorType(armorPiece, it) } != null
-                            }
-                        }
-                        else -> armorEffect.effect
-                    }
+                val usingFullSet = ARMOR_SLOTS.filterNot(armorSlot::equals).all { slot ->
+                    player.inventory.getItem(slot)?.takeIf { isSameArmorType(armorPiece, it) } != null
                 }
-
-                player.addPotionEffects(finalArmorEffects)
+                mechanic.armorEffects.forEach {
+                    if (it.requiresFullSet && usingFullSet) player.addPotionEffect(it)
+                    else player.addPotionEffect(it)
+                }
             }
         }
 

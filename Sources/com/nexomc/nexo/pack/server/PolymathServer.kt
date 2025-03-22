@@ -6,17 +6,13 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
-import net.kyori.adventure.resource.ResourcePackInfo
-import net.kyori.adventure.resource.ResourcePackRequest
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.entity.mime.ByteArrayBody
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.io.entity.EntityUtils
-import org.bukkit.entity.Player
-import java.net.URI
-import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class PolymathServer : NexoPackServer {
     private val serverAddress: String =
@@ -83,16 +79,5 @@ class PolymathServer : NexoPackServer {
         }
 
         return uploadFuture!!
-    }
-
-    override fun sendPack(player: Player) {
-        if (NexoPlugin.instance().packGenerator().packGenFuture?.isDone == false) return
-        if (uploadFuture == null || uploadFuture?.isDone == false) return
-
-        val request = ResourcePackRequest.resourcePackRequest()
-            .required(NexoPackServer.mandatory).replace(true)
-            .prompt(NexoPackServer.prompt).packs(ResourcePackInfo.resourcePackInfo(packUUID!!, URI.create(packUrl!!), hash!!))
-            .build()
-        player.sendResourcePacks(request)
     }
 }

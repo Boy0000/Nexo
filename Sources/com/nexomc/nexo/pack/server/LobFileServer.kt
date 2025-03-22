@@ -4,24 +4,19 @@ import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
+import java.util.UUID
+import java.util.concurrent.CompletableFuture
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.ContentType
 import org.apache.hc.core5.http.io.entity.EntityUtils
-import org.bukkit.entity.Player
-import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class LobFileServer : NexoPackServer {
     private var packUrl: String? = null
     private var hash: String? = null
     private var packUUID: UUID? = null
     private var uploadFuture: CompletableFuture<Void>? = null
-
-    override fun sendPack(player: Player) {
-        TODO("Not yet implemented")
-    }
 
     override fun uploadPack(): CompletableFuture<Void> {
         if (hash != NexoPlugin.instance().packGenerator().builtPack()!!.hash()) {

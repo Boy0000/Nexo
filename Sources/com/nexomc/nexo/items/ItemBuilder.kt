@@ -47,7 +47,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     private var basePotionType: PotionType? = null
     private var customPotionEffects: MutableList<PotionEffect>? = null
     private var unbreakable: Boolean
-    private var itemFlags: MutableSet<ItemFlag>? = null
+    private var itemFlags: MutableSet<ItemFlag> = mutableSetOf()
     private var attributeModifiers: Multimap<Attribute, AttributeModifier>? = null
     private var customModelData: Int? = null
     var displayName: Component? = null
@@ -493,7 +493,6 @@ class ItemBuilder(private val itemStack: ItemStack) {
     fun clone() = ItemBuilder(itemStack.clone())
 
     fun regenerateItem(): ItemBuilder {
-        var itemStack = this.itemStack
         itemStack.type = type
         if (amount != itemStack.amount) itemStack.amount = amount
 
@@ -543,7 +542,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             itemMeta.addEnchant(enchant.key!!, lvl, true)
         }
 
-        itemFlags?.toTypedArray()?.also(itemMeta::addItemFlags)
+        itemMeta.addItemFlags(*itemFlags.toTypedArray())
         attributeModifiers?.also(itemMeta::setAttributeModifiers)
         itemMeta.setCustomModelData(customModelData)
 
@@ -566,7 +565,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
-        NMSHandlers.handler().handleItemFlagToolTips(itemStack)
+        NMSHandlers.handler().handleItemFlagToolTips(itemStack, itemFlags)
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
             when {
