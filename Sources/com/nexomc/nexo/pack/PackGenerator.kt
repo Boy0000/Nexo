@@ -8,6 +8,7 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.converter.OraxenConverter
+import com.nexomc.nexo.fonts.ReferenceGlyph
 import com.nexomc.nexo.fonts.Shift
 import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
@@ -220,7 +221,9 @@ class PackGenerator {
     private fun addGlyphFiles() {
         NexoPlugin.instance().fontManager().glyphs().groupBy { it.font }.forEach { (font, glyphs) ->
             val builder = resourcePack.font(font)?.toBuilder() ?: Font.font().key(font)
-            glyphs.forEach { builder.addProvider(it.fontProvider) }
+            glyphs.forEach {
+                if (it !is ReferenceGlyph) builder.addProvider(it.fontProvider)
+            }
             builder.build().addTo(resourcePack)
         }
     }

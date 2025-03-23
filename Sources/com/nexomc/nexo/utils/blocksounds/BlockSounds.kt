@@ -1,6 +1,6 @@
 package com.nexomc.nexo.utils.blocksounds
 
-import com.nexomc.nexo.utils.BlockHelpers.validateReplacedSounds
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
 import team.unnamed.creative.sound.SoundEntry
@@ -8,11 +8,11 @@ import team.unnamed.creative.sound.SoundEvent
 import team.unnamed.creative.sound.SoundRegistry
 
 class BlockSounds(section: ConfigurationSection) {
-    val placeSound: String? = getSound(section, "place")?.let(::validateReplacedSounds)
-    val breakSound: String? = getSound(section, "break")?.let(::validateReplacedSounds)
-    val stepSound: String? = getSound(section, "step")?.let(::validateReplacedSounds)
-    val hitSound: String? = getSound(section, "hit")?.let(::validateReplacedSounds)
-    val fallSound: String? = getSound(section, "fall")?.let(::validateReplacedSounds)
+    val placeSound: String? = getSound(section, "place")
+    val breakSound: String? = getSound(section, "break")
+    val stepSound: String? = getSound(section, "step")
+    val hitSound: String? = getSound(section, "hit")
+    val fallSound: String? = getSound(section, "fall")
 
     val placeVolume: Float = getVolume(section, "place", VANILLA_PLACE_VOLUME)
     val breakVolume: Float = getVolume(section, "break", VANILLA_BREAK_VOLUME)
@@ -27,7 +27,7 @@ class BlockSounds(section: ConfigurationSection) {
     val fallPitch: Float = getPitch(section, "fall", VANILLA_FALL_PITCH)
 
     private fun getSound(section: ConfigurationSection, key: String): String? {
-        return section.getString("${key}_sound") ?: section.getConfigurationSection(key)?.getString("sound")
+        return section.getString("${key}_sound") ?: section.getString("${key}.sound")
     }
 
     private fun getVolume(section: ConfigurationSection, type: String, defaultValue: Float): Float {
@@ -64,12 +64,14 @@ class BlockSounds(section: ConfigurationSection) {
         const val VANILLA_STONE_HIT = "nexo:block.stone.hit"
         const val VANILLA_STONE_STEP = "nexo:block.stone.step"
         const val VANILLA_STONE_FALL = "nexo:block.stone.fall"
+        val NEXO_STONE_SOUNDS: List<String>  = ObjectArrayList(listOf(VANILLA_STONE_PLACE, VANILLA_STONE_BREAK, VANILLA_STONE_HIT, VANILLA_STONE_STEP, VANILLA_STONE_FALL))
 
         const val VANILLA_WOOD_PLACE = "nexo:block.wood.place"
         const val VANILLA_WOOD_BREAK = "nexo:block.wood.break"
         const val VANILLA_WOOD_HIT = "nexo:block.wood.hit"
         const val VANILLA_WOOD_STEP = "nexo:block.wood.step"
         const val VANILLA_WOOD_FALL = "nexo:block.wood.fall"
+        val NEXO_WOOD_SOUNDS: List<String> = ObjectArrayList(listOf(VANILLA_WOOD_PLACE, VANILLA_WOOD_BREAK, VANILLA_WOOD_HIT, VANILLA_WOOD_STEP, VANILLA_WOOD_FALL))
 
         const val VANILLA_PLACE_VOLUME = 1.0f
         const val VANILLA_PLACE_PITCH = 0.8f
@@ -111,87 +113,49 @@ class BlockSounds(section: ConfigurationSection) {
             SoundEntry.soundEntry().key(Key.key("step/wood6")).build()
         )
 
+        val VANILLA_STONE_SOUNDS: List<String>  = ObjectArrayList(listOf(
+            "minecraft:block.stone.place",
+            "minecraft:block.stone.break",
+            "minecraft:block.stone.hit",
+            "minecraft:block.stone.fall",
+            "minecraft:block.stone.step"
+        ))
         @JvmField
-        val VANILLA_STONE_SOUND_REGISTRY = SoundRegistry.soundRegistry(
-            "minecraft", listOf(
-                SoundEvent.soundEvent(Key.key("minecraft:block.stone.place"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.stone.break"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.stone.hit"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.stone.fall"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.stone.step"), true, null, ArrayList())
-            )
-        )
+        val VANILLA_STONE_SOUND_REGISTRY = SoundRegistry.soundRegistry("minecraft", VANILLA_STONE_SOUNDS.map {
+            SoundEvent.soundEvent(Key.key(it), true, null, ArrayList())
+        })
 
+        val VANILLA_WOOD_SOUNDS: List<String>  = ObjectArrayList(listOf(
+            "minecraft:block.wood.place",
+            "minecraft:block.wood.break",
+            "minecraft:block.wood.hit",
+            "minecraft:block.wood.fall",
+            "minecraft:block.wood.step"
+        ))
         @JvmField
-        val VANILLA_WOOD_SOUND_REGISTRY = SoundRegistry.soundRegistry(
-            "minecraft", listOf(
-                SoundEvent.soundEvent(Key.key("minecraft:block.wood.place"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.wood.break"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.wood.hit"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.wood.fall"), true, null, ArrayList()),
-                SoundEvent.soundEvent(Key.key("minecraft:block.wood.step"), true, null, ArrayList())
-            )
-        )
+        val VANILLA_WOOD_SOUND_REGISTRY = SoundRegistry.soundRegistry("minecraft", VANILLA_WOOD_SOUNDS.map {
+            SoundEvent.soundEvent(Key.key(it), true, null, ArrayList())
+        })
 
         @JvmField
         val NEXO_STONE_SOUND_REGISTRY = SoundRegistry.soundRegistry(
             "nexo", listOf(
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.stone.place"),
-                    false,
-                    "subtitles.block.generic.place",
-                    STONE_DIG_ENTRIES
-                ),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.stone.break"),
-                    false,
-                    "subtitles.block.generic.break",
-                    STONE_DIG_ENTRIES
-                ),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.stone.hit"),
-                    false,
-                    "subtitles.block.generic.hit",
-                    STONE_STEP_ENTRIES
-                ),
+                SoundEvent.soundEvent(Key.key("nexo:block.stone.place"), false, "subtitles.block.generic.place", STONE_DIG_ENTRIES),
+                SoundEvent.soundEvent(Key.key("nexo:block.stone.break"), false, "subtitles.block.generic.break", STONE_DIG_ENTRIES),
+                SoundEvent.soundEvent(Key.key("nexo:block.stone.hit"), false, "subtitles.block.generic.hit", STONE_STEP_ENTRIES),
                 SoundEvent.soundEvent(Key.key("nexo:block.stone.fall"), false, null, STONE_STEP_ENTRIES),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.stone.step"),
-                    false,
-                    "subtitles.block.generic.footsteps",
-                    STONE_STEP_ENTRIES
-                )
+                SoundEvent.soundEvent(Key.key("nexo:block.stone.step"), false, "subtitles.block.generic.footsteps", STONE_STEP_ENTRIES)
             )
         )
 
         @JvmField
         val NEXO_WOOD_SOUND_REGISTRY = SoundRegistry.soundRegistry(
             "nexo", listOf(
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.wood.place"),
-                    false,
-                    "subtitles.block.generic.place",
-                    WOOD_DIG_ENTRIES
-                ),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.wood.break"),
-                    false,
-                    "subtitles.block.generic.break",
-                    WOOD_DIG_ENTRIES
-                ),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.wood.hit"),
-                    false,
-                    "subtitles.block.generic.hit",
-                    WOOD_STEP_ENTRIES
-                ),
+                SoundEvent.soundEvent(Key.key("nexo:block.wood.place"), false, "subtitles.block.generic.place", WOOD_DIG_ENTRIES),
+                SoundEvent.soundEvent(Key.key("nexo:block.wood.break"), false, "subtitles.block.generic.break", WOOD_DIG_ENTRIES),
+                SoundEvent.soundEvent(Key.key("nexo:block.wood.hit"), false, "subtitles.block.generic.hit", WOOD_STEP_ENTRIES),
                 SoundEvent.soundEvent(Key.key("nexo:block.wood.fall"), false, null, WOOD_STEP_ENTRIES),
-                SoundEvent.soundEvent(
-                    Key.key("nexo:block.wood.step"),
-                    false,
-                    "subtitles.block.generic.footsteps",
-                    WOOD_STEP_ENTRIES
-                )
+                SoundEvent.soundEvent(Key.key("nexo:block.wood.step"), false, "subtitles.block.generic.footsteps", WOOD_STEP_ENTRIES)
             )
         )
     }

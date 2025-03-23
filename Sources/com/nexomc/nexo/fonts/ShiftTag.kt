@@ -20,7 +20,7 @@ object ShiftTag {
     val RESOLVER = TagResolver.resolver(setOf(SHIFT, SHIFT_SHORT)) { args, ctx -> shiftTag(args) }
 
     val REPLACEMENT_CONFIG = TextReplacementConfig.builder()
-        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)).font(FONT) }.build()
+        .match(PATTERN).replacement { r, _ -> Component.text(Shift.of(r.group(1).substringBetween("<shift:",">").toIntOrNull() ?: 0)) }.build()
 
     val ESCAPE_REPLACEMENT_CONFIG = TextReplacementConfig.builder()
         .match(ESCAPED_PATTERN).replacement { r, b -> b.content(r.group(1).removePrefix("\\\\")) }.build()

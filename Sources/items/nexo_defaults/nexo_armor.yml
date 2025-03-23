@@ -22,3 +22,8 @@ forest_boots:
   material: CHAINMAIL_BOOTS
   Pack:
     texture: nexo:item/nexo_armor/forest_boots
+forest_elytra:
+  itemname: "Forest Elytra"
+  material: ELYTRA
+  Pack:
+    texture: nexo:item/nexo_armor/forest_elytra

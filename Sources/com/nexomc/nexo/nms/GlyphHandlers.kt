@@ -36,12 +36,12 @@ object GlyphHandlers {
 
     fun escapeGlyphs(component: Component, player: Player?): Component {
         var component = component
-        component.asFlatTextContent()
+        val serialized = component.asFlatTextContent()
 
         // Replace all unicodes found in default font with a random one
         // This is to prevent use of unicodes from the font the chat is in
-        defaultEmoteReplacementConfigs.filterFast { !it.key.hasPermission(player) }.forEach { (_, config) ->
-            component = component.replaceText(config)
+        defaultEmoteReplacementConfigs.filterFast { !it.key.hasPermission(player) }.forEach { (glyph, config) ->
+            if (glyph.unicodes.joinToString("").any(serialized::contains)) component = component.replaceText(config)
         }
 
         // Replace raw unicode usage of non-permitted Glyphs with random font

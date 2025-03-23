@@ -4,7 +4,6 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -39,7 +38,7 @@ object BlockHelpers {
 
         return blockFaces.mapFast(blockBelow::getRelative).find { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
     }
-    private val blockFaces = BlockFace.entries.take(4)
+    private val blockFaces = ObjectOpenHashSet.of(BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST)
 
     @JvmStatic
     fun playCustomBlockSound(location: Location, sound: String?, volume: Float, pitch: Float) {
@@ -48,19 +47,8 @@ object BlockHelpers {
 
     @JvmStatic
     fun playCustomBlockSound(location: Location?, sound: String?, category: SoundCategory?, volume: Float, pitch: Float) {
-        if (sound == null || location == null || location.world == null || category == null) return
-        location.world.playSound(location, validateReplacedSounds(sound), category, volume, pitch)
-    }
-
-    @JvmStatic
-    fun validateReplacedSounds(sound: String): String {
-        val soundKey = sound.removePrefix("minecraft:")
-
-        return when {
-            CustomBlockFactory.instance()?.customSounds?.enabled != true -> sound
-            soundKey.startsWith("block.wood") || soundKey.startsWith("block.stone") -> soundKey.prependIfMissing("nexo:")
-            else -> sound
-        }
+        if (sound == null || category == null || location == null || !location.isLoaded) return
+        location.world.playSound(location, sound, category, volume, pitch)
     }
 
     @JvmStatic

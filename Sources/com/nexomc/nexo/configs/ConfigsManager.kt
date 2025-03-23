@@ -6,6 +6,7 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.converter.NexoConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.Glyph
+import com.nexomc.nexo.fonts.ReferenceGlyph
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
@@ -24,6 +25,7 @@ import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.toFastList
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import java.io.File
 import java.io.InputStreamReader
@@ -111,22 +113,21 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     fun parseGlyphConfigs(): Collection<Glyph> {
         val output = mutableListOf<Glyph>()
+        val referenceGlyphs = mutableMapOf<String, ConfigurationSection>()
         Glyph.assignedGlyphUnicodes.clear()
 
-        glyphFiles().forEach { file: File ->
-            if (file.name.startsWith("shift")) return@forEach
-
-            loadConfiguration(file).childSections().forEach { glyphId, glyphSection ->
-                Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@forEach
-            }
-        }
-
-        glyphFiles().forEach { file: File ->
-            if (file.name.startsWith("shift")) return@forEach
-            val configuration = loadConfiguration(file)
+        glyphFiles().onEach { file ->
             var fileChanged = false
+            val configuration = loadConfiguration(file)
 
-            configuration.childSections().forEach { glyphId, glyphSection ->
+            configuration.childSections().entries.onEach { (glyphId, glyphSection) ->
+                // Reference glyphs do not contain unicodes as they link to a normal glyph only
+                if (glyphSection.contains("reference")) referenceGlyphs[glyphId] = glyphSection
+                else Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@onEach
+            }.onEach { (glyphId, glyphSection) ->
+                // Skip reference-glyphs until all normal glyphs are parsed
+                if (glyphId in referenceGlyphs) return@onEach
+
                 runCatching {
                     if (Glyph.definedUnicodes(glyphSection) == null) fileChanged = true
                     output += Glyph(glyphSection)
@@ -134,7 +135,22 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     Logs.logWarn("Failed to load glyph $glyphId")
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
                 }
+            }.onEach { (referenceId, _) ->
+                if (referenceId !in referenceGlyphs) return@onEach
+                val referenceSection = referenceGlyphs[referenceId] ?: return@onEach
+                val index = referenceSection.getString("index")?.toIntRangeOrNull() ?: return@onEach
+                val glyphId = referenceSection.getString("reference") ?: return@onEach
+                val glyph = output.find { it.id == glyphId } ?: return@onEach Logs.logError("Reference-Glyph $referenceId tried referencing a Glyph $glyphId, but it does not exist...")
+                val permission = referenceSection.getString("permission") ?: glyph.permission
+                val unicodes = glyph.unicodes.joinToString("")
+
+                if (unicodes.length <= index.last || index.first <= 0) {
+                    return@onEach Logs.logError("Reference-Glyph $referenceId used invalid index $index, $glyphId has indexes ${1 until unicodes.length}")
+                }
+
+                output += ReferenceGlyph(glyph, referenceId, index, permission)
             }
+
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) runCatching {
                 configuration.save(file)
             }.onFailure {

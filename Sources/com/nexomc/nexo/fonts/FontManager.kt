@@ -35,6 +35,7 @@ class FontManager(configsManager: ConfigsManager) {
         glyphs.forEach { glyph: Glyph ->
             if (glyph.unicodes.none(String::isNotEmpty)) return@forEach
             glyphMap[glyph.id] = glyph
+            if (glyph is ReferenceGlyph) return@forEach
             for (unicodes in glyph.unicodes) for (char in unicodes) unicodeGlyphMap[char] = glyph.id
             for (placeholder in glyph.placeholders) placeholderGlyphMap[placeholder] = glyph
             if (glyph.tabcomplete) if (unicodeTabcompletion) tabcompletions.add(glyph.formattedUnicodes) else tabcompletions.addAll(glyph.placeholders)

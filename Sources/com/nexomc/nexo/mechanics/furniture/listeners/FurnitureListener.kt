@@ -30,12 +30,16 @@ import org.bukkit.Material
 import org.bukkit.Rotation
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.inventory.ClickType
+import org.bukkit.event.inventory.InventoryCreativeEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.world.EntitiesLoadEvent
@@ -179,6 +183,27 @@ class FurnitureListener : Listener {
 
         isCancelled = true
         if (player.gameMode == GameMode.CREATIVE) player.inventory.setItemInMainHand(item)
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun InventoryCreativeEvent.onMiddleClick() {
+        val player = inventory.holder as? Player ?: return
+        if (clickedInventory == null || click != ClickType.CREATIVE) return
+        if (slotType != InventoryType.SlotType.QUICKBAR || cursor.type != Material.BARRIER) return
+
+        val baseEntity = FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player) ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        val builder = NexoItems.itemFromId(mechanic.itemID) ?: return
+
+        val item = builder.build()
+        (0..8).forEach { i ->
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) != mechanic.itemID) return@forEach
+
+            player.inventory.heldItemSlot = i
+            isCancelled = true
+            return
+        }
+        cursor = item
     }
 
     @EventHandler

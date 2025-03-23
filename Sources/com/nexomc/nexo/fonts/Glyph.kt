@@ -19,6 +19,17 @@ import team.unnamed.creative.font.FontProvider
 
 object RequiredGlyph : Glyph("required", Font.MINECRAFT_DEFAULT, REQUIRED_GLYPH, 8, 8, REQUIRED_CHAR)
 
+data class ReferenceGlyph(val glyph: Glyph, val referenceId: String, val index: IntRange, override val permission: String) : Glyph(
+    referenceId,
+    glyph.font,
+    glyph.texture,
+    glyph.ascent,
+    glyph.height,
+    listOf(glyph.unicodes.joinToString("").substring(index.first - 1, index.last)),
+    permission,
+    listOf()
+)
+
 open class Glyph(
     val id: String,
     val font: Key,
@@ -27,7 +38,7 @@ open class Glyph(
     val height: Int,
     val unicodes: List<String>,
 
-    val permission: String = "",
+    open val permission: String = "",
     val placeholders: List<String> = listOf(),
     val tabcomplete: Boolean = false,
     val isEmoji: Boolean = false,
@@ -96,6 +107,30 @@ open class Glyph(
             b.content(match.group(1).removePrefix("\\"))
         }.build()
     }
+
+    fun copy(
+        id: String = this.id,
+        font: Key = this.font,
+        texture: Key = this.texture,
+        ascent: Int = this.ascent,
+        height: Int = this.height,
+        unicodes: List<String> = this.unicodes,
+        permission: String = this.permission,
+        placeholders: List<String> = this.placeholders,
+        tabcomplete: Boolean = this.tabcomplete,
+        isEmoji: Boolean = this.isEmoji
+    ): Glyph = Glyph(
+        id = id,
+        font = font,
+        texture = texture,
+        ascent = ascent,
+        height = height,
+        unicodes = unicodes,
+        permission = permission,
+        placeholders = placeholders,
+        tabcomplete = tabcomplete,
+        isEmoji = isEmoji
+    )
 
     companion object {
         val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")

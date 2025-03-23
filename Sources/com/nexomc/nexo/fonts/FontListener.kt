@@ -10,9 +10,7 @@ import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacy
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
 import net.kyori.adventure.text.TextComponent
@@ -203,7 +201,7 @@ class FontListener(private val manager: FontManager) : Listener {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy) return
 
             format = format
-            message = GlyphHandlers.escapeGlyphs(message.deserialize(), player).serialize()
+            message = format(message, player) ?: message
         }
 
         /**
