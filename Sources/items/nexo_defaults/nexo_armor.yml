@@ -26,4 +26,4 @@ forest_elytra:
   itemname: "Forest Elytra"
   material: ELYTRA
   Pack:
-    texture: nexo:item/nexo_armor/forest_elytra
+    texture: nexo:item/nexo_armor/forest_elytra_icon
