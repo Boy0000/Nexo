@@ -2,6 +2,8 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.pack.creative.NexoPackWriter
 import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
@@ -36,8 +38,8 @@ class NexoPackSquash(private val resourcePack: ResourcePack) {
             FileUtils.setHidden(packSquashCache.toPath())
 
             if (!squashedZip.exists()) {
-                PackGenerator.packWriter.writeToDirectory(inputDirectory, resourcePack)
-                PackGenerator.packWriter.writeToZipFile(squashedZip, resourcePack)
+                NexoPackWriter.INSTANCE.writeToDirectory(inputDirectory, resourcePack)
+                NexoPackWriter.INSTANCE.writeToZipFile(squashedZip, resourcePack)
                 val tomlContent = packSquashSettings.readText()
                     .replace("pack_directory = .*".toRegex(), "pack_directory = '${inputDirectory.absolutePath()}'")
                     .replace("output_file_path = .*".toRegex(), "output_file_path = '${squashedZip.absolutePath()}'")

@@ -9,7 +9,7 @@ import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisX
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisY
 import com.nexomc.nexo.utils.wrappers.ParticleWrapper
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import java.util.EnumMap
 import org.bukkit.Location
 import org.bukkit.World

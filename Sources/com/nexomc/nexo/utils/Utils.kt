@@ -26,3 +26,8 @@ internal fun String.toIntRangeOrNull(): IntRange? {
 fun IntRange.randomOrMin(): Int =
     if (start >= endInclusive) start
     else Random.nextInt(start, endInclusive)
+
+fun <T, Z> Map<T, Z?>.filterValuesNotNull() = filterValues { it != null }.ensureCast<Map<T, Z>>()
+inline fun <K, V> Iterable<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K, V> {
+    return associateWith(valueSelector).filterValuesNotNull()
+}

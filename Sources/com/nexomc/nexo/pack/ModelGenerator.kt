@@ -7,6 +7,8 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
@@ -32,7 +34,11 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 val display = resourcePack.model(nexoMeta.parentModel)?.display()?.takeUnless { it.isEmpty() }?.let(::Object2ObjectLinkedOpenHashMap) ?: DisplayProperties.fromMaterial(type)
                 val overrides = resourcePack.model(nexoMeta.model ?: return@forEach)?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
 
-                builder.overrides(overrides).display(display).build().addTo(resourcePack)
+                val model = builder.overrides(overrides).display(display).build()
+                model.addTo(resourcePack)
+
+                //ItemModel
+                resourcePack.item(model.key()) ?: resourcePack.item(Item.item(model.key(), ItemModel.reference(model.key())))
             }
         }
     }

@@ -18,6 +18,7 @@ object KeyUtils {
         else Key.key(key.substring(0, i))
     }
 
+    @JvmStatic
     fun Key.dropExtension(): Key {
         return Key.key(namespace(), value().substringBeforeLast("."))
     }

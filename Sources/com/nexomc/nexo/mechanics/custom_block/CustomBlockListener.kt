@@ -11,11 +11,12 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.associateWithNotNull
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import io.papermc.paper.event.player.PlayerPickItemEvent
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -132,9 +133,9 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun EntityExplodeEvent.onEntityExplosion() {
-        val customBlocks = blockList().mapNotNull { block ->
-            NexoBlocks.customBlockMechanic(block.blockData)?.let { m -> block to m }
-        }.toMap()
+        val customBlocks = blockList().associateWithNotNull { block ->
+            NexoBlocks.customBlockMechanic(block.blockData)
+        }
 
         val windCharged = entity is AbstractWindCharge || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
 

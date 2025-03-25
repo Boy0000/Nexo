@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.misc.misc
 
 import com.nexomc.nexo.api.NexoItems
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.Effect
 import org.bukkit.GameMode
 import org.bukkit.Material

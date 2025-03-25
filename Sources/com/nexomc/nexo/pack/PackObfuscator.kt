@@ -1,15 +1,11 @@
 package com.nexomc.nexo.pack
 
-import com.google.gson.JsonPrimitive
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.pack.creative.NexoPackWriter
 import com.nexomc.nexo.utils.FileUtils
-import com.nexomc.nexo.utils.JsonBuilder.array
-import com.nexomc.nexo.utils.JsonBuilder.`object`
-import com.nexomc.nexo.utils.JsonBuilder.plus
-import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
-import com.nexomc.nexo.utils.JsonObject
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.associateFastWith
@@ -19,10 +15,7 @@ import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.plusFast
-import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
-import com.nexomc.nexo.utils.toJsonObject
-import com.nexomc.nexo.utils.toWritable
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.io.File
@@ -36,6 +29,14 @@ import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Selector
 import team.unnamed.creative.blockstate.Variant
 import team.unnamed.creative.font.BitMapFontProvider
+import team.unnamed.creative.item.CompositeItemModel
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
+import team.unnamed.creative.item.SpecialItemModel
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
@@ -111,12 +112,12 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
             obfuscateSounds()
 
             if (cache) {
-                PackGenerator.packWriter.writeToZipFile(obfCachedPack, resourcePack)
+                NexoPackWriter.INSTANCE.writeToZipFile(obfCachedPack, resourcePack)
                 Logs.logInfo("Caching obfuscated ResourcePack...")
             }
         }
 
-        if (cache) NexoPack.overwritePack(resourcePack, PackGenerator.packReader.readFromZipFile(obfCachedPack))
+        if (cache) NexoPack.overwritePack(resourcePack, NexoPackReader.INSTANCE.readFromZipFile(obfCachedPack))
     }
 
     private fun obfuscateModels() {
@@ -131,53 +132,24 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
         }
 
         obfuscateBlockStates()
-        obfuscateItemModels()
+        obfuscateItems()
     }
 
-    private fun obfuscateItemModels() {
-
-        fun obfuscateModelKey(jsonObject: JsonObject?) {
-            jsonObject?.get("model")?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
-                jsonObject.plus("model", it)
-            }
-            jsonObject?.get("base")?.takeIf { it.isJsonPrimitive }?.asString?.let(Key::key)?.let { obfuscatedModels.findObf(it) }?.key()?.asString()?.let {
-                jsonObject.plus("base", it)
-            }
-            jsonObject?.get("models")?.takeIf { it.isJsonArray }?.asJsonArray?.map { JsonPrimitive(obfuscatedModels.findObf(Key.key(it.asString))?.key()?.asString() ?: it.asString) }?.let {
-                jsonObject.add("models", it.toJsonArray())
-            }
-        }
-
-        fun obfuscateItemModel(obj: JsonObject) {
-            val modelObj = obj.`object`("model") ?: return
-
-            obfuscateModelKey(modelObj)
-            obfuscateModelKey(obj.`object`("fallback"))
-
-            modelObj.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-            modelObj.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-
-            modelObj.`object`("on_false")?.let { onFalse ->
-                obfuscateModelKey(onFalse)
-                onFalse.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                onFalse.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                obfuscateModelKey(onFalse.`object`("fallback"))
-            }
-            modelObj.`object`("on_true")?.let { onTrue ->
-                onTrue.array("entries")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                onTrue.array("cases")?.forEach { it.asJsonObject?.let(::obfuscateItemModel) }
-                obfuscateModelKey(onTrue.`object`("fallback"))
+    private fun obfuscateItems() {
+        fun obfuscateItemModel(itemModel: ItemModel): ItemModel {
+            return when (itemModel) {
+                is CompositeItemModel -> ItemModel.composite(itemModel.models().map(::obfuscateItemModel))
+                is RangeDispatchItemModel -> ItemModel.rangeDispatch(itemModel.property(), itemModel.scale(), itemModel.entries().map { RangeDispatchItemModel.Entry.entry(it.threshold(), obfuscateItemModel(it.model())) }, itemModel.fallback())
+                is ConditionItemModel -> ItemModel.conditional(itemModel.condition(), obfuscateItemModel(itemModel.onTrue()), obfuscateItemModel(itemModel.onFalse()))
+                is SelectItemModel -> ItemModel.select(itemModel.property(), itemModel.cases().map { SelectItemModel.Case._case(obfuscateItemModel(it.model()), it.`when`()) }, itemModel.fallback())
+                is SpecialItemModel -> ItemModel.special(itemModel.render(), obfuscatedModels.findObf(itemModel.base())?.key() ?: itemModel.base())
+                is ReferenceItemModel -> ItemModel.reference(obfuscatedModels.findObf(itemModel.model())?.key() ?: itemModel.model(), itemModel.tints())
+                else -> itemModel
             }
         }
 
-        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
-            runCatching {
-                val itemModelObject = writable.toJsonObject() ?: return@forEach
-                if (ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
-                obfuscateItemModel(itemModelObject)
-
-                resourcePack.unknownFile(key, itemModelObject.toWritable())
-            }.printOnFailure(true)
+        resourcePack.items().toTypedArray().forEach { item ->
+            Item.item(item.key(), obfuscateItemModel(item.model()), item.handAnimationOnSwap()).addTo(resourcePack)
         }
     }
 

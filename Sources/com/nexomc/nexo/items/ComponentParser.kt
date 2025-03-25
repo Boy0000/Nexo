@@ -85,7 +85,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         componentSection.getNamespacedKey("tooltip_style")?.apply(itemBuilder::setTooltipStyle)
 
         componentSection.getNamespacedKey("item_model")?.also {
-            NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += it.key()
+            // For when an ItemModel would just be the TextureModel, do not obfuscate
+            if (VersionUtil.below("1.21.4")) NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += it.key()
         }?.apply(itemBuilder::setItemModel)
 
         if ("enchantable" in componentSection) itemBuilder.setEnchantable(componentSection.getInt("enchantable"))

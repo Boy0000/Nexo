@@ -10,7 +10,7 @@ enum class CustomArmorType {
 
     companion object {
 
-        val itemIdRegex = Regex(".*_(helmet|chestplate|leggings|boots|elytra|wolf|llama|horse)")
+        val itemIdRegex = Regex("(.*)_(helmet|chestplate|leggings|boots|elytra|wolf_armor|llama_armor|horse_armor)")
 
         @JvmStatic
         val setting: CustomArmorType = fromString(Settings.CUSTOM_ARMOR_TYPE.toString())

@@ -13,7 +13,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 object ShiftTag {
     private const val SHIFT = "shift"
     private const val SHIFT_SHORT = "s"
-    val FONT = runCatching { Key.key(Settings.SHIFT_FONT.toString("nexo:shift")) }.getOrDefault(Key.key("nexo:shift"))
+    val FONT = Settings.SHIFT_FONT.toKey(Key.key("nexo:shift"))
     val PATTERN: Pattern = Pattern.compile("(<shift:(-?\\d+)>)")
     val ESCAPED_PATTERN: Pattern = Pattern.compile("(\\\\<shift:(-?\\d+)>)")
 

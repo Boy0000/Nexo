@@ -27,3 +27,18 @@ forest_elytra:
   material: ELYTRA
   Pack:
     texture: nexo:item/nexo_armor/forest_elytra_icon
+forest_wolf_armor:
+  itemname: "Forest Wolf Armor"
+  material: WOLF_ARMOR
+  Pack:
+    texture: nexo:item/nexo_armor/forest_wolf_armor_icon
+forest_llama_armor:
+  itemname: "Forest Llama Carpet"
+  material: PAPER
+  Pack:
+    texture: nexo:item/nexo_armor/forest_llama_armor_icon
+forest_horse_armor:
+  itemname: "Forest Horse Armor"
+  material: DIAMOND_HORSE_ARMOR
+  Pack:
+    texture: nexo:item/nexo_armor/forest_horse_armor_icon

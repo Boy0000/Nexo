@@ -13,8 +13,6 @@ import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.MinecraftVersion
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
-import net.kyori.adventure.key.Key
-import team.unnamed.creative.ResourcePack
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStreamReader
@@ -23,6 +21,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import net.kyori.adventure.key.Key
+import team.unnamed.creative.ResourcePack
 
 object DefaultResourcePackExtractor {
     private const val VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
@@ -36,7 +36,7 @@ object DefaultResourcePackExtractor {
         FileUtils.setHidden(zipPath.parentFile.parentFile.toPath())
     }
 
-    fun extractLatest(reader: NexoPackReader): CompletableFuture<Void> {
+    fun extractLatest(): CompletableFuture<Void> {
         if (future == null || (!zipPath.exists() && future!!.isDone)) future = CompletableFuture.runAsync {
             val vanillaSoundsJson = zipPath.resolveSibling("vanilla-sounds.json")
             zipPath.parentFile.apply {
@@ -55,7 +55,7 @@ object DefaultResourcePackExtractor {
                 }
             }.printOnFailure()
 
-            if (zipPath.exists()) return@runAsync readVanillaRP(reader, zipPath)
+            if (zipPath.exists()) return@runAsync readVanillaRP()
 
             Logs.logInfo("Extracting latest vanilla-resourcepack...")
 
@@ -74,16 +74,16 @@ object DefaultResourcePackExtractor {
             val assetIndex = assetIndex(versionInfo)
             extractVanillaSounds(assetIndex!!)
 
-            readVanillaRP(reader, zipPath)
+            readVanillaRP()
             Logs.logSuccess("Finished extracting latest vanilla-resourcepack!")
         }
 
         return future!!
     }
 
-    private fun readVanillaRP(reader: NexoPackReader, file: File) {
+    private fun readVanillaRP() {
         runCatching {
-            vanillaResourcePack = reader.readFile(file)
+            vanillaResourcePack = NexoPackReader.INSTANCE.readFile(zipPath)
         }.onFailure {
             Logs.logWarn("Failed to read Vanilla ResourcePack-cache...")
             if (Settings.DEBUG.toBool()) it.printStackTrace()

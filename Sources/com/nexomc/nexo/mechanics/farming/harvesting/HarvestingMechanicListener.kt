@@ -4,7 +4,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.to
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block

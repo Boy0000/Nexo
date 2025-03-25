@@ -116,20 +116,21 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val referenceGlyphs = mutableMapOf<String, ConfigurationSection>()
         Glyph.assignedGlyphUnicodes.clear()
 
-        glyphFiles().onEach { file ->
-            var fileChanged = false
-            val configuration = loadConfiguration(file)
-
-            configuration.childSections().entries.onEach { (glyphId, glyphSection) ->
+        glyphFiles().associateWith(::loadConfiguration).apply {
+            entries.flatMap { it.value.childSections().entries }.forEach { (glyphId, glyphSection) ->
                 // Reference glyphs do not contain unicodes as they link to a normal glyph only
                 if (glyphSection.contains("reference")) referenceGlyphs[glyphId] = glyphSection
-                else Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@onEach
-            }.onEach { (glyphId, glyphSection) ->
+                else Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@forEach
+            }
+        }.onEach { (file, configuration) ->
+            var fileChanged = false
+
+            configuration.childSections().entries.onEach { (glyphId, glyphSection) ->
                 // Skip reference-glyphs until all normal glyphs are parsed
                 if (glyphId in referenceGlyphs) return@onEach
 
                 runCatching {
-                    if (Glyph.definedUnicodes(glyphSection) == null) fileChanged = true
+                    if (!fileChanged || glyphId !in Glyph.assignedGlyphUnicodes) fileChanged = true
                     output += Glyph(glyphSection)
                 }.onFailure {
                     Logs.logWarn("Failed to load glyph $glyphId")

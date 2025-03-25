@@ -1,6 +1,5 @@
 package com.nexomc.nexo.items
 
-import com.destroystokyo.paper.MaterialSetTag
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
 import com.nexomc.nexo.utils.appendIfMissing
@@ -44,9 +43,9 @@ data class NexoMeta(
             Key.key("${armorPrefix}_armor_layer_1.png"),
             Key.key("${armorPrefix}_armor_layer_2.png"),
             Key.key("${armorPrefix}_elytra.png"),
-            Key.key("${armorPrefix}_wolf.png"),
-            Key.key("${armorPrefix}_llama.png"),
-            Key.key("${armorPrefix}_horse.png")
+            Key.key("${armorPrefix}_wolf_armor.png"),
+            Key.key("${armorPrefix}_llama_armor.png"),
+            Key.key("${armorPrefix}_horse_armor.png")
         )
 
         constructor(section: ConfigurationSection) : this(
@@ -58,13 +57,13 @@ data class NexoMeta(
             Key.key(section.getString("horse")?.appendIfMissing(".png")!!),
         )
 
-        fun fromItem(item: ItemBuilder): Key? {
+        fun fromItem(item: ItemBuilder, itemId: String): Key? {
             return when {
                 item.type == Material.ELYTRA || item.isGlider == true -> elytra
                 item.equippable?.slot == EquipmentSlot.BODY -> when {
                     item.type == Material.WOLF_ARMOR || item.equippable?.allowedEntities?.contains(EntityType.WOLF) == true -> wolf
-                    MaterialSetTag.WOOL_CARPETS.isTagged(item.type) || item.equippable?.allowedEntities?.contains(EntityType.LLAMA) == true -> llama
-                    item.equippable?.allowedEntities?.contains(EntityType.HORSE) == true -> horse
+                    itemId.endsWith("_llama_armor") || item.equippable?.allowedEntities?.contains(EntityType.LLAMA) == true -> llama
+                    itemId.endsWith("_horse_armor") || item.equippable?.allowedEntities?.contains(EntityType.HORSE) == true -> horse
                     else -> null
                 }
                 item.equippable?.slot == EquipmentSlot.HEAD || item.equippable?.slot == EquipmentSlot.CHEST -> layer1
@@ -111,8 +110,7 @@ data class NexoMeta(
 
         this.customArmorTextures = runCatching { packSection.getConfigurationSection("CustomArmor")?.let(::CustomArmorTextures) }.printOnFailure().getOrNull() ?: let {
             val itemId = packSection.parent!!.name
-            val armorPrefix = itemId.substringBeforeLast("_").takeUnless { it == itemId || it.isBlank() } ?: return@let null
-            itemId.substringAfterLast("_").takeIf { itemId.matches(CustomArmorType.itemIdRegex) } ?: return@let null
+            val armorPrefix = itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() } ?: return@let null
 
             CustomArmorTextures(armorPrefix)
         }

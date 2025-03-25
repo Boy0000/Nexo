@@ -17,7 +17,7 @@ public class LibbyManager {
 
     private static final ArrayList<Library> libs = new ArrayList<>();
     private static final String COMMAND_API_VERSION = "9.7.0";
-    private static final String CREATIVE_VERSION = "1.7.3";
+    private static final String CREATIVE_VERSION = "1.8.3-SNAPSHOT";
     private static final String IDOFRONT_VERSION = "0.25.17";
 
     public static void loadLibs(JavaPlugin plugin) {
@@ -54,15 +54,17 @@ public class LibbyManager {
         libs.add(getLib("com{}jeff-media", "MorePersistentDataTypes", "2.4.0", "com{}jeff_media").build());
         libs.add(getLib("com{}jeff-media", "persistent-data-serializer", "1.0", "com{}jeff_media").build());
 
-        libs.add(getLib("team{}unnamed", "creative-api", "1.7.8-SNAPSHOT", null, false)
-                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/1.7.8-SNAPSHOT/creative-api-1.7.8-SNAPSHOT.jar")
+        libs.add(getLib("team{}unnamed", "creative-api", CREATIVE_VERSION, null, false)
+                .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/%s/creative-api-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))
                 .build());
-        libs.add(getLib("team{}unnamed", "creative-server", CREATIVE_VERSION, null, false).build());
-        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", "1.7.8-SNAPSHOT", null, false)
-                .url("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/1.7.8-SNAPSHOT/creative-serializer-minecraft-1.7.8-SNAPSHOT.jar")
+        libs.add(getLib("team{}unnamed", "creative-server", CREATIVE_VERSION, null, false)
+                .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-server/%s/creative-server-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))
+                .build());
+        libs.add(getLib("team{}unnamed", "creative-serializer-minecraft", CREATIVE_VERSION, null, false)
+                .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/%s/creative-serializer-minecraft-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))
                 .build());
 
-        libs.add(getLib("io{}th0rgal", "protectionlib", "1.8.0", "io{}th0rgal").build());
+        libs.add(getLib("com{}nexomc", "protectionlib", "1.0.1", null, false).build());
         libs.add(getLib("com{}tcoded", "FoliaLib", "0.4.3", "com{}tcoded").build());
 
         libs.add(getLib("me{}gabytm{}util", "actions-spigot", "1.0.0", "me{}gabytm{}util")

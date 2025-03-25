@@ -12,8 +12,12 @@ import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.metadata.Metadata;
+import team.unnamed.creative.metadata.overlays.OverlayEntry;
+import team.unnamed.creative.metadata.overlays.OverlaysMeta;
+import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.overlay.Overlay;
 import team.unnamed.creative.overlay.ResourceContainer;
+import team.unnamed.creative.part.ResourcePackPart;
 import team.unnamed.creative.serialize.minecraft.GsonUtil;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.ResourceCategories;
@@ -29,14 +33,31 @@ import team.unnamed.creative.util.Keys;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 
 import static com.nexomc.nexo.pack.creative.MinecraftResourcePackStructure.*;
 import static java.util.Objects.requireNonNull;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.ASSETS_FOLDER;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.METADATA_EXTENSION;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.OVERLAYS_FOLDER;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_ICON_FILE;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_METADATA_FILE;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.SOUNDS_FILE;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.TEXTURES_FOLDER;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.path;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.tokenize;
 
 public class NexoPackReader implements MinecraftResourcePackReader {
+
+    public static final NexoPackReader INSTANCE = new NexoPackReader();
+
+    private static final boolean lenient = Settings.PACK_READER_LENIENT.toBool();
+
+    private NexoPackReader() {
+    }
 
     public @NotNull ResourcePack readFile(@NotNull final File resourcePackFile) {
         ResourcePack resourcePack = ResourcePack.resourcePack();
@@ -52,6 +73,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
     }
 
     @Override
+    @SuppressWarnings("PatternValidation")
     public @NotNull ResourcePack read(final @NotNull FileTreeReader reader) {
         ResourcePack resourcePack = ResourcePack.resourcePack();
 
@@ -59,7 +81,12 @@ public class NexoPackReader implements MinecraftResourcePackReader {
         // waiting for textures (because we can't know the order
         // they come in)
         // (null key means it is root resource pack)
-        Map<String, Map<Key, Texture>> incompleteTextures = new LinkedHashMap<>();
+        Map<@Nullable String, Map<Key, Texture>> incompleteTextures = new LinkedHashMap<>();
+
+        // fill in with the default ones first (pack format is unknown at the start)
+        Map<String, ResourceCategory<?>> categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(-1);
+        Map<String, Integer> packFormatsByOverlayDir = new HashMap<>();
+        int packFormat = -1;
 
         while (reader.hasNext()) {
             String path = reader.next();
@@ -81,14 +108,24 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                     case PACK_ZIP: continue;
                     case PACK_METADATA_FILE: {
                         // found pack.mcmeta file, deserialize and add
-                        JsonElement metaObject = parseJson(reader.stream());
-                        try {
-                            Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(metaObject);
-                            resourcePack.metadata(metadata);
-                        } catch (Exception e) {
-                            Logs.logWarn("Failed to parse pack.mcmeta...");
-                            if (Settings.DEBUG.toBool()) e.printStackTrace();
-                            else Logs.logWarn(e.getMessage());
+                        Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
+                        resourcePack.metadata(metadata);
+
+                        // get the pack format from the metadata
+                        PackMeta packMeta = metadata.meta(PackMeta.class);
+                        if (packMeta == null) {
+                            // TODO: better warning system
+                            System.err.println("Reading a resource-pack with no pack meta in its pack.mcmeta file! Unknown pack format version :(");
+                        } else {
+                            // update the pack format and categories
+                            packFormat = packMeta.formats().min();
+                            categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
+                        }
+
+                        // overlays info
+                        OverlaysMeta overlaysMeta = metadata.meta(OverlaysMeta.class);
+                        if (overlaysMeta != null) for (OverlayEntry entry : overlaysMeta.entries()) {
+                            packFormatsByOverlayDir.put(entry.directory(), entry.formats().min());
                         }
                         continue;
                     }
@@ -109,6 +146,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
             // but it may change if the file is inside an overlay folder
             @Subst("dir")
             @Nullable String overlayDir = null;
+            int localPackFormat = packFormat;
 
             // the file path, relative to the container
             String containerPath = path;
@@ -141,6 +179,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                 container = overlay;
                 folder = tokens.poll();
                 containerPath = path.substring((OVERLAYS_FOLDER + '/' + overlayDir + '/').length());
+                localPackFormat = packFormatsByOverlayDir.getOrDefault(overlayDir, -1);
             }
 
             // Skip nexo-specific folders
@@ -200,29 +239,10 @@ public class NexoPackReader implements MinecraftResourcePackReader {
 
             if (categoryName.equals(TEXTURES_FOLDER)) {
                 String keyOfMetadata = withoutExtension(categoryPath, METADATA_EXTENSION);
-                String keyOfPng = withoutExtension(categoryPath, TEXTURE_EXTENSION);
                 if (keyOfMetadata != null) {
                     // found metadata for texture
-                    Key key = KeyUtils.parseKey(namespace, keyOfMetadata, "texture-meta");
-                    Metadata metadata;
-                    byte[] content = new byte[0]; // Cache the content of the InputStream
-                    try (InputStream input = reader.content().open()) {
-                        // Cache the input stream content for fallback use
-                        content = input.readAllBytes();
-
-                        // Attempt to parse the metadata
-                        metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(new ByteArrayInputStream(content)));
-                    } catch (Exception e) {
-                        Logs.logWarn("Failed to parse " + containerPath);
-                        if (Settings.DEBUG.toBool()) e.printStackTrace();
-
-                        // Use the cached content to write raw metadata
-                        container.unknownFile(containerPath, Writable.bytes(content));
-
-                        // Fallback to empty metadata
-                        metadata = Metadata.empty();
-                    }
-
+                    Key key = Key.key(namespace, keyOfMetadata);
+                    Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
 
                     Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
                     Texture texture = incompleteTexturesThisContainer.remove(key);
@@ -233,8 +253,8 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                         // texture was found before the metadata, nice!
                         container.texture(texture.meta(metadata));
                     }
-                } else if (keyOfPng != null) {
-                    Key key = KeyUtils.parseKey(namespace, categoryPath, "texture");
+                } else {
+                    Key key = Key.key(namespace, categoryPath);
                     Writable data = reader.content().asWritable();
                     Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
                     Texture waiting = incompleteTexturesThisContainer.remove(key);
@@ -250,16 +270,20 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                                 waiting.meta()
                         ));
                     }
-                } else container.unknownFile(containerPath, reader.content().asWritable());
+                }
             } else {
-                @SuppressWarnings("rawtypes")
-                ResourceCategory category = ResourceCategories.getByFolder(categoryName);
+                // get the resource category, if the local pack format (overlay or root) is the same as the
+                // root pack format, we can use the previously computed map, otherwise we need to compute it
+                // (we could save some time by caching the computed map, but, is it worth it?)
+                ResourceCategory<?> category = (localPackFormat == packFormat
+                        ? categoriesByFolderThisPackFormat
+                        : ResourceCategories.buildCategoryMapByFolder(localPackFormat)).get(categoryName);
                 if (category == null) {
                     // unknown category
                     container.unknownFile(containerPath, reader.content().asWritable());
                     continue;
                 }
-                String keyValue = withoutExtension(categoryPath, category.extension());
+                String keyValue = withoutExtension(categoryPath, category.extension(-1));
                 if (keyValue == null) {
                     // wrong extension
                     container.unknownFile(containerPath, reader.content().asWritable());
@@ -267,27 +291,27 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                 }
 
                 if (keyValue.startsWith("equipment/")) {
-                    // Skip equipment models
+                    // skip trying to load "namespace:equipment/X.json" as a normal model
                     container.unknownFile(containerPath, reader.content().asWritable());
                     continue;
                 }
 
-                Key key = KeyUtils.parseKey(namespace, keyValue, "model");
+                Key key = Key.key(namespace, keyValue);
                 try {
-                    ResourceDeserializer<?> deserializer = category.deserializer();
-                    Object resource = switch (deserializer) {
-                        case BinaryResourceDeserializer binaryDeserializer ->
-                                binaryDeserializer.deserializeBinary(reader.content().asWritable(), key);
-                        case JsonResourceDeserializer jsonDeserializer ->
-                                jsonDeserializer.deserializeFromJson(parseJson(reader.stream()), key);
-                        case null, default -> deserializer.deserialize(reader.stream(), key);
-                    };
-                    //noinspection unchecked
-                    category.setter().accept(container, resource);
-                } catch (Exception e) {
-                    Logs.logWarn("Failed to deserialize resource at: <gold>" + path);
-                    if (Settings.DEBUG.toBool()) e.printStackTrace();
-                    else Logs.logWarn(e.getMessage());
+                    ResourceDeserializer<? extends ResourcePackPart> deserializer = category.deserializer();
+                    ResourcePackPart resource;
+                    if (deserializer instanceof BinaryResourceDeserializer) {
+                        resource = ((BinaryResourceDeserializer<? extends ResourcePackPart>) deserializer)
+                                .deserializeBinary(reader.content().asWritable(), key);
+                    } else if (deserializer instanceof JsonResourceDeserializer) {
+                        resource = ((JsonResourceDeserializer<? extends ResourcePackPart>) deserializer)
+                                .deserializeFromJson(parseJson(reader.stream()), key);
+                    } else {
+                        resource = deserializer.deserialize(reader.stream(), key);
+                    }
+                    resource.addTo(container);
+                } catch (IOException e) {
+                    throw new UncheckedIOException("Failed to deserialize resource at: '" + path + "'", e);
                 }
             }
         }

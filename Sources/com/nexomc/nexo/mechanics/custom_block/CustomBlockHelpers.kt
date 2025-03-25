@@ -15,7 +15,7 @@ import com.nexomc.nexo.utils.BlockHelpers.isStandingInside
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.InteractionResult
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
 import org.bukkit.Material

@@ -47,7 +47,7 @@ import org.bukkit.persistence.PersistentDataType
 import org.joml.Vector3f
 
 class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) : Mechanic(mechanicFactory, section,
-    { itemBuilder: ItemBuilder -> itemBuilder.customTag<Byte, Byte>(FURNITURE_KEY, PersistentDataType.BYTE, 1.toByte()) }
+    { item -> item.customTag<Byte, Byte>(FURNITURE_KEY, PersistentDataType.BYTE, 1.toByte()) }
 ) {
     val limitedPlacing: LimitedPlacing? = section.getConfigurationSection("limited_placing")?.let(::LimitedPlacing)
     val storage: StorageMechanic? = section.getConfigurationSection("storage")?.let(::StorageMechanic)
@@ -100,9 +100,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         var builder: ItemBuilder? = null
 
         // Mechanic-specific item-overrides
-        if (!light.isEmpty && light.toggleable && FurnitureHelpers.lightState(baseEntity))
+        if (!light.isEmpty && light.toggleable && FurnitureHelpers.lightState(baseEntity)) {
             builder = light.toggledItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
                 ?: light.toggledModel?.let(NexoItems::itemFromId)
+        }
 
         // Default Furniture items
         return builder ?: placedItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }

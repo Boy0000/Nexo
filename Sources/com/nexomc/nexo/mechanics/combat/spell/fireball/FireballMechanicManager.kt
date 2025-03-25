@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.combat.spell.fireball
 
 import com.nexomc.nexo.utils.BlockHelpers
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.entity.Fireball
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler

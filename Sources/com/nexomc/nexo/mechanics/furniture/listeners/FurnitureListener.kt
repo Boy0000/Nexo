@@ -22,7 +22,7 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
 import io.papermc.paper.event.player.PlayerPickItemEvent
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
 import org.bukkit.Location

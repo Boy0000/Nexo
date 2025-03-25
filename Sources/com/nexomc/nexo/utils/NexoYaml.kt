@@ -33,6 +33,14 @@ fun ConfigurationSection.getKey(key: String, default: Key): Key {
     return runCatching { getString(key)?.let(Key::key) }.getOrNull() ?: default
 }
 
+fun ConfigurationSection.getKeyList(key: String): List<Key> {
+    return runCatching { getStringList(key).mapNotNull { runCatching { Key.key(it) }.getOrNull() } }.getOrDefault(listOf())
+}
+
+fun ConfigurationSection.getKeyListOrNull(key: String): List<Key>? {
+    return runCatching { getStringList(key).mapNotNull { runCatching { Key.key(it) }.getOrNull() } }.getOrDefault(listOf()).takeIf { it.isNotEmpty() }
+}
+
 fun ConfigurationSection.getNamespacedKey(key: String, default: String): NamespacedKey {
     return runCatching { getString(key)?.let(NamespacedKey::fromString) }.getOrNull() ?: NamespacedKey.fromString(default)!!
 }

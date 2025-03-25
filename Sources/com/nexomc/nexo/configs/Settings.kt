@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
+import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Material
@@ -69,6 +70,7 @@ enum class Settings {
     //Pack
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),
     PACK_MINIMIZE_JSON("Pack.generation.minimize_json", true),
+    PACK_READER_LENIENT("Pack.generation.lenient", false),
     PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.SIMPLE.name),
     PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
@@ -190,6 +192,9 @@ enum class Settings {
     override fun toString() = value.toString()
 
     fun toString(optionalDefault: String) = value as? String ?: optionalDefault
+
+    fun toKey() = runCatching { Key.key(toString()) }.getOrDefault(Key.key("minecraft:default"))
+    fun toKey(optionalDefault: Key) = runCatching { Key.key(toString()) }.getOrDefault(optionalDefault)
 
     fun <E : Enum<E>> toEnum(enumClass: Class<E>, defaultValue: E): E =
         EnumUtils.getEnum(enumClass, toString().uppercase(), defaultValue)

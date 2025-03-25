@@ -22,7 +22,7 @@ class NexoPostPackGenerateEvent(val resourcePack: ResourcePack) : Event() {
 
     fun addResourcePack(resourcePack: File): Boolean {
         return runCatching {
-            NexoPack.mergePack(this.resourcePack, NexoPackReader().readFile(resourcePack))
+            NexoPack.mergePack(this.resourcePack, NexoPackReader.INSTANCE.readFile(resourcePack))
         }.printOnFailure().getOrNull() != null
     }
 

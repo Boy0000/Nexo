@@ -32,8 +32,8 @@ import com.nexomc.nexo.utils.breaker.ModernBreakerManager
 import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
+import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.FoliaLib
-import io.th0rgal.protectionlib.ProtectionLib
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
 import net.kyori.adventure.platform.bukkit.BukkitAudiences
@@ -78,7 +78,7 @@ class NexoPlugin : JavaPlugin() {
             VersionUtil.atleast("1.20.5") -> ModernBreakerManager(ConcurrentHashMap())
             else -> LegacyBreakerManager(ConcurrentHashMap())
         }
-        ProtectionLib.setDebug(Settings.DEBUG.toBool())
+        ProtectionLib.debug = Settings.DEBUG.toBool()
 
         if (Settings.KEEP_UP_TO_DATE.toBool()) SettingsUpdater().handleSettingsUpdate()
         Bukkit.getPluginManager().registerEvents(CustomArmorListener(), this)

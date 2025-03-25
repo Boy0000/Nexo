@@ -10,6 +10,6 @@ class DeathListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAc
     CustomListener(itemID, cooldown, event, clickAction) {
     @EventHandler
     fun PlayerDeathEvent.onDeath() {
-        drops.asSequence().filter { itemID == NexoItems.idFromItem(it) }.forEach { perform(entity.player!!, it!!) }
+        drops.asSequence().forEach { if (itemID == NexoItems.idFromItem(it)) perform(entity.player!!, it!!) }
     }
 }

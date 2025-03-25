@@ -2,7 +2,7 @@ package com.nexomc.nexo.mechanics.combat.lifesteal
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler

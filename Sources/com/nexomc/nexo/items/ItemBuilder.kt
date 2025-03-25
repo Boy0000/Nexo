@@ -547,11 +547,11 @@ class ItemBuilder(private val itemStack: ItemStack) {
         itemMeta.setCustomModelData(customModelData)
 
         if (VersionUtil.atleast("1.21.4")) {
-            if (customModelData != null) customModelDataComponent?.apply {
-                floats = floats.plus(customModelData!!.toFloat())
+            val cmdComponent = (customModelDataComponent ?: itemMeta.customModelDataComponent.takeIf { customModelData != null })?.apply {
+                floats = floats.plus(customModelData!!.toFloat()).distinct()
+                strings = strings.plus(customModelData!!.toFloat().toString()).distinct()
             }
-            if (hasCustomModelDataComponent()) itemMeta.setCustomModelDataComponent(customModelDataComponent)
-            else itemMeta.setCustomModelData(customModelData)
+            itemMeta.setCustomModelDataComponent(cmdComponent)
         }
 
         for ((key, value) in persistentDataMap) {

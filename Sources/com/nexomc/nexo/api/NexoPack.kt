@@ -1,12 +1,21 @@
 package com.nexomc.nexo.api
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.pack.PackGenerator
+import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.utils.logs.Logs
 import java.io.File
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.font.Font
+import team.unnamed.creative.item.CompositeItemModel
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.EmptyItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.metadata.Metadata
 import team.unnamed.creative.metadata.overlays.OverlayEntry
@@ -30,13 +39,13 @@ object NexoPack {
     @JvmStatic
     fun mergePackFromZip(zipFile: File) {
         if (!zipFile.exists()) return
-        mergePack(resourcePack(), PackGenerator.packReader.readFromZipFile(zipFile))
+        mergePack(resourcePack(), NexoPackReader.INSTANCE.readFromZipFile(zipFile))
     }
 
     @JvmStatic
     fun mergePackFromDirectory(directory: File) {
         if (!directory.exists() || !directory.isDirectory) return
-        mergePack(resourcePack(), PackGenerator.packReader.readFromDirectory(directory))
+        mergePack(resourcePack(), NexoPackReader.INSTANCE.readFromDirectory(directory))
     }
 
     @JvmStatic
@@ -74,9 +83,52 @@ object NexoPack {
             .plus(importedPack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>())
             .also { resourcePack.overlaysMeta(OverlaysMeta.of(it)) }
 
+        importedPack.equipment().forEach { equipment ->
+            val oldEquipment = resourcePack.equipment(equipment.key()) ?: return@forEach resourcePack.equipment(equipment)
+            val layersByType = LinkedHashMap(oldEquipment.layers())
+            equipment.layers().forEach { (type, layers) ->
+                layersByType.compute(type) { _, oldLayers ->
+                    return@compute (oldLayers ?: listOf()).plus(layers)
+                }
+            }
+
+            resourcePack.equipment(oldEquipment.layers(layersByType))
+        }
+
+        importedPack.items().forEach { item ->
+            val oldItem = resourcePack.item(item.key()) ?: return@forEach resourcePack.item(item)
+
+            fun mergeItemModels(oldItem: ItemModel, newItem: ItemModel): ItemModel {
+                return when (newItem) {
+                    is ReferenceItemModel -> ItemModel.reference(newItem.model(), newItem.tints().plus((oldItem as? ReferenceItemModel)?.tints() ?: listOf()))
+                    is CompositeItemModel -> ItemModel.composite(newItem.models().plus((oldItem as? CompositeItemModel)?.models() ?: listOf()))
+                    is SelectItemModel -> newItem.toBuilder().addCases((oldItem as? SelectItemModel)?.cases() ?: listOf()).build()
+                    is RangeDispatchItemModel -> newItem.toBuilder().addEntries((oldItem as? RangeDispatchItemModel)?.entries() ?: listOf()).build()
+                    is ConditionItemModel -> {
+                        val oldCondition = (oldItem as? ConditionItemModel)?.takeIf { it.condition() == newItem.condition() }
+                        val mergedTrue = oldCondition?.onTrue()?.let { mergeItemModels(it, newItem.onTrue()) } ?: newItem.onTrue()
+                        val mergedFalse = oldCondition?.onFalse()?.let { mergeItemModels(it, newItem.onFalse()) } ?: newItem.onFalse()
+                        ItemModel.conditional(newItem.condition(), mergedTrue, mergedFalse)
+                    }
+                    else -> item.model()
+                }
+            }
+
+            when {
+                oldItem.model() is ReferenceItemModel -> item.model()
+                oldItem.model() is EmptyItemModel -> item.model()
+                oldItem.model().javaClass == item.model().javaClass -> mergeItemModels(oldItem.model(), item.model())
+                else -> {
+                    Logs.logError("Failed to merge ItemModels ${item.key().asString()}, ")
+                    Logs.logWarn("Existing ItemModel of incompatible type ${oldItem.model().javaClass.simpleName}, keeping old ItemModel...")
+                    null
+                }
+            }?.let { Item.item(item.key(), it, item.handAnimationOnSwap()) }?.addTo(resourcePack)
+        }
+
         (resourcePack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
             .plus(importedPack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
-            .also { resourcePack.sodiumMeta(SodiumMeta.of(it)) }
+            .also { resourcePack.sodiumMeta(SodiumMeta.sodium(it)) }
 
         importedPack.models().forEach { model: Model ->
             model.toBuilder().apply {

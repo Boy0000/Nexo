@@ -5,7 +5,7 @@ import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.utils.EventUtils.call
 import com.ticxo.modelengine.api.events.BaseEntityInteractEvent
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.GameMode
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.EventHandler

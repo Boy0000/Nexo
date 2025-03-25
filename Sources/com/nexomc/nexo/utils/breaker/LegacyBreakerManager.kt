@@ -18,7 +18,7 @@ import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.tcoded.folialib.wrapper.task.WrappedTask
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block

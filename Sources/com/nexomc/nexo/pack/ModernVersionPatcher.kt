@@ -1,384 +1,96 @@
 package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
-import com.nexomc.nexo.utils.JsonBuilder
-import com.nexomc.nexo.utils.JsonBuilder.array
-import com.nexomc.nexo.utils.JsonBuilder.`object`
-import com.nexomc.nexo.utils.JsonBuilder.plus
-import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
-import com.nexomc.nexo.utils.JsonObject
-import com.nexomc.nexo.utils.appendIfMissing
-import com.nexomc.nexo.utils.associateFast
-import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.prependIfMissing
-import com.nexomc.nexo.utils.toJsonObject
+import com.nexomc.nexo.pack.creative.NexoPackReader
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.base.Writable
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.EmptyItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
+import team.unnamed.creative.item.SpecialItemModel
+import team.unnamed.creative.item.property.ItemNumericProperty
+import team.unnamed.creative.item.property.ItemStringProperty
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
 
-// Patch for handling CustomModelData for 1.21.4+ until creative updated
-class ModernVersionPatcher(val resourcePack: ResourcePack) {
-    private val overlayItemModelRegex = ".+/assets/minecraft/items/.*\\.json".toRegex()
+object ModernVersionPatcher {
 
-    private fun mergeItemModels(firstModel: Writable, secondModel: Writable): Writable {
-        // Parse JSON objects
-        val firstJson = firstModel.toJsonObject() ?: return secondModel
-        val secondJson = secondModel.toJsonObject() ?: return firstModel
-        if (firstJson == secondJson) return secondModel
+    fun convertResources(resourcePack: ResourcePack) {
+        resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
+            val overrides = model.overrides()
+            val standardItem = standardItemModels[itemKey]
+            val finalNewItemModel = standardItem?.let { existingItemModel ->
+                val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
 
-        // Extract "entries" array from the first model
-        val firstEntries = firstJson.`object`("model")?.array("entries")
+                when (baseItemModel) {
+                    is RangeDispatchItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull {
+                        RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                    }, baseItemModel)
 
-        // If "entries" exist in the base model, merge with overlay
-        if (firstEntries != null) {
-            val secondModelJson = secondJson.`object`("model") ?: return firstModel
-            val updatedEntries = secondModelJson.array("entries")?.plus(firstEntries) ?: firstEntries
+                    is SelectItemModel -> ItemModel.select().property(ItemStringProperty.customModelData()).fallback(baseItemModel).addCases(overrides.mapNotNull {
+                        SelectItemModel.Case._case(ItemModel.reference(it.model()), it.predicate().customModelData?.toString() ?: return@mapNotNull null)
+                    }).build()
 
-            // Add merged entries back into the second model JSON
-            secondModelJson.add("entries", updatedEntries)
-            return Writable.stringUtf8(secondJson.toString())
-        }
-
-        // No "entries" in the base model, replace with overlay
-        return secondModel
-    }
-
-    fun patchPack() {
-        resourcePack.models().filterFast { it.key() in standardTextureModels }
-            .associateFast { it.key().value().removePrefix("block/").removePrefix("item/").appendIfMissing(".json") to it.overrides() }
-            .forEach { (model, overrides) ->
-                val standardItemModel = standardItemModels["assets/minecraft/items/$model"]?.toJsonObject()
-                // If not standard (shield etc.) we need to traverse the tree
-                val finalNewItemModel = standardItemModel?.let { existingItemModel ->
-                    // More complex item-models, like shield etc
-                    val baseItemModel = existingItemModel.`object`("model")?.takeUnless { it.isSimpleItemModel } ?: return@let null
-
-                    runCatching {
-                        when {
-                            model == "crossbow.json" -> handleCrossbowEntries(existingItemModel, baseItemModel, overrides)
-                            model == "bow.json" -> handleBowEntries(existingItemModel, baseItemModel, overrides)
-                            model == "player_head.json" -> handlePlayerEntries(existingItemModel, baseItemModel, overrides)
-                            model.endsWith("shulker_box.json") -> handleShulkerBoxEntries(existingItemModel, baseItemModel, overrides)
-                            else -> {
-                                val keys = baseItemModel.keySet()
-                                if ("on_false" in keys) handleOnBoolean(false, baseItemModel, overrides)
-                                if ("on_true" in keys) handleOnBoolean(true, baseItemModel, overrides)
-                                if ("tints" in keys) handleTints(existingItemModel, baseItemModel, overrides)
-                                if ("cases" in keys) handleCases(existingItemModel, baseItemModel, overrides)
-                            }
+                    is ConditionItemModel -> {
+                        val (trueOverrides, falseOverrides) = overrides.groupBy { it.predicate().customModelData?.takeUnless { it == 0f } }.let {
+                            it.values.mapNotNull { it.last() } to it.values.mapNotNull { it.first() }
                         }
-                    }.onFailure {
-                        it.printStackTrace()
-                        Logs.logError(model)
-                        Logs.logWarn(overrides.joinToString("\n") { s -> s.toString() })
+
+                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, trueOverrides.mapNotNull {
+                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                        }, baseItemModel.onTrue())
+
+                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, falseOverrides.mapNotNull {
+                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                        }, baseItemModel.onFalse())
+
+                        ItemModel.conditional(baseItemModel.condition(), onTrue, onFalse)
                     }
 
-                    existingItemModel
-                } ?: JsonBuilder.jsonObject.plus("model", modelObject(standardItemModel?.`object`("model"), overrides, model))
+                    is ReferenceItemModel -> ItemModel.rangeDispatch().fallback(baseItemModel).property(ItemNumericProperty.customModelData()).also { builder ->
+                        builder.addEntries(overrides.mapNotNull { override ->
+                            val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                            RangeDispatchItemModel.Entry.entry(cmd, ItemModel.reference(override.model(), baseItemModel.tints()))
+                        })
+                    }.build()
 
-                val key = "assets/minecraft/items/$model"
-                val existingWritable = resourcePack.unknownFile(key)?.let {
-                    if (!isStandardItemModel(key, it.toJsonObject())) return@let it
-                    resourcePack.removeUnknownFile(key)
-                    null
+                    is SpecialItemModel -> {
+                        val defaultDisplay = DisplayProperties.fromModel(model)
+                        val newBase = ItemModel.special(baseItemModel.render(), when {
+                            model.display() != defaultDisplay -> model.key()
+                            else -> baseItemModel.base()
+                        })
+
+                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch().fallback(newBase).property(ItemNumericProperty.customModelData()).apply {
+                            addEntries(overrides.mapNotNull { override ->
+                                val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                                RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
+                            })
+                        }.build()
+                        else newBase
+                    }
+                    else -> baseItemModel
                 }
+            } ?: modelObject(standardItem?.model(), overrides, itemKey)
 
-                val finalWritable = existingWritable?.let {
-                    mergeItemModels(it, Writable.stringUtf8(finalNewItemModel.toString()))
-                } ?: Writable.stringUtf8(finalNewItemModel.toString())
-
-                resourcePack.unknownFile(key, finalWritable)
-            }
-
-        // Merge any ItemModel in an overlay into the base one
-        resourcePack.unknownFiles()
-            .filterKeys { it.matches(overlayItemModelRegex) }
-            .mapKeys { it.key.substringAfter("/").prependIfMissing("assets/") }
-            .forEach { (key, overlayWritable) ->
-                resourcePack.unknownFile(key)?.toJsonObject()
-                    ?.takeUnless { !isStandardItemModel(key, it) }
-                    ?.also { resourcePack.unknownFile(key, overlayWritable) }
-                    ?: mergeItemModels(resourcePack.unknownFile(key) ?: overlayWritable, overlayWritable).also {
-                        resourcePack.unknownFile(key, it)
-                    }
-            }
-
-        // Remove all overlay ItemModels
-        resourcePack.unknownFiles()
-            .filterKeys { it.matches(overlayItemModelRegex) || resourcePack.unknownFile(it)?.let { w -> isStandardItemModel(it, w.toJsonObject()) } == true }
-            .keys.forEach(resourcePack::removeUnknownFile)
-    }
-
-    private fun handleCases(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: MutableList<ItemOverride>,
-    ) {
-        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus("fallback", baseItemModel)
-            .plus(
-                "entries", JsonBuilder.jsonArray.plus(overrides.mapNotNull {
-                    val cmd = it.predicate().customModelData ?: return@mapNotNull null
-                    JsonBuilder.jsonObject.plus("threshold", cmd).plus(
-                        "model", JsonBuilder.jsonObject
-                            .plus("model", it.model().asString())
-                            .plus("type", "minecraft:model")
-                    )
-                }.toJsonArray())
-            ).let { existingItemModel.plus("model", it) }
-    }
-
-    private fun handleTints(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: MutableList<ItemOverride>,
-    ) {
-        val defaultTints = baseItemModel.array("tints") ?: return
-
-        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus(
-                "entries", JsonBuilder.jsonArray
-                    .plus(JsonBuilder.jsonObject.plus("model", baseItemModel).plus("threshold", 0f))
-                    .plus(overrides.mapNotNull {
-                        val cmd = it.predicate().customModelData ?: return@mapNotNull null
-                        JsonBuilder.jsonObject.plus("threshold", cmd).plus(
-                            "model", JsonBuilder.jsonObject
-                                .plus("model", it.model().asString())
-                                .plus("type", "minecraft:model")
-                                .plus("tints", defaultTints)
-                        )
-                    }.toJsonArray())
-            ).let { existingItemModel.plus("model", it) }
-    }
-
-    private fun handleOnBoolean(
-        boolean: Boolean,
-        baseItemModel: JsonObject,
-        overrides: List<ItemOverride>,
-    ) {
-        val defaultObject = baseItemModel.`object`("on_$boolean")?.deepCopy() ?: return
-        val wantedOverrides = overrides.groupBy { it.predicate().customModelData }
-            .let {
-                it.values.map { e -> if (boolean) e.last() else e.first() }
-            }.filter { (it.predicate().customModelData ?: 0) != 0 }
-
-        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus(
-                "entries", JsonBuilder.jsonArray
-                    .plus(JsonBuilder.jsonObject.plus("model", defaultObject).plus("threshold", 0f))
-                    .plus(wantedOverrides.mapNotNull {
-                        val cmd = it.predicate().customModelData ?: return@mapNotNull null
-                        JsonBuilder.jsonObject.plus("threshold", cmd).plus(
-                            "model", JsonBuilder.jsonObject
-                                .plus("model", it.model().asString())
-                                .plus("type", "minecraft:model")
-                        )
-                    }.toJsonArray())
-            ).let { baseItemModel.plus("on_$boolean", it) }
-    }
-
-    private fun handleCrossbowEntries(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: MutableList<ItemOverride>,
-    ) {
-        val defaultObject = baseItemModel.deepCopy() ?: return
-        val pullingOverrides = overrides.groupBy { it.predicate().customModelData }
-
-        JsonBuilder.jsonObject
-            .plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus("entries", pullingOverrides.entries.mapNotNull { (cmd, overrides) ->
-                val pullOverrides = overrides.filter { it.predicate().pull != null }.sortedBy { it.predicate().pull }
-                val pullFallback = pullOverrides.firstOrNull()?.model()?.asString() ?: overrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
-                val pullFallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", pullFallback)
-
-                val fallback = overrides.find { it.predicate().pull == null }?.model()?.asString()
-                val fallbackObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback)
-
-                val fireworkObject = JsonBuilder.jsonObject.plus("when", "rocket")
-                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
-                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
-                    } ?: fallbackObject)
-                val chargedObject = JsonBuilder.jsonObject.plus("when", "arrow")
-                    .plus("model", overrides.firstOrNull { it.predicate().charged != null }?.model()?.asString()?.let {
-                        JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", it)
-                    } ?: fallbackObject)
-
-                JsonBuilder.jsonObject
-                    .plus("threshold", cmd ?: return@mapNotNull null)
-                    .plus(
-                        "model",
-                        JsonBuilder.jsonObject
-                            .plus("type", "minecraft:condition")
-                            .plus("property", "minecraft:using_item")
-                            .plus("on_false",
-                                JsonBuilder.jsonObject
-                                    .plus("type", "minecraft:select")
-                                    .plus("property", "minecraft:charge_type")
-                                    .plus("fallback", fallbackObject)
-                                    .plus("cases", JsonBuilder.jsonArray.plus(fireworkObject).plus(chargedObject))
-                            )
-                            .plus("on_true",
-                                JsonBuilder.jsonObject
-                                    .plus("type", "minecraft:range_dispatch")
-                                    .plus("property", "minecraft:crossbow/pull")
-                                    .plus("fallback", pullFallbackObject)
-                                    .plus("entries", pullOverrides.mapNotNull pull@{ pull ->
-                                        val model = pull.model().asString()
-                                        val modelObject = JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", model)
-                                        val pullThreshold = pull.predicate().pull?.takeIf { it > 0 } ?: return@pull null
-                                        JsonBuilder.jsonObject.plus("threshold", pullThreshold).plus("model", modelObject)
-                                    }.toJsonArray())
-                            )
-                    )
-            }.toJsonArray())
-            .plus("fallback", defaultObject)
-            .also { existingItemModel.plus("model", it) }
-    }
-
-    private fun handleShulkerBoxEntries(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: List<ItemOverride>,
-    ) {
-        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus("fallback", baseItemModel)
-            .plus(
-                "entries", JsonBuilder.jsonArray
-                    .plus(overrides.mapNotNull { override ->
-                        val cmd = override.predicate().customModelData ?: return@mapNotNull null
-                        JsonBuilder.jsonObject.plus("threshold", cmd)
-                            .plus("model", JsonBuilder.jsonObject.plus("model", override.model().asString()).plus("type", "minecraft:model"))
-                    }.toJsonArray())
-            ).let { existingItemModel.plus("model", it) }
-    }
-
-    private fun handlePlayerEntries(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: List<ItemOverride>,
-    ) {
-        JsonBuilder.jsonObject.plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus("fallback", baseItemModel)
-            .plus(
-                "entries", JsonBuilder.jsonArray
-                    .plus(overrides.mapNotNull { override ->
-                        val entry = baseItemModel.deepCopy().also {
-                            it.addProperty("base", override.model().asString())
-                        }
-                        val cmd = override.predicate().customModelData ?: return@mapNotNull null
-                        JsonBuilder.jsonObject.plus("threshold", cmd).plus("model", entry)
-                    }.toJsonArray())
-            ).let { existingItemModel.plus("model", it) }
-    }
-
-    private fun handleBowEntries(
-        existingItemModel: JsonObject,
-        baseItemModel: JsonObject,
-        overrides: List<ItemOverride>,
-    ) {
-        val defaultObject = baseItemModel.deepCopy() ?: return
-        val pullingOverrides = overrides.groupBy { it.predicate().customModelData }
-
-        JsonBuilder.jsonObject
-            .plus("type", "minecraft:range_dispatch")
-            .plus("property", "minecraft:custom_model_data")
-            .plus("entries", pullingOverrides.entries.mapNotNull { (cmd, overrides) ->
-                val pullOverrides = overrides.filter { it.predicate().pull != null }.sortedBy { it.predicate().pull }
-                val fallback = pullOverrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
-                val onFalse = overrides.firstOrNull()?.model()?.asString() ?: return@mapNotNull null
-
-                JsonBuilder.jsonObject
-                    .plus("threshold", cmd ?: return@mapNotNull null)
-                    .plus(
-                        "model",
-                        JsonBuilder.jsonObject
-                            .plus("type", "minecraft:condition")
-                            .plus("property", "minecraft:using_item")
-                            .plus("on_false", JsonBuilder.jsonObject.plus("model", onFalse).plus("type", "minecraft:model"))
-                            .plus(
-                                "on_true",
-                                JsonBuilder.jsonObject
-                                    .plus("type", "minecraft:range_dispatch")
-                                    .plus("property", "minecraft:use_duration")
-                                    .plus("scale", 0.05)
-                                    .plus("fallback", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", fallback))
-                                    .plus("entries", pullOverrides.mapNotNull pull@{ pull ->
-                                        val model = pull.model().asString()
-                                        val pull = pull.predicate().pull?.takeIf { it > 0 } ?: return@pull null
-                                        JsonBuilder.jsonObject
-                                            .plus("threshold", pull)
-                                            .plus("model", JsonBuilder.jsonObject.plus("type", "minecraft:model").plus("model", model))
-                                    }.toJsonArray())
-                            )
-                    )
-            }.toJsonArray()).plus("fallback", defaultObject).also { existingItemModel.plus("model", it) }
-
-    }
-
-    private val JsonObject.isSimpleItemModel: Boolean
-        get() = keySet().size == 2 && get("type").asString.equals("minecraft:model")
-
-
-    private val standardTextureModels by lazy {
-        ObjectArrayList(
-            runCatching {
-                PackGenerator.packReader.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-        }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).models()
-            .plus(DefaultResourcePackExtractor.vanillaResourcePack.models())
-            .map { it.key() }.distinct()
-        )
-    }
-
-    companion object {
-        private val standardItemModels by lazy {
-            Object2ObjectOpenHashMap(
-                runCatching {
-                    PackGenerator.packReader.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-                }.getOrDefault(DefaultResourcePackExtractor.vanillaResourcePack).unknownFiles()
-                    .filterKeys { it.startsWith("assets/minecraft/items") }
-            )
-        }
-
-        fun isStandardItemModel(key: String, itemModel: JsonObject?): Boolean {
-            return (standardItemModels[key]?.toJsonObject()?.equals(itemModel) ?: false)
+            resourcePack.item(Item.item(itemKey, finalNewItemModel))
         }
     }
 
-    private fun modelObject(
-        baseItemModel: JsonObject?,
-        overrides: List<ItemOverride>,
-        model: String? = null,
-    ): JsonObject = JsonBuilder.jsonObject
-        .plus("type", "minecraft:range_dispatch")
-        .plus("property", "minecraft:custom_model_data")
-        .plus("entries", modelEntries(overrides))
-        .plus("scale", 1f)
-        .apply {
-            if (model != null) plus(
-                "fallback", baseItemModel ?: JsonBuilder.jsonObject
-                    .plus("type", "minecraft:model")
-                    .plus("model", "item/${model.removeSuffix(".json")}")
-            )
-        }
+    private fun modelObject(baseItemModel: ItemModel?, overrides: List<ItemOverride>, modelKey: Key?): ItemModel {
+        return ItemModel.rangeDispatch().property(ItemNumericProperty.customModelData()).apply {
+            if (modelKey != null) fallback(baseItemModel ?: ItemModel.reference(modelKey))
+        }.addEntries(modelEntries(overrides)).build()
+    }
 
-    private fun modelEntries(overrides: List<ItemOverride>) = overrides.mapNotNull {
-        JsonBuilder.jsonObject.plus("threshold", it.predicate().customModelData ?: return@mapNotNull null).plus(
-            "model", JsonBuilder.jsonObject
-                .plus("model", it.model().asString())
-                .plus("type", "minecraft:model")
-        )
-    }.toJsonArray()
+    private fun modelEntries(overrides: List<ItemOverride>) = overrides.mapNotNull { override ->
+        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
+    }
 
     private val List<ItemPredicate>.customModelData: Float?
         get() = firstOrNull { it.name() == "custom_model_data" }?.value().toString().toFloatOrNull()
@@ -388,4 +100,15 @@ class ModernVersionPatcher(val resourcePack: ResourcePack) {
         get() = firstOrNull { it.name() == "charged" }?.value().toString().toDoubleOrNull()
     private val List<ItemPredicate>.firework: Double?
         get() = firstOrNull { it.name() == "firework" }?.value().toString().toDoubleOrNull()
+
+    val standardItemModels by lazy {
+        runCatching {
+            NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
+        }.getOrDefault(ResourcePack.resourcePack()).items().plus(DefaultResourcePackExtractor.vanillaResourcePack.items())
+            .associateByTo(Object2ObjectOpenHashMap()) { it.key() }
+    }
+
+    val ItemModel.isSimpleItemModel: Boolean get() {
+        return (this as? ReferenceItemModel)?.tints()?.isEmpty() == true || this is EmptyItemModel
+    }
 }

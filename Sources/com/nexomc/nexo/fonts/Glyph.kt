@@ -19,16 +19,8 @@ import team.unnamed.creative.font.FontProvider
 
 object RequiredGlyph : Glyph("required", Font.MINECRAFT_DEFAULT, REQUIRED_GLYPH, 8, 8, REQUIRED_CHAR)
 
-data class ReferenceGlyph(val glyph: Glyph, val referenceId: String, val index: IntRange, override val permission: String) : Glyph(
-    referenceId,
-    glyph.font,
-    glyph.texture,
-    glyph.ascent,
-    glyph.height,
-    listOf(glyph.unicodes.joinToString("").substring(index.first - 1, index.last)),
-    permission,
-    listOf()
-)
+data class ReferenceGlyph(val glyph: Glyph, val referenceId: String, val index: IntRange, override val permission: String)
+    : Glyph(referenceId, glyph.font, glyph.texture, glyph.ascent, glyph.height, listOf(glyph.unicodes.joinToString("").substring(index.first - 1, index.last)), permission, listOf())
 
 open class Glyph(
     val id: String,
@@ -52,10 +44,10 @@ open class Glyph(
     private val colorableUnicodeComponent = Component.textOfChildren(*unicodes.flatMap {
         listOf(Component.text(it.toList().joinToString(Shift.of(-1))).font(font), Component.newline())
     }.toTypedArray())
-    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shift: Shift = Shift.NULL) =
+    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shift: String = Shift.of(0)) =
         Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift", NamedTextColor.WHITE.takeUnless { colorable }).font(font)
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =
-        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, Shift.MINUS_1.takeIf { indexRange.count() > 1 } ?: Shift.NULL) }.toTypedArray())
+        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
 
     val baseRegex: Pattern
     private val escapedRegex: Pattern

@@ -30,9 +30,8 @@ import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
-import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
-import com.nexomc.nexo.utils.toJsonObject
+import com.nexomc.nexo.utils.safeCast
 import com.ticxo.modelengine.api.ModelEngineAPI
 import java.io.File
 import java.net.URI
@@ -45,6 +44,7 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
+import team.unnamed.creative.font.SpaceFontProvider
 import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.sound.SoundRegistry
@@ -70,7 +70,7 @@ class PackGenerator {
         val futures = arrayOf(
             packDownloader.downloadRequiredPack(),
             packDownloader.downloadDefaultPack(),
-            DefaultResourcePackExtractor.extractLatest(packReader),
+            DefaultResourcePackExtractor.extractLatest(),
             ModelEngineCompatibility.modelEngineFuture()
         )
 
@@ -87,7 +87,7 @@ class PackGenerator {
                 }.forEach { file ->
                     runCatching {
                         Logs.logInfo("Importing pack from <aqua>${file.path}")
-                        NexoPack.mergePack(resourcePack, packReader.readFile(file))
+                        NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(file))
                     }.onFailure {
                         Logs.logError("Failed to read ${file.path} to a ResourcePack")
                         if (Settings.DEBUG.toBool()) it.printStackTrace()
@@ -97,7 +97,7 @@ class PackGenerator {
                 Settings.PACK_IMPORT_FROM_URL.toStringList().forEach { url ->
                     runCatching {
                         Logs.logInfo("Importing pack from <aqua>${url}")
-                        val pack = URI.create(url).toURL().openStream().use(packReader::readFromInputStream)
+                        val pack = URI.create(url).toURL().openStream().use(NexoPackReader.INSTANCE::readFromInputStream)
                         NexoPack.mergePack(resourcePack, pack)
                     }.onFailure {
                         Logs.logError("Failed to read $url to a ResourcePack")
@@ -110,7 +110,7 @@ class PackGenerator {
                     OraxenConverter.processPackFolder(packFolder)
 
                 runCatching {
-                    NexoPack.mergePack(resourcePack, packReader.readFile(packFolder))
+                    NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(packFolder))
                 }.onFailure {
                     Logs.logError("Failed to read Nexo/pack/assets-folder to a ResourcePack")
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
@@ -141,10 +141,10 @@ class PackGenerator {
 
                 packValidator.validatePack()
                 if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.handler().resourcepackFormat(), "Nexo's default pack.")
-                ModernVersionPatcher(resourcePack).patchPack()
-                removeStandardItemModels()
+                ModernVersionPatcher.convertResources(resourcePack)
+                resourcePack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
 
-                val initialHash = packWriter.build(resourcePack).hash().takeIf {
+                val initialHash = NexoPackWriter.INSTANCE.build(resourcePack).hash().takeIf {
                     !packObfuscator.obfuscationType.isNone || Settings.PACK_USE_PACKSQUASH.toBool()
                 } ?: ""
 
@@ -157,9 +157,9 @@ class PackGenerator {
                     builtPack = BuiltResourcePack.of(Writable.file(packZip), FileUtils.getSha1Hash(packZip))
                 } else {
                     if (Settings.PACK_GENERATE_ZIP.toBool()) SchedulerUtils.foliaScheduler.runAsync {
-                        packWriter.writeToZipFile(packZip, resourcePack)
+                        NexoPackWriter.INSTANCE.writeToZipFile(packZip, resourcePack)
                     }
-                    builtPack = packWriter.build(resourcePack)
+                    builtPack = NexoPackWriter.INSTANCE.build(resourcePack)
                 }
             }.onFailure {
                 Logs.logError("Failed to generate ResourcePack...")
@@ -175,18 +175,6 @@ class PackGenerator {
                 }
                 if (Settings.PACK_SEND_RELOAD.toBool()) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
             }
-        }
-    }
-
-    private fun removeStandardItemModels() {
-        // Remove standard ItemModel files as they are no longer needed
-        resourcePack.unknownFiles().filterFast { it.key.startsWith("assets/minecraft/items/") }.forEach { (key, writable) ->
-            runCatching {
-                val itemModelObject = writable.toJsonObject() ?: return@forEach
-                if (!ModernVersionPatcher.isStandardItemModel(key, itemModelObject)) return@forEach
-
-                resourcePack.removeUnknownFile(key)
-            }.printOnFailure(true)
         }
     }
 
@@ -244,10 +232,8 @@ class PackGenerator {
 
     private fun importRequiredPack() {
         runCatching {
-            val requiredPack = packReader.readFile(externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return)
-            if (VersionUtil.atleast("1.21.4")) requiredPack.unknownFiles().keys.filter { it.startsWith("assets/minecraft/items/") }.forEach {
-                requiredPack.removeUnknownFile(it)
-            }
+            val requiredPack = NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return)
+            if (VersionUtil.atleast("1.21.4")) requiredPack.items().map { it.key() }.forEach(requiredPack::removeItem)
             NexoPack.mergePack(resourcePack, requiredPack)
         }.onFailure {
             if (!Settings.DEBUG.toBool()) Logs.logError(it.message!!)
@@ -260,7 +246,7 @@ class PackGenerator {
         Logs.logInfo("Importing DefaultPack...")
 
         runCatching {
-            NexoPack.mergePack(resourcePack, packReader.readFile(defaultPack))
+            NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(defaultPack))
         }.onFailure {
             Logs.logError("Failed to read Nexo's DefaultPack...")
             if (Settings.DEBUG.toBool()) it.printStackTrace()
@@ -278,7 +264,7 @@ class PackGenerator {
                 if (it.isDirectory || it.name.endsWith(".zip")) {
                     Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
                     runCatching {
-                        NexoPack.mergePack(resourcePack, packReader.readFile(it))
+                        NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(it))
                     }.onFailure { e ->
                         Logs.logError("Failed to read ${it.path} to a ResourcePack...")
                         if (!Settings.DEBUG.toBool()) Logs.logError(e.message!!)
@@ -298,7 +284,7 @@ class PackGenerator {
             ?: return Logs.logWarn("Could not find ModelEngine ZIP-resourcepack...")
 
         runCatching {
-            NexoPack.mergePack(resourcePack, packReader.readFile(megPack).also { pack ->
+            NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(megPack).also { pack ->
                 if (VersionUtil.atleast("1.21.4")) packObfuscator.skippedKeys += pack.models().map { it.key() }
                 if (!Settings.PACK_EXCLUDE_MODEL_ENGINE_SHADERS.toBool()) return@also
                 pack.unknownFiles().keys.filter { "assets/minecraft/shaders/core" in it }.forEach(pack::removeUnknownFile)
@@ -348,7 +334,7 @@ class PackGenerator {
     init {
         generateDefaultPaths()
 
-        DefaultResourcePackExtractor.extractLatest(packReader)
+        DefaultResourcePackExtractor.extractLatest()
 
         packDownloader.downloadRequiredPack()
         packDownloader.downloadDefaultPack()
@@ -369,8 +355,6 @@ class PackGenerator {
 
     companion object {
         var externalPacks = NexoPlugin.instance().dataFolder.resolve("pack/external_packs")
-        val packReader = NexoPackReader()
-        val packWriter = NexoPackWriter()
 
         private val assetsFolder = NexoPlugin.instance().dataFolder.resolve("pack/assets")
         fun stopPackGeneration() {

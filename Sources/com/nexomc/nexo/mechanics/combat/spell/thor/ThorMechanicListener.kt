@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.combat.spell.thor
 
 import com.nexomc.nexo.utils.BlockHelpers
-import io.th0rgal.protectionlib.ProtectionLib
+import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority

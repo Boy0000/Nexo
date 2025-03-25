@@ -81,6 +81,20 @@ inline fun <T> Iterable<T>.filterFastSet(predicate: (T) -> Boolean): ObjectOpenH
     return filterTo(ObjectOpenHashSet<T>(), predicate)
 }
 
+inline fun <reified R> Sequence<*>.filterFastIsInstance(predicate: (R) -> Boolean): ObjectArrayList<R> {
+    val result = ObjectArrayList<R>()
+    for (element in this) if (element is R && predicate(element)) result.add(element)
+    return result
+}
+
+inline fun <T> Sequence<T>.filterFast(predicate: (T) -> Boolean): ObjectArrayList<T> {
+    return filterTo(ObjectArrayList<T>(), predicate)
+}
+
+inline fun <T> Sequence<T>.filterFastSet(predicate: (T) -> Boolean): ObjectOpenHashSet<T> {
+    return filterTo(ObjectOpenHashSet<T>(), predicate)
+}
+
 inline fun <K, V> Map<out K, V>.filterFast(predicate: (Map.Entry<K, V>) -> Boolean): Object2ObjectOpenHashMap<K, V> {
     return filterTo(Object2ObjectOpenHashMap<K, V>(), predicate)
 }

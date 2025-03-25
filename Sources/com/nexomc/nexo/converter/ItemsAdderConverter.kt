@@ -85,7 +85,7 @@ object ItemsAdderConverter {
 
             runCatching {
                 // Filter out all vanilla models and textures
-                NexoPackReader().readFile(nexoIaPack).apply {
+                NexoPackReader.INSTANCE.readFile(nexoIaPack).apply {
                     models().removeIf {
                         if (it.key().asMinimalString().removeSuffix(".json") !in vanillaModels) return@removeIf false
                         it in DefaultResourcePackExtractor.vanillaResourcePack.models()
