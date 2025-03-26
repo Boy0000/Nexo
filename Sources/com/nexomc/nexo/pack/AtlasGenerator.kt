@@ -30,7 +30,7 @@ object AtlasGenerator {
 
     private fun addKey(keys: List<Key>, sources: MutableList<AtlasSource>) {
         keys.forEach { key ->
-            if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return
+            if (VanillaResourcePack.resourcePack.texture(key) != null) return
             sources.add(AtlasSource.single(key))
         }
     }

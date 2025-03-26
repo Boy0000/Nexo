@@ -7,10 +7,10 @@ import team.unnamed.creative.model.Model
 
 object DisplayProperties {
     fun fromMaterial(material: Material): Map<ItemTransform.Type, ItemTransform> {
-        return DefaultResourcePackExtractor.vanillaResourcePack.model(Key.key("item/${material.name.lowercase()}"))?.display() ?: mapOf()
+        return VanillaResourcePack.resourcePack.model(Key.key("item/${material.name.lowercase()}"))?.display() ?: mapOf()
     }
 
     fun fromModel(model: Model): Map<ItemTransform.Type, ItemTransform> {
-        return DefaultResourcePackExtractor.vanillaResourcePack.model(model.key())?.display() ?: mapOf()
+        return VanillaResourcePack.resourcePack.model(model.key())?.display() ?: mapOf()
     }
 }

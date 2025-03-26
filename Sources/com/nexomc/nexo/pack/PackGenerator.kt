@@ -26,12 +26,11 @@ import com.nexomc.nexo.utils.customarmor.ComponentCustomArmor
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType.Companion.setting
 import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
-import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
 import com.nexomc.nexo.utils.resolve
-import com.nexomc.nexo.utils.safeCast
 import com.ticxo.modelengine.api.ModelEngineAPI
 import java.io.File
 import java.net.URI
@@ -44,9 +43,9 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
-import team.unnamed.creative.font.SpaceFontProvider
 import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.lang.Language
+import team.unnamed.creative.metadata.pack.PackFormat
 import team.unnamed.creative.sound.SoundRegistry
 
 class PackGenerator {
@@ -70,7 +69,7 @@ class PackGenerator {
         val futures = arrayOf(
             packDownloader.downloadRequiredPack(),
             packDownloader.downloadDefaultPack(),
-            DefaultResourcePackExtractor.extractLatest(),
+            VanillaResourcePack.extractLatest(),
             ModelEngineCompatibility.modelEngineFuture()
         )
 
@@ -140,7 +139,7 @@ class PackGenerator {
                 }
 
                 packValidator.validatePack()
-                if (resourcePack.packMeta() == null) resourcePack.packMeta(NMSHandlers.handler().resourcepackFormat(), "Nexo's default pack.")
+                if (resourcePack.packMeta() == null) resourcePack.packMeta(PackFormat.format(NMSHandlers.handler().resourcepackFormat(), 22, 48), "Nexo's default pack.".deserialize())
                 ModernVersionPatcher.convertResources(resourcePack)
                 resourcePack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
 
@@ -285,7 +284,7 @@ class PackGenerator {
 
         runCatching {
             NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(megPack).also { pack ->
-                if (VersionUtil.atleast("1.21.4")) packObfuscator.skippedKeys += pack.models().map { it.key() }
+                if (VersionUtil.atleast("1.21.4")) pack.models().forEach { packObfuscator.skippedKeys += it.key() }
                 if (!Settings.PACK_EXCLUDE_MODEL_ENGINE_SHADERS.toBool()) return@also
                 pack.unknownFiles().keys.filter { "assets/minecraft/shaders/core" in it }.forEach(pack::removeUnknownFile)
                 Logs.logInfo("Removed core-shaders from ModelEngine-ResourcePack...")
@@ -334,7 +333,7 @@ class PackGenerator {
     init {
         generateDefaultPaths()
 
-        DefaultResourcePackExtractor.extractLatest()
+        VanillaResourcePack.extractLatest()
 
         packDownloader.downloadRequiredPack()
         packDownloader.downloadDefaultPack()

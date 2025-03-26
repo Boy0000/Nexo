@@ -3,14 +3,13 @@ package com.nexomc.nexo.utils.customarmor
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.pack.DefaultResourcePackExtractor
+import com.nexomc.nexo.pack.VanillaResourcePack
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.StringUtils
-import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.Tag
@@ -22,7 +21,6 @@ import team.unnamed.creative.atlas.AtlasSource
 import team.unnamed.creative.atlas.PalettedPermutationsAtlasSource
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.texture.Texture
-import kotlin.collections.set
 import kotlin.io.resolve
 
 @Suppress("DEPRECATION")
@@ -148,10 +146,10 @@ class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos C
         }
 
         fun handleChainmail(chainmail: Key, chainmail2: Key): Pair<Texture?, Texture?> {
-            return (resourcePack.texture(chainmail) ?: DefaultResourcePackExtractor.vanillaResourcePack.texture(chainmail))?.also {
+            return (resourcePack.texture(chainmail) ?: VanillaResourcePack.resourcePack.texture(chainmail))?.also {
                 resourcePack.texture(Key.key("trims/entity/humanoid/chainmail.png"), it.data())
                 resourcePack.texture(Key.key("trims/models/armor/chainmail.png"), it.data())
-            } to (resourcePack.texture(chainmail2) ?: DefaultResourcePackExtractor.vanillaResourcePack.texture(chainmail2))?.also {
+            } to (resourcePack.texture(chainmail2) ?: VanillaResourcePack.resourcePack.texture(chainmail2))?.also {
                 resourcePack.texture(Key.key("trims/entity/humanoid_leggings/chainmail.png"), it.data())
                 resourcePack.texture(Key.key("trims/models/armor/chainmail_leggings.png"), it.data())
             }

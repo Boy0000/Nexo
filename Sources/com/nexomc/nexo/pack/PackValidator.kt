@@ -40,7 +40,7 @@ class PackValidator(val resourcePack: ResourcePack) {
             resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()
                 ?.flatMapFast { source ->
                     source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
-                        if (resourcePack.texture(texture) == null && DefaultResourcePackExtractor.vanillaResourcePack.texture(
+                        if (resourcePack.texture(texture) == null && VanillaResourcePack.resourcePack.texture(
                                 texture
                             ) == null
                         ) {
@@ -57,7 +57,7 @@ class PackValidator(val resourcePack: ResourcePack) {
             model.textures().layers().forEach layers@{
                 val key = it.key()?.appendPng() ?: return@layers
                 if (key in palettedPermutations) return@layers
-                if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@layers
+                if (VanillaResourcePack.resourcePack.texture(key) != null) return@layers
                 resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
                     ?: logMissingTexture("Model", model.key(), key)
             }
@@ -65,7 +65,7 @@ class PackValidator(val resourcePack: ResourcePack) {
             model.textures().variables().entries.forEach variables@{
                 val key = it.value.key()?.appendPng() ?: return@variables
                 if (key in palettedPermutations) return@variables
-                if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@variables
+                if (VanillaResourcePack.resourcePack.texture(key) != null) return@variables
                 resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
                     ?: logMissingTexture("Model", model.key(), key)
             }
@@ -85,7 +85,7 @@ class PackValidator(val resourcePack: ResourcePack) {
                     is BitMapFontProvider -> {
                         val key = provider.file().appendPng()
                         if (key in palettedPermutations || provider.characters().size > 1) return@providers provider
-                        if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@providers provider
+                        if (VanillaResourcePack.resourcePack.texture(key) != null) return@providers provider
                         resourcePack.texture(key)?.also { validateTextureSize(it, 256, false) }
                             ?.let { return@providers provider }
 
@@ -102,7 +102,7 @@ class PackValidator(val resourcePack: ResourcePack) {
         if (Settings.PACK_VALIDATE_ATLAS.toBool()) resourcePack.atlas(Atlas.BLOCKS)?.let { atlas ->
             atlas.sources().filterIsInstance<SingleAtlasSource>().forEach { source ->
                 val key = source.resource().appendPng()
-                if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@forEach
+                if (VanillaResourcePack.resourcePack.texture(key) != null) return@forEach
                 if (key in palettedPermutations) return@forEach
                 if (resourcePack.texture(key) != null) return@forEach
                 logMissingTexture("Atlas", Atlas.BLOCKS.key(), key)

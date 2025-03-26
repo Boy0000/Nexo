@@ -22,8 +22,8 @@ class PredicateGenerator(private val resourcePack: ResourcePack) {
      * @param material the material to generate the overrides for
      * @return the generated overrides
      */
-    fun generateBaseModelOverrides(material: Material, items: Set<ItemBuilder>): List<ItemOverride> {
-        val overrides = DefaultResourcePackExtractor.vanillaResourcePack
+    fun generateBaseModelOverrides(material: Material, items: List<ItemBuilder>): List<ItemOverride> {
+        val overrides = VanillaResourcePack.resourcePack
             .model(Key.key("item/${material.toString().lowercase()}"))?.overrides()?.let(::ObjectArrayList) ?: ObjectArrayList()
 
         items.forEach { itemBuilder ->

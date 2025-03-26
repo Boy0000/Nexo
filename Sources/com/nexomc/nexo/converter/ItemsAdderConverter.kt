@@ -7,7 +7,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
-import com.nexomc.nexo.pack.DefaultResourcePackExtractor
+import com.nexomc.nexo.pack.VanillaResourcePack
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.logs.Logs
@@ -36,8 +36,8 @@ object ItemsAdderConverter {
 
     private val nexoFolder = NexoPlugin.instance().dataFolder
     private val iaFolder = nexoFolder.parentFile.resolve("ItemsAdder")
-    private val vanillaModels by lazy { DefaultResourcePackExtractor.vanillaResourcePack.models().mapFastSet { it.key().asMinimalString().removeSuffix(".json") } }
-    private val vanillaTextures by lazy { DefaultResourcePackExtractor.vanillaResourcePack.textures().mapFastSet { it.key().asMinimalString().removeSuffix(".png") } }
+    private val vanillaModels by lazy { VanillaResourcePack.resourcePack.models().mapFastSet { it.key().asMinimalString().removeSuffix(".json") } }
+    private val vanillaTextures by lazy { VanillaResourcePack.resourcePack.textures().mapFastSet { it.key().asMinimalString().removeSuffix(".png") } }
 
     fun convert() {
         val iaConverter = NexoPlugin.instance().converter().itemsadderConverter
@@ -88,11 +88,11 @@ object ItemsAdderConverter {
                 NexoPackReader.INSTANCE.readFile(nexoIaPack).apply {
                     models().removeIf {
                         if (it.key().asMinimalString().removeSuffix(".json") !in vanillaModels) return@removeIf false
-                        it in DefaultResourcePackExtractor.vanillaResourcePack.models()
+                        it in VanillaResourcePack.resourcePack.models()
                     }
                     textures().removeIf {
                         if (it.key().asMinimalString().removeSuffix(".png") !in vanillaTextures) return@removeIf false
-                        it in DefaultResourcePackExtractor.vanillaResourcePack.textures()
+                        it in VanillaResourcePack.resourcePack.textures()
                     }
                 }
             }.onFailure {

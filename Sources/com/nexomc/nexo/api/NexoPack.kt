@@ -57,7 +57,6 @@ object NexoPack {
     @JvmStatic
     fun clearPack(resourcePack: ResourcePack) {
         resourcePack.icon(null)
-        resourcePack.overlaysMeta(OverlaysMeta.of())
         resourcePack.metadata(Metadata.empty())
         resourcePack.models().toList().forEach { resourcePack.removeModel(it.key()) }
         resourcePack.textures().toList().forEach { resourcePack.removeTexture(it.key()) }
@@ -67,7 +66,9 @@ object NexoPack {
         resourcePack.fonts().toList().forEach { resourcePack.removeFont(it.key()) }
         resourcePack.sounds().toList().forEach { resourcePack.removeSound(it.key()) }
         resourcePack.soundRegistries().toList().forEach { resourcePack.removeSoundRegistry(it.namespace()) }
-        resourcePack.unknownFiles().toMap().forEach { resourcePack.removeUnknownFile(it.key) }
+        resourcePack.unknownFiles().toList().forEach { resourcePack.removeUnknownFile(it.first) }
+        resourcePack.items().toList().forEach { resourcePack.removeItem(it.key()) }
+        resourcePack.equipment().toList().forEach { resourcePack.removeEquipment(it.key()) }
     }
 
     @JvmStatic

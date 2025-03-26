@@ -61,9 +61,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         language = validate(resourceManager, "languages/${Settings.PLUGIN_LANGUAGE}.yml", defaultLanguage)
         AdventureUtils.reload()
 
-        if (!itemsFolder.exists() && Settings.GENERATE_DEFAULT_CONFIGS.toBool()) resourceManager.extractConfigsInFolder("items", "yml")
+        if (itemsFolder.list().isNullOrEmpty() && Settings.GENERATE_DEFAULT_CONFIGS.toBool()) resourceManager.extractConfigsInFolder("items", "yml")
 
-        if (!glyphsFolder.exists()) {
+        if (glyphsFolder.list().isNullOrEmpty()) {
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool()) resourceManager.extractConfigsInFolder("glyphs", "yml")
             else resourceManager.extractConfiguration("glyphs/nexo_defaults/interface.yml")
         }

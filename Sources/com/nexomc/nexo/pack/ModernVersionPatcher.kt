@@ -104,7 +104,7 @@ object ModernVersionPatcher {
     val standardItemModels by lazy {
         runCatching {
             NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-        }.getOrDefault(ResourcePack.resourcePack()).items().plus(DefaultResourcePackExtractor.vanillaResourcePack.items())
+        }.getOrDefault(ResourcePack.resourcePack()).items().plus(VanillaResourcePack.resourcePack.items())
             .associateByTo(Object2ObjectOpenHashMap()) { it.key() }
     }
 
