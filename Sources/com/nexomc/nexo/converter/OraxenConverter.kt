@@ -1,21 +1,22 @@
 package com.nexomc.nexo.converter
 
-import com.jeff_media.persistentdataserializer.PersistentDataSerializer
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
 import io.leangen.geantyref.TypeToken
-import org.bukkit.NamespacedKey
-import org.bukkit.persistence.PersistentDataContainer
+import java.io.File
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import java.io.File
 
 object OraxenConverter {
 
@@ -404,19 +405,4 @@ object OraxenConverter {
             else Logs.logWarn(it.message!!)
         }
     }
-
-    fun convertOraxenPDCEntries(pdc: PersistentDataContainer) {
-        val oraxenKeys = mutableListOf<NamespacedKey>()
-        PersistentDataSerializer.fromMapList(
-            PersistentDataSerializer.toMapList(pdc).map { map ->
-                map.mapValues { e ->
-                    if (e.key.toString() != "key") return@mapValues e.value
-                    val value = e.value as? String ?: return@mapValues e.value
-                    value.takeIf { "oraxen" in it }?.apply { NamespacedKey.fromString(this)?.apply(oraxenKeys::add) }?.replace("oraxen", "nexo") ?: e.value
-                }
-            }, pdc
-        )
-        oraxenKeys.forEach(pdc::remove)
-    }
-
 }

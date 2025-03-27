@@ -55,7 +55,7 @@ enum class Message(val path: String) {
     fun send(sender: CommandSender?, vararg placeholders: TagResolver) {
         if (sender == null) return
         val lang = NexoPlugin.instance().configsManager().language.getString(path).takeUnless { it.isNullOrEmpty() } ?: return
-        NexoPlugin.instance().audience().sender(sender).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(*placeholders)))
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(*placeholders)))
     }
 
     fun toComponent() = AdventureUtils.MINI_MESSAGE.deserialize(toString())

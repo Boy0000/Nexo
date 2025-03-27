@@ -1,17 +1,20 @@
 package com.nexomc.nexo.nms
 
+import org.bukkit.entity.Entity
 import org.bukkit.inventory.ItemStack
 
 interface IPluginConverter {
 
-    companion object {
-        val armorPrefixRegex = "(helmet|chestplate|leggings|boots)".toRegex()
-    }
-
     fun convertItemsAdder(itemStack: ItemStack)
+    fun convertOraxen(itemStack: ItemStack)
+    fun convertOraxen(entity: Entity)
 
     class EmptyPluginConverter : IPluginConverter {
-        override fun convertItemsAdder(itemstack: ItemStack) {
+        override fun convertItemsAdder(itemStack: ItemStack) {
+        }
+        override fun convertOraxen(itemStack: ItemStack) {
+        }
+        override fun convertOraxen(entity: Entity) {
         }
     }
 }

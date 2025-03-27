@@ -38,9 +38,12 @@ object Shift {
     private fun SpaceFontProvider.cachedPowers() = advances().toList().sortedByDescending { abs(it.second) }.filterFast { it.second != 0 }
 
     fun of(shift: Int): String {
-        var remainingShift = abs(shift)  // Work with absolute value of shift
+        var remainingShift = abs(shift)
         return buildString {
             for ((char, value) in cachedPowers) {
+                if (shift < 0 && value > 0) continue // Skip positive values for negative shifts
+                if (shift > 0 && value < 0) continue // Skip negative values for positive shifts
+
                 val absValue = abs(value)
                 if (remainingShift >= absValue) {
                     append(char)
@@ -49,5 +52,4 @@ object Shift {
             }
         }
     }
-
 }

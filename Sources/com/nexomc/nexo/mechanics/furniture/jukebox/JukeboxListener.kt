@@ -39,7 +39,7 @@ class JukeboxListener : Listener {
                 Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
                 tagResolver("disc", it.serialize())
             )
-            NexoPlugin.instance().audience().player(player).sendActionBar(message)
+            player.sendActionBar(message)
         }
 
         isCancelled = true
@@ -82,7 +82,7 @@ class JukeboxListener : Listener {
         if (!pdc.has(JukeboxBlock.MUSIC_DISC_KEY, DataType.ITEM_STACK) || !isMusicDisc(item)) return false
 
         if (songKey != null) baseEntity.world.players.filterFast { it.canSee(baseEntity) }.forEach { p ->
-            NexoPlugin.instance().audience().player(p).stopSound(Sound.sound(songKey, Sound.Source.RECORD, jukebox.volume, jukebox.pitch))
+            p.stopSound(Sound.sound(songKey, Sound.Source.RECORD, jukebox.volume, jukebox.pitch))
         }
         baseEntity.world.dropItemNaturally(loc, item)
         pdc.remove(JukeboxBlock.MUSIC_DISC_KEY)

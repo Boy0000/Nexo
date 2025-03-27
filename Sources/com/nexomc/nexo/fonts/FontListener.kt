@@ -125,7 +125,7 @@ class FontListener(private val manager: FontManager) : Listener {
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         setUseItemInHand(Event.Result.DENY)
-        NexoPlugin.instance().audience().player(player).openBook(book)
+        player.openBook(book)
     }
 
     @EventHandler(ignoreCancelled = true)

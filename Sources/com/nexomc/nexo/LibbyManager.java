@@ -52,7 +52,6 @@ public class LibbyManager {
 
         libs.add(getLib("com{}jeff-media", "custom-block-data", "2.2.2", "com{}jeff_media").build());
         libs.add(getLib("com{}jeff-media", "MorePersistentDataTypes", "2.4.0", "com{}jeff_media").build());
-        libs.add(getLib("com{}jeff-media", "persistent-data-serializer", "1.0", "com{}jeff_media").build());
 
         libs.add(getLib("team{}unnamed", "creative-api", CREATIVE_VERSION, null, false)
                 .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/%s/creative-api-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))

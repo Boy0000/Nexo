@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
+import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
@@ -61,7 +62,7 @@ class OraxenConverterListener : Listener {
                 Logs.logWarn("Nexo only supports ItemDisplay-Furniture, we suggest manually replacing these")
             }
             is ItemDisplay -> when {
-                !NexoFurniture.isFurniture(baseEntity) -> OraxenConverter.convertOraxenPDCEntries(pdc)
+                !NexoFurniture.isFurniture(baseEntity) -> NMSHandlers.handler().pluginConverter.convertOraxen(baseEntity)
                 else -> {
                     val color = FurnitureHelpers.furnitureDye(baseEntity) ?: baseEntity.itemStack.itemMeta?.asColorable()?.color ?: return
                     FurnitureHelpers.furnitureDye(baseEntity, color)

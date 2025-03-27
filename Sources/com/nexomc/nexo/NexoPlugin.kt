@@ -36,7 +36,6 @@ import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.FoliaLib
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarFile
-import net.kyori.adventure.platform.bukkit.BukkitAudiences
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
@@ -44,7 +43,6 @@ import org.bukkit.plugin.java.JavaPlugin
 class NexoPlugin : JavaPlugin() {
     private lateinit var configsManager: ConfigsManager
     private lateinit var resourceManager: ResourceManager
-    private lateinit var audience: BukkitAudiences
     private lateinit var fontManager: FontManager
     private lateinit var soundManager: SoundManager
     private lateinit var invManager: InventoryManager
@@ -69,7 +67,6 @@ class NexoPlugin : JavaPlugin() {
     override fun onEnable() {
         CommandAPIManager(this).enable()
         ProtectionLib.init(this)
-        audience = BukkitAudiences.create(this)
         reloadConfigs()
         clickActionManager = ClickActionManager(this)
         fontManager = FontManager(configsManager)
@@ -120,8 +117,6 @@ class NexoPlugin : JavaPlugin() {
         CommandAPIManager(this).disable()
         Message.PLUGIN_UNLOADED.log()
     }
-
-    fun audience() = audience
 
     fun reloadConfigs() {
         resourceManager = ResourceManager(this)

@@ -1,12 +1,10 @@
 package com.nexomc.nexo.items
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.jeff_media.persistentdataserializer.PersistentDataSerializer
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.ItemUtils
@@ -142,17 +140,13 @@ class ItemUpdater : Listener {
             // ItemsAdder does fucky stuff with PDC-entry so we need to use NMS for it
             if (NexoPlugin.instance().converter().itemsadderConverter.convertItems)
                 NMSHandlers.handler().pluginConverter.convertItemsAdder(oldItem)
+            if (NexoPlugin.instance().converter().oraxenConverter.convertItems)
+                NMSHandlers.handler().pluginConverter.convertOraxen(oldItem)
 
             oldItem.editMeta { itemMeta: ItemMeta ->
                 val pdc = itemMeta.persistentDataContainer
                 pdc.remove(IF_UUID)
                 pdc.remove(MF_GUI)
-                pdc.get(NexoItems.ITEM_ID, PersistentDataType.STRING)?.takeIf { it.isEmpty() }?.apply {
-                    pdc.remove(NexoItems.ITEM_ID)
-                }
-
-                if (NexoPlugin.instance().converter().oraxenConverter.convertItems)
-                    OraxenConverter.convertOraxenPDCEntries(pdc)
             }
 
             val id = NexoItems.idFromItem(oldItem) ?: return oldItem
@@ -165,7 +159,8 @@ class ItemUpdater : Listener {
                 val (oldMeta, newMeta) = (oldItem.itemMeta ?: return@editMeta) to (newItem.itemMeta ?: return@editMeta)
                 val (oldPdc, itemPdc) = oldMeta.persistentDataContainer to itemMeta.persistentDataContainer
 
-                PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc)
+                oldPdc.copyTo(itemPdc, true)
+                //PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc)
 
                 oldMeta.enchants.entries.forEach { (enchant, level) ->
                     itemMeta.addEnchant(enchant, level, true)

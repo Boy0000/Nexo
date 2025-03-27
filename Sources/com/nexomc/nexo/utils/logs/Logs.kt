@@ -1,6 +1,5 @@
 package com.nexomc.nexo.utils.logs
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.AdventureUtils
 import net.kyori.adventure.text.Component
@@ -16,33 +15,33 @@ object Logs {
     @JvmStatic
     fun logInfo(message: String, newline: Boolean) {
         val info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#529ced>$message</#529ced>")
-        NexoPlugin.instance().audience().console().sendMessage(if (newline) info.append(Component.newline()) else info)
+        Bukkit.getConsoleSender().sendMessage(if (newline) info.append(Component.newline()) else info)
     }
 
     @JvmStatic
     @JvmOverloads
     fun logSuccess(message: String, newline: Boolean = false) {
         val success = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#55ffa4>$message</#55ffa4>")
-        NexoPlugin.instance().audience().console().sendMessage(if (newline) success.append(Component.newline()) else success)
+        Bukkit.getConsoleSender().sendMessage(if (newline) success.append(Component.newline()) else success)
     }
 
     @JvmStatic
     @JvmOverloads
     fun logError(message: String, newline: Boolean = false) {
         val error = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#e73f34>$message</#e73f34>")
-        NexoPlugin.instance().audience().console().sendMessage(if (newline) error.append(Component.newline()) else error)
+        Bukkit.getConsoleSender().sendMessage(if (newline) error.append(Component.newline()) else error)
     }
 
     @JvmStatic
     @JvmOverloads
     fun logWarn(message: String, newline: Boolean = false) {
         val warning = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#f9f178>$message</#f9f178>")
-        NexoPlugin.instance().audience().console().sendMessage(if (newline) warning.append(Component.newline()) else warning)
+        Bukkit.getConsoleSender().sendMessage(if (newline) warning.append(Component.newline()) else warning)
     }
 
     @JvmStatic
     fun newline() {
-        NexoPlugin.instance().audience().console().sendMessage(Component.empty())
+        Bukkit.getConsoleSender().sendMessage(Component.empty())
     }
 
     fun debug(`object`: Any) {
@@ -93,6 +92,6 @@ object Logs {
     }
 
     fun debug(component: Component) {
-        if (Settings.DEBUG.toBool()) NexoPlugin.instance().audience().console().sendMessage(component)
+        if (Settings.DEBUG.toBool()) Bukkit.getConsoleSender().sendMessage(component)
     }
 }

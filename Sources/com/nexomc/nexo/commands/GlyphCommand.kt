@@ -50,6 +50,6 @@ internal fun CommandTree.emojiCommand() = literalArgument("emojis") {
         }
 
         val book = Book.book(Component.text("Glyph Book"), Component.text("Nexo"), pages)
-        NexoPlugin.instance().audience().player(player!!).openBook(book)
+        player?.openBook(book)
     }
 }

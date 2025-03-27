@@ -15,13 +15,14 @@ import com.nexomc.nexo.utils.associateWithNotNull
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
-import io.papermc.paper.event.player.PlayerPickItemEvent
 import com.nexomc.protectionlib.ProtectionLib
+import io.papermc.paper.event.player.PlayerPickItemEvent
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.AbstractWindCharge
 import org.bukkit.entity.LivingEntity
+import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -33,6 +34,9 @@ import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPistonRetractEvent
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityExplodeEvent
+import org.bukkit.event.inventory.ClickType
+import org.bukkit.event.inventory.InventoryCreativeEvent
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 
@@ -180,6 +184,33 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun PlayerPickItemEvent.onMiddleClick() {
+        val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
+        val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
+        val mechanic = NexoBlocks.customBlockMechanic(block.blockData)
+            ?: NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))?.takeIf { it.isTall } ?: return
+
+        val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()
+        val itemId = NexoItems.idFromItem(item)
+
+        for (i in 0..8) {
+            if (player.inventory.getItem(i) == null) continue
+            if (NexoItems.idFromItem(player.inventory.getItem(i)) != itemId) continue
+
+            player.inventory.heldItemSlot = i
+            isCancelled = true
+            return
+        }
+
+        isCancelled = true
+        if (player.gameMode == GameMode.CREATIVE) player.inventory.setItemInMainHand(item)
+    }
+
+    @EventHandler
+    fun InventoryCreativeEvent.onMiddleClick() {
+        val player = inventory.holder as? Player ?: return
+        if (clickedInventory == null || click != ClickType.CREATIVE) return
+        if (slotType != InventoryType.SlotType.QUICKBAR) return
+
         val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
         val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
         val mechanic = NexoBlocks.customBlockMechanic(block.blockData)

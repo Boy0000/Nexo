@@ -22,14 +22,13 @@ internal fun CommandTree.glyphInfoCommand() = literalArgument("glyphinfo") {
         anyExecutor { sender, args ->
             val mm = AdventureUtils.MINI_MESSAGE
             val glyphId = args.get("glyphid") as? String ?: return@anyExecutor
-            val audience = NexoPlugin.instance().audience().sender(sender)
             val glyph = NexoPlugin.instance().fontManager().glyphFromID(glyphId)
-                ?: return@anyExecutor audience.sendMessage(mm.deserialize("<red>No glyph found with glyph-id <i><dark_red>$glyphId"))
+                ?: return@anyExecutor sender.sendMessage(mm.deserialize("<red>No glyph found with glyph-id <i><dark_red>$glyphId"))
 
-            audience.sendMessage(mm.deserialize("<dark_aqua>GlyphID: <aqua>$glyphId"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Texture: <aqua>${glyph.texture.asString()}"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Font: <aqua>${glyph.font.asString()}"))
-            audience.sendMessage(mm.deserialize("<dark_aqua>Unicode: <white>${glyph.unicodes.joinToString("\n")}")
+            sender.sendMessage(mm.deserialize("<dark_aqua>GlyphID: <aqua>$glyphId"))
+            sender.sendMessage(mm.deserialize("<dark_aqua>Texture: <aqua>${glyph.texture.asString()}"))
+            sender.sendMessage(mm.deserialize("<dark_aqua>Font: <aqua>${glyph.font.asString()}"))
+            sender.sendMessage(mm.deserialize("<dark_aqua>Unicode: <white>${glyph.unicodes.joinToString("\n")}")
                 .hoverEvent(HoverEvent.showText(mm.deserialize("<gold>Click to copy to clipboard!")))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.unicodes.joinToString())))
         }

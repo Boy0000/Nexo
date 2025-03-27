@@ -57,13 +57,11 @@ object NexoItems {
 
         unexcludedItems.clear()
         unexcludedItems.putAll(
-            itemMap.asSequence()
-                .mapNotNull { (file, map) ->
-                    val filtered = map.values.filterFast { it.nexoMeta?.excludedFromInventory == false }
-                    if (filtered.isNotEmpty()) file to ObjectArrayList(filtered) else null
-                }
+            itemMap.asSequence().mapNotNull { (file, map) ->
+                val filtered = map.values.filterFast { it.nexoMeta?.excludedFromInventory == false }
+                if (filtered.isNotEmpty()) file to ObjectArrayList(filtered) else null
+            }
         )
-
 
         ensureComponentDataHandled()
 
@@ -71,7 +69,7 @@ object NexoItems {
     }
 
 
-    val itemConfigCache: MutableMap<String, Pair<File, ConfigurationSection>?> = mutableMapOf()
+    val itemConfigCache: MutableMap<String, Pair<File, ConfigurationSection>?> = Object2ObjectLinkedOpenHashMap()
     fun reloadItem(itemId: String) {
         val (file, config) = itemConfigCache.getOrPut(itemId) {
             itemMap.entries.find { it.value.containsKey(itemId) }?.let {

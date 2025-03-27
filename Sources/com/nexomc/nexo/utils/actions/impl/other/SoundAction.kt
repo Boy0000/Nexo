@@ -1,6 +1,5 @@
 package com.nexomc.nexo.utils.actions.impl.other
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.printOnFailure
 import me.gabytm.util.actions.actions.Action
 import me.gabytm.util.actions.actions.ActionMeta
@@ -18,7 +17,7 @@ class SoundAction(meta: ActionMeta<Player?>) : Action<Player>(meta) {
         val parsed = meta.getParsedData(player, context)
 
         runCatching {
-            NexoPlugin.instance().audience().player(player).playSound(Sound.sound(Key.key(parsed), source, volume, pitch))
+            player.playSound(Sound.sound(Key.key(parsed), source, volume, pitch))
         }.printOnFailure()
     }
 

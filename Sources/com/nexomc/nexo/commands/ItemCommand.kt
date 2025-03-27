@@ -105,19 +105,10 @@ internal fun CommandTree.takeItemCommand() = literalArgument("take") {
                             while (toRemove > 0) {
                                 target.inventory.contents.asSequence().filterNotNull()
                                     .filter { !it.isEmpty && itemID == NexoItems.idFromItem(it) }
-                                    .forEach {
+                                    .forEach { item ->
                                         if (toRemove == 0) return@forEach
-                                        when {
-                                            it.amount <= toRemove -> {
-                                                toRemove -= it.amount
-                                                target.inventory.remove(it)
-                                            }
-
-                                            else -> {
-                                                it.amount -= toRemove
-                                                toRemove = 0
-                                            }
-                                        }
+                                        toRemove -= item.amount.also { item.subtract(toRemove) }
+                                        if (toRemove < 0) toRemove = 0
                                     }
 
                                 if (toRemove > 0) break
@@ -138,13 +129,12 @@ internal fun CommandTree.itemInfoCommand() = literalArgument("iteminfo") {
         })
         anyExecutor { sender, args ->
             val argument = args.get("itemid") as? String ?: return@anyExecutor
-            val audience = NexoPlugin.instance().audience().sender(sender)
             when (argument) {
-                "all" -> for ((itemId, builder) in NexoItems.entries()) sendItemInfo(audience, builder, itemId)
+                "all" -> for ((itemId, builder) in NexoItems.entries()) sendItemInfo(sender, builder, itemId)
                 else -> sendItemInfo(
-                    audience,
+                    sender,
                     NexoItems.itemFromId(argument)
-                        ?: return@anyExecutor audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No item found with ID</red> <dark_red>$argument")),
+                        ?: return@anyExecutor sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No item found with ID</red> <dark_red>$argument")),
                     argument
                 )
             }

@@ -1,6 +1,5 @@
 package com.nexomc.nexo.commands
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.BlockInfoCommand.sendBlockInfo
@@ -13,8 +12,8 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.literalArgument
 import dev.jorel.commandapi.kotlindsl.stringArgument
-import net.kyori.adventure.audience.Audience
 import java.util.concurrent.CompletableFuture
+import org.bukkit.command.CommandSender
 
 internal fun CommandTree.blockInfoCommand() = literalArgument("blockinfo") {
     withPermission("nexo.command.blockinfo")
@@ -24,16 +23,10 @@ internal fun CommandTree.blockInfoCommand() = literalArgument("blockinfo") {
         })
         anyExecutor { sender, args ->
             val argument = args.get("itemid") as? String ?: return@anyExecutor
-            val audience = NexoPlugin.instance().audience().sender(sender)
             when {
-                argument == "all" -> {
-                    NexoItems.entries()
-                        .asSequence()
-                        .filterNot { !NexoBlocks.isCustomBlock(it.key) }
-                        .forEach { sendBlockInfo(audience, it.key) }
-                }
-                NexoItems.itemFromId(argument) == null -> audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No block found with ID</red> <dark_red>$argument"))
-                else -> sendBlockInfo(audience, argument)
+                argument == "all" -> NexoItems.itemNames().asSequence().filter(NexoBlocks::isCustomBlock).forEach { sendBlockInfo(sender, it) }
+                NexoItems.itemFromId(argument) == null -> sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No block found with ID</red> <dark_red>$argument"))
+                else -> sendBlockInfo(sender, argument)
             }
         }
     }
@@ -42,7 +35,7 @@ internal fun CommandTree.blockInfoCommand() = literalArgument("blockinfo") {
 object BlockInfoCommand {
 
 
-    internal fun sendBlockInfo(sender: Audience, itemId: String) {
+    internal fun sendBlockInfo(sender: CommandSender, itemId: String) {
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>$itemId"))
         when {
             NexoBlocks.isNexoNoteBlock(itemId) -> {
