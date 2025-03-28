@@ -3,7 +3,6 @@ package com.nexomc.nexo.nms
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import org.bukkit.event.HandlerList
 
 
 object NMSHandlers {
@@ -16,8 +15,6 @@ object NMSHandlers {
 
     @JvmStatic
     fun resetHandler() {
-        handler.resourcePackListener?.also { HandlerList.unregisterAll(it) }
-        handler = EmptyNMSHandler()
         setupHandler()
     }
 

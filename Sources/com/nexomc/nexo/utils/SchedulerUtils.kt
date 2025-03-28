@@ -2,12 +2,12 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
 import com.tcoded.folialib.impl.PlatformScheduler
+import io.papermc.paper.block.TileStateInventoryHolder
+import java.util.concurrent.Future
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Entity
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.scheduler.BukkitTask
-import java.util.concurrent.Future
 
 object SchedulerUtils {
 
@@ -25,6 +25,22 @@ object SchedulerUtils {
                 }
             }
         } else Bukkit.getWorlds().flatMapFast { it.entities }.forEach(task::invoke)
+    }
+
+    fun runAtWorldTileStates(task: (TileStateInventoryHolder) -> Unit) {
+        if (VersionUtil.isFoliaServer) Bukkit.getWorlds().forEach { world ->
+            world.loadedChunks.forEach { chunk ->
+                foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
+                    chunk.tileEntities.forEach { tile ->
+                        if (tile is TileStateInventoryHolder) task.invoke(tile)
+                    }
+                }
+            }
+        } else Bukkit.getWorlds().flatMapFast { it.loadedChunks.map { it.tileEntities } }.forEach { tiles ->
+            tiles.forEach { tile ->
+                if (tile is TileStateInventoryHolder) task.invoke(tile)
+            }
+        }
     }
 
     fun runTaskLater(delay: Long, task: () -> Unit) {

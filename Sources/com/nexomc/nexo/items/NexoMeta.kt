@@ -37,7 +37,7 @@ data class NexoMeta(
     var customArmorTextures: CustomArmorTextures? = null,
 ) {
 
-    data class CustomArmorTextures(val layer1: Key?, val layer2: Key?, val elytra: Key?, val wolf: Key?, val llama: Key?, val horse: Key?) {
+    data class CustomArmorTextures(val layer1: Key?, val layer2: Key?, val elytra: Key?, val wolfArmor: Key?, val llamaArmor: Key?, val horseArmor: Key?) {
 
         constructor(armorPrefix: String) : this(
             Key.key("${armorPrefix}_armor_layer_1.png"),
@@ -52,18 +52,18 @@ data class NexoMeta(
             Key.key(section.getString("layer1")?.appendIfMissing(".png")!!),
             Key.key(section.getString("layer2")?.appendIfMissing(".png")!!),
             Key.key(section.getString("elytra")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("wolf")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("llama")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("horse")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("wolf_armor")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("llama_armor")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("horse_armor")?.appendIfMissing(".png")!!),
         )
 
         fun fromItem(item: ItemBuilder, itemId: String): Key? {
             return when {
                 item.type == Material.ELYTRA || item.isGlider == true -> elytra
                 item.equippable?.slot == EquipmentSlot.BODY -> when {
-                    item.type == Material.WOLF_ARMOR || item.equippable?.allowedEntities?.contains(EntityType.WOLF) == true -> wolf
-                    itemId.endsWith("_llama_armor") || item.equippable?.allowedEntities?.contains(EntityType.LLAMA) == true -> llama
-                    itemId.endsWith("_horse_armor") || item.equippable?.allowedEntities?.contains(EntityType.HORSE) == true -> horse
+                    itemId.endsWith("_wolf_armor") || item.type == Material.WOLF_ARMOR || item.equippable?.allowedEntities?.contains(EntityType.WOLF) == true -> wolfArmor
+                    itemId.endsWith("_llama_armor") || item.equippable?.allowedEntities?.contains(EntityType.LLAMA) == true -> llamaArmor
+                    itemId.endsWith("_horse_armor") || item.equippable?.allowedEntities?.contains(EntityType.HORSE) == true -> horseArmor
                     else -> null
                 }
                 item.equippable?.slot == EquipmentSlot.HEAD || item.equippable?.slot == EquipmentSlot.CHEST -> layer1

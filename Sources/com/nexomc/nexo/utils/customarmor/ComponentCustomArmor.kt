@@ -54,9 +54,9 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
                 customArmor.layer1 -> "armor_layer_1" to "humanoid"
                 customArmor.layer2 -> "armor_layer_2" to "humanoid_leggings"
                 customArmor.elytra -> "elytra" to "wings"
-                customArmor.wolf -> "wolf_armor" to "wolf_body"
-                customArmor.llama -> "llama_armor" to "llama_body"
-                customArmor.horse -> "horse_armor" to "horse_body"
+                customArmor.wolfArmor -> "wolf_armor" to "wolf_body"
+                customArmor.llamaArmor -> "llama_armor" to "llama_body"
+                customArmor.horseArmor -> "horse_armor" to "horse_body"
                 else -> return@forEach
             }
             val texture = fetchTexture(customArmorKey, "${prefix}_${fallback}.png", itemId) ?: return@forEach

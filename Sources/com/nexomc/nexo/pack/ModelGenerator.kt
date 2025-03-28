@@ -49,7 +49,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
 
     private fun addOverrides(key: Key, overrides: List<ItemOverride>) {
         val model = (resourcePack.model(key) ?: VanillaResourcePack.resourcePack.model(key)) ?: return
-        model.apply { overrides().addAll(overrides) }.addTo(resourcePack)
+        model.toBuilder().parent(model.parent() ?: Model.BUILT_IN_ENTITY).overrides(model.overrides().plus(overrides)).build().addTo(resourcePack)
     }
 
     private fun generateModelBuilder(nexoMeta: NexoMeta): Model.Builder? {

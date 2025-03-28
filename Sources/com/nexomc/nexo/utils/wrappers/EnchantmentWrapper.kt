@@ -13,4 +13,6 @@ object EnchantmentWrapper {
     val SILK_TOUCH = Registry.ENCHANTMENT[NamespacedKey.minecraft("silk_touch")]!!
     @JvmField
     val AQUA_AFFINITY = Registry.ENCHANTMENT[NamespacedKey.minecraft("aqua_affinity")]!!
+    @JvmField
+    val LOOTING = Registry.ENCHANTMENT[NamespacedKey.minecraft("looting")] ?: Registry.ENCHANTMENT[NamespacedKey.minecraft("loot_bonus_mobs")]!!
 }

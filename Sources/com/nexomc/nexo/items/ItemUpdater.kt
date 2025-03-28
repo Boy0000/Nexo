@@ -1,5 +1,6 @@
 package com.nexomc.nexo.items
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.NexoPlugin
@@ -12,10 +13,15 @@ import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.serialize
+import io.papermc.paper.block.TileStateInventoryHolder
 import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.Entity
+import org.bukkit.entity.Item
+import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.ItemFrame
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -27,35 +33,42 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.inventory.PrepareAnvilEvent
 import org.bukkit.event.player.PlayerItemConsumeEvent
-import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.event.world.EntitiesLoadEvent
+import org.bukkit.event.world.ChunkLoadEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ArmorMeta
+import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
 
 @Suppress("UnstableApiUsage")
 class ItemUpdater : Listener {
-    @EventHandler
-    fun PlayerJoinEvent.onPlayerJoin() {
-        if (!Settings.UPDATE_ITEMS.toBool()) return
 
-        for (i in 0..player.inventory.size) {
-            val oldItem = player.inventory.getItem(i) ?: continue
-            val newItem = updateItem(oldItem)
-            if (oldItem != newItem) player.inventory.setItem(i, newItem)
+    init {
+        SchedulerUtils.syncDelayedTask(2) {
+            SchedulerUtils.runAtWorldEntities { entity ->
+                updateEntityInventories(entity)
+            }
+            SchedulerUtils.runAtWorldTileStates { tileEntity ->
+                tileEntity.inventory.contents.forEachIndexed { index, item ->
+                    if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
+                }
+            }
         }
     }
 
     @EventHandler
-    fun EntitiesLoadEvent.onEntitiesLoad() {
-        entities.filterIsInstance<LivingEntity>().forEach { entity ->
-            EquipmentSlot.entries.forEach slot@{ slot ->
-                val item = runCatching { entity.equipment?.getItem(slot) }.getOrNull() ?: return@slot
-                val newItem = updateItem(item)
-                if (newItem != item) entity.equipment!!.setItem(slot, newItem)
+    fun EntityAddToWorldEvent.onEntityLoad() {
+        updateEntityInventories(entity)
+    }
+
+    @EventHandler
+    fun ChunkLoadEvent.onChunkLoad() {
+        chunk.tileEntities.filterIsInstance<TileStateInventoryHolder>().forEach {
+            it.inventory.contents.forEachIndexed { index, item ->
+                if (item != null) it.inventory.setItem(index, updateItem(item))
             }
         }
     }
@@ -131,6 +144,22 @@ class ItemUpdater : Listener {
         }
     }
 
+    private fun updateEntityInventories(entity: Entity) {
+        if (entity is ItemFrame) entity.setItem(updateItem(entity.item))
+        if (entity is ItemDisplay) entity.setItemStack(updateItem(entity.itemStack))
+        if (entity is Item) entity.itemStack = updateItem(entity.itemStack)
+        if (entity is InventoryHolder) entity.inventory.contents.forEachIndexed { i, content ->
+            if (content != null) entity.inventory.setItem(i, updateItem(content))
+        }
+        if (entity is LivingEntity) entity.equipment?.also { equipment ->
+            EquipmentSlot.entries.forEach slot@{ slot ->
+                runCatching { equipment.getItem(slot).let(::updateItem) }.onSuccess {
+                    equipment.setItem(slot, it)
+                }
+            }
+        }
+    }
+
     companion object {
         private val IF_UUID = NamespacedKey.fromString("nexo:if-uuid")!!
         private val MF_GUI = NamespacedKey.fromString("nexo:mf-gui")!!
@@ -160,7 +189,6 @@ class ItemUpdater : Listener {
                 val (oldPdc, itemPdc) = oldMeta.persistentDataContainer to itemMeta.persistentDataContainer
 
                 oldPdc.copyTo(itemPdc, true)
-                //PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc)
 
                 oldMeta.enchants.entries.forEach { (enchant, level) ->
                     itemMeta.addEnchant(enchant, level, true)
@@ -188,6 +216,7 @@ class ItemUpdater : Listener {
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true
 
                 itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
+                (itemMeta as? BundleMeta)?.setItems((oldMeta as? BundleMeta)?.items)
 
                 if (itemMeta is ArmorMeta) when {
                     newMeta is ArmorMeta && newMeta.hasTrim() -> itemMeta.trim = newMeta.trim

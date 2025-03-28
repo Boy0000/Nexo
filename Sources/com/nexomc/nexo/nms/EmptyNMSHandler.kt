@@ -5,15 +5,11 @@ import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
-import org.bukkit.event.Listener
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
-class EmptyNMSHandler(
-    override val resourcePackListener: Listener? = null,
-  override val pluginConverter: IPluginConverter = IPluginConverter.EmptyPluginConverter()
-) : NMSHandler {
+class EmptyNMSHandler(override val pluginConverter: IPluginConverter = IPluginConverter.EmptyPluginConverter()) : NMSHandler {
     override fun packetHandler(): IPacketHandler {
         return EmptyPacketHandler()
     }

@@ -3,6 +3,7 @@ package com.nexomc.nexo.compatibilities.mythicmobs
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.CompatibilityProvider
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import io.lumine.mythic.api.adapters.AbstractItemStack
 import io.lumine.mythic.api.config.MythicLineConfig
 import io.lumine.mythic.api.drops.DropMetadata
@@ -12,7 +13,6 @@ import io.lumine.mythic.bukkit.adapters.item.ItemComponentBukkitItemStack
 import io.lumine.mythic.bukkit.events.MythicDropLoadEvent
 import io.lumine.mythic.bukkit.utils.numbers.RandomDouble
 import io.lumine.mythic.core.drops.droppables.VanillaItemDrop
-import org.bukkit.enchantments.Enchantment
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import kotlin.jvm.optionals.getOrNull
@@ -38,7 +38,7 @@ class NexoDrop(
 
     override fun getDrop(metadata: DropMetadata?, amount: Double): AbstractItemStack? {
         val itemInKillerHand = (BukkitAdapter.adapt(metadata?.cause?.getOrNull()) as? Player)?.inventory?.itemInMainHand
-        val lootingLvl = if (noLooting) 0 else itemInKillerHand?.enchantments?.get(Enchantment.LOOTING) ?: 0
+        val lootingLvl = if (noLooting) 0 else itemInKillerHand?.enchantments?.get(EnchantmentWrapper.LOOTING) ?: 0
         val amount = (randomAmount.min.toInt()..(randomAmount.max.toInt() + lootingLvl)).random().toDouble()
 
         return super.getDrop(metadata, amount)

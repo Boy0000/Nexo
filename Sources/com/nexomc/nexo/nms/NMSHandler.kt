@@ -7,14 +7,12 @@ import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
-import org.bukkit.event.Listener
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 
 interface NMSHandler {
 
-    val resourcePackListener: Listener?
     val pluginConverter: IPluginConverter
 
     fun furniturePacketManager(): IFurniturePacketManager = EmptyFurniturePacketManager()

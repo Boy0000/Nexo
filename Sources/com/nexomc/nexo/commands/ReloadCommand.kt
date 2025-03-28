@@ -12,7 +12,7 @@ import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockSoundListener
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
-import com.nexomc.nexo.nms.NMSHandlers.resetHandler
+import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.NexoPackServer.Companion.initializeServer
 import com.nexomc.nexo.recipes.RecipesManager
@@ -63,7 +63,7 @@ object ReloadCommand {
         FurnitureFactory.instance()?.packetManager()?.removeAllFurniturePackets()
         MechanicsManager.unregisterListeners()
         MechanicsManager.unregisterTasks()
-        resetHandler()
+        NMSHandlers.resetHandler()
         NexoPlugin.instance().reloadConfigs()
         NexoPlugin.instance().packServer(initializeServer())
         MechanicsManager.registerNativeMechanics()
