@@ -13,7 +13,6 @@ import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.serialize
-import io.papermc.paper.block.TileStateInventoryHolder
 import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -52,7 +51,7 @@ class ItemUpdater : Listener {
                 updateEntityInventories(entity)
             }
             SchedulerUtils.runAtWorldTileStates { tileEntity ->
-                tileEntity.inventory.contents.forEachIndexed { index, item ->
+                (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
                     if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
                 }
             }
@@ -61,14 +60,14 @@ class ItemUpdater : Listener {
 
     @EventHandler
     fun EntityAddToWorldEvent.onEntityLoad() {
-        updateEntityInventories(entity)
+        SchedulerUtils.foliaScheduler.runAtEntityLater(entity, Runnable { updateEntityInventories(entity) }, 2L)
     }
 
     @EventHandler
     fun ChunkLoadEvent.onChunkLoad() {
-        chunk.tileEntities.filterIsInstance<TileStateInventoryHolder>().forEach {
-            it.inventory.contents.forEachIndexed { index, item ->
-                if (item != null) it.inventory.setItem(index, updateItem(item))
+        chunk.tileEntities.forEach { tileEntity ->
+            (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
+                if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
             }
         }
     }
@@ -144,25 +143,25 @@ class ItemUpdater : Listener {
         }
     }
 
-    private fun updateEntityInventories(entity: Entity) {
-        if (entity is ItemFrame) entity.setItem(updateItem(entity.item))
-        if (entity is ItemDisplay) entity.setItemStack(updateItem(entity.itemStack))
-        if (entity is Item) entity.itemStack = updateItem(entity.itemStack)
-        if (entity is InventoryHolder) entity.inventory.contents.forEachIndexed { i, content ->
-            if (content != null) entity.inventory.setItem(i, updateItem(content))
-        }
-        if (entity is LivingEntity) entity.equipment?.also { equipment ->
-            EquipmentSlot.entries.forEach slot@{ slot ->
-                runCatching { equipment.getItem(slot).let(::updateItem) }.onSuccess {
-                    equipment.setItem(slot, it)
-                }
-            }
-        }
-    }
-
     companion object {
         private val IF_UUID = NamespacedKey.fromString("nexo:if-uuid")!!
         private val MF_GUI = NamespacedKey.fromString("nexo:mf-gui")!!
+
+        fun updateEntityInventories(entity: Entity) {
+            if (entity is ItemFrame) entity.setItem(updateItem(entity.item), false)
+            if (entity is ItemDisplay) entity.setItemStack(updateItem(entity.itemStack))
+            if (entity is Item) entity.itemStack = updateItem(entity.itemStack)
+            if (entity is InventoryHolder) entity.inventory.contents.forEachIndexed { i, content ->
+                if (content != null) entity.inventory.setItem(i, updateItem(content))
+            }
+            if (entity is LivingEntity) entity.equipment?.also { equipment ->
+                EquipmentSlot.entries.forEach slot@{ slot ->
+                    runCatching { equipment.getItem(slot).let(::updateItem) }.onSuccess {
+                        equipment.setItem(slot, it)
+                    }
+                }
+            }
+        }
 
         fun updateItem(oldItem: ItemStack): ItemStack {
 
@@ -172,13 +171,13 @@ class ItemUpdater : Listener {
             if (NexoPlugin.instance().converter().oraxenConverter.convertItems)
                 NMSHandlers.handler().pluginConverter.convertOraxen(oldItem)
 
+            val id = NexoItems.idFromItem(oldItem) ?: return oldItem
+
             oldItem.editMeta { itemMeta: ItemMeta ->
                 val pdc = itemMeta.persistentDataContainer
                 pdc.remove(IF_UUID)
                 pdc.remove(MF_GUI)
             }
-
-            val id = NexoItems.idFromItem(oldItem) ?: return oldItem
 
             val newItemBuilder = NexoItems.itemFromId(id)?.takeUnless { it.nexoMeta?.noUpdate == true } ?: return oldItem
             val newItem = NMSHandlers.handler().copyItemNBTTags(oldItem, newItemBuilder.build().clone())

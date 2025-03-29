@@ -110,9 +110,7 @@ data class NexoMeta(
 
         this.customArmorTextures = runCatching { packSection.getConfigurationSection("CustomArmor")?.let(::CustomArmorTextures) }.printOnFailure().getOrNull() ?: let {
             val itemId = packSection.parent!!.name
-            val armorPrefix = itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() } ?: return@let null
-
-            CustomArmorTextures(armorPrefix)
+            itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() }?.let(::CustomArmorTextures)
         }
 
         this.parentModel = packSection.getKey("parent_model", Model.ITEM_GENERATED)

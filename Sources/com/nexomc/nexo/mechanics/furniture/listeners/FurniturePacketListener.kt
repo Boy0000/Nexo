@@ -18,9 +18,9 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.fur
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.protectionlib.ProtectionLib
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
-import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -137,7 +137,7 @@ class FurniturePacketListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun PlayerInteractEvent.onPlayerInteractBarrierHitbox() {
-        if (!IFurniturePacketManager.blockIsHitbox(clickedBlock ?: interactionPoint?.block ?: return)) return
+        if (!IFurniturePacketManager.blockIsHitbox((clickedBlock ?: interactionPoint?.block)?.takeIf { it.isEmpty } ?: return)) return
         val mechanic = NexoFurniture.furnitureMechanic(clickedBlock) ?: NexoFurniture.furnitureMechanic(interactionPoint) ?: return
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
         val interactionPoint = interactionPoint ?: clickedBlock?.location?.toCenterLocation()

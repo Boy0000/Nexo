@@ -21,8 +21,8 @@ import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
-import io.papermc.paper.event.player.PlayerPickItemEvent
 import com.nexomc.protectionlib.ProtectionLib
+import io.papermc.paper.event.player.PlayerPickItemEvent
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -60,7 +60,7 @@ class FurnitureListener : Listener {
             limitedPlacing.type == LimitedPlacingType.DENY && limitedPlacing.checkLimited(belowPlaced) -> isCancelled = true
             else -> {
                 val (radius, amount) = limitedPlacing.radiusLimitation?.let { it.radius.toDouble() to it.amount.toDouble()} ?: return
-                if (block.world.getNearbyEntities(block.location, radius, radius, radius)
+                if (block.world.getNearbyEntitiesByType(ItemDisplay::class.java, block.location, radius)
                         .filter { NexoFurniture.furnitureMechanic(it)?.itemID == itemId }
                         .count { it.location.distanceSquared(block.location) <= radius * radius } >= amount
                 ) isCancelled = true

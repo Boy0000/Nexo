@@ -43,7 +43,7 @@ object NexoFurniture {
      */
     @JvmStatic
     fun isFurniture(location: Location): Boolean {
-        return (furnitureMechanic(location) != null) || location.getWorld().getNearbyEntities(location.toCenterLocation(), 0.5, 0.5, 0.5) { it is ItemDisplay }.any(::isFurniture)
+        return (furnitureMechanic(location) != null) || location.getWorld().getNearbyEntitiesByType(ItemDisplay::class.java, location.toCenterLocation(), 0.5).any(::isFurniture)
     }
 
     /**
@@ -110,7 +110,7 @@ object NexoFurniture {
     fun remove(location: Location, player: Player? = null, drop: Drop? = null): Boolean {
         if (!FurnitureFactory.isEnabled || !location.isLoaded) return false
 
-        val mechanic = furnitureMechanic(location) ?: location.world.getNearbyEntities(location, 0.5, 0.5, 0.5).firstNotNullOfOrNull(::furnitureMechanic) ?: return false
+        val mechanic = furnitureMechanic(location) ?: location.world.getNearbyEntitiesByType(ItemDisplay::class.java, location, 0.5).firstNotNullOfOrNull(::furnitureMechanic) ?: return false
         val itemStack = player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)
         val baseEntity = FurnitureMechanic.baseEntity(location) ?: return false
 
@@ -168,7 +168,7 @@ object NexoFurniture {
         return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))?.let(::furnitureMechanic) ?: let {
             val block = location.block
             val centerLoc = toCenterBlockLocation(location)
-            centerLoc.world.getNearbyEntities(centerLoc, 2.0, 2.0, 2.0) { it.type == EntityType.ITEM_DISPLAY }
+            centerLoc.world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
                 ?.let(::furnitureMechanic)

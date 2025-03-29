@@ -117,7 +117,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val isJukebox = jukebox != null
     val hasSeats = seats.isNotEmpty()
     val hasEvolution = evolution != null
-    fun isInteractable(player: Player?) = rotatable.shouldRotate(player) || hasSeats || isStorage || light.toggleable
+    fun isInteractable(player: Player?) = rotatable.shouldRotate(player) || hasSeats || isStorage || light.toggleable || clickActions.isNotEmpty()
 
     fun place(location: Location) = place(location, location.yaw, BlockFace.UP, true)
 

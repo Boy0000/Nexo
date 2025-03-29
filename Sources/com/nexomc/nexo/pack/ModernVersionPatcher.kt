@@ -22,7 +22,7 @@ object ModernVersionPatcher {
 
     fun convertResources(resourcePack: ResourcePack) {
         resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
-            val overrides = model.overrides()
+            val overrides = model.overrides().takeUnless { it.isEmpty() } ?: return@forEach
             val standardItem = standardItemModels[itemKey]
             val finalNewItemModel = standardItem?.let { existingItemModel ->
                 val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
@@ -32,22 +32,55 @@ object ModernVersionPatcher {
                         RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
                     }, baseItemModel)
 
-                    is SelectItemModel -> ItemModel.select().property(ItemStringProperty.customModelData()).fallback(baseItemModel).addCases(overrides.mapNotNull {
-                        SelectItemModel.Case._case(ItemModel.reference(it.model()), it.predicate().customModelData?.toString() ?: return@mapNotNull null)
-                    }).build()
+                    is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
+                    }, baseItemModel)
 
                     is ConditionItemModel -> {
-                        val (trueOverrides, falseOverrides) = overrides.groupBy { it.predicate().customModelData?.takeUnless { it == 0f } }.let {
-                            it.values.mapNotNull { it.last() } to it.values.mapNotNull { it.first() }
+                        val (trueOverrides, falseOverrides) = overrides.groupBy { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
+                            when {
+                                itemKey.asString().endsWith("bow") ->
+                                    grouped.values.partition { it.any { p -> p.pulling } }.let { it.first.flatten() to it.second.flatten() }
+
+                                itemKey.asString().endsWith("shield") ->
+                                    grouped.values.map { it.firstOrNull { it.blocking } } to grouped.values.map { it.firstOrNull { !it.blocking } }
+
+                                else -> grouped.values.map { it.first() } to grouped.values.map { it.last() }
+                            }
                         }
 
-                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, trueOverrides.mapNotNull {
-                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
-                        }, baseItemModel.onTrue())
+                        // If there are any pull-override predicates it is a bow, and we build a RangeDispatchItemModel for the Entry, otherwise a simple ReferenceItemModel
+                        val onTrueCmdEntries = trueOverrides.groupBy { it.predicate().customModelData }.mapNotNull { (cmd, overrides) ->
+                            val baseOverrideModel = overrides.firstOrNull()?.let { ItemModel.reference(it.model()) } ?: return@mapNotNull null
 
-                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, falseOverrides.mapNotNull {
-                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
-                        }, baseItemModel.onFalse())
+                            // If the overrides contain any pull, we make a bow-type model
+                            val finalModel = overrides.drop(1).mapNotNull {
+                                RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                            }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
+                                ItemModel.rangeDispatch(ItemNumericProperty.useDuration(), 0.05f, pullingEntries, baseOverrideModel)
+                            } ?: baseOverrideModel
+
+                            RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
+                        }
+
+                        val onFalseCmdEntries = falseOverrides.groupBy { it.predicate().customModelData }.mapNotNull { (cmd, overrides) ->
+                            val baseOverrideModel = overrides.firstOrNull()?.let { ItemModel.reference(it.model()) } ?: return@mapNotNull null
+                            val firework = overrides.firstNotNullOfOrNull { it.firework }
+                            val charged = overrides.firstNotNullOfOrNull { it.charged }
+
+                            val finalModel = when {
+                                charged != null || firework != null -> ItemModel.select().property(ItemStringProperty.chargeType()).fallback(baseOverrideModel).apply {
+                                    charged?.apply(::addCase)
+                                    firework?.apply(::addCase)
+                                }.build()
+                                else -> baseOverrideModel
+                            }
+
+                            RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
+                        }
+
+                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onTrueCmdEntries, baseItemModel.onTrue())
+                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onFalseCmdEntries, baseItemModel.onFalse())
 
                         ItemModel.conditional(baseItemModel.condition(), onTrue, onFalse)
                     }
@@ -96,10 +129,14 @@ object ModernVersionPatcher {
         get() = firstOrNull { it.name() == "custom_model_data" }?.value().toString().toFloatOrNull()
     private val List<ItemPredicate>.pull: Float?
         get() = firstOrNull { it.name() == "pull" }?.value().toString().toFloatOrNull()
-    private val List<ItemPredicate>.charged: Double?
-        get() = firstOrNull { it.name() == "charged" }?.value().toString().toDoubleOrNull()
-    private val List<ItemPredicate>.firework: Double?
-        get() = firstOrNull { it.name() == "firework" }?.value().toString().toDoubleOrNull()
+    private val ItemOverride.pulling: Boolean
+        get() = predicate().any { it.name() == "pulling" }
+    private val ItemOverride.charged: SelectItemModel.Case?
+        get() = takeIf { it.predicate().any { it.name() == "charged" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), "arrow") }
+    private val ItemOverride.firework: SelectItemModel.Case?
+        get() = takeIf { it.predicate().any { it.name() == "firework" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), "rocket") }
+    private val ItemOverride.blocking: Boolean
+        get() = predicate().any { it.name() == "blocking" }
 
     val standardItemModels by lazy {
         runCatching {

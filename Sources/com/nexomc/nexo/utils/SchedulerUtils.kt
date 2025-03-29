@@ -2,10 +2,10 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
 import com.tcoded.folialib.impl.PlatformScheduler
-import io.papermc.paper.block.TileStateInventoryHolder
 import java.util.concurrent.Future
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.block.BlockState
 import org.bukkit.entity.Entity
 import org.bukkit.scheduler.BukkitTask
 
@@ -14,8 +14,8 @@ object SchedulerUtils {
     val foliaScheduler: PlatformScheduler get() = NexoPlugin.instance().foliaLib.scheduler
 
     fun runAtWorldEntities(task: (Entity) -> Unit) {
-        if (VersionUtil.isFoliaServer) Bukkit.getWorlds().forEach { world ->
-            world.loadedChunks.forEach { chunk ->
+        Bukkit.getWorlds().forEach { world ->
+            if (VersionUtil.isFoliaServer) world.loadedChunks.forEach { chunk ->
                 foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
                     chunk.entities.forEach { entity ->
                         foliaScheduler.runAtEntity(entity) {
@@ -23,22 +23,16 @@ object SchedulerUtils {
                         }
                     }
                 }
-            }
-        } else Bukkit.getWorlds().flatMapFast { it.entities }.forEach(task::invoke)
+            } else world.entities.forEach(task::invoke)
+        }
     }
 
-    fun runAtWorldTileStates(task: (TileStateInventoryHolder) -> Unit) {
-        if (VersionUtil.isFoliaServer) Bukkit.getWorlds().forEach { world ->
+    fun runAtWorldTileStates(task: (BlockState) -> Unit) {
+        Bukkit.getWorlds().forEach { world ->
             world.loadedChunks.forEach { chunk ->
-                foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
-                    chunk.tileEntities.forEach { tile ->
-                        if (tile is TileStateInventoryHolder) task.invoke(tile)
-                    }
-                }
-            }
-        } else Bukkit.getWorlds().flatMapFast { it.loadedChunks.map { it.tileEntities } }.forEach { tiles ->
-            tiles.forEach { tile ->
-                if (tile is TileStateInventoryHolder) task.invoke(tile)
+                if (VersionUtil.isFoliaServer) foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
+                    chunk.tileEntities.forEach(task::invoke)
+                } else chunk.tileEntities.forEach(task::invoke)
             }
         }
     }
