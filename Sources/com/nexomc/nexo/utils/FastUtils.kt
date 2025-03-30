@@ -37,6 +37,16 @@ inline fun <T, R> Iterable<T>.flatMapFast(transform: (T) -> Iterable<R>): Object
     return flatMapTo(ObjectArrayList<R>(), transform)
 }
 
+inline fun <T, R> Iterable<T>.flatMapFastNotNull(transform: (T) -> Iterable<R?>): ObjectArrayList<R> {
+    val result = ObjectArrayList<R>()
+    for (element in this) {
+        for (item in transform(element)) {
+            if (item != null) result.add(item)
+        }
+    }
+    return result
+}
+
 inline fun <T, R> Iterable<T>.flatMapSetFast(transform: (T) -> Iterable<R>): ObjectLinkedOpenHashSet<R> {
     return flatMapTo(ObjectLinkedOpenHashSet<R>(), transform)
 }
@@ -58,9 +68,27 @@ inline fun <T, K, V> Iterable<T>.associateFast(transform: (T) -> Pair<K, V>): Ob
     return associateTo(Object2ObjectOpenHashMap<K, V>(capacity), transform)
 }
 
+inline fun <T, K> Iterable<T>.associateFastBy(keySelector: (T) -> K): Object2ObjectOpenHashMap<K, T> {
+    val result = Object2ObjectOpenHashMap<K, T>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    return associateByTo(result, keySelector)
+}
+
 inline fun <K, V> Iterable<K>.associateFastWith(valueSelector: (K) -> V): Object2ObjectOpenHashMap<K, V> {
     val result = Object2ObjectOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
     return associateWithTo(result, valueSelector)
+}
+
+inline fun <T, K, V> Iterable<T>.associateFastByNotNull(
+    keySelector: (T) -> K?,
+    valueSelector: (T) -> V?
+): Object2ObjectOpenHashMap<K, V> {
+    val result = Object2ObjectOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    for (element in this) {
+        val key = keySelector(element) ?: continue
+        val value = valueSelector(element) ?: continue
+        result[key] = value
+    }
+    return result
 }
 
 inline fun <reified R> Iterable<*>.filterFastIsInstance(): ObjectArrayList<R> {

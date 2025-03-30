@@ -41,9 +41,15 @@ open class Glyph(
     private val unicodeComponent = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
         listOfNotNull(Component.text(row.toList().joinToString(Shift.of(-1)), NamedTextColor.WHITE).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
     }.toTypedArray())
-    private val colorableUnicodeComponent = Component.textOfChildren(*unicodes.flatMap {
-        listOf(Component.text(it.toList().joinToString(Shift.of(-1))).font(font), Component.newline())
-    }.toTypedArray())
+    private val colorableUnicodeComponent = Component.textOfChildren(
+        *unicodes.flatMapIndexed { i, row ->
+            listOfNotNull(
+                Component.text(row.toList().joinToString(Shift.of(-1))).font(font),
+                Component.newline().takeIf { unicodes.size > 1 && i < unicodes.lastIndex }
+            )
+        }.toTypedArray()
+    )
+
     private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shift: String = Shift.of(0)) =
         Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift", NamedTextColor.WHITE.takeUnless { colorable }).font(font)
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =

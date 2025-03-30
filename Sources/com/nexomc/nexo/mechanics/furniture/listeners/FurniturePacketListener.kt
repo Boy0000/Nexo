@@ -142,16 +142,19 @@ class FurniturePacketListener : Listener {
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
         val interactionPoint = interactionPoint ?: clickedBlock?.location?.toCenterLocation()
 
-        if (useInteractedBlock() != Event.Result.DENY) when {
-            action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.location) -> {
+         when {
+            action == Action.RIGHT_CLICK_BLOCK -> {
+                if (!ProtectionLib.canBuild(player, baseEntity.location)) setUseItemInHand(Event.Result.DENY)
                 val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.let { it.isBlock && it != Material.LILY_PAD && it != Material.FROGSPAWN }
-                if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable(player) || player.isSneaking) && ProtectionLib.canBuild(player, baseEntity.location)) {
+                if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable(player) || player.isSneaking)) {
                     setUseItemInHand(Event.Result.DENY)
+                    setUseInteractedBlock(Event.Result.DENY)
                     clickedBlock?.type = Material.BARRIER
                     CustomBlockHelpers.makePlayerPlaceBlock(player, hand!!, item!!, clickedBlock!!, blockFace, null, null)
                     clickedBlock?.type = Material.AIR
                 }
 
+                if (!ProtectionLib.canInteract(player, baseEntity.location)) setUseInteractedBlock(Event.Result.DENY)
                 NexoFurnitureInteractEvent(mechanic, baseEntity, player, item, hand!!, interactionPoint, useInteractedBlock(), useItemInHand(), blockFace).call {
                     setUseInteractedBlock(useFurniture)
                     setUseItemInHand(useItemInHand)

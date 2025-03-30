@@ -19,8 +19,26 @@ class WorldGuardCompatibility : CompatibilityProvider<WorldGuardPlugin>() {
         val query = container.createQuery()
 
         val location = BukkitAdapter.adapt(baseEntity.location)
-        val state = query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_INTERACT_FLAG) ?: return
 
-        useFurniture = if (StateFlag.test(state)) Event.Result.ALLOW else Event.Result.DENY
+        // Query base interaction flag
+        val interactState = query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_INTERACT_FLAG, WorldGuard.getInstance().flagRegistry.get("interact")!! as StateFlag)
+
+        // Query subflags independently (does not affect useFurniture)
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_TOGGLE_LIGHT_FLAG)?.toResult(canToggleLight)?.let{ canToggleLight = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_SIT_FLAG)?.toResult()?.let { canSit = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_ROTATE_FLAG)?.toResult(canRotate)?.let{ canRotate = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_OPEN_STORAGE_FLAG)?.toResult(canOpenStorage)?.let{ canOpenStorage = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_CLICKACTION_FLAG)?.toResult(canRunAction)?.let{ canRunAction = it }
+
+        // Set useFurniture **only based on interactState**
+        useFurniture = interactState.toResult(useFurniture)
+    }
+
+    private fun StateFlag.State?.toResult(default: Event.Result = Event.Result.DEFAULT): Event.Result {
+        return when (this) {
+            StateFlag.State.ALLOW -> Event.Result.ALLOW
+            StateFlag.State.DENY -> Event.Result.DENY
+            else -> default
+        }
     }
 }

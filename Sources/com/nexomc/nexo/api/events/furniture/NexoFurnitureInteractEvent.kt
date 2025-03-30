@@ -31,6 +31,27 @@ class NexoFurnitureInteractEvent @JvmOverloads constructor(
     val itemInHand: ItemStack = itemInHand ?: ItemStack(Material.AIR)
     private var isCancelled = false
 
+    var canToggleLight: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.light.toggleable) Result.ALLOW else Result.DENY
+        } else field
+    var canRotate: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.rotatable.shouldRotate(player)) Result.ALLOW else Result.DENY
+        } else field
+    var canSit: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.hasSeats && !player.isSneaking) Result.ALLOW else Result.DENY
+        } else field
+    var canOpenStorage: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.isStorage && !player.isSneaking) Result.ALLOW else Result.DENY
+        } else field
+    var canRunAction: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.clickActions.isNotEmpty()) Result.ALLOW else Result.DENY
+        } else field
+
     override fun isCancelled(): Boolean {
         return isCancelled || useFurniture == Result.DENY
     }

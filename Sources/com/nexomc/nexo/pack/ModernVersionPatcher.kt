@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
 import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.utils.groupByFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
@@ -37,15 +38,18 @@ object ModernVersionPatcher {
                     }, baseItemModel)
 
                     is ConditionItemModel -> {
-                        val (trueOverrides, falseOverrides) = overrides.groupBy { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
+                        val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
                             when {
                                 itemKey.asString().endsWith("bow") ->
-                                    grouped.values.partition { it.any { p -> p.pulling } }.let { it.first.flatten() to it.second.flatten() }
+                                    grouped.values.partition { it.any { p -> p.pulling } }.let { it.first.flatten().filterNotNull() to it.second.flatten().filterNotNull() }
 
                                 itemKey.asString().endsWith("shield") ->
-                                    grouped.values.map { it.firstOrNull { it.blocking } } to grouped.values.map { it.firstOrNull { !it.blocking } }
+                                    grouped.values.mapNotNull { it.firstOrNull { it.blocking } } to grouped.values.mapNotNull { it.firstOrNull { !it.blocking } }
 
-                                else -> grouped.values.map { it.first() } to grouped.values.map { it.last() }
+                                itemKey.asString().endsWith("fishing_rod") ->
+                                    grouped.values.mapNotNull { it.firstOrNull { it.cast } } to grouped.values.mapNotNull { it.firstOrNull { !it.cast } }
+
+                                else -> grouped.values.mapNotNull { it.firstOrNull() } to grouped.values.mapNotNull { it.lastOrNull() }
                             }
                         }
 
@@ -137,6 +141,8 @@ object ModernVersionPatcher {
         get() = takeIf { it.predicate().any { it.name() == "firework" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), "rocket") }
     private val ItemOverride.blocking: Boolean
         get() = predicate().any { it.name() == "blocking" }
+    private val ItemOverride.cast: Boolean
+        get() = predicate().any { it.name() == "cast" }
 
     val standardItemModels by lazy {
         runCatching {

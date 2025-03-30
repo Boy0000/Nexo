@@ -20,7 +20,6 @@ import io.papermc.paper.event.player.PlayerPickItemEvent
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.AbstractWindCharge
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
@@ -141,7 +140,7 @@ class CustomBlockListener : Listener {
             NexoBlocks.customBlockMechanic(block.blockData)
         }
 
-        val windCharged = entity is AbstractWindCharge || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
+        val windCharged = entity.type.name.contains("WIND_CHARGE") || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
 
         customBlocks.forEach { (block, mechanic) ->
             if (!mechanic.isBlastResistant && !windCharged) block.type = Material.AIR

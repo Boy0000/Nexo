@@ -139,26 +139,26 @@ class FurnitureListener : Listener {
         SchedulerUtils.foliaScheduler.runAtLocation(block.location) { block.setType(Material.AIR, false) }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     fun NexoFurnitureInteractEvent.onFurnitureInteract() {
         val allowUseItem = useItemInHand
         useItemInHand = Event.Result.DENY
 
-        if (hand == EquipmentSlot.HAND && useFurniture != Event.Result.DENY) {
-            if (mechanic.clickActions.isNotEmpty()) mechanic.runClickActions(player)
-            if (mechanic.light.toggleable) FurnitureHelpers.toggleLight(baseEntity, mechanic = mechanic)
+        if (hand == EquipmentSlot.HAND) {
+            if (canRunAction != Event.Result.DENY) mechanic.runClickActions(player)
+            if (canToggleLight != Event.Result.DENY) FurnitureHelpers.toggleLight(baseEntity, mechanic = mechanic)
 
             when {
-                mechanic.rotatable.shouldRotate(player) -> mechanic.rotateFurniture(baseEntity)
-                mechanic.isStorage && !player.isSneaking -> when (mechanic.storage?.storageType) {
+                canRotate != Event.Result.DENY -> mechanic.rotateFurniture(baseEntity)
+                canOpenStorage != Event.Result.DENY -> when (mechanic.storage?.storageType) {
                     StorageType.STORAGE, StorageType.SHULKER -> mechanic.storage.openStorage(baseEntity, player)
                     StorageType.PERSONAL -> mechanic.storage.openPersonalStorage(player, baseEntity.location, baseEntity)
                     StorageType.DISPOSAL -> mechanic.storage.openDisposal(player, baseEntity.location, baseEntity)
                     StorageType.ENDERCHEST -> player.openInventory(player.enderChest)
                     null -> return
                 }
-                mechanic.hasSeats && !player.isSneaking -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
-                mechanic.clickActions.isEmpty() && !mechanic.light.toggleable -> useItemInHand = allowUseItem
+                canSit != Event.Result.DENY -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
+                canRunAction == Event.Result.DENY && canToggleLight == Event.Result.DENY -> useItemInHand = allowUseItem
             }
         }
 
