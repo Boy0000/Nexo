@@ -11,7 +11,6 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.drops.Drop
-import com.nexomc.nexo.utils.filterFastSet
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
 import org.bukkit.Location
@@ -34,7 +33,7 @@ object NexoFurniture {
      * @return a Set of all NexoItem IDs that have a FurnitureMechanic
      */
     @JvmStatic
-    fun furnitureIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isFurniture)
+    fun furnitureIDs(): Array<String> = NexoItems.itemNames().filter(::isFurniture).toTypedArray()
     /**
      * Check if a location contains a Furniture
      *

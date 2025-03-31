@@ -133,12 +133,22 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
     private fun obfuscateItems() {
         fun obfuscateItemModel(itemModel: ItemModel): ItemModel {
             return when (itemModel) {
-                is CompositeItemModel -> ItemModel.composite(itemModel.models().map(::obfuscateItemModel))
-                is RangeDispatchItemModel -> ItemModel.rangeDispatch(itemModel.property(), itemModel.scale(), itemModel.entries().map { RangeDispatchItemModel.Entry.entry(it.threshold(), obfuscateItemModel(it.model())) }, itemModel.fallback())
-                is ConditionItemModel -> ItemModel.conditional(itemModel.condition(), obfuscateItemModel(itemModel.onTrue()), obfuscateItemModel(itemModel.onFalse()))
-                is SelectItemModel -> ItemModel.select(itemModel.property(), itemModel.cases().map { SelectItemModel.Case._case(obfuscateItemModel(it.model()), it.`when`()) }, itemModel.fallback())
                 is SpecialItemModel -> ItemModel.special(itemModel.render(), obfuscatedModels.findObf(itemModel.base())?.key() ?: itemModel.base())
                 is ReferenceItemModel -> ItemModel.reference(obfuscatedModels.findObf(itemModel.model())?.key() ?: itemModel.model(), itemModel.tints())
+                is CompositeItemModel -> ItemModel.composite(itemModel.models().map(::obfuscateItemModel))
+                is ConditionItemModel -> ItemModel.conditional(itemModel.condition(), obfuscateItemModel(itemModel.onTrue()), obfuscateItemModel(itemModel.onFalse()))
+
+                is SelectItemModel -> ItemModel.select(
+                    itemModel.property(),
+                    itemModel.cases().map { SelectItemModel.Case._case(obfuscateItemModel(it.model()), it.`when`()) },
+                    itemModel.fallback()?.let(::obfuscateItemModel)
+                )
+                is RangeDispatchItemModel -> ItemModel.rangeDispatch(
+                    itemModel.property(),
+                    itemModel.scale(),
+                    itemModel.entries().map { RangeDispatchItemModel.Entry.entry(it.threshold(), obfuscateItemModel(it.model())) },
+                    itemModel.fallback()?.let(::obfuscateItemModel)
+                )
                 else -> itemModel
             }
         }

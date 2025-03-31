@@ -59,10 +59,6 @@ interface IFurniturePacketManager {
         return null
     }
 
-    fun handleFurnitureHitboxOnChunkForget(packet: Any, player: Player): Unit? {
-        return null
-    }
-
     companion object {
         val BARRIER_DATA = Material.BARRIER.createBlockData() as Waterlogged
         val BARRIER_DATA_WATERLOGGED = (Material.BARRIER.createBlockData() as Waterlogged).apply { isWaterlogged = true }

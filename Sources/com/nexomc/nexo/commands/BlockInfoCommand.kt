@@ -19,7 +19,7 @@ internal fun CommandTree.blockInfoCommand() = literalArgument("blockinfo") {
     withPermission("nexo.command.blockinfo")
     stringArgument("itemid") {
         replaceSuggestions(ArgumentSuggestions.stringsAsync {
-            CompletableFuture.supplyAsync { NexoBlocks.blockIDs().toTypedArray() }
+            CompletableFuture.supplyAsync { NexoBlocks.blockIDs() }
         })
         anyExecutor { sender, args ->
             val argument = args.get("itemid") as? String ?: return@anyExecutor

@@ -1,15 +1,16 @@
 package com.nexomc.nexo.mechanics.furniture.jukebox
 
-import com.nexomc.nexo.NexoPlugin
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.configs.Message
+import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.ItemUtils.isMusicDisc
-import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.sound.Sound
 import org.bukkit.GameMode
@@ -81,7 +82,7 @@ class JukeboxListener : Listener {
 
         if (!pdc.has(JukeboxBlock.MUSIC_DISC_KEY, DataType.ITEM_STACK) || !isMusicDisc(item)) return false
 
-        if (songKey != null) baseEntity.world.players.filterFast { it.canSee(baseEntity) }.forEach { p ->
+        if (songKey != null) baseEntity.trackedBy.forEach { p ->
             p.stopSound(Sound.sound(songKey, Sound.Source.RECORD, jukebox.volume, jukebox.pitch))
         }
         baseEntity.world.dropItemNaturally(loc, item)

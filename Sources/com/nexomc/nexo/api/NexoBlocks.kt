@@ -25,7 +25,6 @@ import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.drops.Drop
-import com.nexomc.nexo.utils.filterFastSet
 import org.bukkit.Effect
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
@@ -48,7 +47,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
      */
     @JvmStatic
-    fun blockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isCustomBlock)
+    fun blockIDs(): Array<String> = NexoItems.itemNames().filter(::isCustomBlock).toTypedArray()
 
     /**
      * Get all NexoItem ID's that have a NoteBlockMechanic
@@ -56,7 +55,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a NoteBlockMechanic
      */
     @JvmStatic
-    fun noteBlockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isNexoNoteBlock)
+    fun noteBlockIDs(): Array<String> = NexoItems.itemNames().filter(::isNexoNoteBlock).toTypedArray()
 
     /**
      * Get all NexoItem ID's that have a StringBlockMechanic
@@ -64,7 +63,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a StringBlockMechanic
      */
     @JvmStatic
-    fun stringBlockIDs(): Set<String> = NexoItems.itemNames().filterFastSet(::isNexoStringBlock)
+    fun stringBlockIDs(): Array<String> = NexoItems.itemNames().filter(::isNexoStringBlock).toTypedArray()
 
     /**
      * Get all NexoItem ID's that have a ChorusBlockMechanic
@@ -72,7 +71,7 @@ object NexoBlocks {
      * @return A set of all NexoItem ID's that have a ChorusBlockMechanic
      */
     @JvmStatic
-    fun chorusBlockIDs(): Set<String>  = NexoItems.itemNames().filterFastSet(::isNexoChorusBlock)
+    fun chorusBlockIDs(): Array<String>  = NexoItems.itemNames().filter(::isNexoChorusBlock).toTypedArray()
 
     /**
      * Check if a block is an instance of an NexoBlock

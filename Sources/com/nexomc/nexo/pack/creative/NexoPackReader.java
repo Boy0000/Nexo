@@ -237,6 +237,12 @@ public class NexoPackReader implements MinecraftResourcePackReader {
             // path inside the category
             String categoryPath = path(tokens);
 
+            // Filter out unwanted & common extensions
+            if (categoryPath.endsWith(DS_STORE_EXTENSION) || categoryPath.endsWith(DB_EXTENSION)) {
+                container.unknownFile(containerPath, reader.content().asWritable());
+                continue;
+            }
+
             if (categoryName.equals(TEXTURES_FOLDER)) {
                 String keyOfMetadata = withoutExtension(categoryPath, METADATA_EXTENSION);
                 if (keyOfMetadata != null) {

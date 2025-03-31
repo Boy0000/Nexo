@@ -41,7 +41,7 @@ object ModernVersionPatcher {
                         val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
                             when {
                                 itemKey.asString().endsWith("bow") ->
-                                    grouped.values.partition { it.any { p -> p.pulling } }.let { it.first.flatten().filterNotNull() to it.second.flatten().filterNotNull() }
+                                    grouped.values.flatMap { it.filter { p-> p.pulling } } to grouped.values.flatMap { it.filterNot { p -> p.pulling } }
 
                                 itemKey.asString().endsWith("shield") ->
                                     grouped.values.mapNotNull { it.firstOrNull { it.blocking } } to grouped.values.mapNotNull { it.firstOrNull { !it.blocking } }
@@ -61,7 +61,8 @@ object ModernVersionPatcher {
                             val finalModel = overrides.drop(1).mapNotNull {
                                 RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
                             }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
-                                ItemModel.rangeDispatch(ItemNumericProperty.useDuration(), 0.05f, pullingEntries, baseOverrideModel)
+                                val property = if (itemKey.asString().contains("crossbow")) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
+                                ItemModel.rangeDispatch(property, 0.05f, pullingEntries, baseOverrideModel)
                             } ?: baseOverrideModel
 
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
