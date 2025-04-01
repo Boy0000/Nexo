@@ -14,6 +14,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.PackGenerator
+import com.nexomc.nexo.pack.server.NexoPackServer
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.SchedulerUtils
@@ -112,6 +113,7 @@ object ReloadCommand {
         MechanicsManager.unregisterTasks()
         NMSHandlers.resetHandler()
         NexoPlugin.instance().reloadConfigs()
+        NexoPlugin.instance().packServer(NexoPackServer.initializeServer())
         MechanicsManager.registerNativeMechanics()
         Message.RELOAD.send(sender, tagResolver("reloaded", "configs"))
     }

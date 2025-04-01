@@ -5,6 +5,7 @@ import com.nexomc.nexo.compatibilities.CompatibilityProvider
 import com.sk89q.worldedit.bukkit.BukkitAdapter
 import com.sk89q.worldguard.WorldGuard
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin
+import com.sk89q.worldguard.protection.flags.Flags
 import com.sk89q.worldguard.protection.flags.StateFlag
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
@@ -21,7 +22,7 @@ class WorldGuardCompatibility : CompatibilityProvider<WorldGuardPlugin>() {
         val location = BukkitAdapter.adapt(baseEntity.location)
 
         // Query base interaction flag
-        val interactState = query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_INTERACT_FLAG, WorldGuard.getInstance().flagRegistry.get("interact")!! as StateFlag)
+        val interactState = query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_INTERACT_FLAG, Flags.INTERACT)
 
         // Query subflags independently (does not affect useFurniture)
         query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_TOGGLE_LIGHT_FLAG)?.toResult(canToggleLight)?.let{ canToggleLight = it }

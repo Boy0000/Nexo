@@ -15,8 +15,7 @@ import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.io.entity.EntityUtils
 
 class PolymathServer : NexoPackServer {
-    private val serverAddress: String =
-        Settings.POLYMATH_SERVER.toString("atlas.mineinabyss.com").prependIfMissing("https://").appendIfMissing("/")
+    private val serverAddress: String = Settings.POLYMATH_SERVER.toString("atlas.nexomc.com").prependIfMissing("https://").appendIfMissing("/")
     private var packUrl: String? = null
     private var hash: String? = null
     private var packUUID: UUID? = null
