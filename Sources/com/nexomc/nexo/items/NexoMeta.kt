@@ -49,12 +49,12 @@ data class NexoMeta(
         )
 
         constructor(section: ConfigurationSection) : this(
-            Key.key(section.getString("layer1")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("layer2")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("elytra")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("wolf_armor")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("llama_armor")?.appendIfMissing(".png")!!),
-            Key.key(section.getString("horse_armor")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("layer1", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("layer2", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("elytra", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("wolf_armor", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("llama_armor", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("horse_armor", "")?.appendIfMissing(".png")!!),
         )
 
         fun fromItem(item: ItemBuilder, itemId: String): Key? {

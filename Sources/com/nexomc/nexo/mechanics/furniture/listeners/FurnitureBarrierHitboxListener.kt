@@ -1,18 +1,44 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.event.entity.EntityMoveEvent
+import java.util.UUID
 import org.bukkit.Bukkit
+import org.bukkit.block.BlockFace
+import org.bukkit.entity.ArmorStand
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockFormEvent
 import org.bukkit.event.block.BlockFromToEvent
+import org.bukkit.event.entity.EntityPlaceEvent
+import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
-import java.util.*
 
 class FurnitureBarrierHitboxListener : Listener {
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun HangingBreakEvent.onHangingBreak() {
+        if (cause != HangingBreakEvent.RemoveCause.PHYSICS) return
+        val relative = entity.location.block.getRelative(entity.attachedFace)
+        if (IFurniturePacketManager.blockIsHitbox(relative)) isCancelled = true
+    }
+
+    @EventHandler
+    fun EntityPlaceEvent.onPlace() {
+        if (entity !is ArmorStand || !IFurniturePacketManager.blockIsHitbox(block)) return
+        entity.setGravity(false)
+    }
+
+    @EventHandler
+    fun NexoFurnitureBreakEvent.onBreak() {
+        val hitboxLocs = IFurniturePacketManager.barrierHitboxLocationMap.get(baseEntity.uniqueId) ?: return
+        baseEntity.world.getNearbyEntitiesByType(ArmorStand::class.java, baseEntity.location, 8.0).forEach {
+            if (it.location.block.getRelative(BlockFace.DOWN).location in hitboxLocs) it.setGravity(true)
+        }
+    }
 
     @EventHandler(ignoreCancelled = true)
     fun BlockFromToEvent.onFlowThroughBarrier() {
@@ -30,7 +56,7 @@ class FurnitureBarrierHitboxListener : Listener {
     fun EntityMoveEvent.onMobMove() {
         val (to, from) = to.block.location to from.block.location
         if (!hasExplicitlyChangedBlock() || to.y < from.y) return
-        if (IFurniturePacketManager.barrierHitboxLocationMap.any { to in it.value && from !in it.value  }) isCancelled = true
+        if (IFurniturePacketManager.blockIsHitbox(to.block) || IFurniturePacketManager.blockIsHitbox(from.block)) isCancelled = true
     }
 
     private val flightCache: MutableSet<UUID> = mutableSetOf()

@@ -11,6 +11,7 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateWithNotNull
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
@@ -183,6 +184,7 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun PlayerPickItemEvent.onMiddleClick() {
+        if (VersionUtil.atleast("1.21.4")) return
         val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
         val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
         val mechanic = NexoBlocks.customBlockMechanic(block.blockData)
@@ -206,6 +208,7 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun InventoryCreativeEvent.onMiddleClick() {
+        if (VersionUtil.atleast("1.21.4")) return
         val player = inventory.holder as? Player ?: return
         if (clickedInventory == null || click != ClickType.CREATIVE) return
         if (slotType != InventoryType.SlotType.QUICKBAR) return

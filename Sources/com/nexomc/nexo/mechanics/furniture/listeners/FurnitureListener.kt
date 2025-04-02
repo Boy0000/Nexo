@@ -19,6 +19,7 @@ import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
@@ -127,11 +128,6 @@ class FurnitureListener : Listener {
 
         val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(blockLoc) ?: return
         NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        if (itemStack.type.hasGravity() || isItemFrame || isArmorStand || isPainting) {
-            setUseItemInHand(Event.Result.DENY)
-            player.updateInventory()
-            return
-        }
 
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
@@ -168,6 +164,7 @@ class FurnitureListener : Listener {
     // Does not work for 1.21.4, packets are intercepted for that atm
     @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerPickItemEvent.onMiddleClick() {
+        if (VersionUtil.atleast("1.21.4")) return
         val baseEntity = FurnitureFactory.instance()?.packetManager()?.findTargetFurnitureHitbox(player) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
         val item = NexoItems.itemFromId(mechanic.itemID)?.build() ?: return
@@ -187,6 +184,7 @@ class FurnitureListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun InventoryCreativeEvent.onMiddleClick() {
+        if (VersionUtil.atleast("1.21.4")) return
         val player = inventory.holder as? Player ?: return
         if (clickedInventory == null || click != ClickType.CREATIVE) return
         if (slotType != InventoryType.SlotType.QUICKBAR || cursor.type != Material.BARRIER) return

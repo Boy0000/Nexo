@@ -77,6 +77,7 @@ enum class RemovedSettings(private val path: String) {
     PACK_UPLOAD("Pack.upload"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine"),
+    PACK_READER_LENIENT("Pack.generation.lenient"),
     ;
 
     override fun toString(): String {

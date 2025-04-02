@@ -228,13 +228,13 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val config = loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
 
-        config.getKeys(false).filterNot(ItemTemplate::isTemplate).forEach { itemKey: String ->
-            parseMap[itemKey] = ItemParser(config.getConfigurationSection(itemKey) ?: return@forEach)
+        config.childSections().forEach { itemId, section ->
+            if (ItemTemplate.isTemplate(itemId)) parseMap[itemId] = ItemParser(section)
         }
 
         var configUpdated = false
         val map = Object2ObjectLinkedOpenHashMap<String, ItemBuilder>()
-        parseMap.entries.forEach { (itemId, itemParser) ->
+        parseMap.forEach { (itemId, itemParser) ->
             map[itemId] = runCatching {
                 itemParser.buildItem()
             }.onFailure {
@@ -246,7 +246,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         }
 
         if (configUpdated) {
-            config.getKeys(false).mapNotNull { config.getConfigurationSection(it) }.forEach { section ->
+            config.childSections().forEach { _, section ->
                 when {
                     VersionUtil.atleast("1.20.5") -> section.getString("displayname")?.also {
                         section.set("itemname", it)

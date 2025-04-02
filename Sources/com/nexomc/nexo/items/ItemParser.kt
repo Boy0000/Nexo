@@ -13,6 +13,7 @@ import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
@@ -168,25 +169,20 @@ class ItemParser(private val section: ConfigurationSection) {
     private fun parseNexoSection(item: ItemBuilder) {
         val mechanicsSection = mergeWithTemplateSection().getConfigurationSection("Mechanics")
 
-        mechanicsSection?.getKeys(false)?.forEach { mechanicID: String ->
-            val factory = MechanicsManager.getMechanicFactory(mechanicID) ?: return@forEach
-
-            val mechanic = mechanicsSection.getConfigurationSection(mechanicID)?.let(factory::parse) ?: return@forEach
-            for (itemModifier in mechanic.itemModifiers) itemModifier.apply(item)
+        mechanicsSection?.childSections()?.forEach { mechanicId, section ->
+            val mechanic = MechanicsManager.getMechanicFactory(mechanicId)?.parse(section) ?: return@forEach
+            for (modifier in mechanic.itemModifiers) modifier.apply(item)
         }
 
         if (!nexoMeta.containsPackInfo) return
-        val customModelData = when {
-            section.name in CUSTOM_MODEL_DATAS_BY_ID -> CUSTOM_MODEL_DATAS_BY_ID[section.name]?.customModelData
-            !item.hasItemModel() && !item.hasCustomModelDataComponent() -> nexoMeta.model?.let {
+        val customModelData = CUSTOM_MODEL_DATAS_BY_ID[section.name]?.customModelData
+            ?: nexoMeta.takeIf { !item.hasItemModel() && !item.hasCustomModelDataComponent() }?.model?.let {
                 CustomModelData.generateId(it, type).also { cmd ->
                     isConfigUpdated = true
                     if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
                         section.getConfigurationSection("Pack")?.set("custom_model_data", cmd)
                 }
-            }
-            else -> null
-        } ?: return
+            } ?: return
 
         item.customModelData(customModelData)
         nexoMeta.customModelData = customModelData

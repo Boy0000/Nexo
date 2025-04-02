@@ -55,6 +55,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
     public static final NexoPackReader INSTANCE = new NexoPackReader();
 
     private static final boolean lenient = Settings.PACK_READER_LENIENT.toBool();
+    private static final boolean debug = Settings.DEBUG.toBool();
 
     private NexoPackReader() {
     }
@@ -107,25 +108,33 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                 switch (tokens.poll()) {
                     case PACK_ZIP: continue;
                     case PACK_METADATA_FILE: {
-                        // found pack.mcmeta file, deserialize and add
-                        Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
-                        resourcePack.metadata(metadata);
+                        try {
+                            // found pack.mcmeta file, deserialize and add
+                            Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
+                            resourcePack.metadata(metadata);
 
-                        // get the pack format from the metadata
-                        PackMeta packMeta = metadata.meta(PackMeta.class);
-                        if (packMeta == null) {
-                            // TODO: better warning system
-                            System.err.println("Reading a resource-pack with no pack meta in its pack.mcmeta file! Unknown pack format version :(");
-                        } else {
-                            // update the pack format and categories
-                            packFormat = packMeta.formats().min();
-                            categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
-                        }
+                            // get the pack format from the metadata
+                            PackMeta packMeta = metadata.meta(PackMeta.class);
+                            if (packMeta == null) {
+                                // TODO: better warning system
+                                System.err.println("Reading a resource-pack with no pack meta in its pack.mcmeta file! Unknown pack format version :(");
+                            } else {
+                                // update the pack format and categories
+                                packFormat = packMeta.formats().min();
+                                categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
+                            }
 
-                        // overlays info
-                        OverlaysMeta overlaysMeta = metadata.meta(OverlaysMeta.class);
-                        if (overlaysMeta != null) for (OverlayEntry entry : overlaysMeta.entries()) {
-                            packFormatsByOverlayDir.put(entry.directory(), entry.formats().min());
+                            // overlays info
+                            OverlaysMeta overlaysMeta = metadata.meta(OverlaysMeta.class);
+                            if (overlaysMeta != null) for (OverlayEntry entry : overlaysMeta.entries()) {
+                                packFormatsByOverlayDir.put(entry.directory(), entry.formats().min());
+                            }
+                        } catch (Exception e) {
+                            if (lenient) {
+                                Logs.logWarn(String.format("Failed to parse %s resourcePack...", path));
+                                if (debug) e.printStackTrace();
+                            }
+                            else throw e;
                         }
                         continue;
                     }
@@ -224,12 +233,11 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                             parseJson(reader.stream()),
                             namespace
                     ));
-                    continue;
                 } else {
                     // TODO: gpu_warnlist.json?
                     container.unknownFile(containerPath, reader.content().asWritable());
-                    continue;
                 }
+                continue;
             }
 
             // so "category" is actually a category like "textures",
@@ -311,7 +319,17 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                     }
                     resource.addTo(container);
                 } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to deserialize resource at: '" + path + "'", e);
+                    if (lenient) {
+                        Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
+                        if (debug) e.printStackTrace();
+                    }
+                    else throw new UncheckedIOException("Failed to deserialize resource at: '" + path + "'", e);
+                } catch (Exception e) {
+                    if (lenient) {
+                        Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
+                        if (debug) e.printStackTrace();
+                    }
+                    else throw e;
                 }
             }
         }
