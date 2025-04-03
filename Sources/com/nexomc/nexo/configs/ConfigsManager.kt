@@ -22,7 +22,6 @@ import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
-import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.toFastList
 import com.nexomc.nexo.utils.toIntRangeOrNull
@@ -200,9 +199,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     fun parseAllItemTemplates() {
-        itemFiles().filterFast(File::exists).mapFast(::loadConfiguration).forEach { configuration ->
-            configuration.getKeys(false).mapNotNullFast(configuration::getConfigurationSection)
-                .filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
+        itemFiles().mapFast(::loadConfiguration).forEach { configuration ->
+            configuration.childSections().values.filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
         }
     }
 
@@ -229,7 +227,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
 
         config.childSections().forEach { itemId, section ->
-            if (ItemTemplate.isTemplate(itemId)) parseMap[itemId] = ItemParser(section)
+            if (!ItemTemplate.isTemplate(itemId)) parseMap[itemId] = ItemParser(section)
         }
 
         var configUpdated = false

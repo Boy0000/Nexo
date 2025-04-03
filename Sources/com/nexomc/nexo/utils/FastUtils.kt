@@ -68,6 +68,11 @@ inline fun <T, K, V> Iterable<T>.associateFast(transform: (T) -> Pair<K, V>): Ob
     return associateTo(Object2ObjectOpenHashMap<K, V>(capacity), transform)
 }
 
+inline fun <T, K, V> Array<T>.associateFast(transform: (T) -> Pair<K, V>): Object2ObjectOpenHashMap<K, V> {
+    val capacity = mapCapacity(size).coerceAtLeast(16)
+    return associateTo(Object2ObjectOpenHashMap<K, V>(capacity), transform)
+}
+
 inline fun <T, K> Iterable<T>.associateFastBy(keySelector: (T) -> K): Object2ObjectOpenHashMap<K, T> {
     val result = Object2ObjectOpenHashMap<K, T>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
     return associateByTo(result, keySelector)

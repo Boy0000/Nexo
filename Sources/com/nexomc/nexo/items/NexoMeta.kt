@@ -19,6 +19,7 @@ import team.unnamed.creative.model.ModelTextures
 data class NexoMeta(
     var customModelData: Int? = null,
     var model: Key? = null,
+    var parentModel: Key = Model.ITEM_GENERATED,
     var blockingModel: Key? = null,
     var pullingModels: List<Key> = listOf(),
     var chargedModel: Key? = null,
@@ -73,10 +74,9 @@ data class NexoMeta(
         }
     }
 
-    lateinit var parentModel: Key
-
     fun packInfo(packSection: ConfigurationSection) {
         this.containsPackInfo = true
+        this.parentModel = packSection.getKey("parent_model", Model.ITEM_GENERATED)
         this.model = parseModelKey(packSection, "model")
         this.blockingModel = parseModelKey(packSection, "blocking_model")
         this.castModel = parseModelKey(packSection, "cast_model")
@@ -113,9 +113,7 @@ data class NexoMeta(
             itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() }?.let(::CustomArmorTextures)
         }
 
-        this.parentModel = packSection.getKey("parent_model", Model.ITEM_GENERATED)
         this.generateModel = packSection.getString("model") == null && (textureLayers.isNotEmpty() || textureVariables.isNotEmpty())
-
         this.customModelData = packSection.getInt("custom_model_data").takeUnless { it == 0 }
     }
 

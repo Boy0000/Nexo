@@ -26,6 +26,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
     private val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
+    val defaultRotatableOnSneak = section.getBoolean("default_rotatable_on_sneak", false)
 
     init {
         instance = this

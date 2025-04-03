@@ -126,8 +126,7 @@ class ItemParser(private val section: ConfigurationSection) {
     private fun parseVanillaSections(item: ItemBuilder) {
         val section = mergeWithTemplateSection()
 
-        if ("ItemFlags" in section) for (itemFlag in section.getStringList("ItemFlags"))
-            item.addItemFlags(ItemFlag.valueOf(itemFlag))
+        item.addItemFlags(*section.getStringList("ItemFlags").mapNotNull { runCatching { ItemFlag.valueOf(it) }.getOrNull() }.toTypedArray())
 
         section.getList("PotionEffects")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach {
             PotionUtils.getEffectType(it["type"].safeCast())?.also { v -> it["effect"] = v.key.key }

@@ -1,10 +1,11 @@
 package com.nexomc.nexo.mechanics.furniture.rotatable
 
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.utils.safeCast
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 
-data class Rotatable(val rotatable: Boolean = false, val onSneak: Boolean = false) {
+data class Rotatable(val rotatable: Boolean = false, val onSneak: Boolean = FurnitureFactory.instance()?.defaultRotatableOnSneak ?: false) {
     constructor(rotatable: Any) : this(
         rotatable.safeCast<Boolean>()
             ?: rotatable.safeCast<ConfigurationSection>()?.getBoolean("rotatable")
@@ -12,7 +13,7 @@ data class Rotatable(val rotatable: Boolean = false, val onSneak: Boolean = fals
             ?: false,
         rotatable.safeCast<ConfigurationSection>()?.getBoolean("on_sneak")
             ?: rotatable.safeCast<Map<String, Boolean>>()?.get("on_sneak")
-            ?: false
+            ?: FurnitureFactory.instance()?.defaultRotatableOnSneak ?: false
     )
 
     fun shouldRotate(player: Player?): Boolean {

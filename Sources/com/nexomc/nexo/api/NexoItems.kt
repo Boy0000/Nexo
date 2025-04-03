@@ -82,6 +82,7 @@ object NexoItems {
     @JvmStatic
     fun idFromItem(item: ItemBuilder): String? = item.customTag(ITEM_ID, PersistentDataType.STRING)
 
+    //TODO Swap this to item?.persistentDataContainer when dropping <1.21.1
     @JvmStatic
     fun idFromItem(item: ItemStack?): String? = item?.itemMeta?.persistentDataContainer?.get(ITEM_ID, PersistentDataType.STRING)
 

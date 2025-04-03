@@ -4,6 +4,7 @@ import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.printOnFailure
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.util.UUID
@@ -17,6 +18,7 @@ import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
+import org.bukkit.util.Vector
 
 interface IFurniturePacketManager {
     fun nextEntityId(): Int
@@ -66,11 +68,11 @@ interface IFurniturePacketManager {
         val WATER_DATA = Material.WATER.createBlockData()
 
         val furnitureBaseMap = ObjectOpenHashSet<FurnitureBaseEntity>()
-        val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, ObjectOpenHashSet<BarrierHitbox>>()
-        val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, ObjectOpenHashSet<Location>>()
+        val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, Array<BarrierHitbox>>()
+        val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
 
-        val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, ObjectOpenHashSet<LightBlock>>()
-        val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
+        val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
+        val interactionHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
         val shulkerHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
 
         fun furnitureBaseFromBaseEntity(baseEntity: Entity): FurnitureBaseEntity? =
@@ -106,9 +108,15 @@ interface IFurniturePacketManager {
             }
         }
 
+        fun blockIsHitbox(vec: Vector, world: World, excludeUUID: UUID? = null): Boolean {
+            return runCatching { barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.filterNotNull().any {
+                (it.toVector() == vec)
+            } } }.printOnFailure().isSuccess
+        }
+
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
             val blockBox = BoundingBox.of(block)
-            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.equals(block.location) } }
+            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any(block.location::equals) }
                     || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }

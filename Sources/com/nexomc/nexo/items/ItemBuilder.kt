@@ -450,12 +450,11 @@ class ItemBuilder(private val itemStack: ItemStack) {
     }
 
     fun addItemFlags(vararg itemFlags: ItemFlag): ItemBuilder {
-        if (this.itemFlags == null) this.itemFlags = mutableSetOf()
-        this.itemFlags!!.addAll(itemFlags)
+        this.itemFlags.addAll(itemFlags)
         return this
     }
 
-    fun itemFlags() = itemFlags ?: listOf()
+    fun itemFlags() = itemFlags
 
     fun addAttributeModifiers(attribute: Attribute, attributeModifier: AttributeModifier): ItemBuilder {
         if (attributeModifiers == null) attributeModifiers = HashMultimap.create()
