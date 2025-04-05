@@ -29,7 +29,7 @@ class ItemsView {
     fun create(): PaginatedGui {
         val files = mutableMapOf<File, PaginatedGui>()
         NexoItems.itemMap().keys.forEach { file ->
-            val unexcludedItems = NexoItems.unexcludedItems(file).takeIf { it.isNotEmpty() } ?: return@forEach
+            val unexcludedItems = NexoItems.unexcludedItems(file).ifEmpty { null } ?: return@forEach
             files[file] = createSubGUI(file.nameWithoutExtension, unexcludedItems)
         }
 

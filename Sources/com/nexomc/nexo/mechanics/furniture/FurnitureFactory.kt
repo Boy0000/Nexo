@@ -7,6 +7,7 @@ import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.furniture.compatibility.ModelEngineCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
+import com.nexomc.nexo.mechanics.furniture.compatibility.VacanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionTask
@@ -40,6 +41,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
         evolvingFurnitures = false
 
+        if (PluginUtils.isVacanEnabled) registerListeners(VacanCompatibility())
         if (PluginUtils.isSpartanEnabled) registerListeners(SpartanCompatibility())
         if (PluginUtils.isVulcanEnabled) registerListeners(VulcanCompatibility())
         if (PluginUtils.isModelEngineEnabled) registerListeners(ModelEngineCompatibility())

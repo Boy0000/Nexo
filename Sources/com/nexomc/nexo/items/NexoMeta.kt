@@ -108,13 +108,13 @@ data class NexoMeta(
             .layers(textureLayers)
             .build()
 
+        this.generateModel = packSection.getString("model") == null && (textureLayers.isNotEmpty() || textureVariables.isNotEmpty())
+        this.customModelData = packSection.getInt("custom_model_data").takeUnless { it == 0 }
         this.customArmorTextures = runCatching { packSection.getConfigurationSection("CustomArmor")?.let(::CustomArmorTextures) }.printOnFailure().getOrNull() ?: let {
+            if (!generateModel) return@let null
             val itemId = packSection.parent!!.name
             itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() }?.let(::CustomArmorTextures)
         }
-
-        this.generateModel = packSection.getString("model") == null && (textureLayers.isNotEmpty() || textureVariables.isNotEmpty())
-        this.customModelData = packSection.getInt("custom_model_data").takeUnless { it == 0 }
     }
 
     private fun parseModelKey(configSection: ConfigurationSection, configString: String): Key? {

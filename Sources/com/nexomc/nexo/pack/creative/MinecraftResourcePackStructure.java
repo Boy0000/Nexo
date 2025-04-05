@@ -68,6 +68,7 @@ final class MinecraftResourcePackStructure {
     public static final Set<String> IGNORED_NEXO_FOLDERS = Set.of(PACK_ZIP, EXTERNAL_PACKS_FOLDER, ASSET_CACHE_FOLDER, DEOBF_CACHE_FOLDER, PACKSQUASH_FOLDER);
     public static final String DS_STORE_EXTENSION = ".DS_Store";
     public static final String DB_EXTENSION = ".db";
+    public static final String TXT_EXTENSION = ".txt";
 
     private MinecraftResourcePackStructure() {
     }

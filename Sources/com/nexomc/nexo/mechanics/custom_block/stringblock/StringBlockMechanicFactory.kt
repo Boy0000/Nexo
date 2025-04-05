@@ -17,6 +17,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
+import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
@@ -99,6 +100,11 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
         sapling = true
     }
 
+    fun getMechanic(blockData: BlockData): StringBlockMechanic? {
+        if (blockData !is Tripwire) return null
+        return BLOCK_PER_VARIATION.values.firstOrNull { it.blockData == blockData }
+    }
+
     companion object {
         val MAX_BLOCK_VARIATION = 1..127
         private var instance: StringBlockMechanicFactory? = null
@@ -118,7 +124,5 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
             val stringBlockMechanic = MechanicsManager.getMechanicFactory("stringblock")?.getMechanic(itemId) as? StringBlockMechanic ?: return
             block.blockData = stringBlockMechanic.blockData!!
         }
-
-        fun getMechanic(blockData: Tripwire) = instance?.BLOCK_PER_VARIATION?.values?.firstOrNull { it.blockData == blockData }
     }
 }

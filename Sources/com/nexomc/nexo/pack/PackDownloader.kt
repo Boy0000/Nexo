@@ -7,8 +7,6 @@ import com.nexomc.nexo.utils.FileUtils.setHidden
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
-import org.apache.commons.lang3.StringUtils
-import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStreamReader
@@ -19,6 +17,8 @@ import java.util.concurrent.CompletableFuture
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
+import org.apache.commons.lang3.StringUtils
+import org.bukkit.configuration.file.YamlConfiguration
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -34,11 +34,11 @@ class PackDownloader {
             requiredPackDownload ?: CompletableFuture.runAsync {
                 if (VersionUtil.isLeaked) return@runAsync
                 runCatching {
-                    val hash = checkPackHash("RequiredPack") ?: return@runAsync
+                    val hash = checkPackHash("RequiredResourcePack") ?: return@runAsync
                     val zipPath = PackGenerator.externalPacks.resolve("RequiredPack_$hash.zip")
                     removeOldHashPack("RequiredPack", hash)
                     if (!zipPath.exists() && !zipPath.resolveSibling("RequiredPack_$hash").exists()) {
-                        downloadPack("RequiredPack", zipPath.toPath())
+                        downloadPack("RequiredResourcePack", zipPath.toPath())
                     }
                 }.onFailure {
                     Logs.logWarn("Failed to download RequiredPack...")
@@ -57,12 +57,12 @@ class PackDownloader {
                     return@runAsync
                 }
                 runCatching {
-                    val hash = checkPackHash("DefaultPack") ?: return@runAsync
+                    val hash = checkPackHash("DefaultResourcePack") ?: return@runAsync
                     val zipPath = PackGenerator.externalPacks.resolve("DefaultPack_$hash.zip")
                     removeOldHashPack("DefaultPack", hash)
                     if (!zipPath.exists() && !zipPath.resolveSibling("DefaultPack_$hash").exists()) {
                         Logs.logInfo("Downloading default resourcepack...")
-                        downloadPack("DefaultPack", zipPath.toPath())
+                        downloadPack("DefaultResourcePack", zipPath.toPath())
                     } else {
                         Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!")
                     }
@@ -118,7 +118,7 @@ class PackDownloader {
         private fun downloadPack(repo: String, zipPath: Path) {
             val token = readToken() ?: return
             val connection = runCatching {
-                val url = URI.create("https://api.github.com/repos/Boy0000/Nexo-$repo/zipball/master").toURL()
+                val url = URI.create("https://api.github.com/repos/Nexo-MC/$repo/zipball/master").toURL()
                 (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     setCommonHeaders(token)
@@ -169,7 +169,7 @@ class PackDownloader {
         private fun checkPackHash(repo: String): String? {
             val token = readToken() ?: return null
             return runCatching {
-                val url = URI.create("https://api.github.com/repos/Boy0000/Nexo-$repo/commits").toURL()
+                val url = URI.create("https://api.github.com/repos/Nexo-MC/$repo/commits").toURL()
                 (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     setCommonHeaders(token)

@@ -47,10 +47,10 @@ class ItemUpdater : Listener {
 
     init {
         SchedulerUtils.syncDelayedTask(2) {
-            SchedulerUtils.runAtWorldEntities { entity ->
+            if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities { entity ->
                 updateEntityInventories(entity)
             }
-            SchedulerUtils.runAtWorldTileStates { tileEntity ->
+            if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates { tileEntity ->
                 (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
                     if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
                 }
@@ -60,14 +60,15 @@ class ItemUpdater : Listener {
 
     @EventHandler
     fun EntityAddToWorldEvent.onEntityLoad() {
-        SchedulerUtils.foliaScheduler.runAtEntityLater(entity, Runnable { updateEntityInventories(entity) }, 2L)
+        if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.foliaScheduler.runAtEntityLater(entity, Runnable { updateEntityInventories(entity) }, 2L)
     }
 
     @EventHandler
     fun ChunkLoadEvent.onChunkLoad() {
-        chunk.tileEntities.forEach { tileEntity ->
-            (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
-                if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
+        if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) chunk.tileEntities.forEach { tileEntity ->
+            val inventory = (tileEntity as? InventoryHolder)?.inventory ?: return@forEach
+            inventory.contents.forEachIndexed { index, item ->
+                if (item != null) inventory.setItem(index, updateItem(item))
             }
         }
     }

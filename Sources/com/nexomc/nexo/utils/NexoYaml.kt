@@ -18,7 +18,7 @@ fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {
 }
 
 fun ConfigurationSection.getStringOrNull(key: String): String? {
-    return (get(key) as? String)?.takeIf { it.isNotEmpty() }
+    return (get(key) as? String)?.ifEmpty { null }
 }
 
 fun ConfigurationSection.getKey(key: String): Key? {
@@ -38,7 +38,7 @@ fun ConfigurationSection.getKeyList(key: String): List<Key> {
 }
 
 fun ConfigurationSection.getKeyListOrNull(key: String): List<Key>? {
-    return runCatching { getStringList(key).mapNotNull { runCatching { Key.key(it) }.getOrNull() } }.getOrDefault(listOf()).takeIf { it.isNotEmpty() }
+    return runCatching { getStringList(key).mapNotNull { runCatching { Key.key(it) }.getOrNull() } }.getOrDefault(listOf()).ifEmpty { null }
 }
 
 fun ConfigurationSection.getNamespacedKey(key: String, default: String): NamespacedKey {

@@ -82,8 +82,8 @@ class CustomBlockListener : Listener {
         val (block, item) = (clickedBlock ?: return) to (item ?: return)
         if (action != Action.RIGHT_CLICK_BLOCK || !player.isSneaking && BlockHelpers.isInteractable(block)) return
 
-        val mechanic = NexoBlocks.customBlockMechanic(NexoItems.idFromItem(item))
-        val limitedPlacing = mechanic?.limitedPlacing ?: return
+        val mechanic = NexoBlocks.customBlockMechanic(NexoItems.idFromItem(item) ?: return) ?: return
+        val limitedPlacing = mechanic.limitedPlacing ?: return
         val belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN)
 
         when {
@@ -105,11 +105,11 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun PlayerInteractEvent.onPrePlacingCustomBlock() {
-        val itemID = NexoItems.idFromItem(item)
+        val itemID = NexoItems.idFromItem(item) ?: return
         val (placedAgainst, item, hand) = (clickedBlock ?: return) to (item ?: return) to (hand ?: return)
         if (action != Action.RIGHT_CLICK_BLOCK) return
 
-        var mechanic: CustomBlockMechanic? = NexoBlocks.customBlockMechanic(itemID) ?: return
+        var mechanic = NexoBlocks.customBlockMechanic(itemID) ?: return
         if (!player.isSneaking && BlockHelpers.isInteractable(placedAgainst)) return
 
         // Change mechanic according to subMechanic changes
@@ -121,7 +121,7 @@ class CustomBlockListener : Listener {
             }
         }
 
-        CustomBlockHelpers.makePlayerPlaceBlock(player, hand, item, placedAgainst, blockFace, mechanic, mechanic!!.blockData)
+        CustomBlockRegistry.getByClass(mechanic::class.java)?.placeCustomBlock(player, hand, item, mechanic, placedAgainst, blockFace)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -184,7 +184,6 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun PlayerPickItemEvent.onMiddleClick() {
-        if (VersionUtil.atleast("1.21.4")) return
         val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
         val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
         val mechanic = NexoBlocks.customBlockMechanic(block.blockData)

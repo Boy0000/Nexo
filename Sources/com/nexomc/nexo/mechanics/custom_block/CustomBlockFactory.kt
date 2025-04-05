@@ -1,18 +1,46 @@
 package com.nexomc.nexo.mechanics.custom_block
 
+import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockBreakEvent
+import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockDropLootEvent
+import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockBreakEvent
+import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockDropLootEvent
+import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockBreakEvent
+import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockDropLootEvent
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
+import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
+import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanicFactory
+import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
+import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechanic
+import com.nexomc.nexo.mechanics.storage.StorageMechanic
+import com.nexomc.nexo.mechanics.storage.StorageType
+import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
+import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils.damageItem
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.logs.Logs
+import org.bukkit.Effect
+import org.bukkit.GameEvent
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.block.Block
+import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
-import org.bukkit.block.data.MultipleFacing
-import org.bukkit.block.data.type.NoteBlock
-import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.entity.Player
+import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.sound.SoundRegistry
@@ -21,9 +49,166 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
     val toolTypes = section.getStringList("tool_types")
     val customSounds = section.getConfigurationSection("custom_block_sounds")?.let(::CustomBlockSounds) ?: CustomBlockSounds()
 
-    val NOTEBLOCK = DefaultBlockType("NOTEBLOCK", NoteBlockMechanicFactory.instance())
-    val STRINGBLOCK = DefaultBlockType("STRINGBLOCK", StringBlockMechanicFactory.instance())
-    val CHORUSBLOCK = DefaultBlockType("CHORUSBLOCK", ChorusBlockFactory.instance())
+    val NOTEBLOCK = object : CustomBlockType<NoteBlockMechanic> {
+        override fun name(): String = "NOTEBLOCK"
+        override fun factory(): NoteBlockMechanicFactory? = NoteBlockMechanicFactory.instance()
+        override fun getMechanic(block: Block): NoteBlockMechanic? = factory()?.getMechanic(block.blockData)
+        override fun getMechanic(blockData: BlockData): NoteBlockMechanic? = factory()?.getMechanic(blockData)
+        override fun toolTypes(): List<String> = factory()?.toolTypes ?: toolTypes
+        override fun placeCustomBlock(location: Location, itemID: String?) {
+            val block = location.block
+            NoteBlockMechanicFactory.setBlockModel(block, itemID)
+            val mechanic = getMechanic(block) ?: return
+
+            if (mechanic.storage()?.storageType == StorageType.STORAGE) {
+                block.persistentDataContainer.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, emptyArray())
+            }
+            NoteMechanicHelpers.checkNoteBlockAbove(location)
+        }
+        override fun placeCustomBlock(player: Player, hand: EquipmentSlot, item: ItemStack, mechanic: NoteBlockMechanic, placedAgainst: Block, blockFace: BlockFace) {
+            CustomBlockHelpers.makePlayerPlaceBlock(player, hand, item, placedAgainst, blockFace, mechanic, mechanic.blockData)
+        }
+
+        override fun removeCustomBlock(block: Block, player: Player?, overrideDrop: Drop?): Boolean {
+            val (itemInHand, loc) = (player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)) to block.location
+            val mechanic = getMechanic(block)?.let { it.directional?.parentMechanic ?: it } ?: return false
+
+            var drop = overrideDrop ?: mechanic.breakable.drop
+            if (player != null) {
+                if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+                val noteBlockBreakEvent = NexoNoteBlockBreakEvent(mechanic, block, player, drop)
+                if (!noteBlockBreakEvent.call()) return false
+
+                if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = noteBlockBreakEvent.drop
+
+                block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
+                loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
+            }
+
+            if (!drop.isEmpty) {
+                val loots = drop.spawns(loc, itemInHand)
+                if (loots.isNotEmpty() && player != null) {
+                    NexoNoteBlockDropLootEvent(mechanic, block, player, loots).call()
+                    damageItem(player, itemInHand)
+                }
+            }
+
+            mechanic.storage()?.takeIf { it.storageType == StorageType.STORAGE }?.dropStorageContent(block)
+            block.type = Material.AIR
+            NoteMechanicHelpers.checkNoteBlockAbove(loc)
+            return true
+        }
+
+        override val clazz: Class<NoteBlockMechanic>
+            get() = NoteBlockMechanic::class.java
+    }
+    val STRINGBLOCK = object : CustomBlockType<StringBlockMechanic> {
+        override fun name(): String = "STRINGBLOCK"
+        override fun factory(): StringBlockMechanicFactory? = StringBlockMechanicFactory.instance()
+        override fun getMechanic(block: Block): StringBlockMechanic? = factory()?.getMechanic(block.blockData)
+        override fun getMechanic(blockData: BlockData): StringBlockMechanic? = factory()?.getMechanic(blockData)
+        override fun toolTypes(): List<String> = factory()?.toolTypes ?: toolTypes
+        override fun placeCustomBlock(location: Location, itemID: String?) {
+            val block = location.block
+            val blockAbove = block.getRelative(BlockFace.UP)
+            StringBlockMechanicFactory.setBlockModel(block, itemID)
+            val mechanic = getMechanic(block) ?: return
+            if (mechanic.isTall) {
+                if (blockAbove.type !in BlockHelpers.REPLACEABLE_BLOCKS) return
+                else blockAbove.type = Material.TRIPWIRE
+            }
+
+            if (mechanic.isSapling()) mechanic.sapling()?.takeIf { it.canGrowNaturally }?.let {
+                block.persistentDataContainer.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, it.naturalGrowthTime)
+            }
+        }
+        override fun placeCustomBlock(player: Player, hand: EquipmentSlot, item: ItemStack, mechanic: StringBlockMechanic, placedAgainst: Block, blockFace: BlockFace) {
+            CustomBlockHelpers.makePlayerPlaceBlock(player, hand, item, placedAgainst, blockFace, mechanic, mechanic.blockData)
+        }
+
+        override fun removeCustomBlock(block: Block, player: Player?, overrideDrop: Drop?): Boolean {
+            val mechanic = getMechanic(block) ?: return false
+            val itemInHand = player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)
+
+            var drop = overrideDrop ?: mechanic.breakable.drop
+            if (player != null) {
+                if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+
+                val wireBlockBreakEvent = NexoStringBlockBreakEvent(mechanic, block, player, drop)
+                if (!wireBlockBreakEvent.call()) return false
+
+                if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = wireBlockBreakEvent.drop
+
+                block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.location.toVector())
+            }
+
+            if (!drop.isEmpty) {
+                val loots = drop.spawns(block.location, itemInHand)
+                if (loots.isNotEmpty() && player != null) {
+                    NexoStringBlockDropLootEvent(mechanic, block, player, loots).call()
+                }
+            }
+
+            val blockAbove = block.getRelative(BlockFace.UP)
+            if (mechanic.isTall) blockAbove.type = Material.AIR
+            block.type = Material.AIR
+            SchedulerUtils.foliaScheduler.runAtLocation(block.location) {
+                StringMechanicHelpers.fixClientsideUpdate(block.location)
+                if (blockAbove.type == Material.TRIPWIRE) removeCustomBlock(blockAbove, player, overrideDrop)
+            }
+            return true
+        }
+
+        override val clazz: Class<StringBlockMechanic>
+            get() = StringBlockMechanic::class.java
+    }
+    val CHORUSBLOCK: CustomBlockType<ChorusBlockMechanic> = object : CustomBlockType<ChorusBlockMechanic> {
+        override fun name(): String = "CHORUSBLOCK"
+        override fun factory(): ChorusBlockFactory? = ChorusBlockFactory.instance()
+        override fun getMechanic(block: Block): ChorusBlockMechanic? = factory()?.getMechanic(block.blockData)
+        override fun getMechanic(blockData: BlockData): ChorusBlockMechanic? = factory()?.getMechanic(blockData)
+        override fun toolTypes(): List<String> = factory()?.toolTypes ?: toolTypes
+
+        override fun placeCustomBlock(location: Location, itemID: String?) {
+            ChorusBlockFactory.setBlockModel(location.block, itemID)
+        }
+
+        override fun placeCustomBlock(player: Player, hand: EquipmentSlot, item: ItemStack, mechanic: ChorusBlockMechanic, placedAgainst: Block, blockFace: BlockFace) {
+            CustomBlockHelpers.makePlayerPlaceBlock(player, hand, item, placedAgainst, blockFace, mechanic, mechanic.blockData)
+        }
+
+        override fun removeCustomBlock(block: Block, player: Player?, overrideDrop: Drop?): Boolean {
+            val (itemInHand, loc) = (player?.inventory?.itemInMainHand ?: ItemStack(Material.AIR)) to block.location
+            val mechanic = getMechanic(block) ?: return false
+
+            var drop = overrideDrop ?: mechanic.breakable.drop
+            if (player != null) {
+                if (player.gameMode == GameMode.CREATIVE) drop = Drop.emptyDrop()
+
+                val chorusBlockBreakEvent = NexoChorusBlockBreakEvent(mechanic, block, player, drop)
+                if (!chorusBlockBreakEvent.call()) return false
+
+                if (overrideDrop != null || player.gameMode != GameMode.CREATIVE) drop = chorusBlockBreakEvent.drop
+
+                block.world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector())
+                loc.getNearbyPlayers(64.0).forEach { if (it != player) it.playEffect(loc, Effect.STEP_SOUND, block.blockData) }
+            }
+
+            if (!drop.isEmpty) {
+                val loots = drop.spawns(loc, itemInHand)
+                if (loots.isNotEmpty() && player != null) {
+                    NexoChorusBlockDropLootEvent(mechanic, block, player, loots).call()
+                    damageItem(player, itemInHand)
+                }
+            }
+
+            block.type = Material.AIR
+            return true
+        }
+
+        override val clazz: Class<ChorusBlockMechanic>
+            get() = ChorusBlockMechanic::class.java
+    }
 
     data class CustomBlockSounds(val enabled: Boolean = true, val playersOnly: Boolean = false) {
         constructor(section: ConfigurationSection) : this(section.getBoolean("enabled", true), section.getBoolean("players_only", false))
@@ -33,13 +218,6 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         private var instance: CustomBlockFactory? = null
 
         fun instance() = instance
-
-        fun getMechanic(blockData: BlockData) = when (blockData) {
-            is NoteBlock -> NoteBlockMechanicFactory.getMechanic(blockData)
-            is Tripwire -> StringBlockMechanicFactory.getMechanic(blockData)
-            is MultipleFacing -> ChorusBlockFactory.getMechanic(blockData)
-            else -> null
-        }
     }
 
     init {
@@ -55,7 +233,7 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
     fun blockStates(resourcePack: ResourcePack) {
         val blockStates = mutableListOf<BlockState>()
 
-        for (type: CustomBlockType in CustomBlockRegistry.types) {
+        for (type in CustomBlockRegistry.types) {
             if (type.factory() == null) continue
 
             //TODO Implement this by having factories inherit and override CustomBlockFactory
@@ -74,7 +252,7 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
     }
 
     fun soundRegistries(resourcePack: ResourcePack) {
-        for (type: CustomBlockType in CustomBlockRegistry.types) {
+        for (type in CustomBlockRegistry.types) {
             if (type.factory() == null) continue
 
             //TODO Implement this by having factories inherit and override CustomBlockFactory
@@ -95,7 +273,7 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         }
     }
 
-    fun toolTypes(type: CustomBlockType): List<String> {
+    fun toolTypes(type: CustomBlockType<*>): List<String> {
         return when {
             type === STRINGBLOCK -> StringBlockMechanicFactory.instance()?.toolTypes ?: toolTypes
             type === NOTEBLOCK -> NoteBlockMechanicFactory.instance()?.toolTypes ?: toolTypes

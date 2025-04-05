@@ -91,246 +91,262 @@ public class NexoPackReader implements MinecraftResourcePackReader {
 
         while (reader.hasNext()) {
             String path = reader.next();
+            try {
 
-            // tokenize path in sections, e.g.: [ assets, minecraft, textures, ... ]
-            Queue<String> tokens = tokenize(path);
+                // tokenize path in sections, e.g.: [ assets, minecraft, textures, ... ]
+                Queue<String> tokens = tokenize(path);
 
-            if (tokens.isEmpty()) {
-                // this should never happen
-                throw new IllegalStateException("Token collection is empty!");
-            }
-
-            // single token means the file is on the
-            // root level (top level files) so it may be:
-            // - pack.mcmeta
-            // - pack.png
-            if (tokens.size() == 1) {
-                switch (tokens.poll()) {
-                    case PACK_ZIP: continue;
-                    case PACK_METADATA_FILE: {
-                        try {
-                            // found pack.mcmeta file, deserialize and add
-                            Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
-                            resourcePack.metadata(metadata);
-
-                            // get the pack format from the metadata
-                            PackMeta packMeta = metadata.meta(PackMeta.class);
-                            if (packMeta == null) {
-                                // TODO: better warning system
-                                System.err.println("Reading a resource-pack with no pack meta in its pack.mcmeta file! Unknown pack format version :(");
-                            } else {
-                                // update the pack format and categories
-                                packFormat = packMeta.formats().min();
-                                categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
-                            }
-
-                            // overlays info
-                            OverlaysMeta overlaysMeta = metadata.meta(OverlaysMeta.class);
-                            if (overlaysMeta != null) for (OverlayEntry entry : overlaysMeta.entries()) {
-                                packFormatsByOverlayDir.put(entry.directory(), entry.formats().min());
-                            }
-                        } catch (Exception e) {
-                            if (lenient) {
-                                Logs.logWarn(String.format("Failed to parse %s resourcePack...", path));
-                                if (debug) e.printStackTrace();
-                            }
-                            else throw e;
-                        }
-                        continue;
-                    }
-                    case PACK_ICON_FILE: {
-                        // found pack.png file, add
-                        resourcePack.icon(reader.content().asWritable());
-                        continue;
-                    }
-                    default: {
-                        // unknown top level file
-                        resourcePack.unknownFile(path, reader.content().asWritable());
-                        continue;
-                    }
-                }
-            }
-
-            // the container to use, it is initially the default resource-pack,
-            // but it may change if the file is inside an overlay folder
-            @Subst("dir")
-            @Nullable String overlayDir = null;
-            int localPackFormat = packFormat;
-
-            // the file path, relative to the container
-            String containerPath = path;
-            ResourceContainer container = resourcePack;
-
-            // if there are two or more tokens, it means the
-            // file is inside a folder, in a Minecraft resource
-            // pack, the first folder is always "assets"
-            String folder = tokens.poll();
-
-            if (folder.equals(OVERLAYS_FOLDER)) {
-                // gets the overlay name, set after the
-                // "overlays" folder, e.g. "overlays/foo",
-                // or "overlays/bar"
-                overlayDir = tokens.poll();
                 if (tokens.isEmpty()) {
-                    // this means that there is a file directly
-                    // inside the "overlays" folder, this is illegal
-                    resourcePack.unknownFile(containerPath, reader.content().asWritable());
+                    // this should never happen
+                    throw new IllegalStateException("Token collection is empty!");
+                }
+
+                // single token means the file is on the
+                // root level (top level files) so it may be:
+                // - pack.mcmeta
+                // - pack.png
+                if (tokens.size() == 1) {
+                    switch (tokens.poll()) {
+                        case PACK_ZIP: continue;
+                        case PACK_METADATA_FILE: {
+                            try {
+                                // found pack.mcmeta file, deserialize and add
+                                Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
+                                resourcePack.metadata(metadata);
+
+                                // get the pack format from the metadata
+                                PackMeta packMeta = metadata.meta(PackMeta.class);
+                                if (packMeta == null) {
+                                    // TODO: better warning system
+                                    System.err.println("Reading a resource-pack with no pack meta in its pack.mcmeta file! Unknown pack format version :(");
+                                } else {
+                                    // update the pack format and categories
+                                    packFormat = packMeta.formats().min();
+                                    categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
+                                }
+
+                                // overlays info
+                                OverlaysMeta overlaysMeta = metadata.meta(OverlaysMeta.class);
+                                if (overlaysMeta != null) for (OverlayEntry entry : overlaysMeta.entries()) {
+                                    packFormatsByOverlayDir.put(entry.directory(), entry.formats().min());
+                                }
+                            } catch (Exception e) {
+                                if (lenient) {
+                                    Logs.logWarn(String.format("Failed to parse %s resourcePack...", path));
+                                    if (debug) e.printStackTrace();
+                                }
+                                else throw e;
+                            }
+                            continue;
+                        }
+                        case PACK_ICON_FILE: {
+                            // found pack.png file, add
+                            resourcePack.icon(reader.content().asWritable());
+                            continue;
+                        }
+                        default: {
+                            // unknown top level file
+                            resourcePack.unknownFile(path, reader.content().asWritable());
+                            continue;
+                        }
+                    }
+                }
+
+                // the container to use, it is initially the default resource-pack,
+                // but it may change if the file is inside an overlay folder
+                @Subst("dir")
+                @Nullable String overlayDir = null;
+                int localPackFormat = packFormat;
+
+                // the file path, relative to the container
+                String containerPath = path;
+                ResourceContainer container = resourcePack;
+
+                // if there are two or more tokens, it means the
+                // file is inside a folder, in a Minecraft resource
+                // pack, the first folder is always "assets"
+                String folder = tokens.poll();
+
+                if (folder.equals(OVERLAYS_FOLDER)) {
+                    // gets the overlay name, set after the
+                    // "overlays" folder, e.g. "overlays/foo",
+                    // or "overlays/bar"
+                    overlayDir = tokens.poll();
+                    if (tokens.isEmpty()) {
+                        // this means that there is a file directly
+                        // inside the "overlays" folder, this is illegal
+                        resourcePack.unknownFile(containerPath, reader.content().asWritable());
+                        continue;
+                    }
+
+                    Overlay overlay = resourcePack.overlay(overlayDir);
+                    if (overlay == null) {
+                        // first occurrence, register overlay
+                        overlay = Overlay.overlay(overlayDir);
+                        resourcePack.overlay(overlay);
+                    }
+
+                    container = overlay;
+                    folder = tokens.poll();
+                    containerPath = path.substring((OVERLAYS_FOLDER + '/' + overlayDir + '/').length());
+                    localPackFormat = packFormatsByOverlayDir.getOrDefault(overlayDir, -1);
+                }
+
+                // Skip nexo-specific folders
+                if (folder != null && IGNORED_NEXO_FOLDERS.contains(folder)) continue;
+
+                // null check to make ide happy
+                if (folder == null || !folder.equals(ASSETS_FOLDER) || tokens.isEmpty()) {
+                    // not assets! this is an unknown file
+                    container.unknownFile(containerPath, reader.content().asWritable());
                     continue;
                 }
 
-                Overlay overlay = resourcePack.overlay(overlayDir);
-                if (overlay == null) {
-                    // first occurrence, register overlay
-                    overlay = Overlay.overlay(overlayDir);
-                    resourcePack.overlay(overlay);
-                }
+                // inside "assets", we should always have a folder
+                // with any name, which is a namespace, e.g. "minecraft"
+                String namespace = tokens.poll();
 
-                container = overlay;
-                folder = tokens.poll();
-                containerPath = path.substring((OVERLAYS_FOLDER + '/' + overlayDir + '/').length());
-                localPackFormat = packFormatsByOverlayDir.getOrDefault(overlayDir, -1);
-            }
-
-            // Skip nexo-specific folders
-            if (folder != null && IGNORED_NEXO_FOLDERS.contains(folder)) continue;
-
-            // null check to make ide happy
-            if (folder == null || !folder.equals(ASSETS_FOLDER) || tokens.isEmpty()) {
-                // not assets! this is an unknown file
-                container.unknownFile(containerPath, reader.content().asWritable());
-                continue;
-            }
-
-            // inside "assets", we should always have a folder
-            // with any name, which is a namespace, e.g. "minecraft"
-            String namespace = tokens.poll();
-
-            if (!Keys.isValidNamespace(namespace)) {
-                // invalid namespace found
-                container.unknownFile(containerPath, reader.content().asWritable());
-                continue;
-            }
-
-            if (tokens.isEmpty()) {
-                // found a file directly inside "assets", like
-                // assets/<file>, it is not allowed
-                container.unknownFile(containerPath, reader.content().asWritable());
-                continue;
-            }
-
-            // so we already have "assets/<namespace>/", most files inside
-            // the namespace folder always have a "category", e.g. textures,
-            // lang, font, etc. But not always! There is sounds.json file and
-            // gpu_warnlist.json file
-            String categoryName = tokens.poll();
-
-            if (tokens.isEmpty()) {
-                // this means "category" is a file
-                // (remember: last tokens are always files)
-                if (categoryName.equals(SOUNDS_FILE)) {
-                    // found a sound registry!
-                    container.soundRegistry(SoundRegistrySerializer.INSTANCE.readFromTree(
-                            parseJson(reader.stream()),
-                            namespace
-                    ));
-                } else {
-                    // TODO: gpu_warnlist.json?
+                if (!Keys.isValidNamespace(namespace)) {
+                    // invalid namespace found
                     container.unknownFile(containerPath, reader.content().asWritable());
+                    continue;
                 }
-                continue;
-            }
 
-            // so "category" is actually a category like "textures",
-            // "lang", "font", etc. next we can compute the relative
-            // path inside the category
-            String categoryPath = path(tokens);
+                if (tokens.isEmpty()) {
+                    // found a file directly inside "assets", like
+                    // assets/<file>, it is not allowed
+                    container.unknownFile(containerPath, reader.content().asWritable());
+                    continue;
+                }
 
-            // Filter out unwanted & common extensions
-            if (categoryPath.endsWith(DS_STORE_EXTENSION) || categoryPath.endsWith(DB_EXTENSION)) {
-                container.unknownFile(containerPath, reader.content().asWritable());
-                continue;
-            }
+                // so we already have "assets/<namespace>/", most files inside
+                // the namespace folder always have a "category", e.g. textures,
+                // lang, font, etc. But not always! There is sounds.json file and
+                // gpu_warnlist.json file
+                String categoryName = tokens.poll();
 
-            if (categoryName.equals(TEXTURES_FOLDER)) {
-                String keyOfMetadata = withoutExtension(categoryPath, METADATA_EXTENSION);
-                if (keyOfMetadata != null) {
-                    // found metadata for texture
-                    Key key = Key.key(namespace, keyOfMetadata);
-                    Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
-
-                    Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
-                    Texture texture = incompleteTexturesThisContainer.remove(key);
-                    if (texture == null) {
-                        // metadata was found first, put
-                        incompleteTexturesThisContainer.put(key, Texture.texture(key, Writable.EMPTY, metadata));
-                    } else {
-                        // texture was found before the metadata, nice!
-                        container.texture(texture.meta(metadata));
-                    }
-                } else {
-                    Key key = Key.key(namespace, categoryPath);
-                    Writable data = reader.content().asWritable();
-                    Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
-                    Texture waiting = incompleteTexturesThisContainer.remove(key);
-
-                    if (waiting == null) {
-                        // found texture before metadata
-                        incompleteTexturesThisContainer.put(key, Texture.texture(key, data));
-                    } else {
-                        // metadata was found first
-                        container.texture(Texture.texture(
-                                key,
-                                data,
-                                waiting.meta()
+                if (tokens.isEmpty()) {
+                    // this means "category" is a file
+                    // (remember: last tokens are always files)
+                    if (categoryName.equals(SOUNDS_FILE)) {
+                        // found a sound registry!
+                        container.soundRegistry(SoundRegistrySerializer.INSTANCE.readFromTree(
+                                parseJson(reader.stream()),
+                                namespace
                         ));
+                    } else {
+                        // TODO: gpu_warnlist.json?
+                        container.unknownFile(containerPath, reader.content().asWritable());
                     }
-                }
-            } else {
-                // get the resource category, if the local pack format (overlay or root) is the same as the
-                // root pack format, we can use the previously computed map, otherwise we need to compute it
-                // (we could save some time by caching the computed map, but, is it worth it?)
-                ResourceCategory<?> category = (localPackFormat == packFormat
-                        ? categoriesByFolderThisPackFormat
-                        : ResourceCategories.buildCategoryMapByFolder(localPackFormat)).get(categoryName);
-                if (category == null) {
-                    // unknown category
-                    container.unknownFile(containerPath, reader.content().asWritable());
                     continue;
                 }
-                String keyValue = withoutExtension(categoryPath, category.extension(-1));
-                if (keyValue == null) {
-                    // wrong extension
+
+                // so "category" is actually a category like "textures",
+                // "lang", "font", etc. next we can compute the relative
+                // path inside the category
+                String categoryPath = path(tokens);
+
+                // Filter out unwanted & common extensions
+                if (categoryPath.endsWith(DS_STORE_EXTENSION) || categoryPath.endsWith(DB_EXTENSION) || categoryPath.endsWith(TXT_EXTENSION)) {
                     container.unknownFile(containerPath, reader.content().asWritable());
                     continue;
                 }
 
-                Key key = Key.key(namespace, keyValue);
-                try {
-                    ResourceDeserializer<? extends ResourcePackPart> deserializer = category.deserializer();
-                    ResourcePackPart resource;
-                    if (deserializer instanceof BinaryResourceDeserializer) {
-                        resource = ((BinaryResourceDeserializer<? extends ResourcePackPart>) deserializer)
-                                .deserializeBinary(reader.content().asWritable(), key);
-                    } else if (deserializer instanceof JsonResourceDeserializer) {
-                        resource = ((JsonResourceDeserializer<? extends ResourcePackPart>) deserializer)
-                                .deserializeFromJson(parseJson(reader.stream()), key);
-                    } else {
-                        resource = deserializer.deserialize(reader.stream(), key);
+                if (categoryName.equals(TEXTURES_FOLDER)) {
+                    try {
+                        String keyOfMetadata = withoutExtension(categoryPath, METADATA_EXTENSION);
+                        if (keyOfMetadata != null) {
+                            // found metadata for texture
+                            Key key = Key.key(namespace, keyOfMetadata);
+                            Metadata metadata = MetadataSerializer.INSTANCE.readFromTree(parseJson(reader.stream()));
+
+                            Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
+                            Texture texture = incompleteTexturesThisContainer.remove(key);
+                            if (texture == null) {
+                                // metadata was found first, put
+                                incompleteTexturesThisContainer.put(key, Texture.texture(key, Writable.EMPTY, metadata));
+                            } else {
+                                // texture was found before the metadata, nice!
+                                container.texture(texture.meta(metadata));
+                            }
+                        } else {
+                            Key key = Key.key(namespace, categoryPath);
+                            Writable data = reader.content().asWritable();
+                            Map<Key, Texture> incompleteTexturesThisContainer = incompleteTextures.computeIfAbsent(overlayDir, k -> new LinkedHashMap<>());
+                            Texture waiting = incompleteTexturesThisContainer.remove(key);
+
+                            if (waiting == null) {
+                                // found texture before metadata
+                                incompleteTexturesThisContainer.put(key, Texture.texture(key, data));
+                            } else {
+                                // metadata was found first
+                                container.texture(Texture.texture(
+                                        key,
+                                        data,
+                                        waiting.meta()
+                                ));
+                            }
+                        }
+                    } catch (Exception e) {
+                        if (lenient) {
+                            Logs.logWarn(String.format("Failed to parse %s resourcePack...", path));
+                            if (debug) e.printStackTrace();
+                        }
+                        else throw e;
                     }
-                    resource.addTo(container);
-                } catch (IOException e) {
-                    if (lenient) {
-                        Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
-                        if (debug) e.printStackTrace();
+                } else {
+                    try {
+                        // get the resource category, if the local pack format (overlay or root) is the same as the
+                        // root pack format, we can use the previously computed map, otherwise we need to compute it
+                        // (we could save some time by caching the computed map, but, is it worth it?)
+                        ResourceCategory<?> category = (localPackFormat == packFormat
+                                ? categoriesByFolderThisPackFormat
+                                : ResourceCategories.buildCategoryMapByFolder(localPackFormat)).get(categoryName);
+                        if (category == null) {
+                            // unknown category
+                            container.unknownFile(containerPath, reader.content().asWritable());
+                            continue;
+                        }
+                        String keyValue = withoutExtension(categoryPath, category.extension(-1));
+                        if (keyValue == null) {
+                            // wrong extension
+                            container.unknownFile(containerPath, reader.content().asWritable());
+                            continue;
+                        }
+
+                        Key key = Key.key(namespace, keyValue);
+
+                        ResourceDeserializer<? extends ResourcePackPart> deserializer = category.deserializer();
+                        ResourcePackPart resource;
+                        if (deserializer instanceof BinaryResourceDeserializer) {
+                            resource = ((BinaryResourceDeserializer<? extends ResourcePackPart>) deserializer)
+                                    .deserializeBinary(reader.content().asWritable(), key);
+                        } else if (deserializer instanceof JsonResourceDeserializer) {
+                            resource = ((JsonResourceDeserializer<? extends ResourcePackPart>) deserializer)
+                                    .deserializeFromJson(parseJson(reader.stream()), key);
+                        } else {
+                            resource = deserializer.deserialize(reader.stream(), key);
+                        }
+                        resource.addTo(container);
+                    } catch (IOException e) {
+                        if (lenient) {
+                            Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
+                            if (debug) e.printStackTrace();
+                        }
+                        else throw new UncheckedIOException("Failed to deserialize resource at: '" + path + "'", e);
+                    } catch (Exception e) {
+                        if (lenient) {
+                            Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
+                            if (debug) e.printStackTrace();
+                        }
+                        else throw e;
                     }
-                    else throw new UncheckedIOException("Failed to deserialize resource at: '" + path + "'", e);
-                } catch (Exception e) {
-                    if (lenient) {
-                        Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
-                        if (debug) e.printStackTrace();
-                    }
-                    else throw e;
                 }
+            } catch (Exception e) {
+                if (lenient) {
+                    Logs.logWarn("Failed to deserialize resource at: '" + path + "'");
+                    if (debug) e.printStackTrace();
+                } else throw e;
             }
         }
 

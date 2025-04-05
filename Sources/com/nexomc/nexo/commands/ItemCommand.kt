@@ -47,7 +47,7 @@ internal fun CommandTree.giveItemCommand() = literalArgument("give") {
                     val itemBuilder = NexoItems.itemFromId(itemID) ?: return@anyExecutor Message.ITEM_NOT_FOUND.send(sender, tagResolver("item", itemID))
                     val targets = args.getOptional("targets")?.getOrElse {
                         if (sender is Player) listOf(sender) else emptyList()
-                    }?.safeCast<Collection<Player>>()?.takeIf { it.isNotEmpty() } ?: return@anyExecutor
+                    }?.safeCast<Collection<Player>>()?.ifEmpty { null } ?: return@anyExecutor
 
                     var amount = args.getOptionalByClass("amount", Int::class.java).orElse(1)
                     val maxAmount = itemBuilder.maxStackSize ?: itemBuilder.type.maxStackSize
@@ -90,7 +90,7 @@ internal fun CommandTree.takeItemCommand() = literalArgument("take") {
                 anyExecutor { sender, args ->
                     val targets = args.getOptional("players").getOrElse {
                         if (sender is Player) listOf(sender) else emptyList()
-                    }.safeCast<Collection<Player>>()?.takeIf { it.isNotEmpty() } ?: return@anyExecutor
+                    }.safeCast<Collection<Player>>()?.ifEmpty { null } ?: return@anyExecutor
                     val itemID = args.get("item") as? String ?: return@anyExecutor
                     val amount = args.getOptionalByClass("amount", Int::class.java)
                     if (!NexoItems.exists(itemID))

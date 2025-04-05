@@ -14,7 +14,7 @@ import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.block.data.MultipleFacing
+import org.bukkit.block.data.BlockData
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.blockstate.BlockState
@@ -81,6 +81,11 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         return "east=${t.hasFace(BlockFace.EAST)},west=${t.hasFace(BlockFace.WEST)},south=${t.hasFace(BlockFace.SOUTH)},north=${t.hasFace(BlockFace.NORTH)},up=${t.hasFace(BlockFace.UP)},down=${t.hasFace(BlockFace.DOWN)}"
     }
 
+    fun getMechanic(blockData: BlockData): ChorusBlockMechanic? {
+        if (blockData.material != Material.CHORUS_PLANT) return null
+        return BLOCK_PER_VARIATION.values.firstOrNull { it.blockData == blockData }
+    }
+
     companion object {
         val MAX_BLOCK_VARIATION = 1..63
         private var instance: ChorusBlockFactory? = null
@@ -99,10 +104,6 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
          */
         fun setBlockModel(block: Block, itemId: String?) {
             block.blockData = NexoBlocks.chorusBlockMechanic(itemId)?.blockData ?: return
-        }
-
-        fun getMechanic(blockData: MultipleFacing): ChorusBlockMechanic? {
-            return instance?.takeIf { blockData.material == Material.CHORUS_PLANT }?.BLOCK_PER_VARIATION?.values?.firstOrNull { it.blockData == blockData }
         }
     }
 }

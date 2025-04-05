@@ -57,6 +57,8 @@ enum class Settings {
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items", true),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload", true),
+    UPDATE_TILE_ENTITY_CONTENTS("ItemUpdater.update_tile_entity_contents", true),
+    UPDATE_ENTITY_CONTENTS("ItemUpdater.update_entity_contents", true),
     OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore", false),
 
     //Misc

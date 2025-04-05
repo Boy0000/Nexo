@@ -9,7 +9,7 @@ class JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for C
     fun createDatapack() {
         writeMCMeta()
 
-        NexoPlugin.instance().soundManager().jukeboxPlayables.takeIf { it.isNotEmpty() }?.forEach { jukeboxPlayable ->
+        NexoPlugin.instance().soundManager().jukeboxPlayables.ifEmpty { null }?.forEach { jukeboxPlayable ->
             val (namespace, key) = jukeboxPlayable.soundId.let { it.namespace() to it.value() }
             datapackFile.resolve("data/$namespace/jukebox_song/$key.json").apply {
                 parentFile.mkdirs()

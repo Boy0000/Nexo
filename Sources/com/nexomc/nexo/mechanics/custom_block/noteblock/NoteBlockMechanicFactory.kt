@@ -15,6 +15,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Instrument
 import org.bukkit.block.Block
+import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
@@ -149,6 +150,11 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
         return MultiVariant.of(variantBuilder.build())
     }
 
+    fun getMechanic(blockData: BlockData): NoteBlockMechanic? {
+        if (blockData !is NoteBlock) return null
+        return BLOCK_PER_VARIATION.values.firstOrNull { it.blockData == blockData }
+    }
+
     companion object {
         private const val MAX_PER_INSTRUMENT = 50
         val MAX_BLOCK_VARIATION = Instrument.entries.size * MAX_PER_INSTRUMENT - 1
@@ -168,10 +174,6 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
          */
         fun setBlockModel(block: Block, itemId: String?) {
             block.blockData = NexoBlocks.noteBlockMechanic(itemId)?.blockData ?: return
-        }
-
-        fun getMechanic(blockData: NoteBlock): NoteBlockMechanic? {
-            return instance?.BLOCK_PER_VARIATION?.values?.firstOrNull { it.blockData == blockData }
         }
     }
 }

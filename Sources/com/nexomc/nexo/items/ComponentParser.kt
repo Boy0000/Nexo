@@ -9,11 +9,11 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.getEnum
+import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getNamespacedKey
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import net.Indyuce.mmoitems.MMOItems
-import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -150,9 +150,9 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         if ("dispensable" in equippableSection) equippableComponent.isDispensable = equippableSection.getBoolean("dispensable", true)
         if ("swappable" in equippableSection) equippableComponent.isSwappable = equippableSection.getBoolean("swappable", true)
 
-        equippableSection.getString("model")?.let(NamespacedKey::fromString)?.apply(equippableComponent::setModel)
-        equippableSection.getString("camera_overlay")?.let(NamespacedKey::fromString)?.apply(equippableComponent::setCameraOverlay)
-        equippableSection.getString("equip_sound")?.let(Key::key)?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
+        equippableSection.getNamespacedKey("model")?.apply(equippableComponent::setModel)
+        equippableSection.getNamespacedKey("camera_overlay")?.apply(equippableComponent::setCameraOverlay)
+        equippableSection.getKey("equip_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
 
         item.setEquippableComponent(equippableComponent)
     }
