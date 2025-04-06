@@ -49,6 +49,14 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
                     .addWolfBodyLayer(equipmentLayer)
                     .addHorseBodyLayer(equipmentLayer)
                     .addLlamaBodyLayer(equipmentLayer)
+                    .addCamelSaddle(equipmentLayer)
+                    .addDonkeySaddle(equipmentLayer)
+                    .addHorseSaddle(equipmentLayer)
+                    .addMuleSaddle(equipmentLayer)
+                    .addPigSaddle(equipmentLayer)
+                    .addSkeletonHorseSaddle(equipmentLayer)
+                    .addStriderSaddle(equipmentLayer)
+                    .addZombieHorseSaddle(equipmentLayer)
                     .build()
             )
             if (resourcePack.model(key.appendSuffix("_elytra")) == null) resourcePack.equipment(
@@ -70,6 +78,14 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
                 customArmor.wolfArmor -> "wolf_armor" to "wolf_body"
                 customArmor.llamaArmor -> "llama_armor" to "llama_body"
                 customArmor.horseArmor -> "horse_armor" to "horse_body"
+                customArmor.camelSaddle -> "camel_saddle" to "camel_saddle"
+                customArmor.donkeySaddle -> "donkey_saddle" to "donkey_saddle"
+                customArmor.horseSaddle -> "horse_saddle" to "horse_saddle"
+                customArmor.muleSaddle -> "mule_saddle" to "mule_saddle"
+                customArmor.pigSaddle -> "pig_saddle" to "pig_saddle"
+                customArmor.skeletonHorseSaddle -> "skeleton_horse_saddle" to "skeleton_horse_saddle"
+                customArmor.striderSaddle -> "strider_saddle" to "strider_saddle"
+                customArmor.zombieHorseSaddle -> "zombie_horse_saddle" to "zombie_horse_saddle"
                 else -> return@forEach
             }
             val texture = fetchTexture(customArmorKey, "${prefix}_${fallback}.png", itemId) ?: return@forEach
@@ -130,6 +146,7 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
             "LEGGINGS" -> EquipmentSlot.LEGS
             "BOOTS" -> EquipmentSlot.FEET
             "WOLF_ARMOR", "LLAMA_ARMOR", "HORSE_ARMOR" -> EquipmentSlot.BODY
+            "CAMEL_SADDLE", "DONKEY_SADDLE", "HORSE_SADDLE", "MULE_SADDLE", "PIG_SADDLE", "SKELETON_HORSE_SADDLE", "STRIDER_SADDLE", "ZOMBIE_HORSE_SADDLE" -> EquipmentSlot.BODY
             else -> null
         }
     }

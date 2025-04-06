@@ -96,6 +96,21 @@ interface IFurniturePacketManager {
             }
         }
 
+        fun mechanicFromHitbox(entityId: Int): FurnitureMechanic? =
+            interactionHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
+                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
+
+        fun mechanicFromHitbox(location: BlockLocation): FurnitureMechanic? {
+            val barrierVec = location.toVector()
+            return barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
+                furnitureBaseMap.takeIf { location in hitboxes }?.firstOrNull { it.baseUuid == uuid }?.mechanic()
+            } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+            } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+            }
+        }
+
         fun hitboxLocFromId(entityId: Int, world: World): Location? {
             val subEntity = interactionHitboxIdMap.find { entityId in it.entityIds } ?: shulkerHitboxIdMap.find { entityId in it.entityIds } ?: return null
             return subEntity.hitboxLocation(entityId)?.toLocation(world)

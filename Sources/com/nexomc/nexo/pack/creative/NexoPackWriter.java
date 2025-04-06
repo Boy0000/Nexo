@@ -43,7 +43,10 @@ import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStr
 
 public class NexoPackWriter implements MinecraftResourcePackWriter {
 
-    public static final NexoPackWriter INSTANCE = new NexoPackWriter();
+    public static NexoPackWriter INSTANCE = new NexoPackWriter();
+    public static void resetWriter() {
+        INSTANCE = new NexoPackWriter();
+    }
 
     private static final int targetPackFormat = NMSHandlers.handler().resourcepackFormat();
     private static final boolean prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();

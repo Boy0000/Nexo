@@ -13,6 +13,9 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.PaperTooltipDisplay
+import io.papermc.paper.datacomponent.item.TooltipDisplay
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.*
@@ -85,6 +88,9 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     // 1.21.4+ properties
     var customModelDataComponent: CustomModelDataComponent? = null
+
+    // 1.21.5+ properties
+    var tooltipDisplay: TooltipDisplay? = null
 
 
     constructor(material: Material) : this(ItemStack(material))
@@ -164,6 +170,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         if (VersionUtil.atleast("1.21.4")) {
             customModelDataComponent = if (itemMeta.hasCustomModelData()) itemMeta.customModelDataComponent else null
+        }
+
+        if (VersionUtil.atleast("1.21.5")) {
+            tooltipDisplay = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)
         }
     }
 
@@ -268,6 +278,15 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun setTooltipStyle(tooltipStyle: NamespacedKey?): ItemBuilder {
         this.tooltipStyle = tooltipStyle
+        return this
+    }
+
+    fun hasTooltipDisplay(): Boolean {
+        return VersionUtil.atleast("1.21.5") && tooltipDisplay != null
+    }
+
+    fun setTooltipDisplay(tooltipDisplay: TooltipDisplay?): ItemBuilder {
+        this.tooltipDisplay = tooltipDisplay
         return this
     }
 
@@ -552,6 +571,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
             itemMeta.setCustomModelDataComponent(cmdComponent)
         }
 
+        if (VersionUtil.atleast("1.21.5")) {
+
+        }
+
         for ((key, value) in persistentDataMap) {
             val dataSpaceKey = key.safeCast<PersistentDataSpace<Any, Any>>() ?: continue
             pdc.set(dataSpaceKey.namespacedKey, dataSpaceKey.dataType, value)
@@ -564,6 +587,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
         NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
         NMSHandlers.handler().handleItemFlagToolTips(itemStack, itemFlags)
+
+        if (VersionUtil.atleast("1.21.5") && tooltipDisplay != null) {
+            itemStack.setData(DataComponentTypes.TOOLTIP_DISPLAY, tooltipDisplay!!)
+        }
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
             when {

@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture
 
+import com.nexomc.nexo.api.NexoFurniture
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.ints.IntList
 import java.util.UUID
@@ -9,19 +10,22 @@ import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 
 class FurnitureSubEntity {
+    private val mechanic: FurnitureMechanic
     val baseUuid: UUID
     val baseId: Int
     val entityIds: IntList
     val boundingBoxes: List<BoundingBox>
 
-    constructor(baseEntity: ItemDisplay, entityIds: Collection<Int>, boundingBoxes: List<BoundingBox>) {
+    constructor(mechanic: FurnitureMechanic, baseEntity: ItemDisplay, entityIds: Collection<Int>, boundingBoxes: List<BoundingBox>) {
+        this.mechanic = mechanic
         this.baseUuid = baseEntity.uniqueId
         this.baseId = baseEntity.entityId
         this.entityIds = IntArrayList(entityIds)
         this.boundingBoxes = ArrayList(boundingBoxes)
     }
 
-    constructor(baseUuid: UUID, baseId: Int, entityIds: Collection<Int>, boundingBoxes: List<BoundingBox>) {
+    constructor(mechanic: FurnitureMechanic, baseUuid: UUID, baseId: Int, entityIds: Collection<Int>, boundingBoxes: List<BoundingBox>) {
+        this.mechanic = mechanic
         this.baseUuid = baseUuid
         this.baseId = baseId
         this.entityIds = IntArrayList(entityIds)
@@ -41,4 +45,6 @@ class FurnitureSubEntity {
             boundingBoxes.getOrNull(entityIds.indexOf(entityId))
         }.getOrNull()?.center
     }
+
+    fun mechanic() = NexoFurniture.furnitureMechanic(mechanic.section.name) ?: mechanic
 }

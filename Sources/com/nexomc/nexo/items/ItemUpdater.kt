@@ -93,7 +93,7 @@ class ItemUpdater : Listener {
     fun PrepareAnvilEvent.onItemEnchant() {
         val item = inventory.getItem(0) ?: return
 
-        NexoItems.itemFromId(NexoItems.idFromItem(item))?.nexoMeta?.takeIf(NexoMeta::disableEnchanting)?.apply {
+        NexoItems.builderFromItem(item)?.nexoMeta?.takeIf(NexoMeta::disableEnchanting)?.apply {
             if (result?.enchantments != item.enchantments) result = null
         }
     }

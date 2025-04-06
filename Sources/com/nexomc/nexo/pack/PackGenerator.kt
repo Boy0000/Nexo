@@ -58,8 +58,14 @@ class PackGenerator {
     private val trimsCustomArmor: TrimsCustomArmor?
     private val componentCustomArmor: ComponentCustomArmor?
     private val modelGenerator: ModelGenerator
+    private val atlasGenerator: AtlasGenerator
     var packGenFuture: CompletableFuture<Void>? = null
         private set
+
+    init {
+        NexoPackReader.resetReader()
+        NexoPackWriter.resetWriter()
+    }
 
     fun generatePack() {
         stopPackGeneration()
@@ -118,7 +124,8 @@ class PackGenerator {
 
                 CustomBlockFactory.instance()?.blockStates(resourcePack)
                 CustomBlockFactory.instance()?.soundRegistries(resourcePack)
-                addItemPackFiles()
+                modelGenerator.generateModels()
+                atlasGenerator.generateAtlasFile()
                 addGlyphFiles()
                 addShiftProvider()
                 addSoundFile()
@@ -298,11 +305,6 @@ class PackGenerator {
         }
     }
 
-    private fun addItemPackFiles() {
-        modelGenerator.generateModels()
-        AtlasGenerator.generateAtlasFile(resourcePack)
-    }
-
     private fun parseLanguageFiles() {
         parseGlobalLanguage()
         ArrayList(resourcePack.languages()).forEach { language ->
@@ -341,6 +343,7 @@ class PackGenerator {
         trimsCustomArmor = TrimsCustomArmor().takeIf { setting == CustomArmorType.TRIMS }
         componentCustomArmor = ComponentCustomArmor(resourcePack).takeIf { setting == CustomArmorType.COMPONENT }
         modelGenerator = ModelGenerator(resourcePack)
+        atlasGenerator = AtlasGenerator(resourcePack)
     }
 
     private fun removeExcludedFileExtensions() {

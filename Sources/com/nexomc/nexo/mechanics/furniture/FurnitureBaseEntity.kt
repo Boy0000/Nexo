@@ -3,13 +3,13 @@ package com.nexomc.nexo.mechanics.furniture
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
+import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
-import java.util.UUID
 
-class FurnitureBaseEntity(baseEntity: ItemDisplay, val mechanic: FurnitureMechanic) {
+class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: FurnitureMechanic) {
     fun refreshItem(baseEntity: ItemDisplay) {
         itemStack = (mechanic.placedItem(baseEntity)).apply {
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)

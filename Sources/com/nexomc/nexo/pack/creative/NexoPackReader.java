@@ -1,6 +1,7 @@
 package com.nexomc.nexo.pack.creative;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.nexomc.nexo.configs.Settings;
 import com.nexomc.nexo.utils.KeyUtils;
@@ -52,7 +53,11 @@ import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStr
 
 public class NexoPackReader implements MinecraftResourcePackReader {
 
-    public static final NexoPackReader INSTANCE = new NexoPackReader();
+    public static NexoPackReader INSTANCE = new NexoPackReader();
+
+    public static void resetReader() {
+        INSTANCE = new NexoPackReader();
+    }
 
     private static final boolean lenient = Settings.PACK_READER_LENIENT.toBool();
     private static final boolean debug = Settings.DEBUG.toBool();
@@ -388,7 +393,12 @@ public class NexoPackReader implements MinecraftResourcePackReader {
             jsonReader.setLenient(true);
             return GsonUtil.parseReader(jsonReader);
         } catch (final IOException e) {
-            throw new UncheckedIOException("Failed to close JSON reader", e);
+            if (lenient) {
+                Logs.logWarn("Failed to parse json: " + e.getMessage());
+                if (debug) e.printStackTrace();
+                return new JsonObject();
+            }
+            else throw new UncheckedIOException("Failed to close JSON reader", e);
         }
     }
 }

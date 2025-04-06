@@ -38,7 +38,22 @@ data class NexoMeta(
     var customArmorTextures: CustomArmorTextures? = null,
 ) {
 
-    data class CustomArmorTextures(val layer1: Key?, val layer2: Key?, val elytra: Key?, val wolfArmor: Key?, val llamaArmor: Key?, val horseArmor: Key?) {
+    data class CustomArmorTextures(
+        val layer1: Key?,
+        val layer2: Key?,
+        val elytra: Key?,
+        val wolfArmor: Key?,
+        val llamaArmor: Key?,
+        val horseArmor: Key?,
+        val camelSaddle: Key?,
+        val donkeySaddle: Key?,
+        val horseSaddle: Key?,
+        val muleSaddle: Key?,
+        val pigSaddle: Key?,
+        val skeletonHorseSaddle: Key?,
+        val striderSaddle: Key?,
+        val zombieHorseSaddle: Key?,
+    ) {
 
         constructor(armorPrefix: String) : this(
             Key.key("${armorPrefix}_armor_layer_1.png"),
@@ -46,7 +61,15 @@ data class NexoMeta(
             Key.key("${armorPrefix}_elytra.png"),
             Key.key("${armorPrefix}_wolf_armor.png"),
             Key.key("${armorPrefix}_llama_armor.png"),
-            Key.key("${armorPrefix}_horse_armor.png")
+            Key.key("${armorPrefix}_horse_armor.png"),
+            Key.key("${armorPrefix}_camel_saddle.png"),
+            Key.key("${armorPrefix}_donkey_saddle.png"),
+            Key.key("${armorPrefix}_horse_saddle.png"),
+            Key.key("${armorPrefix}_mule_saddle.png"),
+            Key.key("${armorPrefix}_pig_saddle.png"),
+            Key.key("${armorPrefix}_skeleton_horse_saddle.png"),
+            Key.key("${armorPrefix}_strider_saddle.png"),
+            Key.key("${armorPrefix}_zombie_horse_saddle.png"),
         )
 
         constructor(section: ConfigurationSection) : this(
@@ -56,19 +79,42 @@ data class NexoMeta(
             Key.key(section.getString("wolf_armor", "")?.appendIfMissing(".png")!!),
             Key.key(section.getString("llama_armor", "")?.appendIfMissing(".png")!!),
             Key.key(section.getString("horse_armor", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("camel_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("donkey_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("horse_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("mule_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("pig_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("skeleton_horse_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("strider_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("zombie_horse_saddle", "")?.appendIfMissing(".png")!!),
         )
 
         fun fromItem(item: ItemBuilder, itemId: String): Key? {
+            val allowedEntities = item.equippable?.allowedEntities ?: listOf()
+            val slot = item.equippable?.slot
             return when {
-                item.type == Material.ELYTRA || item.isGlider == true -> elytra
-                item.equippable?.slot == EquipmentSlot.BODY -> when {
-                    itemId.endsWith("_wolf_armor") || item.type == Material.WOLF_ARMOR || item.equippable?.allowedEntities?.contains(EntityType.WOLF) == true -> wolfArmor
-                    itemId.endsWith("_llama_armor") || item.equippable?.allowedEntities?.contains(EntityType.LLAMA) == true -> llamaArmor
-                    itemId.endsWith("_horse_armor") || item.equippable?.allowedEntities?.contains(EntityType.HORSE) == true -> horseArmor
+                itemId.endsWith("_elytra") || item.type == Material.ELYTRA || item.isGlider == true -> elytra
+                slot == EquipmentSlot.BODY -> when {
+                    item.type == Material.WOLF_ARMOR || itemId.endsWith("_wolf_armor") || EntityType.WOLF in allowedEntities -> wolfArmor
+                    itemId.endsWith("_llama_armor") || EntityType.LLAMA in allowedEntities -> llamaArmor
+                    itemId.endsWith("_horse_armor") || EntityType.HORSE in allowedEntities -> horseArmor
                     else -> null
                 }
-                item.equippable?.slot == EquipmentSlot.HEAD || item.equippable?.slot == EquipmentSlot.CHEST -> layer1
-                item.equippable?.slot == EquipmentSlot.LEGS || item.equippable?.slot == EquipmentSlot.FEET -> layer2
+
+                item.type == Material.SADDLE -> when {
+                    itemId.endsWith("_camel_saddle") || EntityType.CAMEL in allowedEntities -> camelSaddle
+                    itemId.endsWith("_donkey_saddle") || EntityType.DONKEY in allowedEntities -> donkeySaddle
+                    itemId.endsWith("_horse_saddle") || EntityType.HORSE in allowedEntities -> horseSaddle
+                    itemId.endsWith("_mule_saddle") || EntityType.MULE in allowedEntities -> muleSaddle
+                    itemId.endsWith("_pig_saddle") || EntityType.PIG in allowedEntities -> pigSaddle
+                    itemId.endsWith("_skeleton_horse_saddle") || EntityType.SKELETON_HORSE in allowedEntities -> skeletonHorseSaddle
+                    itemId.endsWith("_strider_saddle") || EntityType.STRIDER in allowedEntities -> striderSaddle
+                    itemId.endsWith("_zombie_horse_saddle") || EntityType.ZOMBIE_HORSE in allowedEntities -> zombieHorseSaddle
+                    else -> null
+                }
+
+                slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST -> layer1
+                slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET -> layer2
                 else -> null
             }
         }
@@ -94,10 +140,13 @@ data class NexoMeta(
         when {
             textureSection != null ->
                 this.textureVariables = textureSection.getKeys(false).associateWith { ModelTexture.ofKey(textureSection.getKey(it)) }
+
             packSection.isList("textures") ->
                 this.textureLayers = packSection.getStringList("textures").map(KeyUtils::dropExtension).map(ModelTexture::ofKey)
+
             packSection.isString("textures") ->
                 this.textureLayers = listOf(ModelTexture.ofKey(packSection.getKey("textures")?.dropExtension() ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER))
+
             packSection.isString("texture") ->
                 this.textureLayers = listOf(ModelTexture.ofKey(packSection.getKey("texture")?.dropExtension() ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER))
         }

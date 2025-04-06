@@ -9,6 +9,7 @@ object VersionUtil {
     private val versionMap = mutableMapOf<NMSVersion, Map<Int, MinecraftVersion>>()
 
     init {
+        versionMap[NMSVersion.v1_21_R4] = mapOf(9 to MinecraftVersion("1.21.5"))
         versionMap[NMSVersion.v1_21_R3] = mapOf(8 to MinecraftVersion("1.21.4"))
         versionMap[NMSVersion.v1_21_R2] = mapOf(6 to MinecraftVersion("1.21.2"), 7 to MinecraftVersion("1.21.3"))
         versionMap[NMSVersion.v1_21_R1] = mapOf(4 to MinecraftVersion("1.21"), 5 to MinecraftVersion("1.21.1"))
@@ -77,7 +78,7 @@ object VersionUtil {
     val isLeaked = JarReader.checkIsLeaked()
 
     enum class NMSVersion {
-        v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;
+        v1_21_R4, v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;
     }
 
     fun matchesServer(version: NMSVersion) =

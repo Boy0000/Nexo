@@ -13,7 +13,11 @@ import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getNamespacedKey
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
+import io.papermc.paper.datacomponent.item.TooltipDisplay
+import io.papermc.paper.registry.RegistryAccess
+import io.papermc.paper.registry.RegistryKey
 import net.Indyuce.mmoitems.MMOItems
+import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -110,6 +114,16 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
                 cmdComponent.flags = cmdSection.getStringList("flags").mapNotNull { it.toBooleanStrictOrNull() }
             }.also(itemBuilder::setCustomModelDataComponent)
         }
+
+        if (VersionUtil.below("1.21.5")) return
+        componentSection.getStringListOrNull("tooltip_display")?.let { displayList ->
+            if (itemBuilder.hideToolTip == true) {
+                TooltipDisplay.tooltipDisplay().hideTooltip(true).build()
+            } else {
+                val registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.DATA_COMPONENT_TYPE)
+                TooltipDisplay.tooltipDisplay().addHiddenComponents(*displayList.map(Key::key).mapNotNull(registry::get).toTypedArray()).build()
+            }
+        }.also(itemBuilder::setTooltipDisplay)
     }
 
     private fun parseUseRemainderComponent(item: ItemBuilder, remainderSection: ConfigurationSection) {
