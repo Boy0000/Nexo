@@ -5,7 +5,7 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 
 class RepairMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
-    val isOraxenDurabilityOnly: Boolean = section.getBoolean("nexo_durability_only")
+    val isNexoDurabilityOnly: Boolean = section.getBoolean("nexo_durability_only")
 
     init {
         registerListeners(RepairMechanicListener(this))

@@ -13,7 +13,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.block.Block
-import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
@@ -30,8 +29,6 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         instance = this
 
         registerListeners(ChorusBlockListener())
-
-        registerListeners(ChorusBlockMechanicPaperListener())
 
         if (!NMSHandlers.handler().chorusplantUpdateDisabled()) {
             Logs.logError("Papers block-updates.disable-chorus-plant-updates is not enabled.")
@@ -77,8 +74,7 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
     }
 
     private fun blockstateVariant(mechanic: ChorusBlockMechanic): String {
-        val t = mechanic.blockData!!
-        return "east=${t.hasFace(BlockFace.EAST)},west=${t.hasFace(BlockFace.WEST)},south=${t.hasFace(BlockFace.SOUTH)},north=${t.hasFace(BlockFace.NORTH)},up=${t.hasFace(BlockFace.UP)},down=${t.hasFace(BlockFace.DOWN)}"
+        return mechanic.blockData.let { data -> data.faces.joinToString { "${it.name.lowercase()}=${data.hasFace(it)}" } }
     }
 
     fun getMechanic(blockData: BlockData): ChorusBlockMechanic? {

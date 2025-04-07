@@ -124,7 +124,7 @@ interface IFurniturePacketManager {
         }
 
         fun blockIsHitbox(vec: Vector, world: World, excludeUUID: UUID? = null): Boolean {
-            return runCatching { barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.filterNotNull().any {
+            return runCatching { barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any {
                 (it.toVector() == vec)
             } } }.printOnFailure().isSuccess
         }
@@ -135,6 +135,12 @@ interface IFurniturePacketManager {
                     || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
-    }
 
+        fun blockIsHitbox(location: Location, excludeUUID: UUID? = null): Boolean {
+            val blockBox = BoundingBox.of(location.toCenterLocation(), 0.5, 0.5, 0.5)
+            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any(location::equals) }
+                    || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+        }
+    }
 }

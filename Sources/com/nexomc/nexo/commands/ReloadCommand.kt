@@ -114,7 +114,7 @@ object ReloadCommand {
         NMSHandlers.resetHandler()
         NexoPlugin.instance().reloadConfigs()
         NexoPlugin.instance().packServer(NexoPackServer.initializeServer())
-        MechanicsManager.registerNativeMechanics()
+        MechanicsManager.registerNativeMechanics(true)
         Message.RELOAD.send(sender, tagResolver("reloaded", "configs"))
     }
 }

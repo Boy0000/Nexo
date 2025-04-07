@@ -93,7 +93,7 @@ class NexoPlugin : JavaPlugin() {
         packServer.start()
 
         NexoMetrics.initializeMetrics()
-        MechanicsManager.registerNativeMechanics()
+        MechanicsManager.registerNativeMechanics(false)
 
         foliaLib.scheduler.runNextTick {
             NexoItems.loadItems()

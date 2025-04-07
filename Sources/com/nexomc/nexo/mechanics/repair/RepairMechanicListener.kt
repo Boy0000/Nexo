@@ -9,7 +9,7 @@ class RepairMechanicListener(val factory: RepairMechanicFactory) : Listener {
 
     @EventHandler
     fun InventoryClickEvent.onRepairItem() {
-        val repairMechanic = factory.getMechanic(cursor)?.takeUnless { factory.isOraxenDurabilityOnly } ?: return
+        val repairMechanic = factory.takeUnless { it.isNexoDurabilityOnly }?.getMechanic(cursor) ?: return
         val toRepair = currentItem ?: return
         val toRepairMeta = (toRepair.itemMeta as? Damageable)?.takeUnless { it.damage == 0 } ?: return
 

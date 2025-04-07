@@ -37,7 +37,7 @@ object MechanicsManager {
     private val MECHANIC_TASKS = mutableMapOf<String, MutableList<WrappedTask>>()
     private val MECHANICS_LISTENERS = mutableMapOf<String, MutableList<Listener>>()
 
-    fun registerNativeMechanics() {
+    fun registerNativeMechanics(reload: Boolean) {
         // misc
         registerMechanicFactory("armor_effects", ::ArmorEffectsFactory)
         registerMechanicFactory("soulbound", ::SoulBoundMechanicFactory)
@@ -66,9 +66,10 @@ object MechanicsManager {
         registerMechanicFactory("harvesting", ::HarvestingMechanicFactory)
         registerMechanicFactory("repair", ::RepairMechanicFactory)
 
+        if (reload) NexoMechanicsRegisteredEvent().call()
         // Schedule sync as this is called during onEnable
         // Need to register mechanics & listeners first but call the event before items are parsed post-onEnable
-        SchedulerUtils.syncDelayedTask { NexoMechanicsRegisteredEvent().call() }
+        else SchedulerUtils.syncDelayedTask { NexoMechanicsRegisteredEvent().call() }
     }
 
     /**

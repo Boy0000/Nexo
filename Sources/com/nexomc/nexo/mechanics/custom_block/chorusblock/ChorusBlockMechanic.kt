@@ -9,7 +9,7 @@ class ChorusBlockMechanic(factory: ChorusBlockFactory, section: ConfigurationSec
     val isFalling: Boolean = section.getBoolean("is_falling", false)
     val storage: StorageMechanic? = section.getConfigurationSection("storage")?.let(::StorageMechanic)
 
-    override val blockData = super.blockData as? MultipleFacing
+    override val blockData = super.blockData as MultipleFacing
 
     override fun createBlockData() = ChorusMechanicHelpers.blockData(customVariation)
 }

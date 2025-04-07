@@ -18,7 +18,7 @@ import org.bukkit.entity.Player
 abstract class CustomBlockMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val type: CustomBlockType<*>? = CustomBlockRegistry.fromMechanicSection(section)
     val customVariation: Int = section.getInt("custom_variation")
-    val model: Key = Key.key(section.getString("model", section.parent!!.getString("Pack.model", itemID))!!)
+    val model: Key = Key.key(section.getString("model", section.parent!!.parent!!.getString("Pack.model", itemID))!!)
     open val blockData: BlockData? = createBlockData()
 
     open val blockSounds: BlockSounds? = section.getConfigurationSection("block_sounds")?.let(::BlockSounds)
