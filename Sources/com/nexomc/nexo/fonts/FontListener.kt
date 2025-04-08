@@ -64,7 +64,7 @@ class FontListener(private val manager: FontManager) : Listener {
         HandlerList.unregisterAll(spigotChatHandler)
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerJoinEvent.onJoin() {
         if (Settings.FORMAT_PACKETS.toBool()) NMSHandlers.handler().packetHandler().inject(player)
     }

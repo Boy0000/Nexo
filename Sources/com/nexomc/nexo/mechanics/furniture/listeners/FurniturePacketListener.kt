@@ -168,16 +168,6 @@ class FurniturePacketListener : Listener {
                 }
             }
         }
-
-        // Resend the hitbox as client removes the "ghost block"
-        SchedulerUtils.foliaScheduler.runAtEntityLater(
-            baseEntity, Runnable {
-                FurnitureFactory.instance()?.packetManager()?.apply {
-                    sendBarrierHitboxPacket(baseEntity, mechanic)
-                    sendLightMechanicPacket(baseEntity, mechanic)
-                }
-            }, 2L
-        )
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

@@ -77,8 +77,8 @@ object BlockHelpers {
             Material.SNOW -> (block.blockData as Snow).layers == 1
             in REPLACEABLE_BLOCKS -> true
             Material.SCULK_VEIN -> true
-            else -> false
-        } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+            else -> IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+        }
     }
 
     @JvmStatic
