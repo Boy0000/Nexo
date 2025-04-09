@@ -12,7 +12,7 @@ import org.bukkit.Material
 import org.bukkit.inventory.ItemStack
 import kotlin.math.min
 
-class Loot(
+data class Loot(
     val sourceID: String? = null,
     var itemStack: ItemStack? = null,
     val probability: Double,
@@ -30,6 +30,7 @@ class Loot(
     )
 
     constructor(itemStack: ItemStack?, probability: Double) : this(null, itemStack, min(1.0, probability), 1..1)
+    constructor(itemId: String?, probability: Double) : this(itemId, null, min(1.0, probability), 1..1)
 
     constructor(sourceID: String?, itemStack: ItemStack?, probability: Double, minAmount: Int, maxAmount: Int)
             : this(sourceID, itemStack, min(1.0, probability), IntRange(minAmount, maxAmount))

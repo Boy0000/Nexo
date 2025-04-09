@@ -9,6 +9,7 @@ import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
+import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
@@ -27,6 +28,7 @@ import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapNotNullFast
@@ -67,6 +69,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
     val breakable: BreakableMechanic = BreakableMechanic(section)
     val waterloggable: Boolean = section.getBoolean("waterloggable")
+    val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
 
     val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
 
@@ -116,6 +119,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val hasBlockSounds = blockSounds != null
     val isJukebox = jukebox != null
     val hasSeats = seats.isNotEmpty()
+    val hasBeds = beds.isNotEmpty()
     val hasEvolution = evolution != null
     fun isInteractable(player: Player?) = rotatable.shouldRotate(player) || hasSeats || isStorage || light.toggleable || clickActions.isNotEmpty()
 
@@ -230,6 +234,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
     fun removeBaseEntity(baseEntity: ItemDisplay) {
         if (hasSeats) FurnitureSeat.removeSeats(baseEntity)
+        if (hasBeds) FurnitureBed.removeBeds(baseEntity)
         val packetManager = FurnitureFactory.instance()?.packetManager()
         packetManager?.removeInteractionHitboxPacket(baseEntity, this)
         packetManager?.removeShulkerHitboxPacket(baseEntity, this)

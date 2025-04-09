@@ -4,15 +4,14 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.utils.PotionUtils.getEffectType
+import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
-import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
-class ArmorEffectsMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class ArmorEffectsMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val armorEffects = ObjectOpenHashSet<ArmorEffect>()
 
     init {
@@ -39,22 +38,20 @@ class ArmorEffectsMechanic(mechanicFactory: MechanicFactory?, section: Configura
         private val ARMOR_SLOTS = setOf(36, 37, 38, 39)
         fun addEffects(player: Player) {
             ARMOR_SLOTS.forEach { armorSlot ->
-                val armorPiece = player.inventory.getItem(armorSlot)
+                val armorPiece = player.inventory.getItem(armorSlot) ?: return@forEach
                 val mechanic = ArmorEffectsFactory.instance().getMechanic(armorPiece) ?: return@forEach
 
-                val usingFullSet = ARMOR_SLOTS.filterNot(armorSlot::equals).all { slot ->
-                    player.inventory.getItem(slot)?.takeIf { isSameArmorType(armorPiece, it) } != null
+                val usingFullSet = ARMOR_SLOTS.all { slot ->
+                    slot == armorSlot || player.inventory.getItem(slot)?.takeIf {
+                        armorNameFromId(NexoItems.idFromItem(it)) == armorNameFromId(mechanic.itemID)
+                    } != null
                 }
                 mechanic.armorEffects.forEach {
-                    if (it.requiresFullSet && usingFullSet) player.addPotionEffect(it)
-                    else player.addPotionEffect(it)
+                    if (!it.requiresFullSet || usingFullSet) player.addPotionEffect(it)
                 }
             }
         }
 
-        private fun isSameArmorType(firstItem: ItemStack?, secondItem: ItemStack) =
-            armorNameFromId(NexoItems.idFromItem(firstItem)) == armorNameFromId(NexoItems.idFromItem(secondItem))
-
-        private fun armorNameFromId(itemId: String?) = itemId?.substringBeforeLast("_")
+        private fun armorNameFromId(itemId: String?) = itemId?.replace(CustomArmorType.itemIdRegex, "")
     }
 }

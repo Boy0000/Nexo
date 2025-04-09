@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
@@ -13,6 +14,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic.RestrictedRotation
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
+import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.mechanics.storage.StorageType
@@ -43,7 +45,6 @@ import org.bukkit.event.inventory.InventoryCreativeEvent
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.event.world.EntitiesLoadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
 
@@ -154,6 +155,7 @@ class FurnitureListener : Listener {
                     null -> return
                 }
                 canSit != Event.Result.DENY -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
+                canSleep != Event.Result.DENY -> FurnitureBed.sleepOnBed(baseEntity, player, interactionPoint)
                 canRunAction == Event.Result.DENY && canToggleLight == Event.Result.DENY -> useItemInHand = allowUseItem
             }
         }
@@ -210,11 +212,10 @@ class FurnitureListener : Listener {
     }
 
     @EventHandler
-    fun EntitiesLoadEvent.onInvalidFurniture() {
-        if (Settings.REMOVE_INVALID_FURNITURE.toBool()) entities.filterIsInstance<ItemDisplay>().forEach {
-            if (!it.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY) || NexoFurniture.isFurniture(it)) return@forEach
-            it.remove()
-        }
+    fun EntityAddToWorldEvent.onInvalidFurniture() {
+        if (entity !is ItemDisplay || !Settings.REMOVE_INVALID_FURNITURE.toBool()) return
+        if (!entity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY) || NexoFurniture.isFurniture(entity)) return
+        else entity.remove()
     }
 
     companion object {

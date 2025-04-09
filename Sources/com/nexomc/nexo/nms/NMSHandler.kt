@@ -2,18 +2,25 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
+import com.nexomc.nexo.mechanics.furniture.bed.EmptyFurnitureBedHandler
+import com.nexomc.nexo.mechanics.furniture.bed.IFurnitureBedEntityHandler
 import com.nexomc.nexo.utils.InteractionResult
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
+import org.bukkit.event.Listener
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 
 interface NMSHandler {
 
+    val packDispatchListener: Listener
+
     val pluginConverter: IPluginConverter
+
+    fun bedEntityHandler(): IFurnitureBedEntityHandler = EmptyFurnitureBedHandler()
 
     fun furniturePacketManager(): IFurniturePacketManager = EmptyFurniturePacketManager()
 

@@ -15,6 +15,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
+import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
@@ -72,6 +73,10 @@ class FurniturePacketListener : Listener {
     fun EntityAddToWorldEvent.onLoad() {
         val itemDisplay = entity as? ItemDisplay ?: return
         furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId && it.baseId != itemDisplay.entityId }
+        SchedulerUtils.runTaskLater(2L) {
+            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@runTaskLater
+            FurnitureBed.spawnBeds(itemDisplay, mechanic)
+        }
     }
 
     @EventHandler
@@ -80,8 +85,11 @@ class FurniturePacketListener : Listener {
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
+        FurnitureBed.removeBeds(itemDisplay)
+
         furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId }
         packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic)
+        packetManager.removeShulkerHitboxPacket(itemDisplay, mechanic)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
     }
@@ -100,7 +108,7 @@ class FurniturePacketListener : Listener {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         SchedulerUtils.runAtWorldEntities { entity ->
             val mechanic = (entity as? ItemDisplay)?.let(NexoFurniture::furnitureMechanic) ?: return@runAtWorldEntities
-            if (FurnitureSeat.isSeat(entity)) return@runAtWorldEntities
+            if (FurnitureSeat.isSeat(entity)|| FurnitureBed.isBed(entity)) return@runAtWorldEntities
 
             packetManager.sendFurnitureMetadataPacket(entity, mechanic)
             packetManager.sendInteractionEntityPacket(entity, mechanic)

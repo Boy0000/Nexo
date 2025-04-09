@@ -17,18 +17,18 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
 
-class Drop(
-    private var hierarchy: List<String>? = null,
-    private val loots: MutableList<Loot>,
+data class Drop(
+    val hierarchy: List<String>? = null,
+    val loots: MutableList<Loot>,
     val isSilktouch: Boolean,
     val isFortune: Boolean,
     val sourceID: String,
-    private var minimalType: String? = null,
-    private var bestTool: String? = null,
+    val minimalType: String? = null,
+    val bestTool: String? = null,
 ) {
 
     val isEmpty get() = loots.isEmpty() && !isSilktouch
-    val explosionDrops: Drop get() = Drop(loots.filter { it.inExplosion }.toMutableList(), false, false, sourceID)
+    val explosionDrops: Drop get() = Drop(loots.filter(Loot::inExplosion).toMutableList(), false, false, sourceID)
 
     constructor(loots: MutableList<Loot>, silktouch: Boolean, fortune: Boolean, sourceID: String) :
             this(loots = loots, isSilktouch = silktouch, isFortune = fortune, sourceID = sourceID)
@@ -53,7 +53,7 @@ class Drop(
         if (!minimalType.isNullOrEmpty()) {
             val itemType = if (itemInHand == null) "" else getItemType(itemInHand)
             return itemType!!.isNotEmpty() && itemType in hierarchy!!
-                    && (hierarchy!!.indexOf(itemType) >= hierarchy!!.indexOf(minimalType))
+                    && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType))
         } else return true
     }
 
@@ -63,25 +63,12 @@ class Drop(
             val type = (itemInHand?.type ?: Material.AIR).name
             return when (bestTool) {
                 itemID, type -> true
-                else -> type.endsWith("_${bestTool!!.uppercase()}")
+                else -> type.endsWith("_${bestTool.uppercase()}")
             }
         } else return true
     }
 
-    fun getDiff(item: ItemStack) =
-        if (minimalType == null) 0 else hierarchy!!.indexOf(getItemType(item)) - hierarchy!!.indexOf(minimalType)
-
-    fun sourceId() = sourceID
-    fun minimalType() = minimalType
-    fun bestTool() = bestTool
-    fun hierarchy() = hierarchy
-    fun loots() = loots
-
-    fun loots(loots: List<Loot>): Drop {
-        this.loots.clear()
-        this.loots.addAll(loots)
-        return this
-    }
+    fun getDiff(item: ItemStack) = if (minimalType == null) 0 else hierarchy!!.indexOf(getItemType(item)) - hierarchy.indexOf(minimalType)
 
     fun spawns(location: Location, itemInHand: ItemStack): List<DroppedLoot> {
         if (!canDrop(itemInHand) || !location.isLoaded) return listOf()
@@ -108,8 +95,8 @@ class Drop(
             baseItem != null && isSilktouch && itemInHand.itemMeta?.hasEnchant(EnchantmentWrapper.SILK_TOUCH) == true ->
                 location.world.dropItemNaturally(location, baseItem)
             else -> {
-                dropLoot(loots.filter { it.itemStack() != baseItem }, location, fortuneMultiplier(itemInHand))
-                dropLoot(loots.filter { it.itemStack() == baseItem }.map { Loot(sourceID, furnitureItem, it.probability, it.amount) }, location, fortuneMultiplier(itemInHand))
+                val loots = loots.map { if (it.itemStack() == baseItem) Loot(sourceID, furnitureItem, it.probability, it.amount) else it }
+                dropLoot(loots, location, fortuneMultiplier(itemInHand))
             }
         }
     }
@@ -135,7 +122,8 @@ class Drop(
     companion object {
         @JvmStatic
         fun createDrop(toolTypes: List<String>?, dropSection: ConfigurationSection, sourceID: String): Drop {
-            val loots = (dropSection.getList("loots").safeCast<List<LinkedHashMap<String, Any>>>())?.map { Loot(it, sourceID) }?.toMutableList() ?: mutableListOf()
+            val loots = dropSection.getList("loots").safeCast<List<LinkedHashMap<String, Any>>>()?.mapTo(mutableListOf()) { Loot(it, sourceID) }
+                ?: mutableListOf(Loot(sourceID, 1.0))
 
             return Drop(
                 toolTypes, loots, dropSection.getBoolean("silktouch"),
@@ -149,16 +137,5 @@ class Drop(
 
         @JvmStatic
         fun emptyDrop(loots: MutableList<Loot>) = Drop(loots, false, false, "")
-
-        @JvmStatic
-        fun clone(drop: Drop, newLoots: MutableList<Loot>) = Drop(
-            drop.hierarchy,
-            newLoots,
-            drop.isSilktouch,
-            drop.isFortune,
-            drop.sourceID,
-            drop.minimalType,
-            drop.bestTool
-        )
     }
 }

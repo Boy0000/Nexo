@@ -1,8 +1,11 @@
 package com.nexomc.nexo.nms
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import org.bukkit.Bukkit
+import org.bukkit.event.HandlerList
 
 
 object NMSHandlers {
@@ -15,19 +18,20 @@ object NMSHandlers {
 
     @JvmStatic
     fun resetHandler() {
+        HandlerList.unregisterAll(handler.packDispatchListener)
         setupHandler()
     }
 
     private fun setupHandler(): NMSHandler {
         handler = EmptyNMSHandler()
-        SUPPORTED_VERSION.forEach { selectedVersion ->
-            if (!VersionUtil.matchesServer(selectedVersion)) return@forEach
+        for (selectedVersion in SUPPORTED_VERSION) {
+            if (!VersionUtil.matchesServer(selectedVersion)) continue
 
             version = selectedVersion.name
             runCatching {
                 handler = Class.forName("com.nexomc.nexo.nms.$version.NMSHandler").getConstructor().newInstance() as NMSHandler
-                Logs.logSuccess("Version $version has been detected.")
-                Logs.logInfo("Nexo will use the NMSHandler for this version.", true)
+                Logs.logSuccess("NMS-Version $version has been detected.")
+                Bukkit.getPluginManager().registerEvents(handler.packDispatchListener, NexoPlugin.instance())
                 return handler
             }.onFailure {
                 if (Settings.DEBUG.toBool()) it.printStackTrace()

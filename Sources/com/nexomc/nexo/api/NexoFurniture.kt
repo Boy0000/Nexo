@@ -6,6 +6,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
+import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
@@ -184,7 +185,7 @@ object NexoFurniture {
     fun furnitureMechanic(baseEntity: Entity?): FurnitureMechanic? {
         if (!FurnitureFactory.isEnabled || baseEntity == null || baseEntity.type != EntityType.ITEM_DISPLAY || !baseEntity.isValid) return null
         val itemID = baseEntity.persistentDataContainer.get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING)
-        if (!NexoItems.exists(itemID) || FurnitureSeat.isSeat(baseEntity)) return null
+        if (!NexoItems.exists(itemID) || FurnitureSeat.isSeat(baseEntity)|| FurnitureBed.isBed(baseEntity)) return null
         // Ignore legacy hitbox entities as they should be removed in FurnitureConverter
         if (baseEntity is Interaction) return null
         return FurnitureFactory.instance()?.getMechanic(itemID)
@@ -211,9 +212,10 @@ object NexoFurniture {
     @JvmStatic
     fun updateFurniture(baseEntity: ItemDisplay) {
         if (!FurnitureFactory.isEnabled || !baseEntity.location.isLoaded) return
-        val mechanic = furnitureMechanic(baseEntity)?.takeUnless { FurnitureSeat.isSeat(baseEntity) } ?: return
+        val mechanic = furnitureMechanic(baseEntity)?.takeUnless { FurnitureSeat.isSeat(baseEntity)|| FurnitureBed.isBed(baseEntity) } ?: return
 
         FurnitureSeat.updateSeats(baseEntity, mechanic)
+        FurnitureBed.updateBeds(baseEntity, mechanic)
 
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         furnitureBaseMap.removeIf { it.baseUuid == baseEntity.uniqueId }

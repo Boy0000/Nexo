@@ -43,6 +43,10 @@ class NexoFurnitureInteractEvent @JvmOverloads constructor(
         get() = if (field == Result.DEFAULT) {
             if (useFurniture != Result.DENY && mechanic.hasSeats && !player.isSneaking) Result.ALLOW else Result.DENY
         } else field
+    var canSleep: Result = Result.DEFAULT
+        get() = if (field == Result.DEFAULT) {
+            if (useFurniture != Result.DENY && mechanic.hasBeds && !player.isSneaking) Result.ALLOW else Result.DENY
+        } else field
     var canOpenStorage: Result = Result.DEFAULT
         get() = if (field == Result.DEFAULT) {
             if (useFurniture != Result.DENY && mechanic.isStorage && !player.isSneaking) Result.ALLOW else Result.DENY
