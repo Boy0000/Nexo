@@ -4,18 +4,21 @@ import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import org.bukkit.GameMode
-import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.block.Block
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
-import org.bukkit.inventory.EquipmentSlot
-import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.set
+import org.bukkit.inventory.EquipmentSlotGroup
 
 class ModernBreakerManager(private val modifierMap: ConcurrentHashMap<UUID, AttributeModifier>) : BreakerManager {
+
+    companion object {
+        private val KEY = NamespacedKey.fromString("nexo:custom_breaking_speed")!!
+    }
 
     override fun startFurnitureBreak(
         player: Player,
@@ -30,31 +33,15 @@ class ModernBreakerManager(private val modifierMap: ConcurrentHashMap<UUID, Attr
         removeTransientModifier(player)
         if (player.gameMode == GameMode.CREATIVE) return
 
-        addTransientModifier(player, createBreakingModifier(player, block, mechanic.breakable))
+        addTransientModifier(player, createBreakingModifier(player, mechanic.breakable))
     }
 
     override fun stopBlockBreak(player: Player) {
         removeTransientModifier(player)
     }
 
-    private fun createBreakingModifier(player: Player, block: Block, breakable: BreakableMechanic): AttributeModifier {
-        return AttributeModifier.deserialize(
-            mapOf<String, Any>(
-                "slot" to EquipmentSlot.HAND,
-                "uuid" to UUID.nameUUIDFromBytes(block.toString().toByteArray()).toString(),
-                "name" to "nexo:custom_break_speed",
-                "operation" to AttributeModifier.Operation.MULTIPLY_SCALAR_1,
-                "amount" to (defaultBlockHardness(block) / breakable.hardness * breakable.speedMultiplier(player)) - 1
-            )
-        )
-    }
-
-    private fun defaultBlockHardness(block: Block): Double {
-        return when (block.type) {
-            Material.NOTE_BLOCK -> 0.8
-            Material.TRIPWIRE -> 1.0
-            else -> 1.0
-        }
+    private fun createBreakingModifier(player: Player, breakable: BreakableMechanic): AttributeModifier {
+        return AttributeModifier(KEY, (0.24 / breakable.hardness * breakable.speedMultiplier(player)) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.HAND)
     }
 
     private fun addTransientModifier(player: Player, modifier: AttributeModifier) {

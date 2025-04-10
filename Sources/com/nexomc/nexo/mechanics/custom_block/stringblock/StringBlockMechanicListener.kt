@@ -26,14 +26,15 @@ class StringBlockMechanicListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     fun PlayerInteractEvent.onPlaceableOnWater() {
-        val (item, hand) = (item ?: return) to (hand ?: return)
+        val (item, hand) = (item?.takeUnless { it.isEmpty } ?: return) to (hand ?: return)
         val itemID = NexoItems.idFromItem(item) ?: return
-        val placedAgainst = player.rayTraceBlocks(5.0, FluidCollisionMode.SOURCE_ONLY)?.hitBlock?.takeUnless { it.isLiquid } ?: return
-        var mechanic = (NexoBlocks.customBlockMechanic(itemID) as? StringBlockMechanic)?.takeIf { it.isPlaceableOnWater } ?: return
-
+        val placedAgainst = player.rayTraceBlocks(5.0, FluidCollisionMode.SOURCE_ONLY)?.hitBlock ?: return
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
-        if (mechanic.hasRandomPlace()) mechanic = NexoBlocks.stringMechanic(mechanic.randomPlace().random()) ?: mechanic
+
         val target = placedAgainst.getRelative(BlockFace.UP).takeIf { it.type == Material.AIR } ?: return
+        val mechanic = (NexoBlocks.customBlockMechanic(itemID) as? StringBlockMechanic)?.takeIf { it.isPlaceableOnWater }?.let {
+            NexoBlocks.stringMechanic(it.randomPlace().randomOrNull()) ?: it
+        } ?: return
 
         CustomBlockHelpers.makePlayerPlaceBlock(player, hand, item, target, blockFace, mechanic, mechanic.blockData)
     }

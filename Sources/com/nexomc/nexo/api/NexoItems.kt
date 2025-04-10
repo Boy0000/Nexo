@@ -84,7 +84,9 @@ object NexoItems {
 
     //TODO Swap this to item?.persistentDataContainer when dropping <1.21.1
     @JvmStatic
-    fun idFromItem(item: ItemStack?): String? = item?.itemMeta?.persistentDataContainer?.get(ITEM_ID, PersistentDataType.STRING)
+    fun idFromItem(item: ItemStack?): String? = runCatching {
+        item?.persistentDataContainer
+    }.getOrDefault(item?.itemMeta?.persistentDataContainer)?.get(ITEM_ID, PersistentDataType.STRING)
 
     @JvmStatic
     fun exists(itemId: String?): Boolean = itemId in itemNames

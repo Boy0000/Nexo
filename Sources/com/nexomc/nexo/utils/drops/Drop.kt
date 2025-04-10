@@ -58,14 +58,13 @@ data class Drop(
     }
 
     fun isToolEnough(itemInHand: ItemStack?): Boolean {
-        if (!bestTool.isNullOrEmpty()) {
-            val itemID = NexoItems.idFromItem(itemInHand)
-            val type = (itemInHand?.type ?: Material.AIR).name
-            return when (bestTool) {
-                itemID, type -> true
-                else -> type.endsWith("_${bestTool.uppercase()}")
-            }
-        } else return true
+        if (bestTool.isNullOrEmpty()) return true
+        val itemID = NexoItems.idFromItem(itemInHand)
+        val type = (itemInHand?.type ?: Material.AIR).name
+        return when (bestTool) {
+            itemID, type -> true
+            else -> type.endsWith("_${bestTool.uppercase()}")
+        }
     }
 
     fun getDiff(item: ItemStack) = if (minimalType == null) 0 else hierarchy!!.indexOf(getItemType(item)) - hierarchy.indexOf(minimalType)

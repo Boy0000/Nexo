@@ -41,6 +41,8 @@ class BreakableMechanic(section: ConfigurationSection) {
             .minByOrNull { it.speedModifier() }?.takeIf { drop.isToolEnough(itemInMainHand) }
             ?.speedModifier() ?: ToolTypeSpeedModifier.EMPTY.speedModifier()
 
+        if (drop.isTypeEnough(itemInMainHand)) multiplier *= 3.3333333f
+
         val miningEff = AttributeWrapper.MINING_EFFICIENCY?.let(player::getAttribute)?.value?.toFloat()
         val effEnchant = itemInMainHand.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY)
         if (multiplier > 1.0f) multiplier += miningEff ?: (effEnchant.toDouble().pow(2.0) + 1).toFloat()
