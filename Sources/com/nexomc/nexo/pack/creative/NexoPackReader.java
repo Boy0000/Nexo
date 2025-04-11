@@ -4,7 +4,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
 import com.nexomc.nexo.configs.Settings;
-import com.nexomc.nexo.utils.KeyUtils;
 import com.nexomc.nexo.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.intellij.lang.annotations.Subst;
@@ -41,9 +40,9 @@ import java.util.Queue;
 
 import static com.nexomc.nexo.pack.creative.MinecraftResourcePackStructure.*;
 import static java.util.Objects.requireNonNull;
+import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.*;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.ASSETS_FOLDER;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.METADATA_EXTENSION;
-import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.OVERLAYS_FOLDER;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_ICON_FILE;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_METADATA_FILE;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.SOUNDS_FILE;
@@ -172,11 +171,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                 // pack, the first folder is always "assets"
                 String folder = tokens.poll();
 
-                if (folder.equals(OVERLAYS_FOLDER)) {
-                    // gets the overlay name, set after the
-                    // "overlays" folder, e.g. "overlays/foo",
-                    // or "overlays/bar"
-                    overlayDir = tokens.poll();
+                if (packFormatsByOverlayDir.containsKey(folder)) {
                     if (tokens.isEmpty()) {
                         // this means that there is a file directly
                         // inside the "overlays" folder, this is illegal
@@ -184,6 +179,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                         continue;
                     }
 
+                    overlayDir = folder;
                     Overlay overlay = resourcePack.overlay(overlayDir);
                     if (overlay == null) {
                         // first occurrence, register overlay
@@ -193,7 +189,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
 
                     container = overlay;
                     folder = tokens.poll();
-                    containerPath = path.substring((OVERLAYS_FOLDER + '/' + overlayDir + '/').length());
+                    containerPath = path.substring((overlayDir + '/').length());
                     localPackFormat = packFormatsByOverlayDir.getOrDefault(overlayDir, -1);
                 }
 

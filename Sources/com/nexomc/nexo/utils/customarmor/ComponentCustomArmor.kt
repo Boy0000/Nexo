@@ -8,6 +8,7 @@ import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.Quadruple
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
+import java.util.Collections
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -16,6 +17,11 @@ import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.equipment.Equipment
 import team.unnamed.creative.equipment.EquipmentLayer
+import team.unnamed.creative.equipment.EquipmentLayerType
+import team.unnamed.creative.metadata.overlays.OverlayEntry
+import team.unnamed.creative.metadata.overlays.OverlaysMeta
+import team.unnamed.creative.metadata.pack.PackFormat
+import team.unnamed.creative.overlay.Overlay
 import team.unnamed.creative.texture.Texture
 
 class ComponentCustomArmor(private val resourcePack: ResourcePack) {
@@ -40,28 +46,25 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
     private fun writeArmorModels(armorPrefixes: Set<String>) {
         armorPrefixes.forEach { armorPrefix ->
             val key = Key.key("nexo", armorPrefix)
+            val elytraKey = key.appendSuffix("_elytra")
 
-            val equipmentLayer = EquipmentLayer.layer(key)
-            if (resourcePack.equipment(key) == null) resourcePack.equipment(
-                Equipment.equipment().key(key)
-                    .addHumanoidLayer(equipmentLayer)
-                    .addHumanoidLeggingsLayer(equipmentLayer)
-                    .addWolfBodyLayer(equipmentLayer)
-                    .addHorseBodyLayer(equipmentLayer)
-                    .addLlamaBodyLayer(equipmentLayer)
-                    .addCamelSaddle(equipmentLayer)
-                    .addDonkeySaddle(equipmentLayer)
-                    .addHorseSaddle(equipmentLayer)
-                    .addMuleSaddle(equipmentLayer)
-                    .addPigSaddle(equipmentLayer)
-                    .addSkeletonHorseSaddle(equipmentLayer)
-                    .addStriderSaddle(equipmentLayer)
-                    .addZombieHorseSaddle(equipmentLayer)
-                    .build()
-            )
-            if (resourcePack.model(key.appendSuffix("_elytra")) == null) resourcePack.equipment(
-                Equipment.equipment().key(key.appendSuffix("_elytra")).addWingsLayer(equipmentLayer).build()
-            )
+            val equipmentLayer = Collections.singletonList(EquipmentLayer.layer(key))
+            val equipment = Equipment.equipment(key, EquipmentLayerType.entries.take(6).minus(EquipmentLayerType.WINGS).associateWith { equipmentLayer })
+            val elytraEquipment = Equipment.equipment(elytraKey, mapOf(EquipmentLayerType.WINGS to equipmentLayer))
+            val saddleEquipment = Equipment.equipment(key, EquipmentLayerType.entries.dropLast(1).associateWith { equipmentLayer })
+            val harnessEquipment = Equipment.equipment(key, EquipmentLayerType.entries.associateWith { equipmentLayer })
+
+            if (resourcePack.equipment(key) == null) resourcePack.equipment(equipment)
+            if (resourcePack.equipment(elytraKey) == null) resourcePack.equipment(elytraEquipment)
+
+            val overlays = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
+            // Add overlay for saddle-equipment layers and limit to 1.21.5+ clients
+            resourcePack.overlay(Overlay.overlay("nexo_1_21_5").apply { equipment(saddleEquipment) })
+            overlays += OverlayEntry.of(PackFormat.format(55, 55, 99), "nexo_1_21_5")
+            // Add overlay for harness-equipment layers and limit to 1.21.6+ clients
+            resourcePack.overlay(Overlay.overlay("nexo_1_21_6").apply { equipment(harnessEquipment) })
+            overlays += OverlayEntry.of(PackFormat.format(56, 56, 99), "nexo_1_21_6")
+            resourcePack.overlaysMeta(OverlaysMeta.of(overlays))
         }
     }
 
@@ -86,6 +89,7 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
                 customArmor.skeletonHorseSaddle -> "skeleton_horse_saddle" to "skeleton_horse_saddle"
                 customArmor.striderSaddle -> "strider_saddle" to "strider_saddle"
                 customArmor.zombieHorseSaddle -> "zombie_horse_saddle" to "zombie_horse_saddle"
+                customArmor.harness -> "harness" to "happy_ghast_body"
                 else -> return@forEach
             }
             val texture = fetchTexture(customArmorKey, "${prefix}_${fallback}.png", itemId) ?: return@forEach
@@ -147,6 +151,7 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
             "BOOTS" -> EquipmentSlot.FEET
             "WOLF_ARMOR", "LLAMA_ARMOR", "HORSE_ARMOR" -> EquipmentSlot.BODY
             "CAMEL_SADDLE", "DONKEY_SADDLE", "HORSE_SADDLE", "MULE_SADDLE", "PIG_SADDLE", "SKELETON_HORSE_SADDLE", "STRIDER_SADDLE", "ZOMBIE_HORSE_SADDLE" -> EquipmentSlot.BODY
+            "HARNESS" -> EquipmentSlot.BODY
             else -> null
         }
     }

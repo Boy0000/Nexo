@@ -53,6 +53,7 @@ data class NexoMeta(
         val skeletonHorseSaddle: Key?,
         val striderSaddle: Key?,
         val zombieHorseSaddle: Key?,
+        val harness: Key?,
     ) {
 
         constructor(armorPrefix: String) : this(
@@ -70,6 +71,7 @@ data class NexoMeta(
             Key.key("${armorPrefix}_skeleton_horse_saddle.png"),
             Key.key("${armorPrefix}_strider_saddle.png"),
             Key.key("${armorPrefix}_zombie_horse_saddle.png"),
+            Key.key("${armorPrefix}_harness.png"),
         )
 
         constructor(section: ConfigurationSection) : this(
@@ -87,6 +89,7 @@ data class NexoMeta(
             Key.key(section.getString("skeleton_horse_saddle", "")?.appendIfMissing(".png")!!),
             Key.key(section.getString("strider_saddle", "")?.appendIfMissing(".png")!!),
             Key.key(section.getString("zombie_horse_saddle", "")?.appendIfMissing(".png")!!),
+            Key.key(section.getString("harness", "")?.appendIfMissing(".png")!!),
         )
 
         fun fromItem(item: ItemBuilder, itemId: String): Key? {
@@ -112,6 +115,8 @@ data class NexoMeta(
                     itemId.endsWith("_zombie_horse_saddle") || EntityType.ZOMBIE_HORSE in allowedEntities -> zombieHorseSaddle
                     else -> null
                 }
+
+                item.type.name == "HAPPY_GHAST_HARNESS" && (itemId.endsWith("_harness") || allowedEntities.any { it.name == "HAPPY_GHAST" }) -> harness
 
                 slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST -> layer1
                 slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET -> layer2

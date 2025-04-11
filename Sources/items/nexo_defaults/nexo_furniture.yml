@@ -22,11 +22,6 @@ arm_chair:
         - 0,0,0
       seats:
         - 0,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: arm_chair
-          probability: 1.0
 coffee_table:
   itemname: "Coffee Table"
   material: PAPER
@@ -47,11 +42,6 @@ coffee_table:
         barriers:
         - 0,0,0
         - 1,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: coffee_table
-          probability: 1.0
 end_table:
   itemname: "End Table"
   material: PAPER
@@ -71,11 +61,6 @@ end_table:
       hitbox:
         barriers:
         - 0,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: end_table
-          probability: 1.0
 sofa:
   itemname: "Sofa"
   material: PAPER
@@ -100,11 +85,6 @@ sofa:
         - 0,0,0
         - 1,0,0
         - -1,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: sofa
-          probability: 1.0
 storage_chest:
   itemname: "Storage Chest"
   material: PAPER
@@ -159,11 +139,28 @@ table_lamp:
         toggleable: true
         lights:
           - 0,1,0 15
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: table_lamp
-          probability: 1.0
+double_bed:
+  itemname: "Double Bed"
+  material: PAPER
+  Pack:
+    model: nexo:item/nexo_furniture/double_bed
+  Mechanics:
+    furniture:
+      rotatable: false
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
+      restricted_rotation: VERY_STRICT
+      block_sounds:
+        place_sound: block.wood.place
+        break_sound: block.wood.break
+      hitbox:
+        barriers:
+          - 0..1,0,0..1
+        beds:
+          - 0,0,1 true true
+          - 1,0,1 true true
 arm_chair_dyeable:
   itemname: "Arm Chair"
   material: LEATHER_HORSE_ARMOR
@@ -186,11 +183,6 @@ arm_chair_dyeable:
       hitbox:
         barriers:
         - 0,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: arm_chair_dyeable
-          probability: 1.0
 coffee_table_dyeable:
   itemname: "Coffee Table"
   material: LEATHER_HORSE_ARMOR
@@ -212,11 +204,6 @@ coffee_table_dyeable:
         barriers:
         - 0,0,0
         - 1,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: coffee_table_dyeable
-          probability: 1.0
 sofa_dyeable:
   itemname: "Sofa"
   material: LEATHER_HORSE_ARMOR
@@ -242,11 +229,6 @@ sofa_dyeable:
         - 0,0,0
         - 1,0,0
         - -1,0,0
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: sofa_dyeable
-          probability: 1.0
 table_lamp_dyeable:
   itemname: "Table Lamp"
   material: LEATHER_HORSE_ARMOR
@@ -271,8 +253,26 @@ table_lamp_dyeable:
         toggleable: true
         lights:
           - 0,1,0 15
-      drop:
-        silktouch: false
-        loots:
-        - nexo_item: table_lamp_dyeable
-          probability: 1.0
+double_bed_dyeable:
+  itemname: "Double Bed Dyeable"
+  material: LEATHER_HORSE_ARMOR
+  color: 255, 255, 255
+  Pack:
+    model: nexo:item/nexo_furniture/double_bed_dyeable
+  Mechanics:
+    furniture:
+      rotatable: false
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
+      restricted_rotation: VERY_STRICT
+      block_sounds:
+        place_sound: block.wood.place
+        break_sound: block.wood.break
+      hitbox:
+        barriers:
+          - 0..1,0,0..1
+        beds:
+          - 0,0,1 true true
+          - 1,0,1 true true

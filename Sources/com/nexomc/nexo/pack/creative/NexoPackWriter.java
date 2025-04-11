@@ -35,8 +35,6 @@ import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.nexomc.nexo.pack.creative.MinecraftResourcePackStructure.*;
-import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.OVERLAYS_FOLDER;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_ICON_FILE;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_METADATA_FILE;
 
@@ -162,7 +160,7 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
             String dir = overlay.directory();
             PackFormat packFormat = overlayFormats.get(dir);
             int overlayTargetPackFormat = packFormat == null ? -1 : packFormat.min(); // todo: consider max pack format
-            writeWithBasePathAndTargetPackFormat(target, overlay, OVERLAYS_FOLDER + '/' + dir + '/', overlayTargetPackFormat);
+            writeWithBasePathAndTargetPackFormat(target, overlay, dir + '/', overlayTargetPackFormat);
         }
     }
 

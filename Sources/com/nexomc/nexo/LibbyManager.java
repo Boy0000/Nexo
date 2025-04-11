@@ -16,7 +16,7 @@ public class LibbyManager {
     public static boolean failedLibs = false;
 
     private static final ArrayList<Library> libs = new ArrayList<>();
-    private static final String COMMAND_API_VERSION = "9.7.0";
+    private static final String COMMAND_API_VERSION = "10.0.0";
     private static final String CREATIVE_VERSION = "1.8.5-SNAPSHOT";
     private static final String IDOFRONT_VERSION = "0.25.17";
 
