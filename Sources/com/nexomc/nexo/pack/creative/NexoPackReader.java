@@ -56,10 +56,12 @@ public class NexoPackReader implements MinecraftResourcePackReader {
 
     public static void resetReader() {
         INSTANCE = new NexoPackReader();
+        lenient = Settings.PACK_READER_LENIENT.toBool();
+        debug = Settings.DEBUG.toBool();
     }
 
-    private static final boolean lenient = Settings.PACK_READER_LENIENT.toBool();
-    private static final boolean debug = Settings.DEBUG.toBool();
+    private static boolean lenient = Settings.PACK_READER_LENIENT.toBool();
+    private static boolean debug = Settings.DEBUG.toBool();
 
     private NexoPackReader() {
     }

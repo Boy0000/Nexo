@@ -108,10 +108,13 @@ data class FurnitureSeat(val offset: Vector) {
             when {
                 mechanic.seats.isEmpty -> seats.values.onEach(Entity::remove)
                 else -> seats.forEach { (seat, entity) ->
+                    val newLocation = baseEntity.location.plus(baseEntity.transformation.translation).plus(seat.offset(baseEntity.yaw))
+                    if (newLocation == entity.location) return@forEach
+
                     val passengers = entity.passengers.toList().onEach(entity::removePassenger)
-                    val translation = Vector.fromJOML(baseEntity.transformation.translation)
-                    entity.teleportAsync(baseEntity.location.plus(translation).plus(seat.offset(baseEntity.yaw)))
-                    passengers.onEach(entity::addPassenger)
+                    entity.teleportAsync(newLocation).thenRun {
+                        passengers.onEach(entity::addPassenger)
+                    }
                 }
             }
         }

@@ -39,11 +39,13 @@ import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
+import team.unnamed.creative.overlay.Overlay
+import team.unnamed.creative.overlay.ResourceContainer
 import team.unnamed.creative.sound.Sound
 import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
 
-class PackObfuscator(private val resourcePack: ResourcePack) {
+class PackObfuscator(private val resourcePack: ResourceContainer) {
     val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
         Logs.logError("Invalid PackObfuscation type: $it, defaulting to ${PackObfuscationType.SIMPLE}", true)
         Logs.logError("Valid options are: ${PackObfuscationType.entries.joinToString()}", true)
@@ -51,6 +53,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
     }
     private lateinit var obfCachedPack: File
     private val cache = Settings.PACK_CACHE_OBFUSCATION.toBool()
+    private val isOverlay = resourcePack is Overlay
 
     private class ObfuscatedModel(val originalModel: Model, var obfuscatedModel: Model) {
         fun find(key: Key) = originalModel.takeIf { it.key() == key } ?: obfuscatedModel.takeIf { it.key() == key }
@@ -93,7 +96,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
     }
 
     fun obfuscatePack(hash: String) {
-        if (obfuscationType.isNone) return
+        if (resourcePack !is ResourcePack || obfuscationType.isNone) return
 
         this.obfCachedPack = NexoPlugin.instance().dataFolder.resolve("pack", ".deobfCachedPacks", "$hash.zip")
         FileUtils.setHidden(obfCachedPack.also { it.parentFile.mkdirs() }.parentFile.toPath())
@@ -110,6 +113,7 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
             obfuscateFonts()
             obfuscateTextures()
             obfuscateSounds()
+            obfuscateOverlays()
 
             if (cache) {
                 NexoPackWriter.INSTANCE.writeToZipFile(obfCachedPack, resourcePack)
@@ -120,14 +124,32 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
         if (cache) NexoPack.overwritePack(resourcePack, NexoPackReader.INSTANCE.readFromZipFile(obfCachedPack))
     }
 
+    private fun obfuscateOverlays() {
+        val resourcePack = (resourcePack as? ResourcePack) ?: return
+        resourcePack.overlays().forEach { overlay ->
+            // Create a copy of the current obfuscator, swapping the ResourceContainer
+            val overlayObfuscator = PackObfuscator(overlay)
+
+            overlayObfuscator.skippedKeys += skippedKeys
+            overlayObfuscator.obfuscatedModels += obfuscatedModels
+            overlayObfuscator.obfuscatedTextures += obfuscatedTextures
+            overlayObfuscator.obfuscatedSounds += obfuscatedSounds
+            overlayObfuscator.obfuscatedNamespaceCache += obfuscatedNamespaceCache
+
+            overlayObfuscator.obfuscateModels()
+            overlayObfuscator.obfuscateFonts()
+            overlayObfuscator.obfuscateTextures()
+            overlayObfuscator.obfuscateSounds()
+        }
+    }
+
     private fun obfuscateModels() {
         resourcePack.models().forEach(::obfuscateModel)
 
         // Remove the original model and add the obfuscated one
         // If the original was marked to be skipped, still use the obfuscated but change the model-key to keep obf textures...
         obfuscatedModels.toList().forEach {
-            resourcePack.removeModel(it.originalModel.key())
-            it.obfuscatedModel.addTo(resourcePack)
+            if (resourcePack.removeModel(it.originalModel.key()) || !isOverlay) it.obfuscatedModel.addTo(resourcePack)
         }
 
         obfuscateBlockStates()
@@ -189,16 +211,23 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
 
     private fun obfuscateTextures() {
         obfuscatedTextures.forEach {
-            resourcePack.removeTexture(it.originalTexture.key())
-            resourcePack.texture(it.obfuscatedTexture)
-            resourcePack.texture(it.originalTexture.key().emissiveKey())?.also { e ->
-                resourcePack.removeTexture(e.key())
-                resourcePack.texture(e.toBuilder().key(it.obfuscatedTexture.key().emissiveKey()).build())
+            val originalKey = it.originalTexture.key()
+
+            // Add the obfuscated texture if the original exists or if this is not an overlay
+            if (resourcePack.removeTexture(originalKey) || !isOverlay) {
+                resourcePack.texture(it.obfuscatedTexture)
+            }
+
+            // Handle emissive textures similarly
+            resourcePack.texture(originalKey.emissiveKey())?.also { emissive ->
+                resourcePack.removeTexture(emissive.key())
+                resourcePack.texture(emissive.toBuilder().key(it.obfuscatedTexture.key().emissiveKey()).build())
             }
         }
 
         obfuscateAtlases()
     }
+
 
     private fun obfuscateAtlases() {
         resourcePack.atlases().toList().forEach { atlas ->
@@ -231,9 +260,11 @@ class PackObfuscator(private val resourcePack: ResourcePack) {
                 }).addTo(resourcePack)
         }
 
-        obfuscatedSounds.forEach {
-            resourcePack.removeSound(it.originalSound.key())
-            it.obfuscatedSound.addTo(resourcePack)
+        // Remove the original sounds and add the obfuscated sounds
+        obfuscatedSounds.forEach { obfSound ->
+            if (resourcePack.removeSound(obfSound.originalSound.key()) || !isOverlay) {
+                obfSound.obfuscatedSound.addTo(resourcePack)
+            }
         }
     }
 

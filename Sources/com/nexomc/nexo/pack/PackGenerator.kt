@@ -12,6 +12,7 @@ import com.nexomc.nexo.fonts.ReferenceGlyph
 import com.nexomc.nexo.fonts.Shift
 import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
 import com.nexomc.nexo.pack.creative.NexoPackReader
@@ -124,6 +125,7 @@ class PackGenerator {
 
                 CustomBlockFactory.instance()?.blockStates(resourcePack)
                 CustomBlockFactory.instance()?.soundRegistries(resourcePack)
+                FurnitureFactory.instance()?.soundRegistries(resourcePack)
                 modelGenerator.generateModels()
                 atlasGenerator.generateAtlasFile()
                 addGlyphFiles()

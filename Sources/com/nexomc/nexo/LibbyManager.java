@@ -63,7 +63,7 @@ public class LibbyManager {
                 .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-serializer-minecraft/%s/creative-serializer-minecraft-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))
                 .build());
 
-        libs.add(getLib("com{}nexomc", "protectionlib", "1.0.5", null, false).build());
+        libs.add(getLib("com{}nexomc", "protectionlib", "1.0.6", null, false).build());
         libs.add(getLib("com{}tcoded", "FoliaLib", "0.4.3", "com{}tcoded").build());
 
         libs.add(getLib("me{}gabytm{}util", "actions-spigot", "1.0.0", "me{}gabytm{}util")

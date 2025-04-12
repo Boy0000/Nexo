@@ -55,6 +55,7 @@ furniture:
   evolution_check_delay: 200
   custom_block_sounds: true
   default_rotatable_on_sneak: false
+  handle_non_player_barrier_collision: true
   enabled: true
 
 # COMBAT

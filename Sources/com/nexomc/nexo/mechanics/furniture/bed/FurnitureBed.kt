@@ -91,10 +91,13 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
             when {
                 mechanic.beds.isEmpty() -> beds.values.onEach(Entity::remove)
                 else -> beds.forEach { (bed, entity) ->
+                    val newLocation = baseEntity.location.plus(baseEntity.transformation.translation).plus(bed.offset(baseEntity.yaw))
+                    if (newLocation == entity.location) return@forEach
+
                     val passengers = entity.passengers.toList().onEach(entity::removePassenger)
-                    val translation = Vector.fromJOML(baseEntity.transformation.translation)
-                    entity.teleportAsync(baseEntity.location.plus(translation).plus(bed.offset(baseEntity.yaw)))
-                    passengers.onEach(entity::addPassenger)
+                    entity.teleportAsync(newLocation).thenRun {
+                        passengers.onEach(entity::addPassenger)
+                    }
                 }
             }
         }

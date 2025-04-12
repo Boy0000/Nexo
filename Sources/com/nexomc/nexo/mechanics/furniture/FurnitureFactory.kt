@@ -18,9 +18,12 @@ import com.nexomc.nexo.mechanics.furniture.listeners.FurniturePacketListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
+import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
+import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.sound.SoundRegistry
 
 class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
@@ -28,13 +31,14 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
     val defaultRotatableOnSneak = section.getBoolean("default_rotatable_on_sneak", false)
+    private val handleNonPlayerBarrierCollision = section.getBoolean("handle_non_player_barrier_collision", false)
 
     init {
         instance = this
         registerListeners(
             FurnitureListener(),
             FurniturePacketListener(),
-            FurnitureBarrierHitboxListener(),
+            FurnitureBarrierHitboxListener(handleNonPlayerBarrierCollision),
             EvolutionListener(),
             JukeboxListener()
         )
@@ -52,6 +56,14 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
             registerListeners(ItemsAdderConverterListener())
 
         if (customSounds) registerListeners(FurnitureSoundListener())
+    }
+
+    fun soundRegistries(resourcePack: ResourcePack) {
+        if (customSounds) arrayOf(BlockSounds.NEXO_WOOD_SOUND_REGISTRY, BlockSounds.VANILLA_WOOD_SOUND_REGISTRY).forEach { soundRegistry: SoundRegistry ->
+            (resourcePack.soundRegistry(soundRegistry.namespace())?.let {
+                SoundRegistry.soundRegistry().sounds(soundRegistry.sounds().plus(it.sounds())).namespace(soundRegistry.namespace()).build()
+            } ?: soundRegistry).addTo(resourcePack)
+        }
     }
 
     fun packetManager(): IFurniturePacketManager = NMSHandlers.handler().furniturePacketManager()

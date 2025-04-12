@@ -17,7 +17,7 @@ import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
 
-class FurnitureBarrierHitboxListener : Listener {
+class FurnitureBarrierHitboxListener(private val handleNonPlayerBarrierCollision: Boolean) : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun HangingBreakEvent.onHangingBreak() {
@@ -54,7 +54,7 @@ class FurnitureBarrierHitboxListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun EntityMoveEvent.onMobMove() {
-        if (!hasExplicitlyChangedBlock() || to.y < from.y) return
+        if (!handleNonPlayerBarrierCollision || !hasExplicitlyChangedBlock() || to.y < from.y) return
         if (IFurniturePacketManager.blockIsHitbox(to) || IFurniturePacketManager.blockIsHitbox(from)) isCancelled = true
     }
 

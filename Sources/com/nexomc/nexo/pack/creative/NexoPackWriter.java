@@ -44,10 +44,12 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
     public static NexoPackWriter INSTANCE = new NexoPackWriter();
     public static void resetWriter() {
         INSTANCE = new NexoPackWriter();
+        targetPackFormat = NMSHandlers.handler().resourcepackFormat();
+        prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
     }
 
-    private static final int targetPackFormat = NMSHandlers.handler().resourcepackFormat();
-    private static final boolean prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
+    private static int targetPackFormat = NMSHandlers.handler().resourcepackFormat();
+    private static boolean prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
 
     private NexoPackWriter() {
     }

@@ -75,10 +75,10 @@ object BlockHelpers {
     fun isReplaceable(block: Block, excludeUUID: UUID? = null): Boolean {
         return when (block.type) {
             Material.SNOW -> (block.blockData as Snow).layers == 1
-            in REPLACEABLE_BLOCKS -> true
             Material.SCULK_VEIN -> true
-            else -> IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
-        }
+            in REPLACEABLE_BLOCKS -> true
+            else -> false
+        } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
     }
 
     @JvmStatic

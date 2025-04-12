@@ -259,17 +259,10 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             //blockStates.add(type.factory().generateBlockStateFile());
         }
 
-        if (customSounds.enabled) {
-            arrayOf(
-                BlockSounds.NEXO_WOOD_SOUND_REGISTRY,
-                BlockSounds.VANILLA_WOOD_SOUND_REGISTRY,
-                BlockSounds.NEXO_STONE_SOUND_REGISTRY,
-                BlockSounds.VANILLA_STONE_SOUND_REGISTRY
-            ).forEach { soundRegistry: SoundRegistry ->
-                (resourcePack.soundRegistry(soundRegistry.namespace())?.let {
-                    SoundRegistry.soundRegistry().sounds(soundRegistry.sounds().plus(it.sounds())).namespace(soundRegistry.namespace()).build()
-                } ?: soundRegistry).addTo(resourcePack)
-            }
+        if (customSounds.enabled) arrayOf(BlockSounds.NEXO_WOOD_SOUND_REGISTRY, BlockSounds.VANILLA_WOOD_SOUND_REGISTRY).forEach { soundRegistry: SoundRegistry ->
+            (resourcePack.soundRegistry(soundRegistry.namespace())?.let {
+                SoundRegistry.soundRegistry().sounds(soundRegistry.sounds().plus(it.sounds())).namespace(soundRegistry.namespace()).build()
+            } ?: soundRegistry).addTo(resourcePack)
         }
     }
 

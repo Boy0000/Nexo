@@ -22,6 +22,8 @@ import team.unnamed.creative.metadata.overlays.OverlayEntry
 import team.unnamed.creative.metadata.overlays.OverlaysMeta
 import team.unnamed.creative.metadata.sodium.SodiumMeta
 import team.unnamed.creative.model.Model
+import team.unnamed.creative.overlay.Overlay
+import team.unnamed.creative.overlay.ResourceContainer
 import team.unnamed.creative.sound.SoundRegistry
 
 object NexoPack {
@@ -58,34 +60,48 @@ object NexoPack {
     fun clearPack(resourcePack: ResourcePack) {
         resourcePack.icon(null)
         resourcePack.metadata(Metadata.empty())
-        resourcePack.models().toList().forEach { resourcePack.removeModel(it.key()) }
-        resourcePack.textures().toList().forEach { resourcePack.removeTexture(it.key()) }
-        resourcePack.atlases().toList().forEach { resourcePack.removeAtlas(it.key()) }
-        resourcePack.languages().toList().forEach { resourcePack.removeLanguage(it.key()) }
-        resourcePack.blockStates().toList().forEach { resourcePack.removeBlockState(it.key()) }
-        resourcePack.fonts().toList().forEach { resourcePack.removeFont(it.key()) }
-        resourcePack.sounds().toList().forEach { resourcePack.removeSound(it.key()) }
-        resourcePack.soundRegistries().toList().forEach { resourcePack.removeSoundRegistry(it.namespace()) }
-        resourcePack.unknownFiles().toList().forEach { resourcePack.removeUnknownFile(it.first) }
-        resourcePack.items().toList().forEach { resourcePack.removeItem(it.key()) }
-        resourcePack.equipment().toList().forEach { resourcePack.removeEquipment(it.key()) }
+        resourcePack.models().map { it.key() }.forEach(resourcePack::removeModel)
+        resourcePack.textures().map { it.key() }.forEach(resourcePack::removeTexture)
+        resourcePack.atlases().map { it.key() }.forEach(resourcePack::removeAtlas)
+        resourcePack.languages().map { it.key() }.forEach(resourcePack::removeLanguage)
+        resourcePack.blockStates().map { it.key() }.forEach(resourcePack::removeBlockState)
+        resourcePack.fonts().map { it.key() }.forEach(resourcePack::removeFont)
+        resourcePack.sounds().map { it.key() }.forEach(resourcePack::removeSound)
+        resourcePack.soundRegistries().map { it.namespace() }.forEach(resourcePack::removeSoundRegistry)
+        resourcePack.unknownFiles().map { it.key }.forEach(resourcePack::removeUnknownFile)
+        resourcePack.items().map { it.key() }.forEach(resourcePack::removeItem)
+        resourcePack.equipment().map { it.key() }.forEach(resourcePack::removeEquipment)
     }
 
     @JvmStatic
     fun mergePack(resourcePack: ResourcePack, importedPack: ResourcePack) {
-        importedPack.textures().forEach(resourcePack::texture)
-        importedPack.sounds().forEach(resourcePack::sound)
-        importedPack.unknownFiles().forEach(resourcePack::unknownFile)
-
         (importedPack.packMeta() ?: resourcePack.packMeta())?.apply(resourcePack::packMeta)
         (importedPack.icon() ?: resourcePack.icon())?.apply(resourcePack::icon)
+
+        resourcePack.overlays().plus(importedPack.overlays()).groupBy { it.directory() }.forEach { (directory, overlays) ->
+            val newOverlay = Overlay.overlay(directory)
+            overlays.forEach { overlay -> mergeContainers(newOverlay, overlay) }
+            resourcePack.overlay(newOverlay)
+        }
 
         (resourcePack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>())
             .plus(importedPack.overlaysMeta()?.entries() ?: mutableListOf<OverlayEntry>())
             .also { resourcePack.overlaysMeta(OverlaysMeta.of(it)) }
 
-        importedPack.equipment().forEach { equipment ->
-            val oldEquipment = resourcePack.equipment(equipment.key()) ?: return@forEach resourcePack.equipment(equipment)
+        (resourcePack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
+            .plus(importedPack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
+            .also { resourcePack.sodiumMeta(SodiumMeta.sodium(it)) }
+
+        mergeContainers(resourcePack, importedPack)
+    }
+
+    private fun mergeContainers(container: ResourceContainer, importedContainer: ResourceContainer) {
+        importedContainer.textures().forEach(container::texture)
+        importedContainer.sounds().forEach(container::sound)
+        importedContainer.unknownFiles().forEach(container::unknownFile)
+
+        importedContainer.equipment().forEach { equipment ->
+            val oldEquipment = container.equipment(equipment.key()) ?: return@forEach container.equipment(equipment)
             val layersByType = LinkedHashMap(oldEquipment.layers())
             equipment.layers().forEach { (type, layers) ->
                 layersByType.compute(type) { _, oldLayers ->
@@ -93,11 +109,11 @@ object NexoPack {
                 }
             }
 
-            resourcePack.equipment(oldEquipment.layers(layersByType))
+            container.equipment(oldEquipment.layers(layersByType))
         }
 
-        importedPack.items().forEach { item ->
-            val oldItem = resourcePack.item(item.key()) ?: return@forEach resourcePack.item(item)
+        importedContainer.items().forEach { item ->
+            val oldItem = container.item(item.key()) ?: return@forEach container.item(item)
 
             fun mergeItemModels(oldItem: ItemModel, newItem: ItemModel): ItemModel {
                 return when (newItem) {
@@ -124,55 +140,51 @@ object NexoPack {
                     Logs.logWarn("Existing ItemModel of incompatible type ${oldItem.model().javaClass.simpleName}, keeping old ItemModel...")
                     null
                 }
-            }?.let { Item.item(item.key(), it, item.handAnimationOnSwap()) }?.addTo(resourcePack)
+            }?.let { Item.item(item.key(), it, item.handAnimationOnSwap()) }?.addTo(container)
         }
 
-        (resourcePack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
-            .plus(importedPack.sodiumMeta()?.ignoredShaders() ?: mutableListOf<String>())
-            .also { resourcePack.sodiumMeta(SodiumMeta.sodium(it)) }
-
-        importedPack.models().forEach { model: Model ->
+        importedContainer.models().forEach { model: Model ->
             model.toBuilder().apply {
-                resourcePack.model(model.key())?.overrides()?.forEach(::addOverride)
-            }.build().addTo(resourcePack)
+                container.model(model.key())?.overrides()?.forEach(::addOverride)
+            }.build().addTo(container)
         }
 
-        importedPack.fonts().forEach { font: Font ->
+        importedContainer.fonts().forEach { font: Font ->
             font.toBuilder().apply {
-                resourcePack.font(font.key())?.providers()?.forEach(::addProvider)
-            }.build().addTo(resourcePack)
+                container.font(font.key())?.providers()?.forEach(::addProvider)
+            }.build().addTo(container)
         }
 
-        importedPack.soundRegistries().forEach { soundRegistry: SoundRegistry ->
-            val baseRegistry = resourcePack.soundRegistry(soundRegistry.namespace())
+        importedContainer.soundRegistries().forEach { soundRegistry: SoundRegistry ->
+            val baseRegistry = container.soundRegistry(soundRegistry.namespace())
             if (baseRegistry != null) {
                 val mergedEvents = LinkedHashSet(baseRegistry.sounds())
                 mergedEvents.addAll(soundRegistry.sounds())
-                SoundRegistry.soundRegistry(baseRegistry.namespace(), mergedEvents).addTo(resourcePack)
-            } else soundRegistry.addTo(resourcePack)
+                SoundRegistry.soundRegistry(baseRegistry.namespace(), mergedEvents).addTo(container)
+            } else soundRegistry.addTo(container)
         }
 
-        importedPack.atlases().forEach { atlas ->
+        importedContainer.atlases().forEach { atlas ->
             atlas.toBuilder().apply {
-                resourcePack.atlas(atlas.key())?.sources()?.forEach(::addSource)
-            }.build().addTo(resourcePack)
+                container.atlas(atlas.key())?.sources()?.forEach(::addSource)
+            }.build().addTo(container)
         }
 
-        importedPack.languages().forEach { language: Language ->
-            resourcePack.language(language.key())?.let { base: Language ->
+        importedContainer.languages().forEach { language: Language ->
+            container.language(language.key())?.let { base: Language ->
                 base.translations().entries.forEach { (key, value) ->
                     language.translations().putIfAbsent(key, value)
                 }
             }
-            language.addTo(resourcePack)
+            language.addTo(container)
         }
 
-        importedPack.blockStates().forEach { blockState: BlockState ->
-            resourcePack.blockState(blockState.key())?.let { base: BlockState ->
+        importedContainer.blockStates().forEach { blockState: BlockState ->
+            container.blockState(blockState.key())?.let { base: BlockState ->
                 blockState.multipart().addAll(base.multipart())
                 blockState.variants().putAll(base.variants())
             }
-            blockState.addTo(resourcePack)
+            blockState.addTo(container)
         }
     }
 }
