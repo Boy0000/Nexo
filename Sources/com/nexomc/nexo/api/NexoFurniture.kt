@@ -218,7 +218,7 @@ object NexoFurniture {
         FurnitureBed.updateBeds(baseEntity, mechanic)
 
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-        furnitureBaseMap.removeIf { it.baseUuid == baseEntity.uniqueId }
+        furnitureBaseMap.remove(baseEntity.uniqueId)
         packetManager.removeLightMechanicPacket(baseEntity, mechanic)
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
         packetManager.removeShulkerHitboxPacket(baseEntity, mechanic)

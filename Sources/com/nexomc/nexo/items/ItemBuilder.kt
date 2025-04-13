@@ -566,7 +566,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         if (VersionUtil.atleast("1.21.4")) {
             val cmdComponent = (customModelDataComponent ?: itemMeta.customModelDataComponent.takeIf { customModelData != null })?.apply {
-                floats = floats.plus(customModelData!!.toFloat()).distinct()
+                if (customModelData != null) floats = floats.plus(customModelData!!.toFloat()).distinct()
             }
             itemMeta.setCustomModelDataComponent(cmdComponent)
         }

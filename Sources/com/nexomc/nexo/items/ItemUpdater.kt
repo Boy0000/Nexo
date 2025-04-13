@@ -17,6 +17,7 @@ import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.Tag
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Item
 import org.bukkit.entity.ItemDisplay
@@ -50,7 +51,7 @@ class ItemUpdater : Listener {
             if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities { entity ->
                 updateEntityInventories(entity)
             }
-            if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates { tileEntity ->
+            if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates({ it.type in TILE_ENTITIES }) { tileEntity ->
                 (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
                     if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
                 }
@@ -65,7 +66,7 @@ class ItemUpdater : Listener {
 
     @EventHandler
     fun ChunkLoadEvent.onChunkLoad() {
-        if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) chunk.tileEntities.forEach { tileEntity ->
+        if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool() && !isNewChunk) chunk.getTileEntities({ it.type in TILE_ENTITIES }, false).forEach { tileEntity ->
             val inventory = (tileEntity as? InventoryHolder)?.inventory ?: return@forEach
             inventory.contents.forEachIndexed { index, item ->
                 if (item != null) inventory.setItem(index, updateItem(item))
@@ -147,6 +148,12 @@ class ItemUpdater : Listener {
     companion object {
         private val IF_UUID = NamespacedKey.fromString("nexo:if-uuid")!!
         private val MF_GUI = NamespacedKey.fromString("nexo:mf-gui")!!
+
+        val TILE_ENTITIES = arrayOf(
+            Material.BARREL, Material.CHEST, Material.TRAPPED_CHEST, Material.CRAFTER, Material.FURNACE_MINECART, Material.DECORATED_POT,
+            Material.HOPPER, Material.DROPPER, Material.DISPENSER, Material.CAMPFIRE, Material.SOUL_CAMPFIRE,
+            Material.SMOKER, Material.FURNACE, Material.BLAST_FURNACE, Material.BREWING_STAND, Material.JUKEBOX,
+        ).plus(Tag.SHULKER_BOXES.values)
 
         fun updateEntityInventories(entity: Entity) {
             if (entity is ItemFrame) entity.setItem(updateItem(entity.item), false)

@@ -3,8 +3,10 @@ package com.nexomc.nexo.utils
 import com.nexomc.nexo.NexoPlugin
 import com.tcoded.folialib.impl.PlatformScheduler
 import java.util.concurrent.Future
+import java.util.function.Predicate
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.block.Block
 import org.bukkit.block.BlockState
 import org.bukkit.entity.Entity
 import org.bukkit.scheduler.BukkitTask
@@ -27,12 +29,12 @@ object SchedulerUtils {
         }
     }
 
-    fun runAtWorldTileStates(task: (BlockState) -> Unit) {
+    fun runAtWorldTileStates(predicate: Predicate<Block>, task: (BlockState) -> Unit) {
         Bukkit.getWorlds().forEach { world ->
             world.loadedChunks.forEach { chunk ->
                 if (VersionUtil.isFoliaServer) foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
-                    chunk.tileEntities.forEach(task::invoke)
-                } else chunk.tileEntities.forEach(task::invoke)
+                    chunk.getTileEntities(predicate, false).forEach(task::invoke)
+                } else chunk.getTileEntities(false).forEach(task::invoke)
             }
         }
     }

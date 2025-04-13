@@ -108,7 +108,8 @@ data class FurnitureSeat(val offset: Vector) {
             when {
                 mechanic.seats.isEmpty -> seats.values.onEach(Entity::remove)
                 else -> seats.forEach { (seat, entity) ->
-                    val newLocation = baseEntity.location.plus(baseEntity.transformation.translation).plus(seat.offset(baseEntity.yaw))
+                    val translation = baseEntity.transformation.translation
+                    val newLocation = baseEntity.location.add(Vector(translation.x, translation.y, translation.z)).plus(seat.offset(baseEntity.yaw))
                     if (newLocation == entity.location) return@forEach
 
                     val passengers = entity.passengers.toList().onEach(entity::removePassenger)

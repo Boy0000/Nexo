@@ -4,10 +4,15 @@ import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import org.bukkit.Location
 import org.bukkit.Material
+import org.bukkit.block.data.BlockData
 import org.bukkit.block.data.Waterlogged
 
 class BarrierHitbox : BlockLocation {
     val barrierData: Waterlogged
+
+    fun barrierData(waterloggable: Boolean): BlockData {
+        return if (barrierData.isWaterlogged && waterloggable) barrierData else IFurniturePacketManager.BARRIER_DATA
+    }
 
     fun from(hitboxObject: Any?): BarrierHitbox {
         return when (hitboxObject) {

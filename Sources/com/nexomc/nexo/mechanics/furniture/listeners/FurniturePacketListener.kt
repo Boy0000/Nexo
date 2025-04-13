@@ -72,7 +72,7 @@ class FurniturePacketListener : Listener {
     @EventHandler
     fun EntityAddToWorldEvent.onLoad() {
         val itemDisplay = entity as? ItemDisplay ?: return
-        furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId && it.baseId != itemDisplay.entityId }
+        furnitureBaseMap.remove(itemDisplay.uniqueId, furnitureBaseMap.get(itemDisplay.uniqueId)?.takeIf { it.baseId != itemDisplay.entityId })
         SchedulerUtils.runTaskLater(2L) {
             val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@runTaskLater
             FurnitureBed.spawnBeds(itemDisplay, mechanic)
@@ -87,7 +87,7 @@ class FurniturePacketListener : Listener {
 
         FurnitureBed.removeBeds(itemDisplay)
 
-        furnitureBaseMap.removeIf { it.baseUuid == itemDisplay.uniqueId }
+        furnitureBaseMap.remove(itemDisplay.uniqueId)
         packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic)
         packetManager.removeShulkerHitboxPacket(itemDisplay, mechanic)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)

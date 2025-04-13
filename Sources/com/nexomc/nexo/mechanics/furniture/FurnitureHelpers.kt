@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.furniture
 
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
+import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import org.bukkit.Color
 import org.bukkit.Rotation
 import org.bukkit.entity.ItemDisplay
@@ -29,13 +30,13 @@ object FurnitureHelpers {
 
     @JvmStatic
     fun furnitureItem(baseEntity: ItemDisplay): ItemStack? {
-        return IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.itemStack
+        return furnitureBaseMap.get(baseEntity.uniqueId)?.itemStack
     }
 
     @JvmStatic
     fun furnitureItem(baseEntity: ItemDisplay, itemStack: ItemStack) {
         NexoFurniture.furnitureMechanic(baseEntity) ?: return
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.itemStack(itemStack, baseEntity)
+        furnitureBaseMap.get(baseEntity.uniqueId)?.itemStack(itemStack, baseEntity)
     }
 
     @JvmStatic
@@ -46,12 +47,12 @@ object FurnitureHelpers {
     fun furnitureDye(baseEntity: ItemDisplay, dyeColor: Color?) {
         if (dyeColor == null) baseEntity.persistentDataContainer.remove(FurnitureMechanic.FURNITURE_DYE_KEY)
         else baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, dyeColor.asRGB())
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.refreshItem(baseEntity)
+        furnitureBaseMap.get(baseEntity.uniqueId)?.refreshItem(baseEntity)
     }
 
     @JvmStatic
     fun lightState(baseEntity: ItemDisplay): Boolean {
-        NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.light.isEmpty } ?: return false
+        if (NexoFurniture.furnitureMechanic(baseEntity)?.light?.isEmpty != false) return false
         return baseEntity.persistentDataContainer.getOrDefault(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, true)
     }
 
@@ -61,8 +62,9 @@ object FurnitureHelpers {
         val mechanic = mechanic?.takeUnless { it.light.isEmpty } ?: return false
         val newState = state ?: !baseEntity.persistentDataContainer.getOrDefault(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, true)
         if (!mechanic.light.toggleable) return true
+
         baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_LIGHT_KEY, DataType.BOOLEAN, state ?: newState)
-        IFurniturePacketManager.furnitureBaseFromBaseEntity(baseEntity)?.refreshItem(baseEntity)
+        furnitureBaseMap.get(baseEntity.uniqueId)?.refreshItem(baseEntity)
         mechanic.light.refreshLights(baseEntity, mechanic)
         return newState
     }

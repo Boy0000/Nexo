@@ -10,8 +10,8 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import com.nexomc.protectionlib.ProtectionLib
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.GameEvent
 import org.bukkit.Location
@@ -93,7 +93,7 @@ class FurnitureSoundListener : Listener {
         val entity = entity as? Player ?: return
         if (!entity.location.isLoaded || isAsynchronous) return
 
-        val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
+        val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.isEmpty } ?: return
         val (cause, soundGroup) = entity.lastDamageCause to blockStandingOn.blockData.soundGroup
 
         if (event === GameEvent.HIT_GROUND && cause != null && cause.cause != EntityDamageEvent.DamageCause.FALL) return

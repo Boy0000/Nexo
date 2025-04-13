@@ -36,7 +36,9 @@ object BlockHelpers {
 
         val entityBox = entity.boundingBox.expand(0.3)
 
-        return blockFaces.mapFast(blockBelow::getRelative).find { (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) && it.boundingBox.overlaps(entityBox) }
+        return blockFaces.firstNotNullOfOrNull { blockFace ->
+           blockBelow.getRelative(blockFace).takeIf { it.boundingBox.overlaps(entityBox) && (it.type != Material.AIR || IFurniturePacketManager.blockIsHitbox(block)) }
+        }
     }
     private val blockFaces = ObjectOpenHashSet.of(BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST)
 

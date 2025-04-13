@@ -6,7 +6,6 @@ import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -67,7 +66,7 @@ interface IFurniturePacketManager {
         val AIR_DATA = Material.AIR.createBlockData()
         val WATER_DATA = Material.WATER.createBlockData()
 
-        val furnitureBaseMap = ObjectOpenHashSet<FurnitureBaseEntity>()
+        val furnitureBaseMap = Object2ObjectOpenHashMap<UUID, FurnitureBaseEntity>()
         val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, Array<BarrierHitbox>>()
         val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
 
@@ -75,19 +74,13 @@ interface IFurniturePacketManager {
         val interactionHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
         val shulkerHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
 
-        fun furnitureBaseFromBaseEntity(baseEntity: Entity): FurnitureBaseEntity? =
-            furnitureBaseMap.firstOrNull { it.baseUuid == baseEntity.uniqueId }
-
-        fun baseEntityFromFurnitureBase(furnitureBaseId: Int): ItemDisplay? =
-            furnitureBaseMap.firstOrNull { it.baseId == furnitureBaseId }?.baseEntity()
-
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
             interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
                 ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
 
         fun baseEntityFromHitbox(location: BlockLocation): ItemDisplay? {
             val barrierVec = location.toVector()
-            return barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
+            return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
                 uuid.takeIf { hitboxes.any { it == location } }?.let(Bukkit::getEntity) as? ItemDisplay
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
                 subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.baseEntity()
@@ -102,8 +95,8 @@ interface IFurniturePacketManager {
 
         fun mechanicFromHitbox(location: BlockLocation): FurnitureMechanic? {
             val barrierVec = location.toVector()
-            return barrierHitboxPositionMap.entries.firstNotNullOfOrNull { (uuid, hitboxes) ->
-                furnitureBaseMap.takeIf { location in hitboxes }?.firstOrNull { it.baseUuid == uuid }?.mechanic()
+            return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
+                furnitureBaseMap.takeIf { location in hitboxes }?.get(uuid)?.mechanic()
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
                 subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
