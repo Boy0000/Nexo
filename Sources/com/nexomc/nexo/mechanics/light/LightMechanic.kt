@@ -3,6 +3,8 @@ package com.nexomc.nexo.mechanics.light
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.kyori.adventure.key.Key
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
@@ -16,7 +18,7 @@ class LightMechanic(
 ) {
 
     constructor(section: ConfigurationSection) : this(
-        section.getStringList("lights.lights").map(::LightBlock).toMutableList(),
+        (section.getStringListOrNull("lights.lights") ?: section.getString("lights.lights")?.let(::listOf) ?: listOf()).flatMap(::parseLights).toMutableList(),
         section.getBoolean("lights.toggleable"),
         section.getString("lights.toggled_model"),
         section.getString("lights.toggled_item_model").takeIf { VersionUtil.atleast("1.21.3") }?.let(Key::key)
@@ -37,5 +39,28 @@ class LightMechanic(
 
     companion object {
         private val EMPTY = LightMechanic(mutableListOf())
+
+        fun parseLights(hitboxString: String): List<LightBlock> {
+            return when {
+                hitboxString == "origin" -> listOf(LightBlock("0,0,0"))
+                ".." in hitboxString -> {
+                    // Split the coordinates by commas
+                    val coordinates = hitboxString.split(",").map { r -> r.substringBefore(" ").toIntRangeOrNull() ?: (r.substringBefore("").toIntOrNull() ?: 0).let { IntRange(it, it) } }
+
+                    val xRange = coordinates[0]
+                    val yRange = coordinates[1]
+                    val zRange = coordinates[2]
+                    val lightLevel = hitboxString.substringAfter(" ").toIntOrNull()?.coerceIn(1, 15) ?: 15
+
+                    // Generate combinations of all the ranges
+                    mutableListOf<LightBlock>().apply {
+                        for (x in xRange) for (y in yRange) for (z in zRange) {
+                            this += LightBlock(x, y, z, lightLevel)
+                        }
+                    }
+                }
+                else -> listOf(LightBlock(hitboxString))
+            }
+        }
     }
 }

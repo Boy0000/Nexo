@@ -39,7 +39,7 @@ enum class Settings {
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
 
     // Chat
-    CHAT_HANDLER("Chat.chat_handler", ChatHandler.MODERN.name),
+    CHAT_HANDLER("Chat.chat_handler", ChatHandler.MODERN),
 
     // Config Tools
     GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),
@@ -51,7 +51,7 @@ enum class Settings {
     REMOVE_INVALID_FURNITURE("ConfigTools.remove_invalid_furniture", false),
 
     // Custom Armor
-    CUSTOM_ARMOR_TYPE("CustomArmor.type", if (VersionUtil.atleast("1.21.2")) CustomArmorType.COMPONENT.name else CustomArmorType.TRIMS.name),
+    CUSTOM_ARMOR_TYPE("CustomArmor.type", if (VersionUtil.atleast("1.21.2")) CustomArmorType.COMPONENT else CustomArmorType.TRIMS),
     CUSTOM_ARMOR_ASSIGN("CustomArmor.auto_assign_settings", true),
 
     // ItemUpdater
@@ -73,7 +73,7 @@ enum class Settings {
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),
     PACK_MINIMIZE_JSON("Pack.generation.minimize_json", true),
     PACK_READER_LENIENT("Pack.generation.read_lenient", true),
-    PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.SIMPLE.name),
+    PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.Type.SIMPLE),
     PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
@@ -91,7 +91,7 @@ enum class Settings {
     PACK_VALIDATE_FONTS("Pack.validate.fonts", true),
     PACK_VALIDATE_ATLAS("Pack.validate.atlas", true),
 
-    PACK_SERVER_TYPE("Pack.server.type", PackServerType.POLYMATH.name),
+    PACK_SERVER_TYPE("Pack.server.type", PackServerType.POLYMATH),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
     SELFHOST_PUBLIC_ADDRESS("Pack.server.selfhost.public_address"),
     SELFHOST_DISPATCH_THREADS("Pack.server.selfhost.dispatch_threads", 10),
@@ -175,8 +175,11 @@ enum class Settings {
         this.richComment = richComment
     }
 
-    var value: Any?
-        get() = NexoPlugin.instance().configsManager().settings().get(path)
+    var value: Any? = null
+        get() {
+            if (field == null) field = NexoPlugin.instance().configsManager().settings().get(path)
+            return field
+        }
         set(value) {
             setValue(value, true)
         }
@@ -245,16 +248,15 @@ enum class Settings {
         }
 
         private fun defaultSettings(): YamlConfiguration {
-            val defaultSettings = YamlConfiguration()
-            defaultSettings.options().copyDefaults(true).indent(4).parseComments(true)
+            return YamlConfiguration().apply {
+                options().copyDefaults(true).indent(4).parseComments(true)
 
-            entries.forEach { setting: Settings ->
-                defaultSettings.set(setting.path, setting.defaultValue)
-                defaultSettings.setComments(setting.path, setting.comments)
-                defaultSettings.setInlineComments(setting.path, setting.inlineComments)
+                entries.forEach { setting ->
+                    set(setting.path, (setting.defaultValue as? Enum<*>)?.name ?: setting.defaultValue)
+                    setComments(setting.path, setting.comments)
+                    setInlineComments(setting.path, setting.inlineComments)
+                }
             }
-
-            return defaultSettings
         }
     }
 }

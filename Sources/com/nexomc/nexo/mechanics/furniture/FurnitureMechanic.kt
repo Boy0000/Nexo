@@ -236,8 +236,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         if (hasSeats) FurnitureSeat.removeSeats(baseEntity)
         if (hasBeds) FurnitureBed.removeBeds(baseEntity)
         val packetManager = FurnitureFactory.instance()?.packetManager()
-        packetManager?.removeInteractionHitboxPacket(baseEntity, this)
-        packetManager?.removeShulkerHitboxPacket(baseEntity, this)
+        packetManager?.removeHitboxEntityPacket(baseEntity, this)
         packetManager?.removeBarrierHitboxPacket(baseEntity, this)
         packetManager?.removeLightMechanicPacket(baseEntity, this)
 

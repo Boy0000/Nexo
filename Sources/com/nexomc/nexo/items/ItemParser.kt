@@ -14,11 +14,15 @@ import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.childSections
+import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
+import com.nexomc.nexo.utils.toMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
 import java.util.UUID
 import net.kyori.adventure.key.Key
@@ -66,44 +70,28 @@ class ItemParser(private val section: ConfigurationSection) {
         }
     }
 
-    val usesMMOItems: Boolean get() {
-        return crucibleItem == null && ecoItem == null && mmoItem != null && mmoItem?.build() != null
-    }
-
-    val usesCrucibleItems: Boolean get() {
-        return mmoItem == null && ecoItem == null && crucibleItem != null && crucibleItem?.build() != null
-    }
-
-    val usesEcoItems: Boolean get() {
-        return mmoItem == null && crucibleItem == null && ecoItem != null && ecoItem?.build() != null
-    }
-
-    val usesTemplate: Boolean get() {
-        return templateItem != null
-    }
-
     fun buildItem(): ItemBuilder {
         val item = crucibleItem?.let(::ItemBuilder) ?: mmoItem?.let(::ItemBuilder) ?: ecoItem?.let(::ItemBuilder) ?: ItemBuilder(type)
         return applyConfig(templateItem?.applyConfig(item) ?: item)
     }
 
     private fun applyConfig(item: ItemBuilder): ItemBuilder {
-        section.getString("itemname", section.getString("displayname"))?.let(AdventureUtils.MINI_MESSAGE::deserialize)?.let {
+        section.getString("itemname", section.getString("displayname"))?.takeIf { it.isNotEmpty() }?.deserialize()?.let {
             if (VersionUtil.atleast("1.20.5")) {
                 if ("displayname" in section) isConfigUpdated = true
                 item.itemName(it)
             } else item.displayName(it)
         }
 
-        section.getString("customname")?.let(AdventureUtils.MINI_MESSAGE::deserialize)?.let { customName ->
+        section.getString("customname")?.takeIf { it.isNotEmpty() }?.deserialize()?.let { customName ->
             if (VersionUtil.below("1.20.5")) isConfigUpdated = true
             item.displayName(customName)
         }
 
-        if ("lore" in section) item.lore(section.getStringList("lore").map { AdventureUtils.MINI_MESSAGE.deserialize(it).setDefaultStyle() })
+        section.getStringListOrNull("lore")?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
+        section.getStringOrNull("color")?.toColor()?.let(item::setColor)
+        section.getKey("trim_pattern")?.let(item::setTrimPattern)
         if ("unbreakable" in section) item.setUnbreakable(section.getBoolean("unbreakable", false))
-        if ("color" in section) item.setColor(section.getString("color", "#FFFFFF")!!.toColor())
-        if ("trim_pattern" in section) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")!!))
 
         ComponentParser(section, item).parseComponents()
         parseMiscOptions(item)
@@ -134,9 +122,9 @@ class ItemParser(private val section: ConfigurationSection) {
         }
 
         runCatching {
-
-            section.getList("PersistentData")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
-                val key = (attributeJson["key"] as String).split(":").let { NamespacedKey(it.first(), it.last()) }
+            val persistentData = section.getList("PersistentData", listOfNotNull(section.getConfigurationSection("PersistentData")?.toMap()))
+            persistentData?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
+                val key = NamespacedKey.fromString(attributeJson["key"] as String)!!
 
                 // Resolve the PersistentDataType using reflection or a registry
                 val dataTypeField = DataType::class.java.getDeclaredField(attributeJson["type"] as String)

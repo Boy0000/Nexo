@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
+import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.event.entity.EntityMoveEvent
 import java.util.UUID
@@ -17,7 +18,19 @@ import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
 
-class FurnitureBarrierHitboxListener(private val handleNonPlayerBarrierCollision: Boolean) : Listener {
+class FurnitureBarrierHitboxListener(handleNonPlayerBarrierCollision: Boolean) : Listener {
+
+    init {
+        if (handleNonPlayerBarrierCollision) {
+            FurnitureFactory.instance()?.registerListeners(object : Listener {
+                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+                fun EntityMoveEvent.onMobMove() {
+                    if (!hasExplicitlyChangedBlock() || to.y < from.y) return
+                    if (IFurniturePacketManager.blockIsHitbox(to) || IFurniturePacketManager.blockIsHitbox(from)) isCancelled = true
+                }
+            })
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun HangingBreakEvent.onHangingBreak() {
@@ -50,12 +63,6 @@ class FurnitureBarrierHitboxListener(private val handleNonPlayerBarrierCollision
     fun BlockFormEvent.onSnow() {
         val loc = block.location
         if (IFurniturePacketManager.barrierHitboxLocationMap.any { loc in it.value }) isCancelled = true
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    fun EntityMoveEvent.onMobMove() {
-        if (!handleNonPlayerBarrierCollision || !hasExplicitlyChangedBlock() || to.y < from.y) return
-        if (IFurniturePacketManager.blockIsHitbox(to) || IFurniturePacketManager.blockIsHitbox(from)) isCancelled = true
     }
 
     private val flightCache: MutableSet<UUID> = mutableSetOf()

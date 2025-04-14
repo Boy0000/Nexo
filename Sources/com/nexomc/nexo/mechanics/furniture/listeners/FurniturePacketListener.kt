@@ -25,6 +25,7 @@ import io.papermc.paper.event.player.PlayerUntrackEntityEvent
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
+import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
@@ -44,14 +45,13 @@ import org.bukkit.util.Vector
 class FurniturePacketListener : Listener {
     @EventHandler
     fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
-        val itemDisplay = entity as? ItemDisplay ?: return
+        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
         SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
-            packetManager.sendInteractionEntityPacket(itemDisplay, mechanic, player)
-            packetManager.sendShulkerEntityPacket(itemDisplay, mechanic, player)
+            packetManager.sendHitboxEntityPacket(itemDisplay, mechanic, player)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
         }, 2L)
@@ -59,12 +59,11 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun PlayerUntrackEntityEvent.onPlayerUntrackFurniture() {
-        val itemDisplay = entity as? ItemDisplay ?: return
+        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic, player)
-        packetManager.removeShulkerHitboxPacket(itemDisplay, mechanic, player)
+        packetManager.removeHitboxEntityPacket(itemDisplay, mechanic, player)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic, player)
     }
@@ -72,9 +71,17 @@ class FurniturePacketListener : Listener {
     @EventHandler
     fun EntityAddToWorldEvent.onLoad() {
         val itemDisplay = entity as? ItemDisplay ?: return
+
         furnitureBaseMap.remove(itemDisplay.uniqueId, furnitureBaseMap.get(itemDisplay.uniqueId)?.takeIf { it.baseId != itemDisplay.entityId })
+
         SchedulerUtils.runTaskLater(2L) {
+            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@runTaskLater
             val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@runTaskLater
+
+            packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic)
+            packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
+            packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic)
+            packetManager.sendLightMechanicPacket(itemDisplay, mechanic)
             FurnitureBed.spawnBeds(itemDisplay, mechanic)
         }
     }
@@ -88,10 +95,10 @@ class FurniturePacketListener : Listener {
         FurnitureBed.removeBeds(itemDisplay)
 
         furnitureBaseMap.remove(itemDisplay.uniqueId)
-        packetManager.removeInteractionHitboxPacket(itemDisplay, mechanic)
-        packetManager.removeShulkerHitboxPacket(itemDisplay, mechanic)
+        packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
+        entity.ticksLived = 0 // Mark it for next EntityAddToWorldEvent
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -111,8 +118,7 @@ class FurniturePacketListener : Listener {
             if (FurnitureSeat.isSeat(entity)|| FurnitureBed.isBed(entity)) return@runAtWorldEntities
 
             packetManager.sendFurnitureMetadataPacket(entity, mechanic)
-            packetManager.sendInteractionEntityPacket(entity, mechanic)
-            packetManager.sendShulkerEntityPacket(entity, mechanic)
+            packetManager.sendHitboxEntityPacket(entity, mechanic)
             packetManager.sendBarrierHitboxPacket(entity, mechanic)
             packetManager.sendLightMechanicPacket(entity, mechanic)
         }

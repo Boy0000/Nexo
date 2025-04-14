@@ -25,4 +25,9 @@ class LightBlock : BlockLocation {
         this.lightLevel = lightData.level
         this.lightData = lightData.apply { isWaterlogged = location.block.type == Material.WATER }
     }
+
+    constructor(x: Int, y: Int, z: Int, lightLevel: Int) : super(x, y, z) {
+        this.lightLevel = lightLevel
+        this.lightData = Material.LIGHT.createBlockData { (it as Light).level = lightLevel } as Light
+    }
 }

@@ -32,6 +32,7 @@ import team.unnamed.creative.texture.Texture;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,10 +47,12 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
         INSTANCE = new NexoPackWriter();
         targetPackFormat = NMSHandlers.handler().resourcepackFormat();
         prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
+        debug = Settings.DEBUG.toBool();
     }
 
     private static int targetPackFormat = NMSHandlers.handler().resourcepackFormat();
     private static boolean prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
+    private static boolean debug = Settings.DEBUG.toBool();
 
     private NexoPackWriter() {
     }
@@ -68,15 +71,15 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
             if (serializer instanceof JsonResourceSerializer) {
                 // if it's a JSON serializer, we can use our own method, that will
                 // do some extra configuration
-                writeToJson(target, (JsonResourceSerializer<T>) serializer, resource, path, localTargetPackFormat);
                 if (serializer instanceof EquipmentSerializer) {
                     // We want to add both paths, so run writeToJson for old/new packformat aswell
                     try {
+                        writeToJson(target, (JsonResourceSerializer<T>) serializer, resource, path, localTargetPackFormat);
                         int altPackFormat = localTargetPackFormat > 42 ? 42 : 46;
                         path = basePath + category.pathOf(resource, altPackFormat);
                         writeToJson(target, (JsonResourceSerializer<T>) serializer, resource, path, altPackFormat);
                     } catch (Exception ignored) {}
-                }
+                } else writeToJson(target, (JsonResourceSerializer<T>) serializer, resource, path, localTargetPackFormat);
             } else {
                 try (OutputStream output = target.openStream(path)) {
                     category.serializer().serialize(resource, output, localTargetPackFormat);
@@ -116,7 +119,7 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
             try {
                 target.write(basePath + entry.getKey(), entry.getValue());
             } catch (Exception e) {
-                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                //if (debug) e.printStackTrace();
             }
         }
     }

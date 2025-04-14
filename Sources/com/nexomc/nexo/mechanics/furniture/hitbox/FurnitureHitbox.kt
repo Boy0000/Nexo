@@ -3,6 +3,7 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.flatMapSetFast
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapFastSet
 import com.nexomc.nexo.utils.plusFast
@@ -20,7 +21,7 @@ class FurnitureHitbox(
 ) {
 
     constructor(hitboxSection: ConfigurationSection) : this(
-        hitboxSection.getStringList("barriers").flatMapSetFast(::parseHitbox),
+        (hitboxSection.getStringListOrNull("barriers") ?: hitboxSection.getString("barriers")?.let(::listOf) ?: listOf()).flatMapSetFast(::parseHitbox),
         hitboxSection.getStringList("interactions").mapFastSet(::InteractionHitbox),
         hitboxSection.getStringList("shulkers").map(::ShulkerHitbox)
     )
@@ -41,12 +42,10 @@ class FurnitureHitbox(
     fun refreshHitboxes(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
-        packetManager.removeShulkerHitboxPacket(baseEntity, mechanic)
+        packetManager.removeHitboxEntityPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
-        packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
-        packetManager.sendShulkerEntityPacket(baseEntity, mechanic)
+        packetManager.sendHitboxEntityPacket(baseEntity, mechanic)
         packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
     }
 

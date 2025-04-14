@@ -28,7 +28,7 @@ object VanillaResourcePack {
     private const val VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
     var resourcePack = ResourcePack.resourcePack()
     val vanillaSounds = mutableListOf<Key>()
-    private val version = MinecraftVersion.currentVersion!!.version.removeSuffix(".0")
+    private val version = MinecraftVersion.currentVersion.version.removeSuffix(".0")
     private val zipPath = NexoPlugin.instance().dataFolder.resolve("pack/.assetCache/$version").apply(File::mkdirs).resolve("$version.zip")
     private var future: CompletableFuture<Void>? = null
 

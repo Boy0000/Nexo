@@ -1,9 +1,9 @@
 package com.nexomc.nexo.configs
 
+import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayable
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.safeCast
-import net.kyori.adventure.key.Key
 import org.bukkit.configuration.file.YamlConfiguration
 import team.unnamed.creative.sound.SoundEntry
 import team.unnamed.creative.sound.SoundEvent
@@ -17,13 +17,13 @@ class SoundManager(soundConfig: YamlConfiguration) {
     private fun parseCustomSounds(sounds: List<Map<String, Any>>): LinkedHashSet<SoundRegistry> {
         return linkedSetOf<SoundRegistry>().apply {
             sounds.mapNotNull { soundEntry ->
-                val soundId = soundEntry["id"].safeCast<String>()?.let(Key::key) ?: run {
+                val soundId = soundEntry["id"].safeCast<String>()?.let(KeyUtils::parseKey) ?: run {
                     Logs.logWarn("Skipping sound entry with missing ID")
                     return@mapNotNull null
                 }
                 val soundKeys = (soundEntry["sound"].safeCast<String>()?.let { listOf(it) }
                     ?: soundEntry["sounds"].safeCast<List<String>>() ?: emptyList()).map {
-                        Key.key(it.removeSuffix(".ogg"))
+                        KeyUtils.parseKey(it.removeSuffix(".ogg"))
                 }
 
                 val soundEntries = when (val type = (soundEntry["type"].safeCast<String>())?.uppercase() ?: "FILE") {
@@ -37,7 +37,7 @@ class SoundManager(soundConfig: YamlConfiguration) {
                             .attenuationDistance(soundEntry["attenuation_distance"]?.toString()?.toIntOrNull() ?: 16)
                             .build()
                     }
-                    "EVENT" -> when(val referenceId = soundEntry["reference_id"].safeCast<String>()?.let(Key::key)) {
+                    "EVENT" -> when(val referenceId = soundEntry["reference_id"].safeCast<String>()?.let(KeyUtils::parseKey)) {
                         null -> {
                             Logs.logWarn("Skipping EVENT type sound entry without reference ID for $soundId")
                             return@mapNotNull null

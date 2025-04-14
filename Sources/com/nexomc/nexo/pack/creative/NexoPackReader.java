@@ -22,11 +22,13 @@ import team.unnamed.creative.serialize.minecraft.GsonUtil;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.ResourceCategories;
 import team.unnamed.creative.serialize.minecraft.ResourceCategory;
+import team.unnamed.creative.serialize.minecraft.equipment.EquipmentSerializer;
 import team.unnamed.creative.serialize.minecraft.fs.FileTreeReader;
 import team.unnamed.creative.serialize.minecraft.io.BinaryResourceDeserializer;
 import team.unnamed.creative.serialize.minecraft.io.JsonResourceDeserializer;
 import team.unnamed.creative.serialize.minecraft.io.ResourceDeserializer;
 import team.unnamed.creative.serialize.minecraft.metadata.MetadataSerializer;
+import team.unnamed.creative.serialize.minecraft.model.ModelSerializer;
 import team.unnamed.creative.serialize.minecraft.sound.SoundRegistrySerializer;
 import team.unnamed.creative.texture.Texture;
 import team.unnamed.creative.util.Keys;
@@ -91,9 +93,9 @@ public class NexoPackReader implements MinecraftResourcePackReader {
         Map<@Nullable String, Map<Key, Texture>> incompleteTextures = new LinkedHashMap<>();
 
         // fill in with the default ones first (pack format is unknown at the start)
-        Map<String, ResourceCategory<?>> categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(-1);
-        Map<String, Integer> packFormatsByOverlayDir = new HashMap<>();
         int packFormat = -1;
+        Map<String, ResourceCategory<?>> categoriesByFolderThisPackFormat = ResourceCategories.buildCategoryMapByFolder(packFormat);
+        Map<String, Integer> packFormatsByOverlayDir = new HashMap<>();
 
         while (reader.hasNext()) {
             String path = reader.next();
@@ -302,9 +304,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                         // get the resource category, if the local pack format (overlay or root) is the same as the
                         // root pack format, we can use the previously computed map, otherwise we need to compute it
                         // (we could save some time by caching the computed map, but, is it worth it?)
-                        ResourceCategory<?> category = (localPackFormat == packFormat
-                                ? categoriesByFolderThisPackFormat
-                                : ResourceCategories.buildCategoryMapByFolder(localPackFormat)).get(categoryName);
+                        ResourceCategory<?> category = categoriesByFolderThisPackFormat.get(categoryName);
                         if (category == null) {
                             // unknown category
                             container.unknownFile(containerPath, reader.content().asWritable());
@@ -325,6 +325,10 @@ public class NexoPackReader implements MinecraftResourcePackReader {
                             resource = ((BinaryResourceDeserializer<? extends ResourcePackPart>) deserializer)
                                     .deserializeBinary(reader.content().asWritable(), key);
                         } else if (deserializer instanceof JsonResourceDeserializer) {
+                            if (path.contains("/models/equipment/") && deserializer instanceof ModelSerializer) {
+                                deserializer = EquipmentSerializer.INSTANCE;
+                                key = Key.key(namespace, keyValue.replaceFirst("equipment/", ""));
+                            }
                             resource = ((JsonResourceDeserializer<? extends ResourcePackPart>) deserializer)
                                     .deserializeFromJson(parseJson(reader.stream()), key);
                         } else {

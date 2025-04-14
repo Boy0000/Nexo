@@ -24,7 +24,7 @@ object ModernVersionPatcher {
     fun convertResources(resourcePack: ResourcePack) {
         resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
             val overrides = model.overrides().takeUnless { it.isEmpty() } ?: return@forEach
-            val standardItem = standardItemModels[itemKey]
+            val standardItem = resourcePack.item(itemKey) ?: standardItemModels[itemKey]
             val finalNewItemModel = standardItem?.let { existingItemModel ->
                 val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
 

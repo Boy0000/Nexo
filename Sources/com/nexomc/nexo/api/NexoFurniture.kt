@@ -220,14 +220,12 @@ object NexoFurniture {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         furnitureBaseMap.remove(baseEntity.uniqueId)
         packetManager.removeLightMechanicPacket(baseEntity, mechanic)
-        packetManager.removeInteractionHitboxPacket(baseEntity, mechanic)
-        packetManager.removeShulkerHitboxPacket(baseEntity, mechanic)
+        packetManager.removeHitboxEntityPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
         SchedulerUtils.foliaScheduler.runAtEntity(baseEntity) {
             packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic)
-            packetManager.sendShulkerEntityPacket(baseEntity, mechanic)
+            packetManager.sendHitboxEntityPacket(baseEntity, mechanic)
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
         }

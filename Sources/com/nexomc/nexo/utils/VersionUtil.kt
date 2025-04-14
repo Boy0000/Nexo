@@ -3,10 +3,10 @@ package com.nexomc.nexo.utils
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.JarReader.manifestMap
 import com.nexomc.nexo.utils.VersionUtil.NMSVersion.UNKNOWN
-import com.nexomc.nexo.utils.logs.Logs
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 
 object VersionUtil {
-    private val versionMap = mutableMapOf<NMSVersion, Map<Int, MinecraftVersion>>()
+    private val versionMap = Object2ObjectOpenHashMap<NMSVersion, Map<Int, MinecraftVersion>>()
 
     init {
         versionMap[NMSVersion.v1_21_R4] = mapOf(9 to MinecraftVersion("1.21.5"))
@@ -17,7 +17,7 @@ object VersionUtil {
         versionMap[NMSVersion.v1_20_R3] = mapOf(1 to MinecraftVersion("1.20.4"))
     }
 
-    fun MinecraftVersion.toNMS() = versionMap.entries.firstOrNull { it.value.containsValue(this) }?.key ?: UNKNOWN
+    fun MinecraftVersion.toNMS() = versionMap.entries.find { it.value.containsValue(this) }?.key ?: UNKNOWN
 
     fun matchesServer(server: String) = MinecraftVersion.currentVersion == MinecraftVersion(server)
 
@@ -28,52 +28,15 @@ object VersionUtil {
 
     fun below(versionString: String) = !atleast(versionString)
 
-    /**
-     * @return true if the server is Paper or false of not
-     * @throws IllegalArgumentException if server is null
-     */
-    val isPaperServer: Boolean = NexoPlugin.instance().foliaLib.isPaper
-
     val isFoliaServer: Boolean = NexoPlugin.instance().foliaLib.isFolia
 
-    fun isSupportedVersion(serverVersion: NMSVersion, vararg supportedVersions: NMSVersion): Boolean {
-        for (version in supportedVersions) if (version == serverVersion) return true
+    val isCompiled by lazy { manifestMap.isEmpty() || ((manifestMap["Compiled"]?.toBoolean() == true) && !isValidCompiler) }
 
-        Logs.logWarn("The Server version which you are running is unsupported, you are running version '$serverVersion'.")
-        Logs.logWarn("The plugin supports following versions ${combineVersions(*supportedVersions)}.")
+    val isDevBuild: Boolean by lazy { manifestMap.isEmpty() || ((manifestMap["Devbuild"]?.toBoolean() == true) && isValidCompiler) }
 
-        if (serverVersion == UNKNOWN) {
-            Logs.logWarn("The Version '$serverVersion' can indicate, that you are using a newer Minecraft version than currently supported.")
-            Logs.logWarn("In this case please update to the newest version of this plugin. If this is the newest Version, than please be patient. It can take a few weeks until the plugin is updated.")
-        }
+    val isCI: Boolean by lazy { manifestMap["CI"]?.toBoolean() == true }
 
-        Logs.logWarn("No compatible Server version found!")
-
-        return false
-    }
-
-    private fun combineVersions(vararg versions: NMSVersion): String {
-        return buildString {
-            versions.forEachIndexed { i, version ->
-                if (i == 0) append(" ")
-                append("'")
-                append(version)
-                append("'")
-            }
-        }
-    }
-
-    val isCompiled: Boolean
-        get() = manifestMap.isEmpty() || ((manifestMap["Compiled"]?.toBoolean() == true) && !isValidCompiler)
-
-    val isDevBuild: Boolean
-        get() = manifestMap.isEmpty() || ((manifestMap["Devbuild"]?.toBoolean() == true) && isValidCompiler)
-
-    val isCI: Boolean
-        get() = manifestMap["CI"]?.toBoolean() == true
-
-    private val isValidCompiler: Boolean
-        get() = manifestMap["Built-By"]?.equals("sivert", ignoreCase = true) == true
+    private val isValidCompiler: Boolean by lazy { manifestMap["Built-By"]?.equals("sivert", ignoreCase = true) == true }
 
     val isLeaked = JarReader.checkIsLeaked()
 
@@ -82,5 +45,5 @@ object VersionUtil {
     }
 
     fun matchesServer(version: NMSVersion) =
-        version != UNKNOWN && MinecraftVersion.currentVersion?.toNMS() == version
+        version != UNKNOWN && MinecraftVersion.currentVersion.toNMS() == version
 }

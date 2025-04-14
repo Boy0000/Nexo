@@ -14,7 +14,6 @@ import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.PaperTooltipDisplay
 import io.papermc.paper.datacomponent.item.TooltipDisplay
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -452,7 +451,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     @Suppress("UNCHECKED_CAST")
     fun <T, Z> customTag(namespacedKey: NamespacedKey, dataType: PersistentDataType<T, Z>): Z? {
         for ((key, value) in persistentDataMap) {
-            if (key.namespacedKey == namespacedKey && key.dataType == dataType)
+            if (key.key == namespacedKey && key.dataType == dataType)
                 return value as Z
         }
         return null
@@ -577,7 +576,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         for ((key, value) in persistentDataMap) {
             val dataSpaceKey = key.safeCast<PersistentDataSpace<Any, Any>>() ?: continue
-            pdc.set(dataSpaceKey.namespacedKey, dataSpaceKey.dataType, value)
+            pdc.set(dataSpaceKey.key, dataSpaceKey.dataType, value)
         }
 
         itemMeta.lore(lore)

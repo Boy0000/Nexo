@@ -6,6 +6,7 @@ import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -20,21 +21,15 @@ import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 
 interface IFurniturePacketManager {
-    fun nextEntityId(): Int
     fun getEntity(entityId: Int): Entity?
 
     fun sendFurnitureMetadataPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {}
     fun sendFurnitureMetadataPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {}
 
-    fun sendInteractionEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
-    fun sendInteractionEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
-    fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
-    fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
-
-    fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
-    fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
-    fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
-    fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
+    fun sendHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
+    fun sendHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
+    fun removeHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
+    fun removeHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
 
     fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic)
     fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player)
@@ -49,8 +44,7 @@ interface IFurniturePacketManager {
     fun removeAllFurniturePackets() {
         SchedulerUtils.runAtWorldEntities { entity ->
             val mechanic = (entity as? ItemDisplay)?.let(NexoFurniture::furnitureMechanic) ?: return@runAtWorldEntities
-            removeInteractionHitboxPacket(entity, mechanic)
-            removeShulkerHitboxPacket(entity, mechanic)
+            removeHitboxEntityPacket(entity, mechanic)
             removeBarrierHitboxPacket(entity, mechanic)
             removeLightMechanicPacket(entity, mechanic)
         }
@@ -71,8 +65,8 @@ interface IFurniturePacketManager {
         val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
 
         val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
-        val interactionHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
-        val shulkerHitboxIdMap = mutableSetOf<FurnitureSubEntity>()
+        val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
+        val shulkerHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
 
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
             interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()

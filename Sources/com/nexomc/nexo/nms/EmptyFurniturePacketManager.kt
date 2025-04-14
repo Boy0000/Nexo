@@ -7,37 +7,23 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 
 class EmptyFurniturePacketManager : IFurniturePacketManager {
-    override fun nextEntityId(): Int {
-        return -1
-    }
 
     override fun getEntity(entityId: Int): Entity? {
         return null
     }
 
-    override fun sendInteractionEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
+    override fun sendHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
     }
 
-    override fun sendInteractionEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
+    override fun sendHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
     }
 
-    override fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
+    override fun removeHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
     }
 
-    override fun removeInteractionHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
+    override fun removeHitboxEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
     }
 
-    override fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-    }
-
-    override fun sendShulkerEntityPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
-    }
-
-    override fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-    }
-
-    override fun removeShulkerHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {
-    }
 
     override fun sendBarrierHitboxPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
     }

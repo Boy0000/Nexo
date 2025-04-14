@@ -46,10 +46,10 @@ import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
 
 class PackObfuscator(private val resourcePack: ResourceContainer) {
-    val obfuscationType: PackObfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType::class.java) {
-        Logs.logError("Invalid PackObfuscation type: $it, defaulting to ${PackObfuscationType.SIMPLE}", true)
-        Logs.logError("Valid options are: ${PackObfuscationType.entries.joinToString()}", true)
-        PackObfuscationType.SIMPLE
+    val obfuscationType: Type = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(Type::class.java) {
+        Logs.logError("Invalid PackObfuscation type: $it, defaulting to ${Type.SIMPLE}", true)
+        Logs.logError("Valid options are: ${Type.entries.joinToString()}", true)
+        Type.SIMPLE
     }
     private lateinit var obfCachedPack: File
     private val cache = Settings.PACK_CACHE_OBFUSCATION.toBool()
@@ -88,7 +88,7 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
     private fun ObjectOpenHashSet<ObfuscatedTexture>.findObf(key: Key) = findObfOrNull(key) ?: key
     private fun ObjectOpenHashSet<ObfuscatedSound>.findObf(key: Key) = find { it.find(key) != null }?.obfuscatedSound
 
-    enum class PackObfuscationType {
+    enum class Type {
         SIMPLE, FULL, NONE;
 
         val isNone: Boolean
@@ -347,12 +347,12 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
     }
 
     private fun Key.obfuscateKey() = when (obfuscationType) {
-        PackObfuscationType.NONE -> this
-        PackObfuscationType.FULL -> Key.key(obfuscatedNamespaceCache.getOrPut(namespace()) {
+        Type.NONE -> this
+        Type.FULL -> Key.key(obfuscatedNamespaceCache.getOrPut(namespace()) {
             UUID.randomUUID().toString()
         }, UUID.randomUUID().toString())
 
-        PackObfuscationType.SIMPLE -> Key.key(this.namespace(), UUID.randomUUID().toString())
+        Type.SIMPLE -> Key.key(this.namespace(), UUID.randomUUID().toString())
     }
 
     private fun Key.emissiveKey() = removeSuffix(".png").appendSuffix("_e.png")

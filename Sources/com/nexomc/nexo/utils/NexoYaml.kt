@@ -13,6 +13,10 @@ fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
 }
 
+fun ConfigurationSection.toMap(): Map<String, Any> {
+    return getKeys(false).associateWith { get(it)!! }
+}
+
 fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {
     return getStringList(key).filterNotNull().takeIf { it.isNotEmpty() && it.none(String::isEmpty) }
 }
