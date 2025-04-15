@@ -77,9 +77,7 @@ object ReloadCommand {
             SchedulerUtils.runAtWorldEntities(ItemUpdater::updateEntityInventories)
         }
 
-        SchedulerUtils.runAtWorldEntities { entity ->
-            (entity as? ItemDisplay)?.let(NexoFurniture::updateFurniture)
-        }
+        SchedulerUtils.runAtWorldEntities<ItemDisplay>(NexoFurniture::updateFurniture)
 
         Message.RELOAD.send(sender, tagResolver("reloaded", "items"))
     }

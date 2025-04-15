@@ -38,6 +38,6 @@ class EmptyNMSHandler(override val pluginConverter: IPluginConverter = IPluginCo
         return "block.note_block.harp"
     }
 
-    override fun resourcepackFormat() = 34
-    override fun datapackFormat() = 48
+    override fun resourcepackFormat() = 55
+    override fun datapackFormat() = 71
 }

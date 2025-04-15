@@ -43,6 +43,14 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.util.Vector
 
 class FurniturePacketListener : Listener {
+
+    init {
+        SchedulerUtils.runAtWorldEntities<ItemDisplay> {
+            val mechanic = NexoFurniture.furnitureMechanic(it) ?: return@runAtWorldEntities
+            FurnitureBed.spawnBeds(it, mechanic)
+        }
+    }
+
     @EventHandler
     fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
         val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
@@ -113,8 +121,8 @@ class FurniturePacketListener : Listener {
     @EventHandler
     fun NexoMechanicsRegisteredEvent.onFurnitureFactory() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-        SchedulerUtils.runAtWorldEntities { entity ->
-            val mechanic = (entity as? ItemDisplay)?.let(NexoFurniture::furnitureMechanic) ?: return@runAtWorldEntities
+        SchedulerUtils.runAtWorldEntities<ItemDisplay> { entity ->
+            val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@runAtWorldEntities
             if (FurnitureSeat.isSeat(entity)|| FurnitureBed.isBed(entity)) return@runAtWorldEntities
 
             packetManager.sendFurnitureMetadataPacket(entity, mechanic)

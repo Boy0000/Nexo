@@ -5,6 +5,7 @@ import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.CustomDataTypes
 import com.nexomc.nexo.utils.VectorUtils.vectorFromString
 import com.nexomc.nexo.utils.toFastMap
 import org.bukkit.Bukkit
@@ -55,7 +56,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
         val BED_KEY = NamespacedKey(NexoPlugin.instance(), "bed")
 
         fun getBeds(baseEntity: ItemDisplay, mechanic: FurnitureMechanic): List<Interaction> {
-            return baseEntity.takeIf { mechanic.hasBeds }?.persistentDataContainer?.get(BED_KEY, DataType.asList(DataType.UUID))
+            return baseEntity.takeIf { mechanic.hasBeds }?.persistentDataContainer?.get(BED_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapNotNull { Bukkit.getEntity(it) as? Interaction } ?: emptyList()
         }
 
@@ -63,7 +64,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
 
         fun sleepOnBed(baseEntity: ItemDisplay, player: Player, interactionPoint: Location?) {
             val centeredLoc = (interactionPoint ?: baseEntity.location).toCenterLocation()
-            baseEntity.persistentDataContainer.get(BED_KEY, DataType.asList(DataType.UUID))
+            baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapNotNull { Bukkit.getEntity(it)?.takeIf { s -> s.type == EntityType.INTERACTION && s.passengers.isEmpty() } }
                 ?.minByOrNull { centeredLoc.distanceSquared(it.location) }
                 ?.addPassenger(player)
@@ -74,18 +75,21 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
             val yaw = baseEntity.yaw
             val bedUUIDs = mechanic.beds.mapNotNull { bed: FurnitureBed ->
                 val spawnLocation = baseEntity.location.add(translation).add(bed.offset(yaw))
-                NMSHandlers.handler().bedEntityHandler().createBedEntity(baseEntity, mechanic, bed)?.spawn(spawnLocation)?.uniqueId
+                NMSHandlers.handler().bedEntityHandler().createBedEntity(baseEntity, mechanic, bed)?.spawn(spawnLocation)
             }
-            if (bedUUIDs.isNotEmpty()) baseEntity.persistentDataContainer.set(BED_KEY, DataType.asList(DataType.UUID), bedUUIDs)
+
+            baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)?.mapNotNull(Bukkit::getEntity)?.forEach(Entity::remove)
+            if (bedUUIDs.isNotEmpty()) baseEntity.persistentDataContainer.set(BED_KEY, CustomDataTypes.UUID_LIST, bedUUIDs)
         }
 
         fun updateBeds(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-            val beds = baseEntity.persistentDataContainer.get(BED_KEY, DataType.asList(DataType.UUID))
-                ?.mapIndexedNotNull { i, uuid ->
-                    val furnitureBed = mechanic.beds.elementAtOrNull(i) ?: return@mapIndexedNotNull null
-                    val interactionEntity = Bukkit.getEntity(uuid) as? Interaction ?: return@mapIndexedNotNull null
-                    furnitureBed to interactionEntity
-                }?.toFastMap() ?: return
+            val beds = baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)?.mapIndexedNotNull { i, uuid ->
+                val furnitureBed = mechanic.beds.elementAtOrNull(i) ?: return@mapIndexedNotNull null
+                val interactionEntity = Bukkit.getEntity(uuid) as? Interaction ?: return@mapIndexedNotNull null
+                furnitureBed to interactionEntity
+            }?.toFastMap() ?: return
+
+            if (beds.isEmpty() && mechanic.hasBeds) spawnBeds(baseEntity, mechanic)
 
 
             when {
@@ -104,7 +108,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
         }
 
         fun removeBeds(baseEntity: ItemDisplay) {
-            baseEntity.persistentDataContainer.getOrDefault(BED_KEY, DataType.asList(DataType.UUID), listOf())
+            baseEntity.persistentDataContainer.getOrDefault(BED_KEY, CustomDataTypes.UUID_LIST, listOf())
                 .mapNotNull(Bukkit::getEntity).forEach { bed ->
                     bed.passengers.forEach(bed::removePassenger)
                     if (!bed.isDead) bed.remove()

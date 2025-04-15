@@ -20,7 +20,7 @@ class ItemsAdderConverterListener : Listener {
 
     init {
         // Handles already loaded spawn-chunks
-        SchedulerUtils.runAtWorldEntities(::convertFurniture)
+        SchedulerUtils.runAtWorldEntities<ItemDisplay>(::convertFurniture)
     }
 
     @EventHandler

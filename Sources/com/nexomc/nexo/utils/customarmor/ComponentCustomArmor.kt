@@ -51,8 +51,8 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
             val equipmentLayer = Collections.singletonList(EquipmentLayer.layer(key))
             val equipment = Equipment.equipment(key, EquipmentLayerType.entries.take(6).minus(EquipmentLayerType.WINGS).associateWith { equipmentLayer })
             val elytraEquipment = Equipment.equipment(elytraKey, mapOf(EquipmentLayerType.WINGS to equipmentLayer))
-            val saddleEquipment = Equipment.equipment(key, EquipmentLayerType.entries.dropLast(1).associateWith { equipmentLayer })
-            val harnessEquipment = Equipment.equipment(key, EquipmentLayerType.entries.associateWith { equipmentLayer })
+            val saddleEquipment = Equipment.equipment(key, EquipmentLayerType.entries.dropLast(1).minus(EquipmentLayerType.WINGS).associateWith { equipmentLayer })
+            val harnessEquipment = Equipment.equipment(key, EquipmentLayerType.entries.minus(EquipmentLayerType.WINGS).associateWith { equipmentLayer })
 
             if (resourcePack.equipment(key) == null) resourcePack.equipment(equipment)
             if (resourcePack.equipment(elytraKey) == null) resourcePack.equipment(elytraEquipment)

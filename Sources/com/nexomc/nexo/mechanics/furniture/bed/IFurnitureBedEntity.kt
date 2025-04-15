@@ -1,10 +1,9 @@
 package com.nexomc.nexo.mechanics.furniture.bed
 
+import java.util.UUID
 import org.bukkit.Location
-
-typealias BukkitEntity = org.bukkit.entity.Entity
 
 interface IFurnitureBedEntity {
 
-    fun spawn(location: Location): BukkitEntity
+    fun spawn(location: Location): UUID
 }

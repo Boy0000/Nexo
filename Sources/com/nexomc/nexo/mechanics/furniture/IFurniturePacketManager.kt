@@ -42,8 +42,8 @@ interface IFurniturePacketManager {
     fun removeLightMechanicPacket(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player) {}
 
     fun removeAllFurniturePackets() {
-        SchedulerUtils.runAtWorldEntities { entity ->
-            val mechanic = (entity as? ItemDisplay)?.let(NexoFurniture::furnitureMechanic) ?: return@runAtWorldEntities
+        SchedulerUtils.runAtWorldEntities<ItemDisplay> { entity ->
+            val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@runAtWorldEntities
             removeHitboxEntityPacket(entity, mechanic)
             removeBarrierHitboxPacket(entity, mechanic)
             removeLightMechanicPacket(entity, mechanic)

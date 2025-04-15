@@ -15,17 +15,21 @@ object SchedulerUtils {
 
     val foliaScheduler: PlatformScheduler get() = NexoPlugin.instance().foliaLib.scheduler
 
+    @JvmName("_runAtWorldEntities")
     fun runAtWorldEntities(task: (Entity) -> Unit) {
+        runAtWorldEntities<Entity>(task)
+    }
+    inline fun <reified T : Entity> runAtWorldEntities(crossinline task: (T) -> Unit) {
         Bukkit.getWorlds().forEach { world ->
             if (VersionUtil.isFoliaServer) world.loadedChunks.forEach { chunk ->
                 foliaScheduler.runAtLocation(Location(world, chunk.x * 16.0, 100.0, chunk.z * 16.0)) {
                     chunk.entities.forEach { entity ->
-                        foliaScheduler.runAtEntity(entity) {
+                        if (entity is T) foliaScheduler.runAtEntity(entity) {
                             task.invoke(entity)
                         }
                     }
                 }
-            } else world.entities.forEach(task::invoke)
+            } else world.getEntitiesByClass(T::class.java).forEach(task::invoke)
         }
     }
 

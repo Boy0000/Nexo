@@ -4,6 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
+import com.nexomc.nexo.utils.CustomDataTypes
 import com.nexomc.nexo.utils.VectorUtils.vectorFromString
 import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.toFastMap
@@ -66,7 +67,7 @@ data class FurnitureSeat(val offset: Vector) {
         }
 
         fun getSeats(baseEntity: ItemDisplay, mechanic: FurnitureMechanic): List<Interaction> {
-            return baseEntity.takeIf { mechanic.hasSeats }?.persistentDataContainer?.get(SEAT_KEY, DataType.asList(DataType.UUID))
+            return baseEntity.takeIf { mechanic.hasSeats }?.persistentDataContainer?.get(SEAT_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapNotNull { Bukkit.getEntity(it) as? Interaction } ?: emptyList()
         }
 
@@ -74,7 +75,7 @@ data class FurnitureSeat(val offset: Vector) {
 
         fun sitOnSeat(baseEntity: ItemDisplay, player: Player, interactionPoint: Location?) {
             val centeredLoc = (interactionPoint ?: baseEntity.location).toCenterLocation()
-            baseEntity.persistentDataContainer.get(SEAT_KEY, DataType.asList(DataType.UUID))
+            baseEntity.persistentDataContainer.get(SEAT_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapNotNull { Bukkit.getEntity(it)?.takeIf { s -> s.type == EntityType.INTERACTION && s.passengers.isEmpty() } }
                 ?.minByOrNull { centeredLoc.distanceSquared(it.location) }
                 ?.addPassenger(player)
@@ -93,11 +94,11 @@ data class FurnitureSeat(val offset: Vector) {
                     i.persistentDataContainer.set(SEAT_KEY, DataType.UUID, uuid)
                 }.uniqueId
             }
-            baseEntity.persistentDataContainer.set(SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs)
+            baseEntity.persistentDataContainer.set(SEAT_KEY, CustomDataTypes.UUID_LIST, seatUUIDs)
         }
 
         fun updateSeats(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
-            val seats = baseEntity.persistentDataContainer.get(SEAT_KEY, DataType.asList(DataType.UUID))
+            val seats = baseEntity.persistentDataContainer.get(SEAT_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapIndexedNotNull { i, uuid ->
                     val furnitureSeat = mechanic.seats.elementAtOrNull(i) ?: return@mapIndexedNotNull null
                     val interactionEntity = Bukkit.getEntity(uuid) as? Interaction ?: return@mapIndexedNotNull null
@@ -121,7 +122,7 @@ data class FurnitureSeat(val offset: Vector) {
         }
 
         fun removeSeats(baseEntity: ItemDisplay) {
-            baseEntity.persistentDataContainer.getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), listOf())
+            baseEntity.persistentDataContainer.getOrDefault(SEAT_KEY, CustomDataTypes.UUID_LIST, listOf())
                 .mapNotNull(Bukkit::getEntity).forEach { seat ->
                     seat.passengers.forEach(seat::removePassenger)
                     if (!seat.isDead) seat.remove()

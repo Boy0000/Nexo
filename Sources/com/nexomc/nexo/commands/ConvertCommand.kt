@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.literalArgument
+import org.bukkit.entity.ItemDisplay
 
 fun CommandTree.convertCommand() = literalArgument("convert") {
     withPermission("nexo.command.convert")
@@ -22,7 +23,7 @@ fun CommandTree.convertCommand() = literalArgument("convert") {
     literalArgument("itemsadder") {
         anyExecutor { sender, _ ->
             val converter = NexoPlugin.instance().converter().itemsadderConverter
-            if (converter.convertFurnitureOnLoad) SchedulerUtils.runAtWorldEntities {
+            if (converter.convertFurnitureOnLoad) SchedulerUtils.runAtWorldEntities<ItemDisplay> {
                 ItemsAdderConverterListener.convertFurniture(it)
             }
             sender.sendRichMessage("<green>Finished converting loaded ItemsAdder Furniture!")

@@ -15,8 +15,7 @@ import kotlin.random.Random
 
 class EvolutionTask(private val furnitureFactory: FurnitureFactory, private val delay: Int) : BukkitRunnable() {
     override fun run() {
-        SchedulerUtils.runAtWorldEntities { entity ->
-            if (entity !is ItemDisplay) return@runAtWorldEntities
+        SchedulerUtils.runAtWorldEntities<ItemDisplay> { entity ->
             val (entityLoc, world, pdc) = entity.location to entity.world to entity.persistentDataContainer
             if (!pdc.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return@runAtWorldEntities
 

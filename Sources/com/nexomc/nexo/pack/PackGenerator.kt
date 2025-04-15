@@ -115,6 +115,8 @@ class PackGenerator {
                 if (NexoPlugin.instance().converter().oraxenConverter.convertResourcePack)
                     OraxenConverter.processPackFolder(packFolder)
 
+                resourcePack.packMeta(PackFormat.format(NMSHandlers.handler().resourcepackFormat(), 22, 99), "Nexo's default pack.".deserialize())
+
                 runCatching {
                     NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(packFolder))
                 }.onFailure {
@@ -148,7 +150,6 @@ class PackGenerator {
                 }
 
                 packValidator.validatePack()
-                if (resourcePack.packMeta() == null) resourcePack.packMeta(PackFormat.format(NMSHandlers.handler().resourcepackFormat(), 22, 48), "Nexo's default pack.".deserialize())
                 ModernVersionPatcher.convertResources(resourcePack)
                 resourcePack.items().removeIf { ModernVersionPatcher.standardItemModels.containsValue(it) }
 

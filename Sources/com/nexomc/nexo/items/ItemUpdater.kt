@@ -48,9 +48,7 @@ class ItemUpdater : Listener {
 
     init {
         SchedulerUtils.syncDelayedTask(2) {
-            if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities { entity ->
-                updateEntityInventories(entity)
-            }
+            if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities(::updateEntityInventories)
             if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates({ it.type in TILE_ENTITIES }) { tileEntity ->
                 (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
                     if (item != null) tileEntity.inventory.setItem(index, updateItem(item))
