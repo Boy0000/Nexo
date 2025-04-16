@@ -122,7 +122,7 @@ class NexoPlugin : JavaPlugin() {
         resourceManager = ResourceManager(this)
         configsManager = ConfigsManager(this)
         configsManager.validatesConfig()
-        converter = Converter(resourceManager.converter().config)
+        converter = Converter(resourceManager.converter.config)
         if (!converter.oraxenConverter.hasBeenConverted) OraxenConverter.convert()
         if (!converter.itemsadderConverter.hasBeenConverted) ItemsAdderConverter.convert()
     }

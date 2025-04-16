@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.mineinabyss.idofront.util.toColor
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
 import com.nexomc.nexo.utils.VectorUtils.quaternionfFromString
 import com.nexomc.nexo.utils.VectorUtils.vector3fFromString

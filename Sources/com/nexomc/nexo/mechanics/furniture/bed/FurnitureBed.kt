@@ -1,7 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.bed
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.nms.NMSHandlers
@@ -62,12 +61,18 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
 
         fun isBed(entity: Entity?) = entity?.persistentDataContainer?.has(BED_KEY, DataType.UUID) == true
 
-        fun sleepOnBed(baseEntity: ItemDisplay, player: Player, interactionPoint: Location?) {
+        fun sleepOnBed(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, player: Player, interactionPoint: Location?) {
             val centeredLoc = (interactionPoint ?: baseEntity.location).toCenterLocation()
-            baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)
+            val beds = baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)
                 ?.mapNotNull { Bukkit.getEntity(it)?.takeIf { s -> s.type == EntityType.INTERACTION && s.passengers.isEmpty() } }
-                ?.minByOrNull { centeredLoc.distanceSquared(it.location) }
-                ?.addPassenger(player)
+
+            // If furniture should have beds but none found, spawn them again
+            if (beds.isNullOrEmpty() && mechanic.hasBeds) {
+                spawnBeds(baseEntity, mechanic)
+                return sleepOnBed(baseEntity, mechanic, player, interactionPoint)
+            }
+
+            beds?.minByOrNull { centeredLoc.distanceSquared(it.location) }?.addPassenger(player)
         }
 
         fun spawnBeds(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
@@ -89,14 +94,17 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
                 furnitureBed to interactionEntity
             }?.toFastMap() ?: return
 
-            if (beds.isEmpty() && mechanic.hasBeds) spawnBeds(baseEntity, mechanic)
-
+            // If furniture should have beds but none found, spawn them
+            if (beds.isEmpty() && mechanic.hasBeds) {
+                spawnBeds(baseEntity, mechanic)
+                return updateBeds(baseEntity, mechanic)
+            }
 
             when {
                 mechanic.beds.isEmpty() -> beds.values.onEach(Entity::remove)
                 else -> beds.forEach { (bed, entity) ->
                     val translation = baseEntity.transformation.translation
-                    val newLocation = baseEntity.location.add(Vector(translation.x, translation.y, translation.z)).plus(bed.offset(baseEntity.yaw))
+                    val newLocation = baseEntity.location.add(Vector(translation.x, translation.y, translation.z)).add(bed.offset(baseEntity.yaw))
                     if (newLocation == entity.location) return@forEach
 
                     val passengers = entity.passengers.toList().onEach(entity::removePassenger)

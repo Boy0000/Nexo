@@ -39,17 +39,11 @@ import org.bukkit.event.entity.EntityDismountEvent
 import org.bukkit.event.entity.EntityMountEvent
 import org.bukkit.event.entity.EntityTeleportEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.util.Vector
 
 class FurniturePacketListener : Listener {
-
-    init {
-        SchedulerUtils.runAtWorldEntities<ItemDisplay> {
-            val mechanic = NexoFurniture.furnitureMechanic(it) ?: return@runAtWorldEntities
-            FurnitureBed.spawnBeds(it, mechanic)
-        }
-    }
 
     @EventHandler
     fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
@@ -90,7 +84,7 @@ class FurniturePacketListener : Listener {
             packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic)
-            FurnitureBed.spawnBeds(itemDisplay, mechanic)
+            if (mechanic.hasBeds) FurnitureBed.spawnBeds(itemDisplay, mechanic)
         }
     }
 
@@ -107,6 +101,22 @@ class FurniturePacketListener : Listener {
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
         entity.ticksLived = 0 // Mark it for next EntityAddToWorldEvent
+    }
+
+    @EventHandler
+    fun WorldUnloadEvent.onUnload() {
+        world.entities.filterIsInstance<ItemDisplay>().forEach { itemDisplay ->
+            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
+            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
+
+            FurnitureBed.removeBeds(itemDisplay)
+
+            furnitureBaseMap.remove(itemDisplay.uniqueId)
+            packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
+            packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
+            packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
+            itemDisplay.ticksLived = 0 // Mark it for next EntityAddToWorldEvent
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

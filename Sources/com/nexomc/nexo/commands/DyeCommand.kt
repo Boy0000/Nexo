@@ -1,10 +1,10 @@
 package com.nexomc.nexo.commands
 
-import com.mineinabyss.idofront.items.asColorable
-import com.mineinabyss.idofront.util.removeSpaces
 import com.nexomc.nexo.configs.Message
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.removeSpaces
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.kotlindsl.greedyStringArgument

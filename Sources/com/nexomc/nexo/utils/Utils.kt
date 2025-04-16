@@ -11,6 +11,8 @@ fun <T> Result<T>.printOnFailure(debugOnly: Boolean = false): Result<T> {
     return this
 }
 
+fun String.removeSpaces() = replace(" ", "")
+fun String.remove(remove: String) = replace(remove, "")
 internal fun String.appendIfMissing(suffix: String) = if (endsWith(suffix)) this else (this + suffix)
 internal fun String.prependIfMissing(prefix: String) = if (startsWith(prefix)) this else (prefix + this)
 internal fun String.substringBetween(after: String, before: String) = this.substringAfter(after).substringBefore(before)

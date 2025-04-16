@@ -22,7 +22,7 @@ import org.bukkit.inventory.ItemStack
 import kotlin.math.max
 
 class ItemsView {
-    private val settings = NexoPlugin.instance().resourceManager().settings()
+    private val settings = NexoPlugin.instance().resourceManager().settings.config
 
     private lateinit var mainGui: PaginatedGui
 

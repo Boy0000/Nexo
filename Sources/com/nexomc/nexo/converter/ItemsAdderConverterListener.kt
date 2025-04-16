@@ -1,12 +1,12 @@
 package com.nexomc.nexo.converter
 
-import com.mineinabyss.idofront.items.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.serialize
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Entity

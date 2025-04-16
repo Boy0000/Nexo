@@ -188,7 +188,7 @@ enum class Settings {
         val settingFile = NexoPlugin.instance().configsManager().settings()
         settingFile.set(path, value)
         runCatching {
-            if (save) settingFile.save(NexoPlugin.instance().resourceManager().settingsEntry().file)
+            if (save) settingFile.save(NexoPlugin.instance().dataFolder.resolve("settings.yml"))
         }.onFailure {
             Logs.logError("Failed to apply changes to settings.yml")
         }

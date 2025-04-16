@@ -2,7 +2,7 @@ package com.nexomc.nexo.items
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.items.asColorable
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings

@@ -1,6 +1,5 @@
 package com.nexomc.nexo.utils
 
-import com.mineinabyss.idofront.util.Quadruple
 import java.io.Serializable
 
 infix fun <A, B, C> Pair<A, B>.to(that: C): Triple<A, B, C> = Triple(this.first, this.second, that)

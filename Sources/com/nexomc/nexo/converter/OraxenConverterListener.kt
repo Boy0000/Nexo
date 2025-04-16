@@ -1,7 +1,7 @@
 package com.nexomc.nexo.converter
 
 import com.jeff_media.customblockdata.CustomBlockData
-import com.mineinabyss.idofront.items.asColorable
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.nms.NMSHandlers

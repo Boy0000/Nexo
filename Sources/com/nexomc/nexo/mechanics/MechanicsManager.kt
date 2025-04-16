@@ -89,7 +89,7 @@ object MechanicsManager {
     }
 
     private fun registerMechanicFactory(mechanicId: String, constructor: FactoryConstructor, configPath: String = mechanicId) {
-        val factorySection = NexoPlugin.instance().resourceManager().mechanics().getConfigurationSection(configPath) ?: return
+        val factorySection = NexoPlugin.instance().resourceManager().mechanics.config.getConfigurationSection(configPath) ?: return
         if (factorySection.getBoolean("enabled")) FACTORIES_BY_MECHANIC_ID[mechanicId] = constructor.create(factorySection)
     }
 

@@ -1,6 +1,6 @@
 package com.nexomc.nexo.items
 
-import com.mineinabyss.idofront.util.toColor
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem

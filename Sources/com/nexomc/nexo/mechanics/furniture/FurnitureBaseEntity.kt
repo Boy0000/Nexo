@@ -1,6 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.mineinabyss.idofront.items.asColorable
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import java.util.UUID

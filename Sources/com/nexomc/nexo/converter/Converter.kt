@@ -11,7 +11,7 @@ data class Converter(
     fun save() {
         runCatching {
             NexoPlugin.instance().dataFolder.resolve("converter.yml").let {
-                NexoPlugin.instance().resourceManager().converter().config.also { c ->
+                NexoPlugin.instance().resourceManager().converter.config.also { c ->
                     c.getConfigurationSection("oraxenConverter")?.set("hasBeenConverted", oraxenConverter.hasBeenConverted)
                     c.getConfigurationSection("itemsadderConverter")?.set("hasBeenConverted", itemsadderConverter.hasBeenConverted)
                     c.getConfigurationSection("itemsadderConverter")?.set("changedItemIds", itemsadderConverter.changedItemIds)

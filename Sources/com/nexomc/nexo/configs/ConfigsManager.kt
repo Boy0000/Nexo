@@ -87,7 +87,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             configuration.set(key, defaultConfiguration.get(key))
         }
 
-        configuration.getKeys(false).filter { it in removedYamlKeys }.forEach { key: String ->
+        configuration.getKeys(true).filter { it in removedYamlKeys }.forEach { key: String ->
             updated = true
             Message.REMOVING_CONFIG.log(tagResolver("option", key))
             configuration.set(key, null)
@@ -301,7 +301,6 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
         private val removedYamlKeys = listOf(
             "armorpotioneffects",
-            "custom_block_sounds",
             "consumable_potion_effects",
             "consumable",
             "music_disc",
@@ -323,7 +322,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             "chorusblock.custom_block_sounds",
             "noteblock.tool_types",
             "stringblock.tool_types",
-            "chorusblock.tool_types"
+            "chorusblock.tool_types",
+            "detect_viabackwards"
         )
     }
 }

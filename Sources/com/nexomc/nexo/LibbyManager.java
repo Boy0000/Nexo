@@ -18,7 +18,6 @@ public class LibbyManager {
     private static final ArrayList<Library> libs = new ArrayList<>();
     private static final String COMMAND_API_VERSION = "10.0.0";
     private static final String CREATIVE_VERSION = "1.8.5-SNAPSHOT";
-    private static final String IDOFRONT_VERSION = "0.25.17";
 
     public static void loadLibs(JavaPlugin plugin) {
         BukkitLibraryManager manager = new BukkitLibraryManager(plugin, "libs");
@@ -76,8 +75,6 @@ public class LibbyManager {
         libs.add(getLib("dev{}triumphteam", "triumph-gui", "3.2.0-SNAPSHOT", "dev{}triumphteam")
                 .repository("https://repo.triumphteam.dev/snapshots").build());
         libs.add(getLib("com{}github{}stefvanschie{}inventoryframework", "IF", "0.10.19", "com{}github{}stefvanschie").build());
-
-        libs.add(getLib("com{}mineinabyss", "idofront-util", IDOFRONT_VERSION, "com{}mineinabyss").build());
     }
 
     private static Library.Builder getLib(String groupId, String artifactId, String version, String relocationId) {

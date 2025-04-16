@@ -1,7 +1,7 @@
 package com.nexomc.nexo.items
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.util.toColor
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem

@@ -1,7 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.seats
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.mineinabyss.idofront.operators.plus
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.CustomDataTypes
@@ -86,7 +85,7 @@ data class FurnitureSeat(val offset: Vector) {
             val yaw = baseEntity.yaw
             val uuid = baseEntity.uniqueId
             val seatUUIDs = mechanic.seats.map { seat: FurnitureSeat ->
-                baseEntity.world.spawn(baseEntity.location.plus(translation).add(seat.offset(yaw)), Interaction::class.java) { i ->
+                baseEntity.world.spawn(baseEntity.location.add(translation).add(seat.offset(yaw)), Interaction::class.java) { i ->
                     i.interactionHeight = 0.1f
                     i.interactionWidth = 0.1f
                     i.isPersistent = true
@@ -110,7 +109,7 @@ data class FurnitureSeat(val offset: Vector) {
                 mechanic.seats.isEmpty -> seats.values.onEach(Entity::remove)
                 else -> seats.forEach { (seat, entity) ->
                     val translation = baseEntity.transformation.translation
-                    val newLocation = baseEntity.location.add(Vector(translation.x, translation.y, translation.z)).plus(seat.offset(baseEntity.yaw))
+                    val newLocation = baseEntity.location.add(Vector(translation.x, translation.y, translation.z)).add(seat.offset(baseEntity.yaw))
                     if (newLocation == entity.location) return@forEach
 
                     val passengers = entity.passengers.toList().onEach(entity::removePassenger)

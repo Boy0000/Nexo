@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
-import com.mineinabyss.idofront.items.asColorable
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -155,7 +155,7 @@ class FurnitureListener : Listener {
                     null -> return
                 }
                 canSit != Event.Result.DENY -> FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint)
-                canSleep != Event.Result.DENY -> FurnitureBed.sleepOnBed(baseEntity, player, interactionPoint)
+                canSleep != Event.Result.DENY -> FurnitureBed.sleepOnBed(baseEntity, mechanic, player, interactionPoint)
                 canRunAction == Event.Result.DENY && canToggleLight == Event.Result.DENY -> useItemInHand = allowUseItem
             }
         }

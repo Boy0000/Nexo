@@ -3,9 +3,9 @@ package com.nexomc.nexo.mechanics.combat.spell.energyblast
 import com.google.common.base.Function
 import com.google.common.base.Functions
 import com.google.common.collect.ImmutableMap
-import com.mineinabyss.idofront.events.call
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisX
 import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisY
 import com.nexomc.nexo.utils.wrappers.ParticleWrapper
