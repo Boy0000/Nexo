@@ -100,7 +100,6 @@ class FurniturePacketListener : Listener {
         packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
-        entity.ticksLived = 0 // Mark it for next EntityAddToWorldEvent
     }
 
     @EventHandler
@@ -115,7 +114,6 @@ class FurniturePacketListener : Listener {
             packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
             packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
             packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
-            itemDisplay.ticksLived = 0 // Mark it for next EntityAddToWorldEvent
         }
     }
 

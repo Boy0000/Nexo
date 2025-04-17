@@ -18,7 +18,7 @@ fun ConfigurationSection.toMap(): Map<String, Any> {
 }
 
 fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {
-    return getStringList(key).filterNotNull().takeIf { it.isNotEmpty() && it.none(String::isEmpty) }
+    return getStringList(key).filterNot { it.isNullOrEmpty() }.takeIf { it.isNotEmpty() }
 }
 
 fun ConfigurationSection.getStringOrNull(key: String): String? {

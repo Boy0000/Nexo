@@ -5,8 +5,8 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.ItemCommand.sendItemInfo
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
+import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
@@ -22,6 +22,7 @@ import dev.jorel.commandapi.kotlindsl.textArgument
 import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.audience.Audience
 import org.bukkit.entity.Player
+import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrElse
 
 internal fun CommandTree.inventoryCommand() = multiLiteralArgument(nodeName = "inventory", "inventory", "inv") {
@@ -123,31 +124,24 @@ internal fun CommandTree.takeItemCommand() = literalArgument("take") {
 
 internal fun CommandTree.itemInfoCommand() = literalArgument("iteminfo") {
     withPermission("nexo.command.iteminfo")
-    stringArgument("itemid") {
+    stringArgument("itemid", true) {
         replaceSuggestions(ArgumentSuggestions.stringsAsync {
             CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
         })
         anyExecutor { sender, args ->
-            val argument = args.get("itemid") as? String ?: return@anyExecutor
-            when (argument) {
-                "all" -> for ((itemId, builder) in NexoItems.entries()) sendItemInfo(sender, builder, itemId)
-                else -> sendItemInfo(
-                    sender,
-                    NexoItems.itemFromId(argument)
-                        ?: return@anyExecutor sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No item found with ID</red> <dark_red>$argument")),
-                    argument
-                )
-            }
+            val heldItem = (sender as? Player)?.inventory?.itemInMainHand
+            val itemId = args.getOptional("itemid").getOrDefault(NexoItems.idFromItem(heldItem)) as? String ?: return@anyExecutor
+            sendItemInfo(sender, NexoItems.itemFromId(itemId) ?: return@anyExecutor sender.sendMessage("<red>No item found with ID</red> <dark_red>$itemId".deserialize()), itemId)
         }
     }
 }
 
 object ItemCommand {
     internal fun sendItemInfo(sender: Audience, builder: ItemBuilder, itemId: String?) {
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>$itemId"))
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>CustomModelData: <green>${builder.nexoMeta?.customModelData}"))
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Material: <green>${builder.referenceCopy().type}"))
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>${builder.nexoMeta?.model?.asString()}"))
+        sender.sendMessage("<dark_aqua>ItemID: <aqua>$itemId".deserialize())
+        sender.sendMessage("<dark_green>CustomModelData: <green>${builder.nexoMeta?.customModelData}".deserialize())
+        sender.sendMessage("<dark_green>Material: <green>${builder.referenceCopy().type}".deserialize())
+        sender.sendMessage("<dark_green>Model Name: <green>${builder.nexoMeta?.model?.asString()}".deserialize())
         Logs.newline()
     }
 }

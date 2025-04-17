@@ -112,8 +112,8 @@ interface IFurniturePacketManager {
 
         fun blockIsHitbox(vec: Vector, world: World, excludeUUID: UUID? = null): Boolean {
             return runCatching { barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any {
-                (it.toVector() == vec)
-            } } }.printOnFailure().isSuccess
+                it.x == vec.x && it.y == vec.y && it.z == vec.z && it.world == world
+            } } }.printOnFailure().getOrDefault(false)
         }
 
         fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
