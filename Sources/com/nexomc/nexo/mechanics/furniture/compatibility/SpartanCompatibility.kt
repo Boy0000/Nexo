@@ -13,7 +13,7 @@ class SpartanCompatibility : Listener {
         Logs.logSuccess("Initializing Spartan-AntiCheat Hook!")
     }
 
-    private val furnitureHackTypes = setOf(HackType.Exploits, HackType.IrregularMovements)
+    private val furnitureHackTypes = runCatching { setOf(HackType.Exploits, HackType.IrregularMovements) }.getOrDefault(emptySet())
 
     @EventHandler
     fun PlayerViolationEvent.onFurnitureHitbox() {
