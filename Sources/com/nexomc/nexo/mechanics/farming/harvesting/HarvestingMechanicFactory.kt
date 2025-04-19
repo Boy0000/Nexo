@@ -18,9 +18,9 @@ class HarvestingMechanicFactory(section: ConfigurationSection) : MechanicFactory
         return mechanic
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? HarvestingMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? HarvestingMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? HarvestingMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? HarvestingMechanic
 
     companion object {
         private var instance: HarvestingMechanicFactory? = null

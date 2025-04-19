@@ -63,9 +63,9 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
     }
 
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? NoteBlockMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? NoteBlockMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? NoteBlockMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? NoteBlockMechanic
 
     override fun parse(section: ConfigurationSection): NoteBlockMechanic? {
         val mechanic = NoteBlockMechanic(this, section)

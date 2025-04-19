@@ -18,10 +18,10 @@ import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
 
-class FurnitureBarrierHitboxListener(handleNonPlayerBarrierCollision: Boolean) : Listener {
+class FurnitureBarrierHitboxListener() : Listener {
 
     init {
-        if (handleNonPlayerBarrierCollision) {
+        if (FurnitureFactory.instance()?.handleNonPlayerBarrierCollision == true) {
             FurnitureFactory.instance()?.registerListeners(object : Listener {
                 @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
                 fun EntityMoveEvent.onMobMove() {

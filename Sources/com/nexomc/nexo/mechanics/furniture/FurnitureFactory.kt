@@ -31,16 +31,16 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
     private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
     val defaultRotatableOnSneak = section.getBoolean("default_rotatable_on_sneak", false)
-    private val handleNonPlayerBarrierCollision = section.getBoolean("handle_non_player_barrier_collision", false)
+    val handleNonPlayerBarrierCollision = section.getBoolean("handle_non_player_barrier_collision", false)
 
     init {
         instance = this
         registerListeners(
             FurnitureListener(),
             FurniturePacketListener(),
-            FurnitureBarrierHitboxListener(handleNonPlayerBarrierCollision),
+            FurnitureBarrierHitboxListener(),
             EvolutionListener(),
-            JukeboxListener()
+            JukeboxListener(),
         )
 
         evolvingFurnitures = false
@@ -79,9 +79,9 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         evolvingFurnitures = true
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? FurnitureMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? FurnitureMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? FurnitureMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? FurnitureMechanic
 
     companion object {
         private var instance: FurnitureFactory? = null

@@ -2,7 +2,6 @@ package com.nexomc.nexo.items
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
@@ -12,6 +11,8 @@ import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.asColorable
+import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
@@ -202,11 +203,13 @@ class ItemUpdater : Listener {
                     itemMeta.addEnchant(enchant, level, true)
                 }
 
-                when {
-                    newMeta.hasCustomModelData() -> newMeta.customModelData
-                    oldMeta.hasCustomModelData() -> oldMeta.customModelData
-                    else -> null
-                }.let(itemMeta::setCustomModelData)
+                runCatching {
+                    when {
+                        newMeta.hasCustomModelData() -> newMeta.customModelData
+                        oldMeta.hasCustomModelData() -> oldMeta.customModelData
+                        else -> null
+                    }.let(itemMeta::setCustomModelData)
+                }.printOnFailure(true)
 
                 when {
                     !oldMeta.hasLore() || Settings.OVERRIDE_ITEM_LORE.toBool() -> newMeta.lore()
@@ -323,6 +326,7 @@ class ItemUpdater : Listener {
 
             NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
             NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))
+            NMSHandlers.handler().blockstateComponent(newItem, NMSHandlers.handler().blockstateComponent(oldItem))
 
             return newItem
         }

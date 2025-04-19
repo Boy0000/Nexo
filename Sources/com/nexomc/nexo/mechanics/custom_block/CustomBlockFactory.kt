@@ -287,9 +287,9 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         return (type.factory()?.parse(section) as? CustomBlockMechanic)?.apply(::addToImplemented)
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? CustomBlockMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? CustomBlockMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? CustomBlockMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? CustomBlockMechanic
 
 
 }

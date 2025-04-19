@@ -5,6 +5,7 @@ import com.nexomc.nexo.utils.to
 import org.bukkit.Location
 import org.bukkit.Utility
 import org.bukkit.World
+import org.bukkit.block.Block
 import org.bukkit.configuration.serialization.ConfigurationSerializable
 import org.bukkit.util.NumberConversions
 import org.bukkit.util.Vector
@@ -17,6 +18,8 @@ import kotlin.math.sin
 open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : ConfigurationSerializable {
 
     constructor(location: Location) : this(location.blockX, location.blockY, location.blockZ)
+
+    constructor(block: Block) : this(block.x, block.y, block.z)
 
     constructor(location: String) : this() {
         val split = location.split(",").map { it.toIntOrNull() ?: 0 }.toMutableList()
@@ -37,10 +40,18 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
         return NumberConversions.square(x - other.x) + NumberConversions.square(y - other.y) + NumberConversions.square(z - other.z)
     }
 
-    fun add(blockLocation: BlockLocation) = BlockLocation(x, y, z).also {
-        it.x += blockLocation.x
-        it.y += blockLocation.y
-        it.z += blockLocation.z
+    fun add(blockLocation: BlockLocation): BlockLocation {
+        this.x += blockLocation.x
+        this.y += blockLocation.y
+        this.z += blockLocation.z
+        return this
+    }
+
+    fun add(x: Int, y: Int, z: Int): BlockLocation {
+        this.x += x
+        this.y += y
+        this.z += z
+        return this
     }
 
     fun add(location: Location) = location.clone().add(x.toDouble(), y.toDouble(), z.toDouble())

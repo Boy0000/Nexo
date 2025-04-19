@@ -5,6 +5,7 @@ import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
 import com.nexomc.nexo.utils.VectorUtils.quaternionfFromString
 import com.nexomc.nexo.utils.VectorUtils.vector3fFromString
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.rootId
 import org.bukkit.Color
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Display.Billboard
@@ -41,7 +42,7 @@ class FurnitureProperties(
         displayHeight = configSection.getDouble("display_height", 0.0).toFloat(),
 
         displayTransform = configSection.getString("display_transform")?.toEnumOrElse(ItemDisplayTransform::class.java) { transform ->
-            val itemID = configSection.parent!!.parent!!.parent!!.name
+            val itemID = configSection.rootId
             Logs.logError("Use of illegal ItemDisplayTransform <i>$transform</i> in furniture <gold>$itemID")
             Logs.logWarn("Allowed ones are: <gold>${ItemDisplayTransform.entries.joinToString { it.name }}")
             Logs.logWarn("Setting transform to <i>${ItemDisplayTransform.NONE}</i> for furniture: <gold>$itemID")
@@ -53,7 +54,7 @@ class FurnitureProperties(
         rightRotation = configSection.getString("right_rotation")?.let { quaternionfFromString(it, 0f) } ?: Quaternionf(),
 
         trackingRotation = configSection.getString("tracking_rotation")?.toEnumOrElse(Billboard::class.java) { tracking ->
-            val itemID = configSection.parent!!.parent!!.parent!!.name
+            val itemID = configSection.rootId
             Logs.logError("Use of illegal tracking-rotation $tracking in $itemID furniture.")
             Logs.logError("Allowed ones are: ${Billboard.entries.joinToString { it.name }}")
             Logs.logWarn("Set tracking-rotation to ${Billboard.FIXED} for $itemID")

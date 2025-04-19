@@ -4,6 +4,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.utils.breaker.ToolTypeSpeedModifier
 import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.drops.Loot
+import com.nexomc.nexo.utils.rootId
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
@@ -15,7 +16,7 @@ import kotlin.math.min
 import kotlin.math.pow
 
 class BreakableMechanic(section: ConfigurationSection) {
-    private val itemId: String = section.parent!!.parent!!.name
+    private val itemId: String = section.rootId
     val hardness: Double = section.getDouble("hardness", 1.0)
     val drop: Drop = when(val dropSection = section.getConfigurationSection("drop")) {
         null -> Drop(mutableListOf(Loot(itemId, 1.0)), false, false, itemId)

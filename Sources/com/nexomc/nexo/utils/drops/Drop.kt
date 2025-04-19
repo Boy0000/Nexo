@@ -6,7 +6,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.deserialize
-import com.nexomc.nexo.utils.safeCast
+import com.nexomc.nexo.utils.getLinkedMapList
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
 import org.bukkit.Location
 import org.bukkit.Material
@@ -121,7 +121,7 @@ data class Drop(
     companion object {
         @JvmStatic
         fun createDrop(toolTypes: List<String>?, dropSection: ConfigurationSection, sourceID: String): Drop {
-            val loots = dropSection.getList("loots").safeCast<List<LinkedHashMap<String, Any>>>()?.mapTo(mutableListOf()) { Loot(it, sourceID) }
+            val loots = dropSection.getLinkedMapList("loots").mapTo(mutableListOf()) { Loot(it, sourceID) }.takeUnless { it.isEmpty() }
                 ?: mutableListOf(Loot(sourceID, 1.0))
 
             return Drop(

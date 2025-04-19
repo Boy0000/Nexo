@@ -1,6 +1,7 @@
 package com.nexomc.nexo.utils.actions
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.utils.getLinkedMapList
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import me.gabytm.util.actions.actions.Action
@@ -34,7 +35,7 @@ class ClickAction private constructor(private val conditions: List<String>, priv
     companion object {
         private val PARSER = SpelExpressionParser()
 
-        private fun from(config: LinkedHashMap<String, Any>): ClickAction? {
+        private fun from(config: Map<String, Any>): ClickAction? {
             val conditions = config.getOrDefault("conditions", emptyList<Any>()).safeCast<List<String>>() ?: return null
 
             val actions = NexoPlugin.instance().clickActionManager()
@@ -57,8 +58,7 @@ class ClickAction private constructor(private val conditions: List<String>, priv
 
         @JvmStatic
         fun parseList(section: ConfigurationSection): List<ClickAction> {
-            val list = section.getList("clickActions", emptyList<Any>()).safeCast<List<LinkedHashMap<String, Any>>>()
-                ?.takeUnless { it.isEmpty() }?: return emptyList()
+            val list = section.getLinkedMapList("clickActions")
 
             return list.mapNotNullTo(ArrayList(list.size)) { from(it) }
         }

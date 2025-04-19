@@ -62,9 +62,9 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     }
 
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? StringBlockMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? StringBlockMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? StringBlockMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? StringBlockMechanic
 
     override fun parse(section: ConfigurationSection): Mechanic? {
         val mechanic = StringBlockMechanic(this, section)

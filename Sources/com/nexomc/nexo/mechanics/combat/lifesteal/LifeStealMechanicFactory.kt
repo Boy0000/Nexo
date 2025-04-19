@@ -17,7 +17,7 @@ class LifeStealMechanicFactory(section: ConfigurationSection) : MechanicFactory(
         return mechanic
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? LifeStealMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? LifeStealMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? LifeStealMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? LifeStealMechanic
 }

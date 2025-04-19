@@ -13,7 +13,7 @@ class ThorMechanicFactory(section: ConfigurationSection) : MechanicFactory(secti
 
     override fun parse(section: ConfigurationSection) = ThorMechanic(this, section).apply(::addToImplemented)
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? ThorMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? ThorMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? ThorMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? ThorMechanic
 }

@@ -10,6 +10,7 @@ import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
 import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
+import com.nexomc.nexo.mechanics.furniture.connectable.ConnectableMechanic
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
@@ -48,7 +49,7 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.joml.Vector3f
 
-class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) : Mechanic(mechanicFactory, section,
+class FurnitureMechanic(mechanicFactory: MechanicFactory, section: ConfigurationSection) : Mechanic(mechanicFactory, section,
     { item -> item.customTag<Byte, Byte>(FURNITURE_KEY, PersistentDataType.BYTE, 1.toByte()) }
 ) {
     val limitedPlacing: LimitedPlacing? = section.getConfigurationSection("limited_placing")?.let(::LimitedPlacing)
@@ -61,7 +62,6 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val modelEngineID: String? = section.getString("modelengine_id", null)
     private val placedItemId: String = section.getString("item", itemID)!!
     private val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)?.takeIf { VersionUtil.atleast("1.21.3") }
-    val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val clickActions: List<ClickAction> = parseList(section)
     val properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties()
     val rotatable: Rotatable = section.get("rotatable")?.let(::Rotatable) ?: Rotatable()
@@ -69,7 +69,9 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
     val breakable: BreakableMechanic = BreakableMechanic(section)
     val waterloggable: Boolean = section.getBoolean("waterloggable")
+    val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
+    val connectable = section.getConfigurationSection("connectable")?.let(::ConnectableMechanic)
 
     val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
 
@@ -104,9 +106,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         // Mechanic-specific item-overrides
         if (!light.isEmpty && light.toggleable && FurnitureHelpers.lightState(baseEntity)) {
-            builder = light.toggledItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
-                ?: light.toggledModel?.let(NexoItems::itemFromId)
+            builder = light.toggledItemModel ?: light.toggledModel
         }
+
+        if (connectable != null) builder = connectable.displayedItem(baseEntity)
 
         // Default Furniture items
         return builder ?: placedItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
@@ -138,6 +141,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
 
         if (isModelEngine) spawnModelEngineFurniture(baseEntity)
         FurnitureSeat.spawnSeats(baseEntity, this)
+        connectable?.updateState(baseEntity)
+        connectable?.updateSurrounding(baseEntity)
 
         return baseEntity
     }
@@ -241,6 +246,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory?, section: Configuratio
         packetManager?.removeLightMechanicPacket(baseEntity, this)
 
         if (!baseEntity.isDead) baseEntity.remove()
+        connectable?.updateSurrounding(baseEntity)
     }
 
     fun notEnoughSpace(baseEntity: ItemDisplay, yaw: Float = baseEntity.yaw): Boolean {

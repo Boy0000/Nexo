@@ -48,9 +48,9 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
         return BlockState.of(chorusKey, variants)
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? ChorusBlockMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? ChorusBlockMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? ChorusBlockMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? ChorusBlockMechanic
 
     override fun parse(section: ConfigurationSection): Mechanic? {
         val mechanic = ChorusBlockMechanic(this, section)

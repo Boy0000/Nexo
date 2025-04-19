@@ -17,7 +17,7 @@ class WitherSkullMechanicFactory(section: ConfigurationSection) : MechanicFactor
         return mechanic
     }
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? WitherSkullMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? WitherSkullMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? WitherSkullMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? WitherSkullMechanic
 }

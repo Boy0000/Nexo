@@ -14,9 +14,9 @@ class SmeltingMechanicFactory(section: ConfigurationSection) : MechanicFactory(s
 
     override fun parse(section: ConfigurationSection) = SmeltingMechanic(this, section)?.apply(::addToImplemented)
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? SmeltingMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? SmeltingMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? SmeltingMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? SmeltingMechanic
 
     companion object {
         private var instance: SmeltingMechanicFactory? = null

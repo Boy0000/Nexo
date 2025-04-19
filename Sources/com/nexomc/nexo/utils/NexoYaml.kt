@@ -9,12 +9,30 @@ import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 
+val ConfigurationSection.rootId: String
+    get() = rootSection.name
+
+val ConfigurationSection.rootSection: ConfigurationSection
+    get() {
+        this.currentPath
+        var current = this
+        while (current.parent != null && current.parent!!.parent != null) {
+            current = current.parent!!
+        }
+        return current
+    }
+
+
 fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
 }
 
 fun ConfigurationSection.toMap(): Map<String, Any> {
     return getKeys(false).associateWith { get(it)!! }
+}
+
+fun ConfigurationSection.getLinkedMapList(key: String, default: List<LinkedHashMap<String, Any>> = emptyList()): List<LinkedHashMap<String, Any>> {
+    return getList(key)?.filterIsInstance<LinkedHashMap<String, Any>>() ?: default
 }
 
 fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {

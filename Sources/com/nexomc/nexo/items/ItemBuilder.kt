@@ -80,6 +80,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     var damageResistant: Tag<DamageType>? = null
     var tooltipStyle: NamespacedKey? = null
     var itemModel: NamespacedKey? = null
+    var blockStates: Map<String, String>? = null
     var enchantable: Int? = null
     var consumableComponent: Any? = null
     var repairableComponent: Any? = null
@@ -103,6 +104,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
     }
 
     constructor(wrapped: WrappedEcoItem) : this(wrapped.build()!!)
+
+    constructor(itemBuilder: ItemBuilder) : this(itemBuilder.build())
 
     init {
         type = itemStack.type
@@ -268,6 +271,15 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun setItemModel(itemModel: Key?): ItemBuilder {
         this.itemModel = itemModel?.let { NamespacedKey.fromString(it.asString()) }
+        return this
+    }
+
+    fun hasBlockStates(): Boolean {
+        return VersionUtil.atleast("1.21.2") && !blockStates.isNullOrEmpty()
+    }
+
+    fun setBlockStates(blockStates: Map<String, String>): ItemBuilder {
+        this.blockStates = blockStates
         return this
     }
 
@@ -507,7 +519,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun referenceCopy() = itemStack.clone()
 
-    fun clone() = ItemBuilder(itemStack.clone())
+    fun clone() = ItemBuilder(build())
 
     fun regenerateItem(): ItemBuilder {
         itemStack.type = type
@@ -585,6 +597,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
         NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
+        NMSHandlers.handler().blockstateComponent(itemStack, blockStates)
         NMSHandlers.handler().handleItemFlagToolTips(itemStack, itemFlags)
 
         if (VersionUtil.atleast("1.21.5") && tooltipDisplay != null) {

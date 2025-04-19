@@ -1,5 +1,7 @@
 package com.nexomc.nexo.mechanics.light
 
+import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.VersionUtil
@@ -7,15 +9,19 @@ import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.kyori.adventure.key.Key
 import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
 
 class LightMechanic(
     val lightBlocks: MutableList<LightBlock>,
     val toggleable: Boolean = false,
-    val toggledModel: String? = null,
-    val toggledItemModel: Key? = null
+    private val _toggledModel: String? = null,
+    private val _toggledItemModel: Key? = null
 ) {
+
+    val toggledModel by lazy { NexoItems.itemFromId(_toggledModel) }
+    val toggledItemModel by lazy { _toggledItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) } }
 
     constructor(section: ConfigurationSection) : this(
         (section.getStringListOrNull("lights.lights") ?: section.getString("lights.lights")?.let(::listOf) ?: listOf()).flatMap(::parseLights).toMutableList(),

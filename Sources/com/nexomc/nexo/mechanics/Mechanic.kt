@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics
 
 import com.nexomc.nexo.items.ItemBuilder
+import com.nexomc.nexo.utils.rootId
 import java.util.function.Function
 import org.bukkit.configuration.ConfigurationSection
 
@@ -9,5 +10,5 @@ abstract class Mechanic @SafeVarargs protected constructor(
     vararg modifiers: Function<ItemBuilder, ItemBuilder>
 ) {
     val itemModifiers = modifiers
-    val itemID = section.parent!!.parent!!.name
+    val itemID = section.rootId
 }

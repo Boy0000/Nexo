@@ -1,23 +1,21 @@
 package com.nexomc.nexo.items
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.deserialize
-import com.nexomc.nexo.utils.filterFastIsInstance
 import com.nexomc.nexo.utils.getKey
-import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.getLinkedMapList
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
@@ -25,7 +23,6 @@ import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.toMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
 import java.util.UUID
-import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
@@ -88,7 +85,7 @@ class ItemParser(private val section: ConfigurationSection) {
             item.displayName(customName)
         }
 
-        section.getStringListOrNull("lore")?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
+        section.getStringList("lore").takeIf { it.isNotEmpty() }?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
         section.getStringOrNull("color")?.toColor()?.let(item::setColor)
         section.getKey("trim_pattern")?.let(item::setTrimPattern)
         if ("unbreakable" in section) item.setUnbreakable(section.getBoolean("unbreakable", false))
@@ -116,14 +113,14 @@ class ItemParser(private val section: ConfigurationSection) {
 
         item.addItemFlags(*section.getStringList("ItemFlags").mapNotNull { runCatching { ItemFlag.valueOf(it) }.getOrNull() }.toTypedArray())
 
-        section.getList("PotionEffects")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach {
+        section.getLinkedMapList("PotionEffects").forEach {
             PotionUtils.getEffectType(it["type"].safeCast())?.also { v -> it["effect"] = v.key.key }
             item.addPotionEffect(PotionEffect(it))
         }
 
         runCatching {
-            val persistentData = section.getList("PersistentData", listOfNotNull(section.getConfigurationSection("PersistentData")?.toMap()))
-            persistentData?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
+            val persistentData = section.getLinkedMapList("PersistentData", listOfNotNull(section.getConfigurationSection("PersistentData")?.toMap()?.toMap(linkedMapOf())))
+            persistentData.forEach { attributeJson ->
                 val key = NamespacedKey.fromString(attributeJson["key"] as String)!!
 
                 // Resolve the PersistentDataType using reflection or a registry
@@ -136,7 +133,7 @@ class ItemParser(private val section: ConfigurationSection) {
 
         }.printOnFailure(true)
 
-        section.getList("AttributeModifiers")?.filterFastIsInstance<LinkedHashMap<String, Any>>()?.forEach { attributeJson ->
+        section.getLinkedMapList("AttributeModifiers").forEach { attributeJson ->
             attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString())
             attributeJson.putIfAbsent("name", "nexo:modifier")
             attributeJson.putIfAbsent("key", "nexo:modifier")

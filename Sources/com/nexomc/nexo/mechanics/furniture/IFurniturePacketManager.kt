@@ -5,6 +5,7 @@ import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import java.util.UUID
@@ -124,8 +125,9 @@ interface IFurniturePacketManager {
         }
 
         fun blockIsHitbox(location: Location, excludeUUID: UUID? = null): Boolean {
+            val (x, y, z, world) = location.blockX to location.blockY to location.blockZ to location.world
             val blockBox = BoundingBox.of(location.toCenterLocation(), 0.5, 0.5, 0.5)
-            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any(location::equals) }
+            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.blockX == x && it.blockY == y && it.blockZ == z && it.world == world } }
                     || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }

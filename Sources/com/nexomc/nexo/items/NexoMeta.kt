@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.rootId
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
@@ -173,7 +174,7 @@ data class NexoMeta(
 
     private fun parseModelKey(configSection: ConfigurationSection, configString: String): Key? {
         val modelName = configSection.getString(configString)
-        val parent = configSection.parent!!.name.lowercase().replace(" ", "_")
+        val parent = configSection.rootId.lowercase().replace(" ", "_")
 
         return when {
             modelName == null && configString == "model" && Key.parseable(parent) -> Key.key(parent)

@@ -13,7 +13,7 @@ class FireballMechanicFactory(section: ConfigurationSection) : MechanicFactory(s
 
     override fun parse(section: ConfigurationSection) = FireballMechanic(this, section).apply(::addToImplemented)
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? FireballMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? FireballMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? FireballMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? FireballMechanic
 }

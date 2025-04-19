@@ -13,7 +13,7 @@ class EnergyBlastMechanicFactory(section: ConfigurationSection) : MechanicFactor
 
     override fun parse(section: ConfigurationSection) = EnergyBlastMechanic(this, section).apply(::addToImplemented)
 
-    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? EnergyBlastMechanic?
+    override fun getMechanic(itemID: String?) = super.getMechanic(itemID) as? EnergyBlastMechanic
 
-    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? EnergyBlastMechanic?
+    override fun getMechanic(itemStack: ItemStack?) = super.getMechanic(itemStack) as? EnergyBlastMechanic
 }

@@ -77,6 +77,12 @@ interface NMSHandler {
 
     fun repairableComponent(itemStack: ItemStack, repairable: Any?) {}
 
+    fun blockstateComponent(itemStack: ItemStack?): Map<String, String>? {
+        return null
+    }
+
+    fun blockstateComponent(itemStack: ItemStack, blockstates: Map<String, String>?) {}
+
     fun handleItemFlagToolTips(itemStack: ItemStack, itemFlags: Set<ItemFlag>) {}
 
     fun applyMiningEffect(player: Player) {}
