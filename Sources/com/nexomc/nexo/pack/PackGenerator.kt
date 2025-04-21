@@ -142,12 +142,15 @@ class PackGenerator {
 
                 removeExcludedFileExtensions()
                 sortModelOverrides()
-
+                Logs.logInfo("1")
                 runCatching {
                     SchedulerUtils.foliaScheduler.runNextTick {
                         NexoPostPackGenerateEvent(resourcePack).callEvent()
+                        Logs.logInfo("1.5")
                     }.get(4L, TimeUnit.SECONDS)
                 }
+
+                Logs.logInfo("2")
 
                 packValidator.validatePack()
                 ModernVersionPatcher.convertResources(resourcePack)

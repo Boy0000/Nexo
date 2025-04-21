@@ -76,16 +76,16 @@ class FurniturePacketListener : Listener {
 
         furnitureBaseMap.remove(itemDisplay.uniqueId, furnitureBaseMap.get(itemDisplay.uniqueId)?.takeIf { it.baseId != itemDisplay.entityId })
 
-        SchedulerUtils.runTaskLater(2L) {
-            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@runTaskLater
-            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@runTaskLater
+        SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
+            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@Runnable
+            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@Runnable
 
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic)
             packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic)
             if (mechanic.hasBeds) FurnitureBed.spawnBeds(itemDisplay, mechanic)
-        }
+        }, 2L)
     }
 
     @EventHandler
