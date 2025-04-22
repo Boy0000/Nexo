@@ -165,12 +165,12 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPistonRetractEvent.onPiston() {
-        if (blocks.any { NexoBlocks.customBlockMechanic(it.location)?.immovable == true }) isCancelled = true
+        if (blocks.any { NexoBlocks.customBlockMechanic(it.blockData)?.immovable == true }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPistonExtendEvent.onPiston() {
-        if (blocks.any { NexoBlocks.customBlockMechanic(it.location)?.immovable == true }) isCancelled = true
+        if (blocks.any { NexoBlocks.customBlockMechanic(it.blockData)?.immovable == true }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

@@ -89,13 +89,13 @@ class NexoPlugin : JavaPlugin() {
 
         CommandsManager.loadCommands()
 
-        packServer = NexoPackServer.initializeServer()
-        packServer.start()
-
         NexoMetrics.initializeMetrics()
         MechanicsManager.registerNativeMechanics(false)
+        NexoPackServer.registerDefaultPackServers()
 
         foliaLib.scheduler.runNextTick {
+            NexoPackServer.initializeServer()
+            packServer.start()
             NexoItems.loadItems()
             RecipesManager.load()
             packGenerator.generatePack()

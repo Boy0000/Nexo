@@ -18,7 +18,12 @@ import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.*
+import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockIgniteEvent
+import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.event.block.BlockPistonRetractEvent
+import org.bukkit.event.block.NotePlayEvent
 import org.bukkit.event.entity.EntityChangeBlockEvent
 import org.bukkit.event.player.PlayerInteractEvent
 
@@ -113,7 +118,7 @@ class NoteBlockMechanicListener : Listener {
     fun EntityRemoveFromWorldEvent.onFallingBlockLandOnCarpet() {
         val fallingBlock = (entity as? FallingBlock)?.takeIf { it.persistentDataContainer.has(NoteBlockMechanic.FALLING_KEY) } ?: return
         val mechanic = NexoBlocks.noteBlockMechanic(fallingBlock.blockData)?.let { it.directional?.parentMechanic ?: it }?.takeIf { it.isFalling() } ?: return
-        if (NexoBlocks.customBlockMechanic(fallingBlock.location) == mechanic) return
+        if (NexoBlocks.customBlockMechanic(fallingBlock.blockData) == mechanic) return
 
         val itemStack = NexoItems.itemFromId(mechanic.itemID)!!.build()
         fallingBlock.dropItem = false

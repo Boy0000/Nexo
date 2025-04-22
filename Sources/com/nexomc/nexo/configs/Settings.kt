@@ -3,7 +3,7 @@ package com.nexomc.nexo.configs
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.FontListener.ChatHandler
 import com.nexomc.nexo.pack.PackObfuscator
-import com.nexomc.nexo.pack.server.PackServerType
+import com.nexomc.nexo.pack.server.PolymathServer
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
@@ -91,7 +91,7 @@ enum class Settings {
     PACK_VALIDATE_FONTS("Pack.validate.fonts", true),
     PACK_VALIDATE_ATLAS("Pack.validate.atlas", true),
 
-    PACK_SERVER_TYPE("Pack.server.type", PackServerType.POLYMATH),
+    PACK_SERVER_TYPE("Pack.server.type", "POLYMATH"),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
     SELFHOST_PUBLIC_ADDRESS("Pack.server.selfhost.public_address"),
     SELFHOST_DISPATCH_THREADS("Pack.server.selfhost.dispatch_threads", 10),

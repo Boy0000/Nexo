@@ -53,27 +53,29 @@ interface NexoPackServer {
     }
 
     companion object {
+        fun registerDefaultPackServers() {
+            PackServerRegistry.register("SELFHOST", ::SelfHostServer)
+            PackServerRegistry.register("POLYMATH", ::PolymathServer)
+            PackServerRegistry.register("LOBFILE", ::LobFileServer)
+            PackServerRegistry.register("S3", ::S3Server)
+            PackServerRegistry.register("NONE", ::EmptyServer)
+        }
+
         @JvmStatic
-        fun initializeServer(): NexoPackServer {
+        fun initializeServer() {
             NexoPlugin.instance().packServer().stop()
             HandlerList.unregisterAll(packListener)
             Bukkit.getPluginManager().registerEvents(packListener, NexoPlugin.instance())
 
-            val type = Settings.PACK_SERVER_TYPE.toEnumOrGet(PackServerType::class.java) { serverType: String ->
-                Logs.logError("Invalid PackServer-type specified: $serverType")
-                Logs.logError("Valid types are: ${PackServerType.entries.joinToString()}, defaulting to ${PackServerType.NONE}")
-                PackServerType.NONE
+            val type = Settings.PACK_SERVER_TYPE.toString().uppercase()
+            val server = PackServerRegistry.create(type) ?: run {
+                Logs.logError("Invalid PackServer type specified: $type")
+                Logs.logError("Valid types are: ${PackServerRegistry.allRegisteredTypes.joinToString()}")
+                EmptyServer()
             }
 
-            Logs.logInfo("PackServer set to " + type.name)
-
-            return when (type) {
-                PackServerType.SELFHOST -> SelfHostServer()
-                PackServerType.POLYMATH -> PolymathServer()
-                PackServerType.LOBFILE -> LobFileServer()
-                PackServerType.S3 -> S3Server()
-                PackServerType.NONE -> EmptyServer()
-            }
+            Logs.logInfo("PackServer set to $type")
+            NexoPlugin.instance().packServer(server)
         }
 
         fun hashArray(hash: String): ByteArray {

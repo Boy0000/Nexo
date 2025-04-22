@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 
 class S3Server : NexoPackServer {
-
     private val bucket = Settings.S3_BUCKET_NAME.toString()
     private var packUrl: String? = Settings.S3_PUBLIC_URL.toString()
     private var packURI: URI? = URI.create(packUrl)

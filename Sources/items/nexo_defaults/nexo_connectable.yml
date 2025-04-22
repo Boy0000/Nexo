@@ -4,10 +4,11 @@ connectable:
     item_model: nexo:connectable/connectable
   Mechanics:
     furniture:
+      restricted_rotation: VERY_STRICT
+      seats:
+        - 0,0,0
+      hitbox:
+        interactions:
+          - 0,0,0 1,1
       connectable:
-        default_item_model: nexo:connectable/connectable
-        straight_item_model: nexo:connectable/connectable_straight
-        left_item_model: nexo:connectable/connectable_left
-        right_item_model: nexo:connectable/connectable_right
-        inner_item_model: nexo:connectable/connectable_inner
-        outer_item_model: nexo:connectable/connectable_outer
+        type: ITEM_MODEL
