@@ -150,35 +150,4 @@ object WorldEditUtils {
 
         return list
     }
-
-    class NexoBlockInputParser : InputParser<BaseBlock?>(WorldEdit.getInstance()) {
-        init {
-            if (WrappedWorldEdit.loaded) WorldEdit.getInstance().blockFactory.register(this)
-        }
-
-        override fun parseFromInput(input: String, context: ParserContext): BaseBlock? {
-            when {
-                input == "minecraft:note_block" || input == "note_block" ->
-                    return BukkitAdapter.adapt(Bukkit.createBlockData(Material.NOTE_BLOCK)).toBaseBlock()
-                input == "minecraft:tripwire" || input == "tripwire" ->
-                    return BukkitAdapter.adapt(Bukkit.createBlockData(Material.TRIPWIRE)).toBaseBlock()
-                !input.startsWith("nexo:") || input.endsWith(":") -> return null
-                else -> {
-                    val id = input.split(":")[1].split("\\[")[0] // Potential arguments
-                    if (id == input || !NexoBlocks.isCustomBlock(id)) return null
-
-                    val noteMechanic = NexoBlocks.noteBlockMechanic(id) ?: return null
-                    val blockData = NexoBlocks.blockData(id) ?: return null
-
-                    return when {
-                        Settings.WORLDEDIT_STRINGBLOCKS.toBool() && NexoBlocks.isNexoStringBlock(id) ->
-                            BukkitAdapter.adapt(blockData).toBaseBlock()
-                        Settings.WORLDEDIT_NOTEBLOCKS.toBool() ->
-                            BukkitAdapter.adapt(if ("[" in input) parseNoteBlock(noteMechanic, input) else blockData).toBaseBlock()
-                        else -> null
-                    }
-                }
-            }
-        }
-    }
 }

@@ -9,11 +9,11 @@ import org.bukkit.event.Listener
 class WorldEditListener : Listener {
     @EventHandler
     fun AsyncTabCompleteEvent.onTabComplete() {
-        val args = completions.takeIf { buffer.startsWith("//") }?.takeUnless { it.isEmpty() } ?: return
-        completions = nexoBlockIDs.filter { args.any(it::contains) }.plus(completions)
+        val arg = buffer.takeIf { it.startsWith("//") }?.substringAfterLast(" ") ?: return
+        completions = nexoBlockIDs.filter { it.contains(arg) }.plus(completions)
     }
 
     companion object {
-        private val nexoBlockIDs by lazy { NexoItems.itemNames().filter(NexoBlocks::isCustomBlock).map { "nexo:$it" } }
+        private val nexoBlockIDs by lazy { NexoItems.unexcludedItemNames().filter(NexoBlocks::isCustomBlock).map { "nexo:$it" } }
     }
 }

@@ -74,7 +74,7 @@ class ChorusBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
     }
 
     private fun blockstateVariant(mechanic: ChorusBlockMechanic): String {
-        return mechanic.blockData.let { data -> data.faces.joinToString { "${it.name.lowercase()}=${data.hasFace(it)}" } }
+        return mechanic.blockData.let { data -> data.allowedFaces.joinToString(",") { "${it.name.lowercase()}=${data.hasFace(it)}" } }
     }
 
     fun getMechanic(blockData: BlockData): ChorusBlockMechanic? {

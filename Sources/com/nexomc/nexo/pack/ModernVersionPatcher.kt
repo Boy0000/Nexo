@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.item.ConditionItemModel
-import team.unnamed.creative.item.EmptyItemModel
 import team.unnamed.creative.item.Item
 import team.unnamed.creative.item.ItemModel
 import team.unnamed.creative.item.RangeDispatchItemModel
@@ -23,19 +22,27 @@ object ModernVersionPatcher {
 
     fun convertResources(resourcePack: ResourcePack) {
         resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
-            val overrides = model.overrides().takeUnless { it.isEmpty() } ?: return@forEach
+            val overrides = model.overrides().ifEmpty { return@forEach }
             val standardItem = resourcePack.item(itemKey) ?: standardItemModels[itemKey]
             val finalNewItemModel = standardItem?.let { existingItemModel ->
                 val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
 
                 when (baseItemModel) {
-                    is RangeDispatchItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull {
-                        RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
-                    }, baseItemModel)
+                    is RangeDispatchItemModel -> {
+                        val fallback = baseItemModel.fallback() ?: baseItemModel
+                        val entries = baseItemModel.entries().plus(overrides.mapNotNull {
+                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                        }).distinctBy { it.threshold() }
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, entries, fallback)
+                    }
 
-                    is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
-                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
-                    }, baseItemModel)
+                    is SelectItemModel -> {
+                        val fallback = baseItemModel.fallback() ?: baseItemModel
+                        val cases = baseItemModel.cases().plus(overrides.mapNotNull {
+                            SelectItemModel.Case._case(ItemModel.reference(it.model()), it.predicate().customModelData?.toString() ?: return@mapNotNull null)
+                        }).distinctBy { it.`when`() }
+                        ItemModel.select(ItemStringProperty.customModelData(), cases, fallback)
+                    }
 
                     is ConditionItemModel -> {
                         val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
@@ -90,12 +97,12 @@ object ModernVersionPatcher {
                         ItemModel.conditional(baseItemModel.condition(), onTrue, onFalse)
                     }
 
-                    is ReferenceItemModel -> ItemModel.rangeDispatch().fallback(baseItemModel).property(ItemNumericProperty.customModelData()).also { builder ->
-                        builder.addEntries(overrides.mapNotNull { override ->
+                    is ReferenceItemModel -> {
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
                             val cmd = override.predicate().customModelData ?: return@mapNotNull null
                             RangeDispatchItemModel.Entry.entry(cmd, ItemModel.reference(override.model(), baseItemModel.tints()))
-                        })
-                    }.build()
+                        }, baseItemModel)
+                    }
 
                     is SpecialItemModel -> {
                         val defaultDisplay = DisplayProperties.fromModel(model)
@@ -104,12 +111,10 @@ object ModernVersionPatcher {
                             else -> baseItemModel.base()
                         })
 
-                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch().fallback(newBase).property(ItemNumericProperty.customModelData()).apply {
-                            addEntries(overrides.mapNotNull { override ->
-                                val cmd = override.predicate().customModelData ?: return@mapNotNull null
-                                RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
-                            })
-                        }.build()
+                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                            val cmd = override.predicate().customModelData ?: return@mapNotNull null
+                            RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
+                        }, newBase)
                         else newBase
                     }
                     else -> baseItemModel
@@ -153,6 +158,6 @@ object ModernVersionPatcher {
     }
 
     val ItemModel.isSimpleItemModel: Boolean get() {
-        return (this as? ReferenceItemModel)?.tints()?.isEmpty() == true || this is EmptyItemModel
+        return (this as? ReferenceItemModel)?.tints()?.isEmpty() == true
     }
 }

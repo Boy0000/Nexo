@@ -65,6 +65,9 @@ interface IFurniturePacketManager {
         val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, Array<BarrierHitbox>>()
         val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
 
+        val interactionHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
+        val shulkerHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
+
         val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
         val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
         val shulkerHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()

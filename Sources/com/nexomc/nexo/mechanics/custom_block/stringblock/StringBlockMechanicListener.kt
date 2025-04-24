@@ -42,7 +42,8 @@ class StringBlockMechanicListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockBreakEvent.onBreakingTall() {
         val blockBelow = block.getRelative(BlockFace.DOWN)
-        if (block.type != Material.TRIPWIRE || !NexoBlocks.isNexoStringBlock(block)) return
+        val mechanic = NexoBlocks.stringMechanic(block)?.takeIf { it.isTall } ?: return
+        if (NexoBlocks.stringMechanic(blockBelow) != mechanic) return
         isDropItems = false
         NexoBlocks.remove(blockBelow.location, player)
     }

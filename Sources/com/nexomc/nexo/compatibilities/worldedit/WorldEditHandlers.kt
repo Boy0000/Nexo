@@ -1,21 +1,18 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
-import com.sk89q.worldedit.WorldEdit
+import com.sk89q.worldedit.EditSession
+import com.sk89q.worldedit.bukkit.BukkitAdapter
 import com.sk89q.worldedit.event.extent.EditSessionEvent
 import com.sk89q.worldedit.util.eventbus.Subscribe
-import org.bukkit.Bukkit
 
-class WorldEditHandlers(register: Boolean) {
-    init {
-        if (register) WorldEdit.getInstance().eventBus.register(this)
-        else WorldEdit.getInstance().eventBus.unregister(this)
-    }
-
+class WorldEditHandlers {
 
     @Subscribe
     @Suppress("unused")
     fun EditSessionEvent.onEditSession() {
-        val world = world?.name?.let(Bukkit::getWorld) ?: return
-        extent = NexoWorldEditExtent(extent, world)
+        if (stage == EditSession.Stage.BEFORE_CHANGE) {
+            if (WrappedWorldEdit.isFaweEnabled) extent.addPostProcessor(NexoCustomBlocksProcessor(BukkitAdapter.adapt(world)))
+            else extent = NexoWorldEditExtent(extent, BukkitAdapter.adapt(world))
+        }
     }
 }

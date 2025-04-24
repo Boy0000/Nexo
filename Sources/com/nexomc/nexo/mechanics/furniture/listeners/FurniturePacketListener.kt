@@ -105,15 +105,15 @@ class FurniturePacketListener : Listener {
     @EventHandler
     fun WorldUnloadEvent.onUnload() {
         world.entities.filterIsInstance<ItemDisplay>().forEach { itemDisplay ->
-            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
-            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-
+            val uuid = itemDisplay.uniqueId
             FurnitureBed.removeBeds(itemDisplay)
 
-            furnitureBaseMap.remove(itemDisplay.uniqueId)
-            packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
-            packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
-            packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
+            furnitureBaseMap.remove(uuid)
+            IFurniturePacketManager.interactionHitboxPacketMap.remove(uuid)
+            IFurniturePacketManager.shulkerHitboxPacketMap.remove(uuid)
+            IFurniturePacketManager.barrierHitboxPositionMap.remove(uuid)
+            IFurniturePacketManager.barrierHitboxLocationMap.remove(uuid)
+            IFurniturePacketManager.lightMechanicPositionMap.remove(uuid)
         }
     }
 
