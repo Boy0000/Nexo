@@ -36,13 +36,9 @@ object ModernVersionPatcher {
                         ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, entries, fallback)
                     }
 
-                    is SelectItemModel -> {
-                        val fallback = baseItemModel.fallback() ?: baseItemModel
-                        val cases = baseItemModel.cases().plus(overrides.mapNotNull {
-                            SelectItemModel.Case._case(ItemModel.reference(it.model()), it.predicate().customModelData?.toString() ?: return@mapNotNull null)
-                        }).distinctBy { it.`when`() }
-                        ItemModel.select(ItemStringProperty.customModelData(), cases, fallback)
-                    }
+                    is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
+                    }, baseItemModel)
 
                     is ConditionItemModel -> {
                         val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
