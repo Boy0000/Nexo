@@ -1,7 +1,9 @@
 package com.nexomc.nexo.mechanics.furniture.hitbox
 
 import com.nexomc.nexo.utils.VectorUtils.vectorFromString
+import org.bukkit.Location
 import org.bukkit.block.BlockFace
+import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import org.joml.Math
 import org.joml.Vector3f
@@ -13,13 +15,15 @@ data class ShulkerHitbox(
     val scale: Double = 1.0,
     val length: Double = 1.0,
     val direction: BlockFace = BlockFace.DOWN,
+    val visible: Boolean = false,
 ) {
 
     constructor(hitboxString: String) : this(
         offset = vectorFromString(hitboxString.split(" ").firstOrNull() ?: "0,0,0", 0f),
         scale = hitboxString.split(" ").getOrElse(1) { "1.0" }.toDoubleOrNull() ?: 1.0,
-        length = hitboxString.split(" ").getOrElse(2) { "0.0" }.toDoubleOrNull()?.coerceIn(1.0..2.0) ?: 1.0,
-        direction = BlockFace.entries.firstOrNull { it.name.uppercase() == hitboxString.split(" ").getOrElse(3) { "DOWN" }.uppercase() } ?: BlockFace.DOWN,
+        length = hitboxString.split(" ").getOrElse(2) { "1.0" }.toDoubleOrNull()?.coerceIn(1.0..2.0) ?: 1.0,
+        direction = hitboxString.split(" ").getOrNull(3)?.let { BlockFace.entries.find { b -> b.name.uppercase() == it  } } ?: BlockFace.DOWN,
+        visible = hitboxString.split(" ").getOrElse(4) { hitboxString.split(" ").getOrElse(3) { "false" } }.toBoolean()
     )
 
 
@@ -63,6 +67,10 @@ data class ShulkerHitbox(
         // Map to closest BlockFace
         return (listOf(BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST)
             .minByOrNull { it.direction.distance(rotatedVector) } ?: direction).direction.toVector3f()
+    }
+
+    fun boundingBox(center: Location): BoundingBox {
+        return BoundingBox.of(center, scale, scale + scale * length, scale)
     }
 
 

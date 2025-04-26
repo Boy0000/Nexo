@@ -39,7 +39,7 @@ data class Loot(
         if (itemStack != null) return ItemUpdater.updateItem(itemStack!!)
 
         itemStack = when {
-            "nexo_item" in config -> NexoItems.itemFromId(config["nexo_item"].toString())!!.build()
+            "nexo_item" in config -> NexoItems.itemFromId(config["nexo_item"].toString())?.build()
             "crucible_item" in config -> WrappedCrucibleItem(config["crucible_item"].toString()).build()
             "mmoitems_id" in config && "mmoitems_type" in config -> MMOItems.plugin.getItem(config["mmoitems_type"].toString(), config["mmoitems_id"].toString())
             "ecoitem" in config -> WrappedEcoItem(config["ecoitem"].toString()).build()

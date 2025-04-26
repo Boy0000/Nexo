@@ -135,7 +135,9 @@ object NexoBlocks {
 
     @JvmStatic
     fun place(itemID: String?, location: Location) {
-        CustomBlockRegistry.types.forEach { it.placeCustomBlock(location, itemID) }
+        val mechanic = itemID?.let(CustomBlockRegistry::getMechanic) ?: return
+        val type = CustomBlockRegistry.get(mechanic.factory?.mechanicID) ?: return
+        type.placeCustomBlock(location, itemID)
     }
 
     /**
