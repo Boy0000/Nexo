@@ -14,8 +14,8 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import com.nexomc.protectionlib.ProtectionLib
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.GameEvent
 import org.bukkit.Location
@@ -76,7 +76,7 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
     fun BlockDamageEvent.onHitWood() {
         if (VersionUtil.below("1.20.5") || block.blockData.soundGroup.hitSound != Sound.BLOCK_WOOD_HIT) return
         val location = block.location.takeUnless { it in breakerPlaySound } ?: return
-        val blockSounds = NexoBlocks.customBlockMechanic(block.blockData)?.blockSounds
+        val blockSounds = NexoBlocks.customBlockMechanic(block)?.blockSounds
 
         val sound = blockSounds?.hitSound ?: BlockSounds.VANILLA_WOOD_HIT
         val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
@@ -103,7 +103,7 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
         val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
         if (blockStandingOn.blockData.soundGroup.stepSound != Sound.BLOCK_WOOD_STEP) return
-        val mechanic = NexoBlocks.customBlockMechanic(blockStandingOn.blockData)
+        val mechanic = NexoBlocks.customBlockMechanic(blockStandingOn)
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

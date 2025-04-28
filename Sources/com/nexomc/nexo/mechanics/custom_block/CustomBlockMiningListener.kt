@@ -17,7 +17,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent
 class CustomBlockMiningListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockDamageEvent.onDamageCustomBlock() {
-        val mechanic = NexoBlocks.customBlockMechanic(block.blockData) ?: return
+        val mechanic = NexoBlocks.customBlockMechanic(block) ?: return
         if (player.gameMode == GameMode.CREATIVE) return
 
         if (VersionUtil.below("1.20.5")) isCancelled = true

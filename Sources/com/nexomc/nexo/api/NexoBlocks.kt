@@ -51,17 +51,19 @@ object NexoBlocks {
     fun chorusBlockIDs(): Array<String>  = NexoItems.itemNames().filter(::isNexoChorusBlock).toTypedArray()
 
     /**
-     * Check if a block is an instance of an NexoBlock
+     * Check if a block is an instance of a NexoBlock
      *
      * @param block The block to check
-     * @return true if the block is an instance of an NexoBlock, otherwise false
+     * @return true if the block is an instance of a NexoBlock, otherwise false
      */
     @JvmStatic
-    fun isCustomBlock(block: Block?) = when (block?.type) {
-        Material.NOTE_BLOCK -> noteBlockMechanic(block) != null
-        Material.TRIPWIRE -> stringMechanic(block) != null
-        Material.CHORUS_PLANT -> chorusBlockMechanic(block) != null
-        else -> false
+    fun isCustomBlock(block: Block?): Boolean {
+        return when (block?.type) {
+            Material.NOTE_BLOCK -> noteBlockMechanic(block)
+            Material.TRIPWIRE -> stringMechanic(block)
+            Material.CHORUS_PLANT -> chorusBlockMechanic(block)
+            else -> block?.let(CustomBlockRegistry::getMechanic)
+        } != null
     }
 
     @JvmStatic
@@ -80,7 +82,7 @@ object NexoBlocks {
      * Check if a block is an instance of a NoteBlock
      *
      * @param block The block to check
-     * @return true if the block is an instance of an NoteBlock, otherwise false
+     * @return true if the block is an instance of a NoteBlock, otherwise false
      */
     @JvmStatic
     fun isNexoNoteBlock(block: Block) = block.type == Material.NOTE_BLOCK && noteBlockMechanic(block) != null
@@ -148,20 +150,17 @@ object NexoBlocks {
      */
     @JvmStatic
     fun blockData(itemID: String?): BlockData? {
-        return when {
-            isNexoNoteBlock(itemID) -> NoteBlockMechanicFactory.instance()?.getMechanic(itemID)?.blockData
-            isNexoStringBlock(itemID) -> StringBlockMechanicFactory.instance()?.getMechanic(itemID)?.blockData
-            else -> null
-        }
+        val mechanic = itemID?.let(CustomBlockRegistry::getMechanic) ?: return null
+        return mechanic.blockData
     }
 
     /**
-     * Breaks an NexoBlock at the given location
+     * Breaks a NexoBlock at the given location
      *
      * @param location  The location of the NexoBlock
-     * @param player    The player that broke the block, can be null
-     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode
-     * @return True if the block was broken, false if the block was not an NexoBlock or could not be broken
+     * @param player    The player that broke the block can be null
+     * @param forceDrop Whether to force the block to drop, even if the player is null or in creative mode
+     * @return True if the block was broken, false if the block was not a NexoBlock or could not be broken
      */
     @JvmStatic
     fun remove(location: Location, player: Player? = null, forceDrop: Boolean): Boolean {
@@ -170,17 +169,19 @@ object NexoBlocks {
     }
 
     /**
-     * Breaks an NexoBlock at the given location
+     * Breaks a NexoBlock at the given location
      *
      * @param location The location of the NexoBlock
-     * @param player   The player that broke the block, can be null
-     * @return True if the block was broken, false if the block was not an NexoBlock or could not be broken
+     * @param player   The player that broke the block can be null
+     * @return True if the block was broken, false if the block was not a NexoBlock or could not be broken
      */
     @JvmOverloads
     @JvmStatic
     fun remove(location: Location, player: Player? = null, overrideDrop: Drop? = null): Boolean {
         val block = location.block
-        return CustomBlockRegistry.types.firstOrNull { it.removeCustomBlock(block, player, overrideDrop) } != null
+        val mechanic = CustomBlockRegistry.getMechanic(block) ?: return false
+        val type = CustomBlockRegistry.getByClass(mechanic::class.java) ?: return false
+        return type.removeCustomBlock(block, player, overrideDrop)
     }
 
     /**
@@ -193,6 +194,11 @@ object NexoBlocks {
     @JvmStatic
     fun customBlockMechanic(location: Location): CustomBlockMechanic? {
         return CustomBlockRegistry.getMechanic(location.block)
+    }
+
+    @JvmStatic
+    fun customBlockMechanic(block: Block): CustomBlockMechanic? {
+        return CustomBlockRegistry.getMechanic(block)
     }
 
     @JvmStatic

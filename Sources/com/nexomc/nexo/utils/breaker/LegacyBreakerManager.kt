@@ -17,15 +17,16 @@ import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import com.nexomc.protectionlib.ProtectionLib
+import com.tcoded.folialib.wrapper.task.WrappedTask
+import java.util.Random
+import java.util.UUID
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
-import java.util.*
 import kotlin.math.min
 
 class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, ActiveBreakerData>) :
@@ -96,7 +97,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
-            val blockMechanic = NexoBlocks.customBlockMechanic(block.blockData)
+            val blockMechanic = NexoBlocks.customBlockMechanic(block)
             val furnitureMechanic = NexoFurniture.furnitureMechanic(block)
             val breakable = blockMechanic?.breakable ?: furnitureMechanic?.breakable
             when {
@@ -136,7 +137,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
-            val blockMechanic = NexoBlocks.customBlockMechanic(block.blockData)
+            val blockMechanic = NexoBlocks.customBlockMechanic(block)
             val furnitureMechanic = NexoFurniture.furnitureMechanic(block)
 
             when {

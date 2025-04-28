@@ -46,7 +46,7 @@ class CustomBlockListener : Listener {
     fun PlayerInteractEvent.callInteract() {
         val block = clickedBlock?.takeIf { action == Action.RIGHT_CLICK_BLOCK } ?: return
 
-        val customBlockEvent = when (val mechanic = NexoBlocks.customBlockMechanic(block.blockData)) {
+        val customBlockEvent = when (val mechanic = NexoBlocks.customBlockMechanic(block)) {
             is NoteBlockMechanic ->
                 NexoNoteBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
             is StringBlockMechanic ->
@@ -137,9 +137,7 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun EntityExplodeEvent.onEntityExplosion() {
-        val customBlocks = blockList().associateWithNotNull { block ->
-            NexoBlocks.customBlockMechanic(block.blockData)
-        }
+        val customBlocks = blockList().associateWithNotNull(NexoBlocks::customBlockMechanic)
 
         val windCharged = entity.type.name.contains("WIND_CHARGE") || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
 
@@ -153,7 +151,7 @@ class CustomBlockListener : Listener {
     @EventHandler
     fun BlockExplodeEvent.onBlockExplosion() {
         val customBlocks = blockList().mapNotNull { block ->
-            NexoBlocks.customBlockMechanic(block.blockData)?.let { m -> block to m }
+            NexoBlocks.customBlockMechanic(block)?.let { m -> block to m }
         }.toMap()
 
         customBlocks.forEach { (block, mechanic) ->
@@ -165,12 +163,12 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPistonRetractEvent.onPiston() {
-        if (blocks.any { NexoBlocks.customBlockMechanic(it.blockData)?.immovable == true }) isCancelled = true
+        if (blocks.any { NexoBlocks.customBlockMechanic(it)?.immovable == true }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockPistonExtendEvent.onPiston() {
-        if (blocks.any { NexoBlocks.customBlockMechanic(it.blockData)?.immovable == true }) isCancelled = true
+        if (blocks.any { NexoBlocks.customBlockMechanic(it)?.immovable == true }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -186,7 +184,7 @@ class CustomBlockListener : Listener {
     fun PlayerPickItemEvent.onMiddleClick() {
         val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
         val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
-        val mechanic = NexoBlocks.customBlockMechanic(block.blockData)
+        val mechanic = NexoBlocks.customBlockMechanic(block)
             ?: NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))?.takeIf { it.isTall } ?: return
 
         val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()
@@ -214,7 +212,7 @@ class CustomBlockListener : Listener {
 
         val distance = AttributeWrapper.BLOCK_INTERACTION_RANGE?.let(player::getAttribute)?.value ?: 6.0
         val block = player.rayTraceBlocks(distance)?.hitBlock ?: return
-        val mechanic = NexoBlocks.customBlockMechanic(block.blockData)
+        val mechanic = NexoBlocks.customBlockMechanic(block)
             ?: NexoBlocks.stringMechanic(block.getRelative(BlockFace.DOWN))?.takeIf { it.isTall } ?: return
 
         val item = (mechanic as? NoteBlockMechanic)?.directional?.parentBlock?.let(NexoItems::itemFromId)?.build() ?: NexoItems.itemFromId(mechanic.itemID)!!.build()

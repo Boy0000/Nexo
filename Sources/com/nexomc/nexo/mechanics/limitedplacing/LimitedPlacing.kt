@@ -68,7 +68,7 @@ class LimitedPlacing(section: ConfigurationSection) {
         return (nexoBlocks.isNotEmpty() && nexoId in nexoBlocks)
     }
 
-    private fun checkIfNexoItem(block: Block) = (NexoBlocks.customBlockMechanic(block.blockData) ?: NexoFurniture.furnitureMechanic(block.location))?.itemID
+    private fun checkIfNexoItem(block: Block) = (NexoBlocks.customBlockMechanic(block) ?: NexoFurniture.furnitureMechanic(block.location))?.itemID
 
     enum class LimitedPlacingType {
         ALLOW, DENY
