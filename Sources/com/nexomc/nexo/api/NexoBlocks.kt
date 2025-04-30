@@ -138,7 +138,7 @@ object NexoBlocks {
     @JvmStatic
     fun place(itemID: String?, location: Location) {
         val mechanic = itemID?.let(CustomBlockRegistry::getMechanic) ?: return
-        val type = CustomBlockRegistry.get(mechanic.factory?.mechanicID) ?: return
+        val type = CustomBlockRegistry.getByClass(mechanic::class.java) ?: return
         type.placeCustomBlock(location, itemID)
     }
 

@@ -4,6 +4,7 @@ import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.bed.EmptyFurnitureBedHandler
 import com.nexomc.nexo.mechanics.furniture.bed.IFurnitureBedEntityHandler
+import com.nexomc.nexo.utils.Colorable
 import com.nexomc.nexo.utils.InteractionResult
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -34,6 +35,8 @@ interface NMSHandler {
 
     fun resourcepackFormat(): Int
     fun datapackFormat(): Int
+
+    fun asColorable(itemStack: ItemStack): Colorable?
 
     /**
      * Copies over all NBT-Tags from oldItem to newItem

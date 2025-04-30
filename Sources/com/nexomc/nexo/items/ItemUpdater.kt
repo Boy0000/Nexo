@@ -223,7 +223,6 @@ class ItemUpdater : Listener {
 
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true
 
-                itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
                 (itemMeta as? BundleMeta)?.setItems((oldMeta as? BundleMeta)?.items)
 
                 if (itemMeta is ArmorMeta) when {
@@ -323,6 +322,8 @@ class ItemUpdater : Listener {
                     itemPdc.set(ItemBuilder.ORIGINAL_NAME_KEY, PersistentDataType.STRING, (newMeta.displayName() ?: translatable(newItem.type)).serialize())
                 }
             }
+
+            newItem.asColorable().takeIf { oldItem.asColorable() != null }?.color = oldItem.asColorable()?.color
 
             NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
             NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))

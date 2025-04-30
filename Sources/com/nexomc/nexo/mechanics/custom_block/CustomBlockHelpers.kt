@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.custom_block
 
 import com.nexomc.nexo.api.NexoBlocks
+import com.nexomc.nexo.api.events.custom_block.NexoBlockPlaceEvent
 import com.nexomc.nexo.api.events.custom_block.chorusblock.NexoChorusBlockPlaceEvent
 import com.nexomc.nexo.api.events.custom_block.noteblock.NexoNoteBlockPlaceEvent
 import com.nexomc.nexo.api.events.custom_block.stringblock.NexoStringBlockPlaceEvent
@@ -15,6 +16,7 @@ import com.nexomc.nexo.utils.BlockHelpers.isStandingInside
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.InteractionResult
+import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.GameEvent
 import org.bukkit.GameMode
@@ -27,7 +29,6 @@ import org.bukkit.block.data.BlockData
 import org.bukkit.block.sign.Side
 import org.bukkit.entity.FallingBlock
 import org.bukkit.entity.Player
-import org.bukkit.event.Event
 import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
@@ -104,36 +105,39 @@ object CustomBlockHelpers {
 
         if (newMechanic != null) {
             NexoBlocks.place(newMechanic.itemID, target.location)
-            val customBlockPlaceEvent: Event = when (newMechanic) {
+            val customBlockPlaceEvent = when (newMechanic) {
                 is NoteBlockMechanic -> NexoNoteBlockPlaceEvent(newMechanic, target, player, item, hand)
                 is StringBlockMechanic -> NexoStringBlockPlaceEvent(newMechanic, target, player, item, hand)
                 is ChorusBlockMechanic -> NexoChorusBlockPlaceEvent(newMechanic, target, player, item, hand)
-                else -> return
+                else -> NexoBlockPlaceEvent(newMechanic, target, player, item, hand)
             }
 
-            if (!customBlockPlaceEvent.call()) {
-                target.setBlockData(oldData, false)
-                return
-            }
+            if (!customBlockPlaceEvent.call()) return target.setBlockData(oldData, false)
 
             // Handle Falling NoteBlock-Mechanic blocks
-            if (newMechanic is NoteBlockMechanic) {
-                if (newMechanic.isFalling() && blockBelow.type.isAir()) {
-                    val fallingLocation = toCenterBlockLocation(target.location)
-                    NexoBlocks.remove(target.location, null)
-                    if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty())
-                        target.world.spawn(fallingLocation, FallingBlock::class.java).apply {
-                            blockData = newData!!
-                            persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
+            when {
+                newMechanic is NoteBlockMechanic -> {
+                    when {
+                        newMechanic.isFalling() && blockBelow.type.isAir() -> {
+                            val fallingLocation = toCenterBlockLocation(target.location)
+                            NexoBlocks.remove(target.location, null, Drop.emptyDrop())
+                            if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty())
+                                target.world.spawn(fallingLocation, FallingBlock::class.java).apply {
+                                    blockData = newData!!
+                                    persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
+                                }
+                            NoteMechanicHelpers.handleFallingNexoBlockAbove(target)
                         }
-                    NoteMechanicHelpers.handleFallingNexoBlockAbove(target)
-                } else {
-                    target.type = Material.AIR
-                    target.setBlockData(newData!!, true)
+                        else -> {
+                            target.type = Material.AIR
+                            target.setBlockData(newData!!, true)
+                        }
+                    }
                 }
-            } else if (newData != null) {
-                target.type = Material.AIR
-                target.setBlockData(newData, true)
+                newData != null -> {
+                    target.type = Material.AIR
+                    target.setBlockData(newData, true)
+                }
             }
 
             if (player.gameMode != GameMode.CREATIVE) item.amount -= 1

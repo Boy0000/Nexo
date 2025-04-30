@@ -3,6 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block.stringblock.sapling
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
+import com.nexomc.nexo.utils.wrappers.ParticleWrapper
 import org.bukkit.Effect
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -35,6 +36,8 @@ class SaplingListener : Listener {
 
         val pdc = block.persistentDataContainer
         val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - sapling.boneMealGrowthSpeedup
+        block.world.spawnParticle(ParticleWrapper.HAPPY_VILLAGER, block.location, 10, 0.5, 0.5, 0.5)
+        player.swingMainHand()
         if (growthTimeRemains <= 0) {
             block.setType(Material.AIR, false)
             if (sapling.hasGrowSound()) player.playSound(block.location, sapling.growSound!!, 1.0f, 0.8f)

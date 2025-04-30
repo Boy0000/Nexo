@@ -9,10 +9,11 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.persistence.PersistentDataType
+import org.bukkit.scheduler.BukkitRunnable
 
-class SaplingTask(private val delay: Int) {
+class SaplingTask(private val delay: Int) : BukkitRunnable() {
 
-    init {
+    override fun run() {
         Bukkit.getWorlds().forEach { world ->
             world.loadedChunks.forEach { chunk ->
                 CustomBlockData.getBlocksWithCustomData(NexoPlugin.instance(), chunk).forEach { block ->
@@ -20,12 +21,8 @@ class SaplingTask(private val delay: Int) {
                         val pdc = block.persistentDataContainer
                         when {
                             pdc.has(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER) && block.type == Material.TRIPWIRE -> {
-                                val string = NexoBlocks.stringMechanic(block)
-                                if (string == null || !string.isSapling()) return@Runnable
-
-                                val sapling = string.sapling()
-                                if (sapling == null || !sapling.hasSchematic()) return@Runnable
-                                if (!sapling.canGrowNaturally) return@Runnable
+                                val sapling = NexoBlocks.stringMechanic(block)?.sapling() ?: return@Runnable
+                                if (!sapling.hasSchematic() || !sapling.canGrowNaturally) return@Runnable
                                 if (sapling.requiresWaterSource && !sapling.isUnderWater(block)) return@Runnable
                                 if (sapling.requiresLight() && block.lightLevel < sapling.minLightLevel) return@Runnable
 
@@ -35,8 +32,7 @@ class SaplingTask(private val delay: Int) {
                                 val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay
                                 if (growthTimeRemains <= 0) {
                                     block.setType(Material.AIR, false)
-                                    if (sapling.hasGrowSound())
-                                        block.world.playSound(block.location, sapling.growSound!!, 1.0f, 0.8f)
+                                    if (sapling.hasGrowSound()) block.world.playSound(block.location, sapling.growSound!!, 1.0f, 0.8f)
                                     WrappedWorldEdit.pasteSchematic(block.location, selectedSchematic, sapling.replaceBlocks, sapling.copyBiomes, sapling.copyEntities)
                                 } else pdc.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains)
                             }

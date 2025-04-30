@@ -1,7 +1,6 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -22,6 +21,7 @@ import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
@@ -97,7 +97,7 @@ class FurnitureListener : Listener {
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
         val pdc = baseEntity.persistentDataContainer
 
-        item.itemMeta?.asColorable()?.color?.asRGB()?.also {
+        item.asColorable()?.color?.asRGB()?.also {
             pdc.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, it)
         }
         item.itemMeta.displayName()?.serialize()?.also {

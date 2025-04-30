@@ -68,7 +68,11 @@ class PackGenerator {
         NexoPackWriter.resetWriter()
     }
 
-    fun generatePack() {
+    fun regeneratePack() {
+        generatePack(Settings.PACK_SEND_RELOAD.toBool())
+    }
+
+    fun generatePack(sendToOnline: Boolean = true) {
         stopPackGeneration()
         NexoPrePackGenerateEvent(resourcePack).call()
         val packFolder = NexoPlugin.instance().dataFolder.resolve("pack")
@@ -182,7 +186,7 @@ class PackGenerator {
                 SchedulerUtils.foliaScheduler.runNextTick {
                     NexoPackUploadEvent(builtPack!!.hash(), packServer.packUrl()).call()
                 }
-                if (Settings.PACK_SEND_RELOAD.toBool()) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
+                if (sendToOnline) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
             }
         }
     }

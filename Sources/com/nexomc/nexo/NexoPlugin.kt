@@ -95,7 +95,6 @@ class NexoPlugin : JavaPlugin() {
 
         foliaLib.scheduler.runNextTick {
             NexoPackServer.initializeServer()
-            packServer.start()
             NexoItems.loadItems()
             RecipesManager.load()
             packGenerator.generatePack()
@@ -121,6 +120,7 @@ class NexoPlugin : JavaPlugin() {
     fun reloadConfigs() {
         resourceManager = ResourceManager(this)
         configsManager = ConfigsManager(this)
+        Settings.reload()
         configsManager.validatesConfig()
         converter = Converter(resourceManager.converter.config)
         if (!converter.oraxenConverter.hasBeenConverted) OraxenConverter.convert()

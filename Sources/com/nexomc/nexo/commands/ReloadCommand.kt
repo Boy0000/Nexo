@@ -89,7 +89,7 @@ object ReloadCommand {
         NexoPlugin.instance().fontManager(FontManager(NexoPlugin.instance().configsManager()))
         NexoPlugin.instance().soundManager(SoundManager(NexoPlugin.instance().configsManager().sounds))
         NexoPlugin.instance().packGenerator(PackGenerator())
-        NexoPlugin.instance().packGenerator().generatePack()
+        NexoPlugin.instance().packGenerator().regeneratePack()
     }
 
     @JvmOverloads

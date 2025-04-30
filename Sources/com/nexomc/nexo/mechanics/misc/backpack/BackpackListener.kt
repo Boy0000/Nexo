@@ -1,9 +1,10 @@
 package com.nexomc.nexo.mechanics.misc.backpack
 
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.InventoryUtils.topInventoryForPlayer
-import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.utils.SchedulerUtils
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import org.bukkit.Material
@@ -75,6 +76,10 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (isBackpack(event.currentItem) || isBackpack(event.cursor)) event.isCancelled = true
+            if (!event.cursor.isEmpty || event.currentItem?.isEmpty == false) SchedulerUtils.runTaskLater(1L) {
+                pdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
+                backpack.itemMeta = backpackMeta
+            }
         }
 
         gui.setDragAction { event: InventoryDragEvent ->
@@ -94,11 +99,7 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
         gui.setCloseGuiAction { event: InventoryCloseEvent ->
             val player = event.player as Player
-            pdc.set(
-                BackpackMechanic.BACKPACK_KEY,
-                DataType.ITEM_STACK_ARRAY,
-                gui.inventory.contents
-            )
+            pdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
             backpack.itemMeta = backpackMeta
             player.world.playSound(player.location, mechanic.closeSound, mechanic.volume, mechanic.pitch)
         }

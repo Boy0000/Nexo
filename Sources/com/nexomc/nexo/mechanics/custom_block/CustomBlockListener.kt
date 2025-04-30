@@ -108,17 +108,16 @@ class CustomBlockListener : Listener {
         val itemID = NexoItems.idFromItem(item) ?: return
         val (placedAgainst, item, hand) = (clickedBlock ?: return) to (item ?: return) to (hand ?: return)
         if (action != Action.RIGHT_CLICK_BLOCK) return
-
-        var mechanic = NexoBlocks.customBlockMechanic(itemID) ?: return
         if (!player.isSneaking && BlockHelpers.isInteractable(placedAgainst)) return
 
         // Change mechanic according to subMechanic changes
-        when (mechanic) {
-            is NoteBlockMechanic -> mechanic = mechanic.directional?.directionMechanic(blockFace, player) ?: mechanic.directional?.parentMechanic ?: mechanic
+        val mechanic = when (val mechanic = NexoBlocks.customBlockMechanic(itemID) ?: return) {
+            is NoteBlockMechanic -> mechanic.directional?.directionMechanic(blockFace, player) ?: mechanic.directional?.parentMechanic ?: mechanic
             is StringBlockMechanic -> {
-                mechanic = mechanic.randomPlace().randomOrNull()?.let(NexoBlocks::stringMechanic) ?: mechanic
                 if (placedAgainst.getRelative(blockFace).isLiquid) return
+                mechanic.randomPlace().randomOrNull()?.let(NexoBlocks::stringMechanic) ?: mechanic
             }
+            else -> mechanic
         }
 
         CustomBlockRegistry.getByClass(mechanic::class.java)?.placeCustomBlock(player, hand, item, mechanic, placedAgainst, blockFace)

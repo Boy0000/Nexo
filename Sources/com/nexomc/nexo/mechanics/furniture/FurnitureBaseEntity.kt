@@ -1,8 +1,8 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.utils.asColorable
 import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
@@ -14,16 +14,16 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: Furnitu
         itemStack = (mechanic.placedItem(baseEntity)).apply {
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }.build().also { item ->
+            item.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
             item.editMeta {
-                it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
                 it.displayName(null)
             }
         }
         FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
     }
     fun itemStack(item: ItemStack, baseEntity: ItemDisplay) {
+        item.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
         item.editMeta {
-            it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
             it.displayName(null)
             it.persistentDataContainer.set(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }
@@ -38,8 +38,8 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: Furnitu
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }.build()
 
+        itemStack.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
         itemStack.editMeta {
-            it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
             it.displayName(null)
         }
     }

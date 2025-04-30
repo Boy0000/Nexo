@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
+import com.nexomc.nexo.utils.drops.Drop
 import org.bukkit.Instrument
 import org.bukkit.Location
 import org.bukkit.Material
@@ -53,7 +54,7 @@ object NoteMechanicHelpers {
         val mechanic = NexoBlocks.noteBlockMechanic(blockAbove)?.takeIf { it.isFalling() } ?: return
         val fallingLocation = toCenterBlockLocation(blockAbove.location)
         val fallingData = NexoBlocks.blockData(mechanic.itemID) ?: return
-        NexoBlocks.remove(blockAbove.location)
+        NexoBlocks.remove(blockAbove.location, null, Drop.emptyDrop())
         blockAbove.world.spawn(fallingLocation, FallingBlock::class.java).blockData = fallingData
         handleFallingNexoBlockAbove(blockAbove)
     }

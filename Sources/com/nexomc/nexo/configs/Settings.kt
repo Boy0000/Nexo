@@ -3,7 +3,6 @@ package com.nexomc.nexo.configs
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.FontListener.ChatHandler
 import com.nexomc.nexo.pack.PackObfuscator
-import com.nexomc.nexo.pack.server.PolymathServer
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
@@ -175,13 +174,14 @@ enum class Settings {
         this.richComment = richComment
     }
 
-    var value: Any? = null
+    private var _value: Any? = null
+    var value: Any?
         get() {
-            if (field == null) field = NexoPlugin.instance().configsManager().settings().get(path)
-            return field
+            if (_value == null) _value = NexoPlugin.instance().configsManager().settings().get(path)
+            return _value
         }
-        set(value) {
-            setValue(value, true)
+        set(newValue) {
+            setValue(newValue, true)
         }
 
     fun setValue(value: Any?, save: Boolean) {
@@ -230,6 +230,9 @@ enum class Settings {
     fun toConfigSection() = NexoPlugin.instance().configsManager().settings().getConfigurationSection(path)
 
     companion object {
+        fun reload() {
+            Settings.entries.forEach { it._value = null }
+        }
         fun validateSettings(): YamlConfiguration {
             val settingsFile = NexoPlugin.instance().dataFolder.toPath().resolve("settings.yml").toFile()
             val settings = if (settingsFile.exists()) loadConfiguration(settingsFile) else YamlConfiguration()
