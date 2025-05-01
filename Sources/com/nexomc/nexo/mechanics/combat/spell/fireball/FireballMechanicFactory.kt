@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack
 
 class FireballMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     init {
-        MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, FireballMechanicManager(this))
+        MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, FireballMechanicListener(this))
     }
 
     override fun parse(section: ConfigurationSection) = FireballMechanic(this, section).apply(::addToImplemented)

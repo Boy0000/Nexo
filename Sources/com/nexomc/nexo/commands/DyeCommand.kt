@@ -31,10 +31,12 @@ internal fun CommandTree.dyeCommand() = literalArgument("dye") {
             val item = player.inventory.itemInMainHand.takeIf { it.type != Material.AIR }
                 ?: player.inventory.itemInOffHand.takeIf { it.type != Material.AIR }
                 ?: return@playerExecutor Message.DYE_FAILED.send(player)
-            item.asColorable()?.apply {
-                this.color = color
+            item.editMeta {
+                it.asColorable()?.apply {
+                    this.color = color
+                } ?: return@editMeta Message.DYE_FAILED.send(player)
                 Message.DYE_SUCCESS.send(player)
-            } ?: return@playerExecutor Message.DYE_FAILED.send(player)
+            }
         }
     }
 }

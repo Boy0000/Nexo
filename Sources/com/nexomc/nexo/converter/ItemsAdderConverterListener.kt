@@ -45,7 +45,7 @@ class ItemsAdderConverterListener : Listener {
             pdc.set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, itemId)
 
             FurnitureSeat.spawnSeats(baseEntity, mechanic)
-            FurnitureHelpers.furnitureDye(baseEntity, baseEntity.itemStack.asColorable()?.color)
+            FurnitureHelpers.furnitureDye(baseEntity, baseEntity.itemStack.itemMeta?.asColorable()?.color)
             baseEntity.itemStack.itemMeta?.displayName()?.serialize()?.also {
                 pdc.set(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING, it)
             }

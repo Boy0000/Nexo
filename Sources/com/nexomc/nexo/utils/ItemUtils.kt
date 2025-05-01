@@ -1,6 +1,8 @@
 package com.nexomc.nexo.utils
 
+import net.minecraft.resources.ResourceLocation
 import org.bukkit.Material
+import org.bukkit.craftbukkit.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
@@ -10,6 +12,16 @@ object ItemUtils {
 
     fun itemStacks(vararg materials: Material): List<ItemStack> {
         return materials.map(::ItemStack)
+    }
+
+    fun triggerCooldown(player: Player, item: ItemStack) {
+        if (!VersionUtil.atleast("1.21.2")) return
+        val cooldown = item.itemMeta?.takeIf { it.hasUseCooldown() }?.useCooldown ?: return
+        val cooldownTime = cooldown.cooldownSeconds.times(20).toInt()
+
+        // Use NMS because group-based cooldowns not exposed in API until 1.21.4
+        if (cooldown.cooldownGroup != null) (player as CraftPlayer).handle.cooldowns.addCooldown(ResourceLocation.parse(cooldown.cooldownGroup.toString()), cooldownTime)
+        else player.setCooldown(item, cooldownTime)
     }
 
     /**

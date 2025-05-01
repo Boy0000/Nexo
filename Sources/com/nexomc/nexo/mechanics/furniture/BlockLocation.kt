@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture
 
 import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType
+import com.nexomc.nexo.utils.removeSpaces
 import com.nexomc.nexo.utils.to
 import org.bukkit.Location
 import org.bukkit.Utility
@@ -22,7 +23,7 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
     constructor(block: Block) : this(block.x, block.y, block.z)
 
     constructor(location: String) : this() {
-        val split = location.split(",").map { it.toIntOrNull() ?: 0 }.toMutableList()
+        val split = location.split(",").map { it.removeSpaces().toIntOrNull() ?: 0 }.toMutableList()
         while (split.size < 3) split += 0
 
         x = split[0]

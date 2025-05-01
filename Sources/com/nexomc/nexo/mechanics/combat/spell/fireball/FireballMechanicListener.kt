@@ -1,21 +1,20 @@
-package com.nexomc.nexo.mechanics.combat.spell.witherskull
+package com.nexomc.nexo.mechanics.combat.spell.fireball
 
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.protectionlib.ProtectionLib
-import org.bukkit.entity.WitherSkull
+import org.bukkit.entity.Fireball
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 
-class WitherSkullMechanicListener(private val factory: WitherSkullMechanicFactory) : Listener {
+class FireballMechanicListener(private val factory: FireballMechanicFactory) : Listener {
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    fun PlayerInteractEvent.onCall() {
+    @EventHandler
+    fun PlayerInteractEvent.onPlayerUse() {
         val item = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
         val mechanic = factory.getMechanic(item) ?: return
         val location = clickedBlock?.location ?: player.location
@@ -26,14 +25,11 @@ class WitherSkullMechanicListener(private val factory: WitherSkullMechanicFactor
 
         mechanic.timer(player).let { it.takeIf { it.isFinished }?.reset() ?: return it.sendToPlayer(player) }
 
-        mechanic.removeCharge(item)
-        val spawningLocation = player.location.add(0.0, 1.0, 0.0)
-        val direction = player.location.getDirection()
-        spawningLocation.add(direction.normalize().multiply(2))
-        val skull = player.world.spawn(spawningLocation, WitherSkull::class.java)
-        skull.direction = direction
-        skull.isCharged = mechanic.charged
+        val fireball = player.launchProjectile(Fireball::class.java)
+        fireball.yield = mechanic.yield.toFloat()
+        fireball.direction = fireball.direction.multiply(mechanic.speed)
 
+        mechanic.removeCharge(item)
         ItemUtils.triggerCooldown(player, item)
     }
 }

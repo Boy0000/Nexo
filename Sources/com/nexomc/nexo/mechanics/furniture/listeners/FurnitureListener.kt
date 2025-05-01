@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
@@ -19,9 +20,9 @@ import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingTyp
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.serialize
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
@@ -97,7 +98,7 @@ class FurnitureListener : Listener {
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
         val pdc = baseEntity.persistentDataContainer
 
-        item.asColorable()?.color?.asRGB()?.also {
+        item.itemMeta?.asColorable()?.color?.asRGB()?.also {
             pdc.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, it)
         }
         item.itemMeta.displayName()?.serialize()?.also {
@@ -115,11 +116,13 @@ class FurnitureListener : Listener {
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
         setUseInteractedBlock(Event.Result.DENY)
         baseEntity.world.sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.location.toVector())
+        ItemUtils.triggerCooldown(player, item)
     }
 
     @EventHandler
     fun PlayerInteractEvent.onPlaceAgainstFurniture() {
-        val (block, blockLoc, itemStack) = (clickedBlock ?: return) to (BlockLocation(clickedBlock!!.location)) to (item ?: return)
+        val (block, blockLoc) = (clickedBlock ?: return) to (BlockLocation(clickedBlock!!.location))
+        val itemStack = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
         val (isItemFrame, isArmorStand, isPainting) = with(itemStack.type) {
             ("ITEM_FRAME" in name) to ("ARMOR_STAND" in name) to ("PAINTING" in name)
         }

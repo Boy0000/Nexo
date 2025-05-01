@@ -15,19 +15,13 @@ import org.bukkit.persistence.PersistentDataType
 
 abstract class SpellMechanic protected constructor(factory: MechanicFactory?, section: ConfigurationSection) : Mechanic(
     factory, section, { item: ItemBuilder ->
-        var initCharges = -1
-        if (section.contains("charges")) {
-            initCharges = section.getInt("charges")
-        }
+        val initCharges = section.getInt("charges", -1)
         item.customTag<Int, Int>(NAMESPACED_KEY, PersistentDataType.INTEGER, initCharges)
-    },  // Initialize Lore to display charges if charges are defined and not infinite
+    },
     func@{ item: ItemBuilder ->
         if (section.getInt("charges", -1) == -1) return@func item
-        var lore = mutableListOf<Component>()
-        if (item.lore().isNotEmpty()) {
-            lore = item.lore().toMutableList()
-            lore.addFirst(Component.empty())
-        }
+
+        val lore = item.lore().toMutableList()
         lore.addFirst(Component.text("Charges ${section.getInt("charges")}/${section.getInt("charges")}"))
         item.lore(lore)
     }

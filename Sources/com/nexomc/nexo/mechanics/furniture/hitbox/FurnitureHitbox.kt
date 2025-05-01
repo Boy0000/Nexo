@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapFastSet
 import com.nexomc.nexo.utils.plusFast
+import com.nexomc.nexo.utils.remove
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
@@ -14,17 +15,30 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.util.Vector
 
-class FurnitureHitbox(
+data class FurnitureHitbox(
     val barriers: ObjectOpenHashSet<BarrierHitbox> = ObjectOpenHashSet(),
     val interactions: ObjectOpenHashSet<InteractionHitbox> = ObjectOpenHashSet(),
-    val shulkers: Set<ShulkerHitbox> = setOf(),
+    val shulkers: ObjectOpenHashSet<ShulkerHitbox> = ObjectOpenHashSet(),
 ) {
 
     constructor(hitboxSection: ConfigurationSection) : this(
-        (hitboxSection.getStringListOrNull("barriers") ?: hitboxSection.getString("barriers")?.let(::listOf) ?: listOf()).flatMapSetFast(::parseHitbox),
+        (hitboxSection.getStringListOrNull("barriers") ?: hitboxSection.getString("barriers")?.let(::listOf))?.flatMapSetFast(::parseHitbox) ?: listOf(),
         hitboxSection.getStringList("interactions").mapFastSet(::InteractionHitbox),
         hitboxSection.getStringList("shulkers").map(::ShulkerHitbox)
     )
+
+    constructor(hitboxList: Collection<String>) : this() {
+        hitboxList.forEach { hitbox ->
+            val type = hitbox.substringAfterLast(" ")
+            val hitbox = hitbox.remove(type)
+
+            when (type) {
+                "BARRIER", "B" -> barriers.add(BarrierHitbox(hitbox))
+                "INTERACTION", "I" -> interactions.add(InteractionHitbox(hitbox))
+                "SHULKER", "S" -> shulkers.add(ShulkerHitbox(hitbox))
+            }
+        }
+    }
 
     constructor(
         barriers: Collection<BarrierHitbox>,

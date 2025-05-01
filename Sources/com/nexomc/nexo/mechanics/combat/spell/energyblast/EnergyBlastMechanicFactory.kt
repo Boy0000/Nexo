@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack
 
 class EnergyBlastMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     init {
-        MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, EnergyBlastMechanicManager(this))
+        MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, EnergyBlastMechanicListener(this))
     }
 
     override fun parse(section: ConfigurationSection) = EnergyBlastMechanic(this, section).apply(::addToImplemented)

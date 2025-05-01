@@ -14,6 +14,7 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.serialize
+import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -223,6 +224,7 @@ class ItemUpdater : Listener {
 
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true
 
+                itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
                 (itemMeta as? BundleMeta)?.setItems((oldMeta as? BundleMeta)?.items)
 
                 if (itemMeta is ArmorMeta) when {
@@ -323,14 +325,28 @@ class ItemUpdater : Listener {
                 }
             }
 
-            newItem.asColorable().takeIf { oldItem.asColorable() != null }?.color = oldItem.asColorable()?.color
-
-            NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
-            NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))
-            NMSHandlers.handler().blockstateComponent(newItem, NMSHandlers.handler().blockstateComponent(oldItem))
+            if (VersionUtil.atleast("1.21.4")) {
+                newItem.copyDataFrom(oldItem, componentsToCopy::contains)
+            } else {
+                NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
+                NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))
+                NMSHandlers.handler().blockstateComponent(newItem, NMSHandlers.handler().blockstateComponent(oldItem))
+            }
 
             return newItem
         }
+
+        private val componentsToCopy = listOf(
+            DataComponentTypes.DYED_COLOR,
+            DataComponentTypes.MAP_COLOR,
+            DataComponentTypes.BASE_COLOR,
+            DataComponentTypes.CONSUMABLE,
+            DataComponentTypes.REPAIRABLE,
+            DataComponentTypes.BLOCK_DATA,
+            DataComponentTypes.CONTAINER,
+            DataComponentTypes.CONTAINER_LOOT,
+            DataComponentTypes.BUNDLE_CONTENTS,
+        )
 
         private fun translatable(type: Material) = Component.translatable("${if (type.isBlock) "block" else "item"}.minecraft.${type.name.lowercase()}")
     }

@@ -73,7 +73,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
     val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
     val connectable = section.getConfigurationSection("connectable")?.let(::ConnectableMechanic)
 
-    val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
+    val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: section.getStringListOrNull("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
 
     enum class RestrictedRotation {
         NONE, STRICT, VERY_STRICT;

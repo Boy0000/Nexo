@@ -1,6 +1,7 @@
 package com.nexomc.nexo.mechanics.combat.lifesteal
 
-import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.utils.ItemUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.entity.LivingEntity
@@ -14,15 +15,15 @@ class LifeStealMechanicListener(private val factory: LifeStealMechanicFactory) :
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun EntityDamageByEntityEvent.onCall() {
         val damager = damager as? Player ?: return
+        val item = damager.inventory.itemInMainHand.takeUnless { VersionUtil.atleast("1.21.2") && damager.hasCooldown(it) } ?: return
         val livingEntity = entity as? LivingEntity ?: return
         if (!ProtectionLib.canInteract(damager, entity.location)) return
 
-        val itemID = NexoItems.idFromItem(damager.inventory.itemInMainHand)
-        if (!NexoItems.exists(itemID)) return
-        val mechanic = factory.getMechanic(itemID) ?: return
-
+        val mechanic = factory.getMechanic(item) ?: return
         val maxHealth = damager.getAttribute(AttributeWrapper.MAX_HEALTH)!!.value
         damager.health = (damager.health + mechanic.amount).coerceAtMost(maxHealth)
         livingEntity.health = (livingEntity.health - mechanic.amount).coerceAtLeast(0.0)
+
+        ItemUtils.triggerCooldown(damager, item)
     }
 }

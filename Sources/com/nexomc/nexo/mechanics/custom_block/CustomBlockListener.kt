@@ -11,9 +11,9 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.StringBlockMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateWithNotNull
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import com.nexomc.protectionlib.ProtectionLib
@@ -47,12 +47,9 @@ class CustomBlockListener : Listener {
         val block = clickedBlock?.takeIf { action == Action.RIGHT_CLICK_BLOCK } ?: return
 
         val customBlockEvent = when (val mechanic = NexoBlocks.customBlockMechanic(block)) {
-            is NoteBlockMechanic ->
-                NexoNoteBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
-            is StringBlockMechanic ->
-                NexoStringBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
-            is ChorusBlockMechanic ->
-                NexoChorusBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
+            is NoteBlockMechanic -> NexoNoteBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
+            is StringBlockMechanic -> NexoStringBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
+            is ChorusBlockMechanic -> NexoChorusBlockInteractEvent(mechanic, player, item, hand!!, block, blockFace, action)
             else -> return
         }
 
@@ -105,13 +102,14 @@ class CustomBlockListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun PlayerInteractEvent.onPrePlacingCustomBlock() {
-        val itemID = NexoItems.idFromItem(item) ?: return
-        val (placedAgainst, item, hand) = (clickedBlock ?: return) to (item ?: return) to (hand ?: return)
-        if (action != Action.RIGHT_CLICK_BLOCK) return
+        val (placedAgainst, hand) = (clickedBlock ?: return) to (hand ?: return)
+        val item = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
+        val itemId = NexoItems.idFromItem(item) ?: return
+        if (action != Action.RIGHT_CLICK_BLOCK || useItemInHand() == Event.Result.DENY) return
         if (!player.isSneaking && BlockHelpers.isInteractable(placedAgainst)) return
 
         // Change mechanic according to subMechanic changes
-        val mechanic = when (val mechanic = NexoBlocks.customBlockMechanic(itemID) ?: return) {
+        val mechanic = when (val mechanic = NexoBlocks.customBlockMechanic(itemId) ?: return) {
             is NoteBlockMechanic -> mechanic.directional?.directionMechanic(blockFace, player) ?: mechanic.directional?.parentMechanic ?: mechanic
             is StringBlockMechanic -> {
                 if (placedAgainst.getRelative(blockFace).isLiquid) return
@@ -121,6 +119,7 @@ class CustomBlockListener : Listener {
         }
 
         CustomBlockRegistry.getByClass(mechanic::class.java)?.placeCustomBlock(player, hand, item, mechanic, placedAgainst, blockFace)
+        ItemUtils.triggerCooldown(player, item)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

@@ -4,7 +4,9 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.InventoryUtils.topInventoryForPlayer
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.VersionUtil
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import org.bukkit.Material
@@ -114,6 +116,10 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
     private fun openBackpack(player: Player) {
         val itemInHand = player.inventory.itemInMainHand.takeIf { it.type != Material.BUNDLE } ?: return
         val mechanic = factory.getMechanic(NexoItems.idFromItem(itemInHand)) ?: return
+        if (VersionUtil.atleast("1.21.2") && player.hasCooldown(itemInHand)) return
+
+        ItemUtils.triggerCooldown(player, itemInHand)
+
         createGUI(mechanic, itemInHand)?.open(player)
     }
 

@@ -183,7 +183,7 @@ object NexoFurniture {
      */
     @JvmStatic
     fun furnitureMechanic(baseEntity: Entity?): FurnitureMechanic? {
-        if (!FurnitureFactory.isEnabled || baseEntity == null || baseEntity.type != EntityType.ITEM_DISPLAY || !baseEntity.isValid) return null
+        if (!FurnitureFactory.isEnabled || baseEntity == null || baseEntity.type != EntityType.ITEM_DISPLAY || (!baseEntity.isValid && !baseEntity.isInWorld)) return null
         val itemID = baseEntity.persistentDataContainer.get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING)
         if (!NexoItems.exists(itemID) || FurnitureSeat.isSeat(baseEntity)|| FurnitureBed.isBed(baseEntity)) return null
         // Ignore legacy hitbox entities as they should be removed in FurnitureConverter

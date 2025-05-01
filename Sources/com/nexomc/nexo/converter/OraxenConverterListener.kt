@@ -1,11 +1,11 @@
 package com.nexomc.nexo.converter
 
 import com.jeff_media.customblockdata.CustomBlockData
+import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.logs.Logs
@@ -64,7 +64,7 @@ class OraxenConverterListener : Listener {
             is ItemDisplay -> when {
                 !NexoFurniture.isFurniture(baseEntity) -> NMSHandlers.handler().pluginConverter.convertOraxen(baseEntity)
                 else -> {
-                    val color = FurnitureHelpers.furnitureDye(baseEntity) ?: baseEntity.itemStack.asColorable()?.color ?: return
+                    val color = FurnitureHelpers.furnitureDye(baseEntity) ?: baseEntity.itemStack.itemMeta?.asColorable()?.color ?: return
                     FurnitureHelpers.furnitureDye(baseEntity, color)
                 }
             }
