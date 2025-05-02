@@ -22,7 +22,8 @@ internal fun String.toIntRange(default: IntRange = IntRange.EMPTY): IntRange {
 }
 internal fun String.toIntRangeOrNull(): IntRange? {
     val first = this.substringBefore("..").toIntOrNull() ?: return null
-    return first..(this.substringAfter("..").toIntOrNull() ?: return null)
+    val last = this.substringAfter("..").toIntOrNull()?.coerceAtLeast(first) ?: return null
+    return first..last
 }
 
 fun IntRange.randomOrMin(): Int =

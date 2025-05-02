@@ -15,6 +15,7 @@ import team.unnamed.creative.item.SelectItemModel
 import team.unnamed.creative.item.SpecialItemModel
 import team.unnamed.creative.item.property.ItemNumericProperty
 import team.unnamed.creative.item.property.ItemStringProperty
+import team.unnamed.creative.item.special.HeadSpecialRender
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
 
@@ -31,13 +32,21 @@ object ModernVersionPatcher {
                     is RangeDispatchItemModel -> {
                         val fallback = baseItemModel.fallback() ?: baseItemModel
                         val entries = baseItemModel.entries().plus(overrides.mapNotNull {
-                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(it.model()))
+                            val model = when {
+                                fallback is SpecialItemModel && fallback.render() is HeadSpecialRender -> ItemModel.special(fallback.render(), it.model())
+                                else -> ItemModel.reference(it.model())
+                            }
+                            RangeDispatchItemModel.Entry.entry(it.predicate().customModelData ?: return@mapNotNull null, model)
                         }).distinctBy { it.threshold() }
                         ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, entries, fallback)
                     }
 
                     is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
-                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, ItemModel.reference(override.model()))
+                        val model = when {
+                            baseItemModel is SpecialItemModel && baseItemModel.render() is HeadSpecialRender -> ItemModel.special(baseItemModel.render(), override.model())
+                            else -> ItemModel.reference(override.model())
+                        }
+                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, model)
                     }, baseItemModel)
 
                     is ConditionItemModel -> {

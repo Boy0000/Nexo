@@ -300,6 +300,7 @@ class PackGenerator {
             NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(megPack).also { pack ->
                 if (VersionUtil.atleast("1.21.4")) pack.models().forEach { packObfuscator.skippedKeys += it.key() }
                 if (!Settings.PACK_EXCLUDE_MODEL_ENGINE_SHADERS.toBool()) return@also
+                pack.icon(null)
                 pack.unknownFiles().keys.filter { "assets/minecraft/shaders/core" in it }.forEach(pack::removeUnknownFile)
                 Logs.logInfo("Removed core-shaders from ModelEngine-ResourcePack...")
             })

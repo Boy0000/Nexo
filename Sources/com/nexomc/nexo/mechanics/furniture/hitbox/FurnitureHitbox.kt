@@ -8,6 +8,7 @@ import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapFastSet
 import com.nexomc.nexo.utils.plusFast
 import com.nexomc.nexo.utils.remove
+import com.nexomc.nexo.utils.removeSpaces
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
@@ -87,13 +88,9 @@ data class FurnitureHitbox(
                 hitboxString == "origin" -> listOf(BarrierHitbox("0,0,0"))
                 ".." in hitboxString -> {
                     // Split the coordinates by commas
-                    val coordinates = hitboxString.split(",").map { r -> r.toIntRangeOrNull() ?: (r.toIntOrNull() ?: 0).let { IntRange(it, it) } }
+                    val coordinates = hitboxString.split(",", limit = 3).map { r -> r.removeSpaces().toIntRangeOrNull() ?: (r.toIntOrNull() ?: 0).let { IntRange(it, it) } }
 
-                    val xRange = coordinates[0]
-                    val yRange = coordinates[1]
-                    val zRange = coordinates[2]
-
-                    // Generate combinations of all the ranges
+                    val (xRange, yRange, zRange) = coordinates
                     mutableListOf<BarrierHitbox>().apply {
                         for (x in xRange) for (y in yRange) for (z in zRange) {
                             this += BarrierHitbox(x, y, z)

@@ -17,6 +17,7 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
+import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.protectionlib.ProtectionLib
@@ -90,7 +91,7 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun EntityRemoveFromWorldEvent.onUnload() {
-        val itemDisplay = (entity as? ItemDisplay)?.takeIf { it.location.isChunkLoaded } ?: return
+        val itemDisplay = entity.takeIf { it.location.isLoaded } as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
