@@ -325,9 +325,9 @@ class ItemUpdater : Listener {
                 }
             }
 
-            if (VersionUtil.atleast("1.21.4")) {
+            runCatching {
                 newItem.copyDataFrom(oldItem, componentsToCopy::contains)
-            } else {
+            }.onFailure {
                 NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
                 NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))
                 NMSHandlers.handler().blockstateComponent(newItem, NMSHandlers.handler().blockstateComponent(oldItem))
@@ -336,17 +336,21 @@ class ItemUpdater : Listener {
             return newItem
         }
 
-        private val componentsToCopy = listOf(
-            DataComponentTypes.DYED_COLOR,
-            DataComponentTypes.MAP_COLOR,
-            DataComponentTypes.BASE_COLOR,
-            DataComponentTypes.CONSUMABLE,
-            DataComponentTypes.REPAIRABLE,
-            DataComponentTypes.BLOCK_DATA,
-            DataComponentTypes.CONTAINER,
-            DataComponentTypes.CONTAINER_LOOT,
-            DataComponentTypes.BUNDLE_CONTENTS,
-        )
+        private val componentsToCopy by lazy {
+            runCatching {
+                listOf(
+                    DataComponentTypes.DYED_COLOR,
+                    DataComponentTypes.MAP_COLOR,
+                    DataComponentTypes.BASE_COLOR,
+                    DataComponentTypes.CONSUMABLE,
+                    DataComponentTypes.REPAIRABLE,
+                    DataComponentTypes.BLOCK_DATA,
+                    DataComponentTypes.CONTAINER,
+                    DataComponentTypes.CONTAINER_LOOT,
+                    DataComponentTypes.BUNDLE_CONTENTS,
+                )
+            }.getOrDefault(emptyList())
+        }
 
         private fun translatable(type: Material) = Component.translatable("${if (type.isBlock) "block" else "item"}.minecraft.${type.name.lowercase()}")
     }

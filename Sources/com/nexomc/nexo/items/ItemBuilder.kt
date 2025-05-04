@@ -38,59 +38,59 @@ import org.bukkit.potion.PotionType
 
 @Suppress("UnstableApiUsage")
 class ItemBuilder(private val itemStack: ItemStack) {
-    private val persistentDataMap: MutableMap<PersistentDataSpace<*, *>, Any> = mutableMapOf()
-    private val persistentDataContainer: PersistentDataContainer
-    private val enchantments: MutableMap<Enchantment, Int>
-    var nexoMeta: NexoMeta? = null
-    var type: Material = Material.PAPER
-    var amount: Int
-    var color: Color? = null
-    private var trimPattern: Key? = null
-    private var basePotionType: PotionType? = null
-    private var customPotionEffects: MutableList<PotionEffect>? = null
-    private var unbreakable: Boolean
-    private var itemFlags: MutableSet<ItemFlag> = mutableSetOf()
-    private var attributeModifiers: Multimap<Attribute, AttributeModifier>? = null
-    private var customModelData: Int? = null
-    var displayName: Component? = null
-    private var lore: List<Component>? = null
-    private var finalItemStack: ItemStack? = null
+    val persistentDataMap: MutableMap<PersistentDataSpace<*, *>, Any> = mutableMapOf();
+    val persistentDataContainer: PersistentDataContainer;
+    val enchantments: MutableMap<Enchantment, Int>;
+    var nexoMeta: NexoMeta? = null; private set
+    var type: Material = Material.PAPER; private set
+    var amount: Int; private set
+    var color: Color? = null; private set
+    var trimPattern: Key? = null; private set
+    var basePotionType: PotionType? = null; private set
+    var customPotionEffects: MutableList<PotionEffect>? = null; private set
+    var unbreakable: Boolean; private set
+    var itemFlags: MutableSet<ItemFlag> = mutableSetOf(); private set
+    var attributeModifiers: Multimap<Attribute, AttributeModifier>? = null; private set
+    var customModelData: Int? = null; private set
+    var displayName: Component? = null; private set
+    var lore: List<Component>? = null; private set
+    var finalItemStack: ItemStack? = null; private set
 
     // 1.20.5+ properties
-    var foodComponent: FoodComponent? = null
-    var toolComponent: ToolComponent? = null
-    var enchantmentGlindOverride: Boolean? = null
-    var maxStackSize: Int? = null
-    var itemName: Component? = null
-    var fireResistant: Boolean? = null
-    var hideToolTip: Boolean? = null
-    var rarity: ItemRarity? = null
-    var durability: Int? = null
+    var foodComponent: FoodComponent? = null; private set
+    var toolComponent: ToolComponent? = null; private set
+    var enchantmentGlindOverride: Boolean? = null; private set
+    var maxStackSize: Int? = null; private set
+    var itemName: Component? = null; private set
+    var fireResistant: Boolean? = null; private set
+    var hideToolTip: Boolean? = null; private set
+    var rarity: ItemRarity? = null; private set
+    var durability: Int? = null; private set
     var isDamagedOnBlockBreak = false
     var isDamagedOnEntityHit = false
 
     // 1.21+ properties
-    var jukeboxPlayable: JukeboxPlayableComponent? = null
+    var jukeboxPlayable: JukeboxPlayableComponent? = null; private set
 
     // 1.21.2+ properties
-    var equippable: EquippableComponent? = null
-    var isGlider: Boolean? = null
-    var useCooldown: UseCooldownComponent? = null
-    var useRemainder: ItemStack? = null
-    var damageResistant: Tag<DamageType>? = null
-    var tooltipStyle: NamespacedKey? = null
-    var itemModel: NamespacedKey? = null
-    var blockStates: Map<String, String>? = null
-    var enchantable: Int? = null
-    var consumableComponent: Any? = null
-    var repairableComponent: Any? = null
+    var equippable: EquippableComponent? = null; private set
+    var isGlider: Boolean? = null; private set
+    var useCooldown: UseCooldownComponent? = null; private set
+    var useRemainder: ItemStack? = null; private set
+    var damageResistant: Tag<DamageType>? = null; private set
+    var tooltipStyle: NamespacedKey? = null; private set
+    var itemModel: NamespacedKey? = null; private set
+    var blockStates: Map<String, String>? = null; private set
+    var enchantable: Int? = null; private set
+    var consumableComponent: Any? = null; private set
+    var repairableComponent: Any? = null; private set
     var cache: Boolean = true
 
     // 1.21.4+ properties
-    var customModelDataComponent: CustomModelDataComponent? = null
+    var customModelDataComponent: CustomModelDataComponent? = null; private set
 
     // 1.21.5+ properties
-    var tooltipDisplay: TooltipDisplay? = null
+    var tooltipDisplay: TooltipDisplay? = null; private set
 
 
     constructor(material: Material) : this(ItemStack(material))
