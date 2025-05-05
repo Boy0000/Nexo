@@ -90,7 +90,7 @@ public class NexoPackReader implements MinecraftResourcePackReader {
         // waiting for textures (because we can't know the order
         // they come in)
         // (null key means it is root resource pack)
-        Map<@Nullable String, Map<Key, Texture>> incompleteTextures = new LinkedHashMap<>();
+        Map<String, Map<Key, Texture>> incompleteTextures = new LinkedHashMap<>();
 
         // fill in with the default ones first (pack format is unknown at the start)
         int packFormat = -1;

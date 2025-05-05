@@ -45,8 +45,12 @@ import team.unnamed.creative.base.Writable
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
 import team.unnamed.creative.font.ReferenceFontProvider
+import team.unnamed.creative.item.Item
 import team.unnamed.creative.lang.Language
+import team.unnamed.creative.metadata.overlays.OverlayEntry
+import team.unnamed.creative.metadata.overlays.OverlaysMeta
 import team.unnamed.creative.metadata.pack.PackFormat
+import team.unnamed.creative.overlay.Overlay
 import team.unnamed.creative.sound.SoundRegistry
 
 class PackGenerator {
@@ -239,14 +243,24 @@ class PackGenerator {
     }
 
     private fun handleScoreboardTablist() {
-        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() || Settings.HIDE_TABLIST_BACKGROUND.toBool())
-            resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_gui.vsh", ScoreboardBackground.modernFile())
+        if (!Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() && !Settings.HIDE_TABLIST_BACKGROUND.toBool()) return
+
+        val overlays = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
+        resourcePack.overlay(Overlay.overlay("nexo_1_20_4").apply {
+            unknownFile("assets/minecraft/shaders/core/rendertype_gui.vsh", ScoreboardBackground.modernFile())
+        })
+        overlays += OverlayEntry.of(PackFormat.format(22, 22, 34), "nexo_1_20_4")
+        resourcePack.overlay(Overlay.overlay("nexo_1_21_2").apply {
+            unknownFile("assets/minecraft/shaders/core/gui.vsh", ScoreboardBackground.modernFile())
+        })
+        overlays += OverlayEntry.of(PackFormat.format(42, 42, 99), "nexo_1_21_2")
+        resourcePack.overlaysMeta(OverlaysMeta.of(overlays))
     }
 
     private fun importRequiredPack() {
         runCatching {
             val requiredPack = NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return)
-            if (VersionUtil.atleast("1.21.4")) requiredPack.items().map { it.key() }.forEach(requiredPack::removeItem)
+            if (VersionUtil.atleast("1.21.4")) requiredPack.items().map(Item::key).forEach(requiredPack::removeItem)
             NexoPack.mergePack(resourcePack, requiredPack)
         }.onFailure {
             if (!Settings.DEBUG.toBool()) Logs.logError(it.message!!)

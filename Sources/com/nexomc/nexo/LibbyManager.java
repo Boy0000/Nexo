@@ -49,9 +49,6 @@ public class LibbyManager {
         libs.add(getLib("dev{}jorel", (isPaperServer() && !isLegacyServer()) ? "commandapi-bukkit-shade-mojang-mapped" : "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
         libs.add(getLib("dev{}jorel", "commandapi-bukkit-kotlin", COMMAND_API_VERSION, "dev{}jorel").build());
 
-        libs.add(getLib("com{}jeff-media", "custom-block-data", "2.2.2", "com{}jeff_media").build());
-        libs.add(getLib("com{}jeff-media", "MorePersistentDataTypes", "2.4.0", "com{}jeff_media").build());
-
         libs.add(getLib("team{}unnamed", "creative-api", CREATIVE_VERSION, null, false)
                 .url(String.format("https://repo.nexomc.com/snapshots/team/unnamed/creative-api/%s/creative-api-%s.jar", CREATIVE_VERSION, CREATIVE_VERSION))
                 .build());
@@ -63,7 +60,6 @@ public class LibbyManager {
                 .build());
 
         libs.add(getLib("com{}nexomc", "protectionlib", "1.0.6", null, false).build());
-        libs.add(getLib("com{}tcoded", "FoliaLib", "0.4.3", "com{}tcoded").build());
 
         libs.add(getLib("me{}gabytm{}util", "actions-spigot", "1.0.0", "me{}gabytm{}util")
                 .url("https://repo.nexomc.com/releases/me/gabytm/util/actions-spigot/1.0.0/actions-spigot-1.0.0.jar")

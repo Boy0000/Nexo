@@ -12,17 +12,14 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
-import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.GameEvent
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.SoundCategory
-import org.bukkit.block.Block
 import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -31,9 +28,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockDamageAbortEvent
 import org.bukkit.event.block.BlockDamageEvent
-import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
 
@@ -106,14 +101,8 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
         val mechanic = NexoBlocks.customBlockMechanic(blockStandingOn)
 
         val (sound, volume, pitch) = when {
-            event === GameEvent.STEP ->
-                (mechanic?.blockSounds?.let { it.stepSound to it.stepVolume to it.stepPitch })
-                    ?: (BlockSounds.VANILLA_WOOD_STEP to BlockSounds.VANILLA_STEP_VOLUME to BlockSounds.VANILLA_STEP_PITCH)
-
-            event == GameEvent.HIT_GROUND ->
-                (mechanic?.blockSounds?.let { it.fallSound to it.fallVolume to it.fallPitch })
-                    ?: (BlockSounds.VANILLA_WOOD_FALL to BlockSounds.VANILLA_FALL_VOLUME to BlockSounds.VANILLA_FALL_PITCH)
-
+            event === GameEvent.STEP -> mechanic?.blockSounds?.step ?: BlockSounds.WOOD_STEP
+            event == GameEvent.HIT_GROUND -> mechanic?.blockSounds?.fall ?: BlockSounds.WOOD_FALL
             else -> return
         }
 
@@ -157,36 +146,5 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
         val blockSounds = mechanic.blockSounds?.takeIf(BlockSounds::hasBreakSound) ?: return
 
         BlockHelpers.playCustomBlockSound(block.location, blockSounds.breakSound, blockSounds.breakVolume, blockSounds.breakPitch)
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    fun BlockPistonExtendEvent.onPistonPush() {
-        blocks.filter { it.type == Material.TRIPWIRE }.forEach { block: Block ->
-            block.setType(Material.AIR, false)
-            val mechanic = NexoBlocks.stringMechanic(block) ?: return@forEach
-            val blockSounds = mechanic.blockSounds?.takeIf(BlockSounds::hasBreakSound) ?: return@forEach
-
-            BlockHelpers.playCustomBlockSound(block.location, blockSounds.breakSound, blockSounds.breakVolume, blockSounds.breakPitch)
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    fun GenericGameEvent.onStepFallString() {
-        val entity = (entity as? LivingEntity)?.takeIf { it.location.isLoaded && !isAsynchronous } ?: return
-        if (entity !is Player && customSounds.playersOnly) return
-
-        if (entity.lastDamageCause?.cause != EntityDamageEvent.DamageCause.FALL || event == GameEvent.HIT_GROUND) return
-        val blockSounds = NexoBlocks.stringMechanic(entity.location.block)?.blockSounds ?: return
-
-        val (sound, volume, pitch) = when {
-            event == GameEvent.STEP && blockSounds.hasStepSound() ->
-                blockSounds.stepSound to blockSounds.stepVolume to blockSounds.stepPitch
-
-            event == GameEvent.HIT_GROUND && blockSounds.hasFallSound() ->
-                blockSounds.fallSound to blockSounds.fallVolume to blockSounds.fallPitch
-
-            else -> return
-        }
-        BlockHelpers.playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
     }
 }
