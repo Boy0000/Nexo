@@ -2,8 +2,7 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
-import com.nexomc.nexo.mechanics.furniture.bed.EmptyFurnitureBedHandler
-import com.nexomc.nexo.mechanics.furniture.bed.IFurnitureBedEntityHandler
+import com.nexomc.nexo.mechanics.furniture.bed.EmptyCustomEntityHandler
 import com.nexomc.nexo.utils.InteractionResult
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -20,7 +19,7 @@ interface NMSHandler {
 
     val pluginConverter: IPluginConverter
 
-    fun bedEntityHandler(): IFurnitureBedEntityHandler = EmptyFurnitureBedHandler()
+    fun customEntityHandler(): ICustomEntityHandler = EmptyCustomEntityHandler()
 
     fun furniturePacketManager(): IFurniturePacketManager = EmptyFurniturePacketManager()
 

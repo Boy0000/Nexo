@@ -40,3 +40,5 @@ inline fun <T> nonNullList(crossinline block: (List<T?>) -> T): List<T> {
     block.invoke(result.toList())
     return result
 }
+
+val Float.radians: Float get() = Math.toRadians(this.toDouble()).toFloat()

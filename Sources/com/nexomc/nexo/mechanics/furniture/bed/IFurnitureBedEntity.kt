@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.furniture.bed
 
-import java.util.UUID
 import org.bukkit.Location
+import java.util.*
 
 interface IFurnitureBedEntity {
 

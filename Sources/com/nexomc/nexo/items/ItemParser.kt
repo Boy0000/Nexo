@@ -8,6 +8,8 @@ import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.mechanics.trident.TridentFactory
+import com.nexomc.nexo.mechanics.trident.TridentMechanic
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils
@@ -152,6 +154,9 @@ class ItemParser(private val section: ConfigurationSection) {
 
     private fun parseNexoSection(item: ItemBuilder) {
         val mechanicsSection = mergeWithTemplateSection().getConfigurationSection("Mechanics")
+
+        // Add trident mechanic by default if mat is trident
+        if (item.type == Material.TRIDENT) TridentFactory.instance()?.parse(section)
 
         mechanicsSection?.childSections()?.forEach { mechanicId, section ->
             val mechanic = MechanicsManager.getMechanicFactory(mechanicId)?.parse(section) ?: return@forEach

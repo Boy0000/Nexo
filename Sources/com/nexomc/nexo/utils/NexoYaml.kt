@@ -2,12 +2,15 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
-import java.io.File
 import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
+import org.joml.Quaternionf
+import org.joml.Vector2f
+import org.joml.Vector3f
+import java.io.File
 
 val ConfigurationSection.rootId: String
     get() = rootSection.name
@@ -76,7 +79,25 @@ fun ConfigurationSection.getNamespacedKey(key: String): NamespacedKey? {
 }
 
 fun <T : Enum<T>> ConfigurationSection.getEnum(key: String, enum: Class<T>): T? {
-    return EnumUtils.getEnum(enum, key)
+    return EnumUtils.getEnum(enum, getStringOrNull(key))
+}
+
+fun ConfigurationSection.getQuaternion(key: String): Quaternionf? {
+    val (x, y, z, w) = getStringOrNull(key)?.split(",", limit = 4)?.mapIndexed { i, c ->
+        // w default should be 1, x/y/z 0
+        c.toFloatOrNull() ?: if (i == 3) 1f else 0f
+    } ?: return null
+    return Quaternionf(x, y, z, w)
+}
+
+fun ConfigurationSection.getVector3f(key: String): Vector3f {
+    val (x, y, z) = getStringOrNull(key)?.split(",", limit = 3)?.map { it.toFloatOrNull() ?: 0f } ?: return Vector3f()
+    return Vector3f(x, y, z)
+}
+
+fun ConfigurationSection.getVector2f(key: String): Vector2f {
+    val (x, y) = getStringOrNull(key)?.split(",", limit = 2)?.map { it.toFloatOrNull() ?: 0f } ?: return Vector2f()
+    return Vector2f(x, y)
 }
 
 class NexoYaml : YamlConfiguration() {

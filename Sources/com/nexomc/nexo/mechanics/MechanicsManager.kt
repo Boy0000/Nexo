@@ -22,6 +22,7 @@ import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.mechanics.misc.soulbound.SoulBoundMechanicFactory
 import com.nexomc.nexo.mechanics.repair.RepairMechanicFactory
+import com.nexomc.nexo.mechanics.trident.TridentFactory
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.tcoded.folialib.wrapper.task.WrappedTask
@@ -46,6 +47,7 @@ object MechanicsManager {
         registerMechanicFactory("commands", ::CommandsMechanicFactory)
         registerMechanicFactory("backpack", ::BackpackMechanicFactory)
         registerMechanicFactory("misc", ::MiscMechanicFactory)
+        registerMechanicFactory("trident", ::TridentFactory)
 
         // gameplay
         registerMechanicFactory("furniture", ::FurnitureFactory)

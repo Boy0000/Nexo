@@ -1,6 +1,5 @@
 package com.nexomc.nexo.utils.blocksounds
 
-import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import org.bukkit.configuration.ConfigurationSection
@@ -26,9 +25,6 @@ class BlockSounds(section: ConfigurationSection) {
     val stepPitch: Float = getPitch(section, "step", VANILLA_STEP_PITCH)
     val hitPitch: Float = getPitch(section, "hit", VANILLA_HIT_PITCH)
     val fallPitch: Float = getPitch(section, "fall", VANILLA_FALL_PITCH)
-
-    val step: Triple<String?, Float, Float> = stepSound to stepVolume to stepPitch
-    val fall: Triple<String?, Float, Float> = fallSound to fallVolume to fallPitch
 
     private fun getSound(section: ConfigurationSection, key: String): String? {
         return section.getString("${key}_sound") ?: section.getString("${key}.sound")
@@ -87,9 +83,6 @@ class BlockSounds(section: ConfigurationSection) {
         const val VANILLA_STEP_PITCH = 1.0f
         const val VANILLA_FALL_VOLUME = 0.5f
         const val VANILLA_FALL_PITCH = 0.75f
-
-        val WOOD_STEP: Triple<String, Float, Float> = VANILLA_WOOD_STEP to VANILLA_STEP_VOLUME to VANILLA_STEP_PITCH
-        val WOOD_FALL: Triple<String, Float, Float> = VANILLA_WOOD_FALL to VANILLA_FALL_VOLUME to VANILLA_FALL_PITCH
 
         private val STONE_DIG_ENTRIES = listOf(
             SoundEntry.soundEntry().key(Key.key("dig/stone1")).build(),

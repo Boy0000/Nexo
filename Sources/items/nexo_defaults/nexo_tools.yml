@@ -33,3 +33,13 @@ forest_shield:
   Pack:
     model: nexo:item/nexo_tools/forest_shield
     blocking_model: nexo:item/nexo_tools/forest_shield_blocking
+forest_trident:
+  itemname: Forest Trident
+  material: TRIDENT
+  Pack:
+    model: nexo:item/nexo_tools/forest_trident
+  Components:
+    item_model: nexo:forest_trident
+  Mechanics:
+    trident:
+      display_transform: HEAD

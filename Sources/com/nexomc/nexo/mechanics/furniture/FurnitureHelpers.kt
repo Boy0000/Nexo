@@ -9,6 +9,8 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
+typealias FurnitureTransform = ItemDisplay.ItemDisplayTransform
+
 object FurnitureHelpers {
     fun correctedYaw(mechanic: FurnitureMechanic, yaw: Float): Float {
         return when {

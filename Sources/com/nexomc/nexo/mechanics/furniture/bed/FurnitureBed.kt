@@ -80,7 +80,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
             val yaw = baseEntity.yaw
             val bedUUIDs = mechanic.beds.mapNotNull { bed: FurnitureBed ->
                 val spawnLocation = baseEntity.location.add(translation).add(bed.offset(yaw))
-                NMSHandlers.handler().bedEntityHandler().createBedEntity(baseEntity, mechanic, bed)?.spawn(spawnLocation)
+                NMSHandlers.handler().customEntityHandler().createBedEntity(baseEntity, mechanic, bed)?.spawn(spawnLocation)
             }
 
             baseEntity.persistentDataContainer.get(BED_KEY, CustomDataTypes.UUID_LIST)?.mapNotNull(Bukkit::getEntity)?.forEach(Entity::remove)
