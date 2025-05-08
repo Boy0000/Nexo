@@ -38,6 +38,10 @@ fun ConfigurationSection.getLinkedMapList(key: String, default: List<LinkedHashM
     return getList(key)?.filterIsInstance<LinkedHashMap<String, Any>>() ?: default
 }
 
+fun ConfigurationSection.getLinkedMapListOrNull(key: String): List<LinkedHashMap<String, Any>>? {
+    return getList(key)?.filterIsInstance<LinkedHashMap<String, Any>>()
+}
+
 fun ConfigurationSection.getStringListOrNull(key: String): List<String>? {
     return getStringList(key).filterNot { it.isNullOrEmpty() }.takeIf { it.isNotEmpty() }
 }

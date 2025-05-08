@@ -16,7 +16,7 @@ class StonecuttingBuilder(player: Player) : RecipeBuilder(player, "stonecutting"
         var recipeCount = 0
         for (i in 1 until inventory.size) {
             val result = inventory.getItem(i) ?: continue
-            val newCraftSection = getConfig()!!.createSection(name + "_" + recipeCount)
+            val newCraftSection = config.createSection(name + "_" + recipeCount)
             setItemStack(newCraftSection.createSection("result"), result)
             setItemStack(newCraftSection.createSection("input"), input!!)
 

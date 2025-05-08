@@ -21,18 +21,12 @@ import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
-import com.nexomc.nexo.utils.PluginUtils
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
-import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFast
-import com.nexomc.nexo.utils.mapNotNullFast
 import com.ticxo.modelengine.api.ModelEngineAPI
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -278,14 +272,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         val EVOLUTION_KEY = NamespacedKey(NexoPlugin.instance(), "evolution")
 
         fun baseEntity(block: Block?): ItemDisplay? {
-            return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(block?.location ?: return null))
+            return IFurniturePacketManager.baseEntityFromHitbox(block?.location ?: return null)
         }
 
         fun baseEntity(location: Location?): ItemDisplay? {
-            return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location ?: return null))
-        }
-
-        fun baseEntity(location: BlockLocation?): ItemDisplay? {
             return IFurniturePacketManager.baseEntityFromHitbox(location ?: return null)
         }
 

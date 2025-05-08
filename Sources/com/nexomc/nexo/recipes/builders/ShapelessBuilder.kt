@@ -10,7 +10,7 @@ class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, "shapeless") {
         for (i in 1 until content.size) if (content[i] != null)
             items[content[i]] = items.getOrDefault(content[i], 0) + 1
 
-        val newCraftSection = getConfig()!!.createSection(name)
+        val newCraftSection = config.createSection(name)
         setItemStack(newCraftSection.createSection("result"), content[0]!!)
         val ingredients = newCraftSection.createSection("ingredients")
 

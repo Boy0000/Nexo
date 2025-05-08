@@ -1,6 +1,5 @@
 package com.nexomc.nexo.api
 
-import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
@@ -12,18 +11,10 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.drops.Drop
-import org.bukkit.GameEvent
-import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Rotation
+import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
-import org.bukkit.entity.Entity
-import org.bukkit.entity.EntityType
-import org.bukkit.entity.Interaction
-import org.bukkit.entity.ItemDisplay
-import org.bukkit.entity.Player
+import org.bukkit.entity.*
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 
@@ -164,11 +155,12 @@ object NexoFurniture {
      */
     @JvmStatic
     fun furnitureMechanic(location: Location?): FurnitureMechanic? {
-        if (!FurnitureFactory.isEnabled || location == null) return null
-        return IFurniturePacketManager.baseEntityFromHitbox(BlockLocation(location))?.let(::furnitureMechanic) ?: let {
-            val block = location.block
+        if (!FurnitureFactory.isEnabled || location == null || !location.isLoaded) return null
+        val world = location.world ?: return null
+        val block = location.block
+        return IFurniturePacketManager.baseEntityFromHitbox(location)?.let(::furnitureMechanic) ?: let {
             val centerLoc = toCenterBlockLocation(location)
-            centerLoc.world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
+            world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
                 ?.let(::furnitureMechanic)

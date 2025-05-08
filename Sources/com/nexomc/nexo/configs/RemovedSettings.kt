@@ -78,6 +78,8 @@ enum class RemovedSettings(private val path: String) {
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine"),
     PACK_READER_LENIENT("Pack.generation.lenient"),
+    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
+    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
     ;
 
     override fun toString(): String {

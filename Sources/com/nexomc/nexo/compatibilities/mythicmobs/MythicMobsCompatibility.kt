@@ -14,15 +14,15 @@ import io.lumine.mythic.bukkit.utils.numbers.Numbers
 import io.lumine.mythic.core.drops.droppables.ItemDrop
 import io.lumine.mythic.core.glow.GlowColor
 import io.lumine.mythic.core.logging.MythicLogger
-import java.util.Optional
 import org.bukkit.event.EventHandler
 import org.bukkit.inventory.ItemStack
+import java.util.*
 
 class MythicMobsCompatibility : CompatibilityProvider<MythicBukkit>() {
     @EventHandler
     fun MythicDropLoadEvent.onMythicDropLoadEvent() {
         if (dropName.lowercase() != "nexo") return
-        val itemId = container.line.lowercase().split(" ").getOrNull(1) ?: return
+        val itemId = container.line.lowercase().split(" ", ":").getOrNull(1) ?: return
         val item = NexoItems.itemFromId(itemId)?.build() ?: return
         register(NexoDrop(container.line, item, config))
     }
@@ -33,6 +33,7 @@ class NexoDrop(line: String, item: ItemStack, config: MythicLineConfig) : ItemDr
     val level: PlaceholderDouble? = config.getPlaceholderDouble(arrayOf("level", "lvl", "l"), "null", *arrayOfNulls<String>(0))
 
     init {
+        this.dropVar = line.split(" ").getOrNull(2) ?: dropVar
         config.getString(arrayOf("lootsplosion", "lootsplosionenabled", "ls"), null, *arrayOfNulls<String>(0))?.toBooleanStrictOrNull()?.let {
             this.lootsplosionEnabled = Optional.of(it)
         }

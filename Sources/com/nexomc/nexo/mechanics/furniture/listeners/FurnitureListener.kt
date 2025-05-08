@@ -1,14 +1,12 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
@@ -18,20 +16,11 @@ import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing.LimitedPlacingType
 import com.nexomc.nexo.mechanics.storage.StorageType
-import com.nexomc.nexo.utils.BlockHelpers
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.ItemUtils
-import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.serialize
-import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
 import io.papermc.paper.event.player.PlayerPickItemEvent
-import org.bukkit.GameEvent
-import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Rotation
+import org.bukkit.*
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
@@ -121,7 +110,7 @@ class FurnitureListener : Listener {
 
     @EventHandler
     fun PlayerInteractEvent.onPlaceAgainstFurniture() {
-        val (block, blockLoc) = (clickedBlock ?: return) to (BlockLocation(clickedBlock!!.location))
+        val block = clickedBlock ?: return
         val itemStack = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
         val (isItemFrame, isArmorStand, isPainting) = with(itemStack.type) {
             ("ITEM_FRAME" in name) to ("ARMOR_STAND" in name) to ("PAINTING" in name)
@@ -130,7 +119,7 @@ class FurnitureListener : Listener {
         if (action != Action.RIGHT_CLICK_BLOCK || useItemInHand() == Event.Result.DENY) return
         if (!itemStack.type.isBlock && !isItemFrame && !isArmorStand && !isPainting) return
 
-        val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(blockLoc) ?: return
+        val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(block.location) ?: return
         NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
         // Since the server-side block is AIR by default, placing blocks acts weird

@@ -16,7 +16,7 @@ public class LibbyManager {
     public static boolean failedLibs = false;
 
     private static final ArrayList<Library> libs = new ArrayList<>();
-    private static final String COMMAND_API_VERSION = "10.0.0";
+    private static final String COMMAND_API_VERSION = "10.0.1";
     private static final String CREATIVE_VERSION = "1.8.5-SNAPSHOT";
 
     public static void loadLibs(JavaPlugin plugin) {
@@ -75,6 +75,7 @@ public class LibbyManager {
         libs.add(getLib("dev{}triumphteam", "triumph-gui", "3.2.0-SNAPSHOT", "dev{}triumphteam")
                 .repository("https://repo.triumphteam.dev/snapshots").build());
         libs.add(getLib("com{}github{}stefvanschie{}inventoryframework", "IF", "0.10.19", "com{}github{}stefvanschie").build());
+        libs.add(getLib("software{}amazon{}awssdk", "s3", "2.30.30", null, false).build());
     }
 
     private static Library.Builder getLib(String groupId, String artifactId, String version, String relocationId) {

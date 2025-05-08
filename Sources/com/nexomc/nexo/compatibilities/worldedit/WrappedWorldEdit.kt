@@ -1,31 +1,23 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.utils.PluginUtils.isEnabled
+import com.nexomc.nexo.utils.PluginUtils
 import com.sk89q.worldedit.WorldEdit
-import java.io.File
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Block
+import java.io.File
 
 object WrappedWorldEdit {
-    var loaded = false
-    var isFaweEnabled = false
-        private set
-
+    val loaded by lazy { PluginUtils.isEnabled("WorldEdit") || PluginUtils.isEnabled("FastAsyncWorldEdit") }
+    val isFaweEnabled by lazy { PluginUtils.isEnabled("FastAsyncWorldEdit") }
     val handlers by lazy { WorldEditHandlers() }
 
-    fun init() {
-        loaded = isEnabled("WorldEdit") || isEnabled("FastAsyncWorldEdit")
-        isFaweEnabled = isEnabled("FastAsyncWorldEdit")
-    }
-
     fun registerParser() {
-        if (loaded) {
-            WorldEdit.getInstance().eventBus.register(handlers)
-            WorldEdit.getInstance().blockFactory.register(CustomBlocksFactory())
-            Bukkit.getPluginManager().registerEvents(WorldEditListener(), NexoPlugin.instance())
-        }
+        if (!loaded) return
+        WorldEdit.getInstance().eventBus.register(handlers)
+        WorldEdit.getInstance().blockFactory.register(CustomBlocksFactory())
+        Bukkit.getPluginManager().registerEvents(WorldEditListener(), NexoPlugin.instance())
     }
 
     fun unregister() {
@@ -43,7 +35,9 @@ object WrappedWorldEdit {
     }
 
     fun blocksInSchematic(loc: Location, schematic: File?): List<Block> {
-        return if (loaded) WorldEditUtils.blocksInSchematic(loc, schematic!!)
-        else listOf()
+        return when {
+            loaded -> WorldEditUtils.blocksInSchematic(loc, schematic!!)
+            else -> listOf()
+        }
     }
 }

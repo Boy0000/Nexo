@@ -5,11 +5,10 @@ import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.util.UUID
-import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
@@ -20,6 +19,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
+import java.util.*
 
 interface IFurniturePacketManager {
     fun getEntity(entityId: Int): Entity?
@@ -76,14 +76,21 @@ interface IFurniturePacketManager {
             interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
                 ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
 
-        fun baseEntityFromHitbox(location: BlockLocation): ItemDisplay? {
+        fun baseEntityFromHitbox(location: Location): ItemDisplay? {
+            return baseEntityFromHitbox(BlockLocation(location), location.world)
+        }
+
+        fun baseEntityFromHitbox(location: BlockLocation, world: World): ItemDisplay? {
             val barrierVec = location.toVector()
             return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
-                uuid.takeIf { hitboxes.any { it == location } }?.let(Bukkit::getEntity) as? ItemDisplay
+                if (hitboxes.none { it == location }) null
+                world.takeIf { hitboxes.any { it == location } }?.getEntity(uuid) as? ItemDisplay
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.baseEntity()
+                val subEntity = subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } } ?: return null
+                world.getEntity(subEntity.baseUuid).safeCast<ItemDisplay>()
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.baseEntity()
+                val subEntity = subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } } ?: return null
+                world.getEntity(subEntity.baseUuid).safeCast<ItemDisplay>()
             }
         }
 

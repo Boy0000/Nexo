@@ -1,10 +1,15 @@
 package com.nexomc.nexo.converter
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.logs.Logs
+import org.bukkit.configuration.file.YamlConfiguration
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.io.File
+import kotlin.io.path.pathString
 
 object NexoConverter {
 
@@ -47,5 +52,20 @@ object NexoConverter {
             Logs.logWarn("Failed to save ${itemFile.name} changes...")
             if (Settings.DEBUG.toBool()) it.printStackTrace()
         }
+    }
+
+    fun processGlyphConfigs(glyphFile: File) {
+        if (glyphFile.extension != "yml") return
+
+        val glyphFolder = NexoPlugin.instance().dataFolder.toPath()
+        val resourcePath = glyphFolder.relativize(glyphFile.toPath())
+        val resource = NexoPlugin.instance().getResource(resourcePath.pathString) ?: return
+        val resourceContent = YamlConfiguration().apply { loadFromString(resource.readAllBytes().decodeToString()) }
+
+        val glyphConfig = NexoYaml.loadConfiguration(glyphFile)
+        resourceContent.childSections().forEach { key, section ->
+            if (glyphConfig.get(key) == null) glyphConfig.set(key, section)
+        }
+        glyphConfig.save(glyphFile)
     }
 }

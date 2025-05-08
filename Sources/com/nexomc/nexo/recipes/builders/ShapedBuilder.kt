@@ -32,12 +32,12 @@ class ShapedBuilder(player: Player) : WorkbenchBuilder(player, "shaped") {
         val newCraftSection: ConfigurationSection?
         val resultSection: ConfigurationSection?
         val ingredients: ConfigurationSection?
-        if (getConfig()!!.isConfigurationSection(name)) {
-            newCraftSection = getConfig()!!.getConfigurationSection(name)
+        if (config.isConfigurationSection(name)) {
+            newCraftSection = config.getConfigurationSection(name)
             resultSection = newCraftSection!!.getConfigurationSection("result")
             ingredients = newCraftSection.getConfigurationSection("ingredients")
         } else {
-            newCraftSection = getConfig()!!.createSection(name)
+            newCraftSection = config.createSection(name)
             resultSection = newCraftSection.createSection("result")
             ingredients = newCraftSection.createSection("ingredients")
         }

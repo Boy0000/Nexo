@@ -15,12 +15,12 @@ import org.joml.Vector2f
 class TridentMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
 
     val itemModel: Key? = section.getKey("thrown_item_model") ?: section.rootSection.getKey("Components.item_model")
-    val model: String? = section.getString("thrown_item", section.rootId)
+    val model: String? = section.getString("thrown_item", section.rootId.appendIfMissing("_throwing"))
     val transform = section.getEnum("display_transform", FurnitureTransform::class.java) ?: FurnitureTransform.NONE
     val rotation: Vector2f = section.getVector2f("rotation")
 
     val itemStack by lazy {
         if (itemModel != null) ItemStack.of(Material.PAPER).apply { setData(DataComponentTypes.ITEM_MODEL, itemModel) }
-        else NexoItems.itemFromId(model)?.build()
+        else NexoItems.itemFromId(model)?.build() ?: NexoItems.itemFromId(section.rootId)?.build()
     }
 }

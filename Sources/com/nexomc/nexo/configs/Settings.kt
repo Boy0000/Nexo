@@ -27,8 +27,7 @@ enum class Settings {
     FORMAT_PACKETS("Plugin.formatting.packets", true),
 
     // WorldEdit
-    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic", false),
-    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic", false),
+    WORLDEDIT_CUSTOM_BLOCKS("WorldEdit.customblock_mechanic", false),
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic", false),
 
     // Glyphs

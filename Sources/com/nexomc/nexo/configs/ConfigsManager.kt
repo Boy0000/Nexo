@@ -26,14 +26,15 @@ import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.toFastList
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
-import java.io.File
-import java.io.InputStreamReader
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
+import java.io.InputStreamReader
+import kotlin.io.resolve
 
 class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null
@@ -114,6 +115,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val output = mutableListOf<Glyph>()
         val referenceGlyphs = mutableMapOf<String, ConfigurationSection>()
         Glyph.assignedGlyphUnicodes.clear()
+
+        glyphFiles().forEach(NexoConverter::processGlyphConfigs)
 
         glyphFiles().associateWith(::loadConfiguration).apply {
             entries.flatMap { it.value.childSections().entries }.forEach { (glyphId, glyphSection) ->

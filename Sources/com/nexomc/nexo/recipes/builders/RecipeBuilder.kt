@@ -4,30 +4,31 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.printOnFailure
-import java.io.File
-import java.util.UUID
+import com.nexomc.nexo.utils.resolve
 import net.kyori.adventure.text.Component
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
+import java.io.File
+import java.util.*
 
-abstract class RecipeBuilder(val player: Player, private val builderName: String) {
-    var inventory: Inventory
+@Suppress("UNCHECKED_CAST")
+abstract class RecipeBuilder(
+    val player: Player,
+    private val builderId: String,
+    val inventoryTitle: Component = Component.text("${player.name} $builderId builder")
+) {
+    var inventory: Inventory = currentBuilder(player.uniqueId)?.takeIf { it.builderId == builderId }?.inventory
+        ?: createInventory(player, inventoryTitle)
     private set
-    private var configFile: File? = null
-    private var config: YamlConfiguration? = null
-    val inventoryTitle = Component.text("${player.name} $builderName builder")
+    val configFile: File = NexoPlugin.instance().dataFolder.resolve("recipes/$builderId.yml")
+    val config: YamlConfiguration by lazy { loadConfiguration(configFile) }
 
     init {
-        val uuid = player.uniqueId
-        inventory = when {
-            BUILDER_MAP[uuid]?.builderName == builderName -> BUILDER_MAP[uuid]!!.inventory
-            else -> createInventory(player, inventoryTitle)
-        }
-        player.openInventory(inventory)
-        BUILDER_MAP[uuid] = this
+        BUILDER_MAP[player.uniqueId] = this
     }
 
     abstract fun createInventory(player: Player?, inventoryTitle: Component): Inventory
@@ -46,16 +47,8 @@ abstract class RecipeBuilder(val player: Player, private val builderName: String
         if (itemStack.amount > 1) section["amount"] = itemStack.amount
     }
 
-    fun getConfig(): YamlConfiguration? {
-        if (configFile == null) {
-            configFile = NexoPlugin.instance().resourceManager().extractConfiguration("recipes/$builderName.yml")
-            config = loadConfiguration(configFile!!)
-        }
-        return config
-    }
-
     fun saveConfig() {
-        runCatching { config!!.save(configFile!!) }.printOnFailure()
+        runCatching { config.save(configFile) }.printOnFailure()
     }
 
     fun setInventory(inventory: Inventory) {
@@ -64,15 +57,32 @@ abstract class RecipeBuilder(val player: Player, private val builderName: String
     }
 
     fun open() {
+        inventory = currentBuilder(player.uniqueId)?.takeIf { it.builderId == builderId }?.inventory
+            ?: createInventory(player, inventoryTitle)
+
         player.openInventory(inventory)
+        BUILDER_MAP[player.uniqueId] = this
+    }
+
+    fun validSlot(slot: Int, slotType: InventoryType.SlotType): Boolean {
+        return when (this) {
+            is ShapedBuilder, is ShapelessBuilder -> slotType == InventoryType.SlotType.RESULT
+            is BrewingBuilder -> slot != 4 && slot != 1 && (slotType == InventoryType.SlotType.FUEL || slotType == InventoryType.SlotType.CRAFTING)
+            else -> false
+        }
     }
 
     companion object {
         private val BUILDER_MAP = mutableMapOf<UUID, RecipeBuilder>()
 
         @JvmStatic
-        fun get(playerUUID: UUID): RecipeBuilder? {
+        fun currentBuilder(playerUUID: UUID): RecipeBuilder? {
             return BUILDER_MAP[playerUUID]
+        }
+
+        @JvmStatic
+        fun <T : RecipeBuilder> currentBuilder(playerUUID: UUID, builder: Class<T>): T? {
+            return BUILDER_MAP[playerUUID]?.takeIf { it.javaClass == builder } as? T
         }
     }
 }

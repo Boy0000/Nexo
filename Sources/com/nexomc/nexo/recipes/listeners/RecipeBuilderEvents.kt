@@ -8,7 +8,6 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
-import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.ItemStack
 
 class RecipeBuilderEvents : Listener {
@@ -17,8 +16,9 @@ class RecipeBuilderEvents : Listener {
     @EventHandler(priority = EventPriority.HIGH)
     @Suppress("DEPRECATION")
     fun InventoryClickEvent.setCursor() {
-        val recipeBuilderTitle = RecipeBuilder.get(whoClicked.uniqueId)?.inventoryTitle
-        if (titleFromView(this) != recipeBuilderTitle || slotType != InventoryType.SlotType.RESULT) return
+        val builder = RecipeBuilder.currentBuilder(whoClicked.uniqueId) ?: return
+        if (titleFromView(this) != builder.inventoryTitle) return
+        if (!builder.validSlot(slot, slotType)) return
 
         isCancelled = true
         val (currentResult, currentCursor) = (currentItem ?: empty).clone() to cursor.clone()
@@ -28,7 +28,7 @@ class RecipeBuilderEvents : Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     fun InventoryCloseEvent.onInventoryClosed() {
-        val recipeBuilder = RecipeBuilder.get(player.uniqueId) ?: return
+        val recipeBuilder = RecipeBuilder.currentBuilder(player.uniqueId) ?: return
         if (titleFromView(this) != recipeBuilder.inventoryTitle) return
 
         recipeBuilder.setInventory(inventory)

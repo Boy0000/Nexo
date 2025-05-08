@@ -16,7 +16,7 @@ open class CookingBuilder(player: Player, builderName: String) : RecipeBuilder(p
 
     override fun saveRecipe(name: String, permission: String?) {
         val content = inventory.contents
-        val newCraftSection = getConfig()!!.createSection(name)
+        val newCraftSection = config.createSection(name)
         setItemStack(newCraftSection.createSection("result"), content[2]!!)
         setItemStack(newCraftSection.createSection("input"), content[0]!!)
         newCraftSection["cookingTime"] = cookingTime

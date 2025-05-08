@@ -1,24 +1,18 @@
 package com.nexomc.nexo.compatibilities.worldedit
 
-import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanicFactory
-import com.nexomc.nexo.utils.BlockHelpers.isReplaceable
+import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.logs.Logs
 import com.sk89q.worldedit.WorldEdit
 import com.sk89q.worldedit.bukkit.BukkitAdapter
-import com.sk89q.worldedit.extension.input.ParserContext
 import com.sk89q.worldedit.extent.clipboard.Clipboard
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats
 import com.sk89q.worldedit.function.operation.Operations
-import com.sk89q.worldedit.internal.registry.InputParser
 import com.sk89q.worldedit.math.BlockVector3
 import com.sk89q.worldedit.session.ClipboardHolder
-import com.sk89q.worldedit.world.block.BaseBlock
-import org.bukkit.Bukkit
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.data.BlockData
 import java.io.File
@@ -67,8 +61,8 @@ object WorldEditUtils {
         loc: Location,
         schematic: File,
         replaceBlocks: Boolean,
-        shouldCopyBiomes: Boolean,
-        shouldCopyEntities: Boolean
+        copyBiomes: Boolean,
+        copyEntities: Boolean
     ) {
         val clipboardFormat = ClipboardFormats.findByFile(schematic) ?: return
         val clipboard = runCatching {
@@ -80,12 +74,11 @@ object WorldEditUtils {
         }.getOrNull() ?: return
 
         runCatching {
-            val world = loc.getWorld() ?: return
-            val adaptedWorld = BukkitAdapter.adapt(world)
-            val editSession = WorldEdit.getInstance().newEditSessionBuilder().world(adaptedWorld).maxBlocks(-1).build()
+            val world = BukkitAdapter.adapt(loc.world ?: return)
+            val editSession = WorldEdit.getInstance().newEditSessionBuilder().world(world).maxBlocks(-1).build()
             val operation = ClipboardHolder(clipboard).createPaste(editSession)
                 .to(BlockVector3.at(loc.x, loc.y, loc.z))
-                .copyBiomes(shouldCopyBiomes).copyEntities(shouldCopyEntities).ignoreAirBlocks(true).build()
+                .copyBiomes(copyBiomes).copyEntities(copyEntities).ignoreAirBlocks(true).build()
 
             runCatching {
                 if (replaceBlocks || blocksInSchematic(clipboard, loc).isEmpty()) Operations.complete(operation)
@@ -94,24 +87,24 @@ object WorldEditUtils {
                 Logs.logWarn("Could not paste schematic for sapling-mechanic")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
             }
-        }.getOrThrow()
+        }.onFailure {
+            Logs.logWarn("Could not paste schematic")
+            if (Settings.DEBUG.toBool()) it.printStackTrace()
+        }
     }
 
     private fun blocksInSchematic(clipboard: Clipboard, loc: Location): List<Block> {
         val list = mutableListOf<Block>()
-        val world = checkNotNull(loc.getWorld())
-        (clipboard.minimumPoint.x..clipboard.maximumPoint.x).forEach { x ->
-            (clipboard.minimumPoint.y..clipboard.maximumPoint.y).forEach { y ->
-                (clipboard.minimumPoint.z..clipboard.maximumPoint.z).forEach { z ->
-                    val offset = Location(
-                        world,
-                        (x - clipboard.origin.blockX).toDouble(),
-                        (y - clipboard.origin.blockY).toDouble(),
-                        (z - clipboard.origin.blockZ).toDouble()
-                    )
+        val world = loc.world ?: return emptyList()
+        (clipboard.minimumPoint.x()..clipboard.maximumPoint.x()).forEach { x ->
+            (clipboard.minimumPoint.y()..clipboard.maximumPoint.y()).forEach { y ->
+                (clipboard.minimumPoint.z()..clipboard.maximumPoint.z()).forEach { z ->
+                    val x = (x - clipboard.minimumPoint.x()).toDouble()
+                    val y = (y - clipboard.minimumPoint.y()).toDouble()
+                    val z = (z - clipboard.minimumPoint.z()).toDouble()
 
-                    val block = world.getBlockAt(loc.clone().add(offset))
-                    if (isReplaceable(block) || loc.toBlockLocation() == loc.toBlockLocation()) return@forEach
+                    val block = world.getBlockAt(loc.clone().add(x, y, z))
+                    if (BlockHelpers.isReplaceable(block)) return@forEach
                     list += block
                 }
             }
@@ -121,7 +114,7 @@ object WorldEditUtils {
 
     fun blocksInSchematic(loc: Location, schematic: File): List<Block> {
         val list = mutableListOf<Block>()
-        val world = checkNotNull(loc.getWorld())
+        val world = loc.world ?: return emptyList()
         val clipboardFormat = ClipboardFormats.findByFile(schematic) ?: return list
         val clipboard = runCatching {
             FileInputStream(schematic).use { inputStream ->
@@ -131,23 +124,19 @@ object WorldEditUtils {
             }
         }.getOrNull() ?: return list
 
-        (clipboard.minimumPoint.x..clipboard.maximumPoint.x).forEach { x ->
-            (clipboard.minimumPoint.y..clipboard.maximumPoint.y).forEach { y ->
-                (clipboard.minimumPoint.z..clipboard.maximumPoint.z)
-                    .asSequence()
-                    .map {
-                        Location(
-                            world,
-                            (x - clipboard.origin.blockX).toDouble(),
-                            (y - clipboard.origin.blockY).toDouble(),
-                            (it - clipboard.origin.blockZ).toDouble()
-                        )
-                    }
-                    .map { world.getBlockAt(loc.clone().add(it)) }
-                    .filterTo(list) { !isReplaceable(it) && loc.toBlockLocation() != loc.toBlockLocation() }
+        (clipboard.minimumPoint.x()..clipboard.maximumPoint.x()).forEach { x ->
+            (clipboard.minimumPoint.y()..clipboard.maximumPoint.y()).forEach { y ->
+                (clipboard.minimumPoint.z()..clipboard.maximumPoint.z()).forEach { z ->
+                    val x = (x - clipboard.minimumPoint.x()).toDouble()
+                    val y = (y - clipboard.minimumPoint.y()).toDouble()
+                    val z = (z - clipboard.minimumPoint.z()).toDouble()
+
+                    val block = world.getBlockAt(loc.clone().add(x, y, z))
+                    if (BlockHelpers.isReplaceable(block)) return@forEach
+                    list += block
+                }
             }
         }
-
         return list
     }
 }

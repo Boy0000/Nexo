@@ -3,11 +3,11 @@ package com.nexomc.nexo.mechanics.furniture
 import com.nexomc.nexo.api.NexoFurniture
 import it.unimi.dsi.fastutil.ints.IntArrayList
 import it.unimi.dsi.fastutil.ints.IntList
-import java.util.UUID
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
+import java.util.*
 
 class FurnitureSubEntity {
     private val mechanic: FurnitureMechanic
@@ -37,7 +37,7 @@ class FurnitureSubEntity {
     }
 
     fun baseEntity(): ItemDisplay? {
-        return Bukkit.getEntity(baseUuid) as ItemDisplay?
+        return Bukkit.getEntity(baseUuid) as? ItemDisplay
     }
 
     fun hitboxLocation(entityId: Int): Vector? {

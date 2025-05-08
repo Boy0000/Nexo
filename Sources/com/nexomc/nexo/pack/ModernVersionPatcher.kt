@@ -6,13 +6,7 @@ import com.nexomc.nexo.utils.groupByFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
-import team.unnamed.creative.item.ConditionItemModel
-import team.unnamed.creative.item.Item
-import team.unnamed.creative.item.ItemModel
-import team.unnamed.creative.item.RangeDispatchItemModel
-import team.unnamed.creative.item.ReferenceItemModel
-import team.unnamed.creative.item.SelectItemModel
-import team.unnamed.creative.item.SpecialItemModel
+import team.unnamed.creative.item.*
 import team.unnamed.creative.item.property.ItemNumericProperty
 import team.unnamed.creative.item.property.ItemStringProperty
 import team.unnamed.creative.item.special.HeadSpecialRender
@@ -74,7 +68,7 @@ object ModernVersionPatcher {
                                 RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
                             }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
                                 val property = if (itemKey.asString().contains("crossbow")) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
-                                ItemModel.rangeDispatch(property, 0.05f, pullingEntries, baseOverrideModel)
+                                ItemModel.rangeDispatch(property, RangeDispatchItemModel.DEFAULT_SCALE, pullingEntries, baseOverrideModel)
                             } ?: baseOverrideModel
 
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
@@ -96,14 +90,14 @@ object ModernVersionPatcher {
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)
                         }
 
-                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onTrueCmdEntries, baseItemModel.onTrue())
-                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, onFalseCmdEntries, baseItemModel.onFalse())
+                        val onTrue = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, onTrueCmdEntries, baseItemModel.onTrue())
+                        val onFalse = ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, onFalseCmdEntries, baseItemModel.onFalse())
 
                         ItemModel.conditional(baseItemModel.condition(), onTrue, onFalse)
                     }
 
                     is ReferenceItemModel -> {
-                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, overrides.mapNotNull { override ->
                             val cmd = override.predicate().customModelData ?: return@mapNotNull null
                             RangeDispatchItemModel.Entry.entry(cmd, ItemModel.reference(override.model(), baseItemModel.tints()))
                         }, baseItemModel)
@@ -116,7 +110,7 @@ object ModernVersionPatcher {
                             else -> baseItemModel.base()
                         })
 
-                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                        if (overrides.isNotEmpty()) ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), RangeDispatchItemModel.DEFAULT_SCALE, overrides.mapNotNull { override ->
                             val cmd = override.predicate().customModelData ?: return@mapNotNull null
                             RangeDispatchItemModel.Entry.entry(cmd, ItemModel.special(baseItemModel.render(), override.model()))
                         }, newBase)

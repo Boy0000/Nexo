@@ -9,15 +9,18 @@ import net.kyori.adventure.sound.Sound
 import org.bukkit.entity.Player
 
 class SoundAction(meta: ActionMeta<Player?>) : Action<Player>(meta) {
-    private val source = getMeta().getProperty("source", Sound.Source.MASTER) { Sound.Source.NAMES.value(it.lowercase()) }
-    private val volume = getMeta().getProperty("volume", 1f) { it.toFloatOrNull() }
-    private val pitch = getMeta().getProperty("pitch", 1f) { it.toFloatOrNull() }
+    private val source = meta.getProperty("source", Sound.Source.MASTER) { Sound.Source.NAMES.value(it.lowercase()) }
+    private val volume = meta.getProperty("volume", 1f) { it.toFloatOrNull() }
+    private val pitch = meta.getProperty("pitch", 1f) { it.toFloatOrNull() }
+    private val self = meta.getProperty("self", true) { it.toBoolean() }
 
     override fun run(player: Player, context: Context<Player>) {
         val parsed = meta.getParsedData(player, context)
 
         runCatching {
-            player.playSound(Sound.sound(Key.key(parsed), source, volume, pitch))
+            val sound = Sound.sound(Key.key(parsed), source, volume, pitch)
+            if (self) player.playSound(sound)
+            else player.playSound(sound, player.x, player.y, player.z)
         }.printOnFailure()
     }
 

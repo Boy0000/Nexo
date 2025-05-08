@@ -2,23 +2,12 @@ package com.nexomc.nexo.commands
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.recipes.builders.BlastingBuilder
-import com.nexomc.nexo.recipes.builders.BrewingBuilder
-import com.nexomc.nexo.recipes.builders.FurnaceBuilder
-import com.nexomc.nexo.recipes.builders.RecipeBuilder.Companion.get
-import com.nexomc.nexo.recipes.builders.ShapedBuilder
-import com.nexomc.nexo.recipes.builders.ShapelessBuilder
-import com.nexomc.nexo.recipes.builders.SmokingBuilder
-import com.nexomc.nexo.recipes.builders.StonecuttingBuilder
+import com.nexomc.nexo.recipes.builders.*
 import com.nexomc.nexo.recipes.listeners.RecipeEventManager
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.kotlindsl.anyExecutor
-import dev.jorel.commandapi.kotlindsl.integerArgument
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.stringArgument
-import dev.jorel.commandapi.kotlindsl.textArgument
+import dev.jorel.commandapi.kotlindsl.*
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
@@ -48,19 +37,19 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
         withPermission("nexo.command.recipes.builder")
         literalArgument("brewing") {
             anyExecutor { sender, _ ->
-                if (sender is Player) (get(sender.uniqueId) ?: BrewingBuilder(sender)).open()
+                if (sender is Player) (RecipeBuilder.currentBuilder(sender.uniqueId, BrewingBuilder::class.java) ?: BrewingBuilder(sender)).open()
                 else Message.NOT_PLAYER.send(sender)
             }
         }
         literalArgument("shaped") {
             anyExecutor { sender, _ ->
-                if (sender is Player) (get(sender.uniqueId) ?: ShapedBuilder(sender)).open()
+                if (sender is Player) (RecipeBuilder.currentBuilder(sender.uniqueId, ShapedBuilder::class.java) ?: ShapedBuilder(sender)).open()
                 else Message.NOT_PLAYER.send(sender)
             }
         }
         literalArgument("shapeless") {
             anyExecutor { sender, _ ->
-                if (sender is Player) (get(sender.uniqueId) ?: ShapelessBuilder(sender)).open()
+                if (sender is Player) (RecipeBuilder.currentBuilder(sender.uniqueId, ShapelessBuilder::class.java) ?: ShapelessBuilder(sender)).open()
                 else Message.NOT_PLAYER.send(sender)
             }
         }
@@ -69,11 +58,9 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
                 integerArgument("experience", optional = true) {
                     anyExecutor { sender, arguments ->
                         if (sender is Player) {
-                            val recipe = get(sender.uniqueId) ?: FurnaceBuilder(sender)
-                            if (recipe is FurnaceBuilder) {
-                                recipe.setCookingTime(arguments.get("cookingtime") as Int)
-                                recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
-                            }
+                            val recipe = RecipeBuilder.currentBuilder(sender.uniqueId, FurnaceBuilder::class.java) ?: FurnaceBuilder(sender)
+                            recipe.setCookingTime(arguments.get("cookingtime") as Int)
+                            recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
                             recipe.open()
                         } else Message.NOT_PLAYER.send(sender)
                     }
@@ -85,11 +72,9 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
                 integerArgument("experience", optional = true) {
                     anyExecutor { sender, arguments ->
                         if (sender is Player) {
-                            val recipe = get(sender.uniqueId) ?: BlastingBuilder(sender)
-                            if (recipe is BlastingBuilder) {
-                                recipe.setCookingTime(arguments.get("cookingtime") as Int)
-                                recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
-                            }
+                            val recipe = RecipeBuilder.currentBuilder(sender.uniqueId, BlastingBuilder::class.java) ?: BlastingBuilder(sender)
+                            recipe.setCookingTime(arguments.get("cookingtime") as Int)
+                            recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
                             recipe.open()
                         } else Message.NOT_PLAYER.send(sender)
                     }
@@ -101,11 +86,9 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
                 integerArgument("experience", optional = true) {
                     anyExecutor { sender, arguments ->
                         if (sender is Player) {
-                            val recipe = get(sender.uniqueId) ?: SmokingBuilder(sender)
-                            if (recipe is SmokingBuilder) {
-                                recipe.setCookingTime(arguments.get("cookingtime") as Int)
-                                recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
-                            }
+                            val recipe = RecipeBuilder.currentBuilder(sender.uniqueId, SmokingBuilder::class.java) ?: SmokingBuilder(sender)
+                            recipe.setCookingTime(arguments.get("cookingtime") as Int)
+                            recipe.setExperience(arguments.getOptionalByClass("experience", Int::class.java).orElse(0))
                             recipe.open()
                         } else Message.NOT_PLAYER.send(sender)
                     }
@@ -115,12 +98,12 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
         literalArgument("stonecutting") {
             anyExecutor { sender, _ ->
                 if (sender is Player) {
-                    (get(sender.uniqueId) ?: StonecuttingBuilder(sender)).open()
+                    (RecipeBuilder.currentBuilder(sender.uniqueId, StonecuttingBuilder::class.java) ?: StonecuttingBuilder(sender)).open()
                 } else Message.NOT_PLAYER.send(sender)
             }
         }
         anyExecutor { sender, args ->
-            if (sender is Player) get(sender.uniqueId)?.open() ?: Message.RECIPE_NO_BUILDER.send(sender)
+            if (sender is Player) RecipeBuilder.currentBuilder(sender.uniqueId)?.open() ?: Message.RECIPE_NO_BUILDER.send(sender)
             else Message.NOT_PLAYER.send(sender)
         }
     }
@@ -130,13 +113,15 @@ internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
         textArgument("name") {
             stringArgument("permission", optional = true) {
                 anyExecutor { sender, args ->
-                    if (sender is Player) {
-                        val recipe = get(sender.uniqueId) ?: return@anyExecutor Message.RECIPE_NO_BUILDER.send(sender)
-                        val name = args.args().first() as String
-                        val permission = args.getOptional("permission").orElse("") as String
-                        recipe.saveRecipe(name, permission)
-                        Message.RECIPE_SAVE.send(sender, tagResolver("name", name))
-                    } else Message.NOT_PLAYER.send(sender)
+                    if (sender !is Player) return@anyExecutor Message.NOT_PLAYER.send(sender)
+
+                    val recipe = RecipeBuilder.currentBuilder(sender.uniqueId) ?: return@anyExecutor Message.RECIPE_NO_BUILDER.send(sender)
+                    val recipeId = args.args().first() as String
+                    val permission = args.getOptional("permission").orElse("") as String
+
+                    if (!recipe.configFile.exists()) recipe.configFile.createNewFile()
+                    recipe.saveRecipe(recipeId, permission)
+                    Message.RECIPE_SAVE.send(sender, tagResolver("name", recipeId))
                 }
             }
         }

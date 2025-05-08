@@ -19,7 +19,6 @@ object CompatibilitiesManager {
     private val ACTIVE_COMPAT_PROVIDERS: ConcurrentHashMap<String, CompatibilityProvider<*>> = ConcurrentHashMap()
 
     fun enableCompatibilies() {
-        WrappedWorldEdit.init()
         WrappedWorldEdit.registerParser()
         Bukkit.getPluginManager().registerEvents(CompatibilityListener(), NexoPlugin.instance())
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility::class.java, true)

@@ -17,12 +17,12 @@ import com.sk89q.worldedit.math.BlockVector3
 import com.sk89q.worldedit.util.Location
 import com.sk89q.worldedit.world.block.BlockState
 import com.sk89q.worldedit.world.block.BlockStateHolder
-import java.util.*
 import org.bukkit.Bukkit
 import org.bukkit.World
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.ItemDisplay
+import java.util.*
 
 class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateExtent(extent) {
 
@@ -49,7 +49,7 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
 
         SchedulerUtils.syncDelayedTask(2L) {
             Bukkit.getEntity(originalUUID)?.safeCast<ItemDisplay>()?.also(NexoFurniture::updateFurniture)
-            val location = org.bukkit.Location(world, location.x, location.y, location.z, location.yaw, location.pitch)
+            val location = BukkitAdapter.adapt(world, location)
             mechanic.place(location, location.yaw, BlockFace.UP, false)
         }
 
@@ -58,6 +58,7 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
 
     @Throws(WorldEditException::class)
     override fun <T : BlockStateHolder<T>?> setBlock(pos: BlockVector3, stateToSet: T): Boolean {
+        if (!Settings.WORLDEDIT_CUSTOM_BLOCKS.toBool()) return super.setBlock(pos, stateToSet)
         val location = BukkitAdapter.adapt(this.world, pos)
 
         processBlock(location, stateToSet as BlockState)
