@@ -57,6 +57,22 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
 
     fun add(location: Location) = location.clone().add(x.toDouble(), y.toDouble(), z.toDouble())
 
+    fun subtract(blockLocation: BlockLocation): BlockLocation {
+        this.x -= blockLocation.x
+        this.y -= blockLocation.y
+        this.z -= blockLocation.z
+        return this
+    }
+
+    fun subtract(x: Int, y: Int, z: Int): BlockLocation {
+        this.x -= x
+        this.y -= y
+        this.z -= z
+        return this
+    }
+
+    fun subtract(location: Location) = location.clone().subtract(x.toDouble(), y.toDouble(), z.toDouble())
+
     fun toLocation(world: World) = Location(world, x.toDouble(), y.toDouble(), z.toDouble())
 
     fun groundRotate(angle: Float): BlockLocation {

@@ -12,15 +12,17 @@ import team.unnamed.creative.item.property.ItemStringProperty
 import team.unnamed.creative.item.special.HeadSpecialRender
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
+import team.unnamed.creative.model.Model
 
 object ModernVersionPatcher {
 
     fun convertResources(resourcePack: ResourcePack) {
-        resourcePack.models().associateBy { Key.key(it.key().asString().replace("block/", "").replace("item/", "")) }.forEach { (itemKey, model) ->
+        resourcePack.models().associateBy(itemKeyPredicate).forEach { (itemKey, model) ->
             val overrides = model.overrides().ifEmpty { return@forEach }
             val standardItem = resourcePack.item(itemKey) ?: standardItemModels[itemKey]
+            val handSwap = standardItem?.handAnimationOnSwap() ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP
             val finalNewItemModel = standardItem?.let { existingItemModel ->
-                val baseItemModel = existingItemModel.model().takeUnless { it.isSimpleItemModel } ?: return@let null
+                val baseItemModel = existingItemModel.model().takeUnless(simpleItemModelPredicate) ?: return@let null
 
                 when (baseItemModel) {
                     is RangeDispatchItemModel -> {
@@ -120,7 +122,7 @@ object ModernVersionPatcher {
                 }
             } ?: modelObject(standardItem?.model(), overrides, itemKey)
 
-            resourcePack.item(Item.item(itemKey, finalNewItemModel))
+            resourcePack.item(Item.item(itemKey, finalNewItemModel, handSwap))
         }
     }
 
@@ -156,7 +158,6 @@ object ModernVersionPatcher {
             .associateByTo(Object2ObjectOpenHashMap()) { it.key() }
     }
 
-    val ItemModel.isSimpleItemModel: Boolean get() {
-        return (this as? ReferenceItemModel)?.tints()?.isEmpty() == true
-    }
+    private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}
+    private val itemKeyPredicate = { model: Model -> Key.key(model.key().asString().replace("block/", "").replace("item/", "")) }
 }

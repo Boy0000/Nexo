@@ -5,7 +5,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.ItemBuilder
-import com.nexomc.nexo.mechanics.furniture.BlockLocation
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
@@ -88,20 +87,18 @@ data class ConnectableMechanic(
 
     fun updateSurrounding(baseEntity: ItemDisplay) {
         SchedulerUtils.runTaskLater(2L) {
-            val world = baseEntity.world
-            val (leftLoc, rightLoc) = BlockLocation(baseEntity.location).add(-1, 0, 0) to BlockLocation(baseEntity.location).add(1, 0, 0)
-            val (aheadLoc, behindLoc) = BlockLocation(baseEntity.location).add(0, 0, -1) to BlockLocation(baseEntity.location).add(0, 0, 1)
-            IFurniturePacketManager.baseEntityFromHitbox(leftLoc, world)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(rightLoc, world)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(aheadLoc, world)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(behindLoc, world)?.takeIf { it.isValid }?.let(::updateState)
+            val (leftLoc, rightLoc) = baseEntity.blockLocation.minus(1) to baseEntity.blockLocation.plus(1)
+            val (aheadLoc, behindLoc) = baseEntity.blockLocation.minus(z = 1) to baseEntity.blockLocation.plus(z = 1)
+            IFurniturePacketManager.baseEntityFromHitbox(leftLoc)?.takeIf { it.isValid }?.let(::updateState)
+            IFurniturePacketManager.baseEntityFromHitbox(rightLoc)?.takeIf { it.isValid }?.let(::updateState)
+            IFurniturePacketManager.baseEntityFromHitbox(aheadLoc)?.takeIf { it.isValid }?.let(::updateState)
+            IFurniturePacketManager.baseEntityFromHitbox(behindLoc)?.takeIf { it.isValid }?.let(::updateState)
         }
     }
 
     private fun determineConnectableShape(baseEntity: ItemDisplay): ConnectType {
         var currentType = baseEntity.persistentDataContainer.get(CONNECTABLE_KEY, ConnectType.dataType)
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return ConnectType.DEFAULT
-        val world = baseEntity.world
 
         if (currentType?.isCornerRotated == true) baseEntity.setRotation(baseEntity.yaw - 90f, baseEntity.pitch)
 
@@ -115,15 +112,15 @@ data class ConnectableMechanic(
             else -> BlockFace.WEST
         }.oppositeFace
 
-        val leftBlock = BlockLocation(baseEntity.location.add(leftFacing.direction))
-        val rightBlock = BlockLocation(baseEntity.location.add(leftFacing.oppositeFace.direction))
-        val aheadBlock = BlockLocation(baseEntity.location.add(aheadFacing.direction))
-        val behindBlock = BlockLocation(baseEntity.location.add(behindFacing.direction))
+        val leftBlock = baseEntity.location.add(leftFacing.direction)
+        val rightBlock = baseEntity.location.add(leftFacing.oppositeFace.direction)
+        val aheadBlock = baseEntity.location.add(aheadFacing.direction)
+        val behindBlock = baseEntity.location.add(behindFacing.direction)
 
-        val leftEntity = IFurniturePacketManager.baseEntityFromHitbox(leftBlock, world)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val rightEntity = IFurniturePacketManager.baseEntityFromHitbox(rightBlock, world)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val aheadEntity = IFurniturePacketManager.baseEntityFromHitbox(aheadBlock, world)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val behindEntity = IFurniturePacketManager.baseEntityFromHitbox(behindBlock, world)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
+        val leftEntity = IFurniturePacketManager.baseEntityFromHitbox(leftBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
+        val rightEntity = IFurniturePacketManager.baseEntityFromHitbox(rightBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
+        val aheadEntity = IFurniturePacketManager.baseEntityFromHitbox(aheadBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
+        val behindEntity = IFurniturePacketManager.baseEntityFromHitbox(behindBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
 
         val leftState = leftEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)
         val rightState = rightEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)

@@ -3,19 +3,11 @@ package com.nexomc.nexo.api
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.logs.Logs
-import java.io.File
 import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.font.Font
-import team.unnamed.creative.item.CompositeItemModel
-import team.unnamed.creative.item.ConditionItemModel
-import team.unnamed.creative.item.EmptyItemModel
-import team.unnamed.creative.item.Item
-import team.unnamed.creative.item.ItemModel
-import team.unnamed.creative.item.RangeDispatchItemModel
-import team.unnamed.creative.item.ReferenceItemModel
-import team.unnamed.creative.item.SelectItemModel
+import team.unnamed.creative.item.*
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.metadata.Metadata
 import team.unnamed.creative.metadata.overlays.OverlayEntry
@@ -25,6 +17,7 @@ import team.unnamed.creative.model.Model
 import team.unnamed.creative.overlay.Overlay
 import team.unnamed.creative.overlay.ResourceContainer
 import team.unnamed.creative.sound.SoundRegistry
+import java.io.File
 
 object NexoPack {
     @JvmStatic
@@ -114,6 +107,7 @@ object NexoPack {
 
         importedContainer.items().forEach { item ->
             val oldItem = container.item(item.key()) ?: return@forEach container.item(item)
+            val handSwap = if (oldItem.handAnimationOnSwap()) item.handAnimationOnSwap() else oldItem.handAnimationOnSwap()
 
             fun mergeItemModels(oldItem: ItemModel, newItem: ItemModel): ItemModel {
                 return when (newItem) {
@@ -140,7 +134,7 @@ object NexoPack {
                     Logs.logWarn("Existing ItemModel of incompatible type ${oldItem.model().javaClass.simpleName}, keeping old ItemModel...")
                     null
                 }
-            }?.let { Item.item(item.key(), it, item.handAnimationOnSwap()) }?.addTo(container)
+            }?.let { Item.item(item.key(), it, handSwap) }?.addTo(container)
         }
 
         importedContainer.models().forEach { model: Model ->

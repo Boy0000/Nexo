@@ -14,7 +14,8 @@ backpack:
   enabled: true
 misc:
   enabled: true
-
+trident:
+  enabled: true
 
 # GAMEPLAY
 custom_blocks:

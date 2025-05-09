@@ -5,7 +5,6 @@ import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -83,14 +82,11 @@ interface IFurniturePacketManager {
         fun baseEntityFromHitbox(location: BlockLocation, world: World): ItemDisplay? {
             val barrierVec = location.toVector()
             return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
-                if (hitboxes.none { it == location }) null
                 world.takeIf { hitboxes.any { it == location } }?.getEntity(uuid) as? ItemDisplay
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                val subEntity = subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } } ?: return null
-                world.getEntity(subEntity.baseUuid).safeCast<ItemDisplay>()
+                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                val subEntity = subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } } ?: return null
-                world.getEntity(subEntity.baseUuid).safeCast<ItemDisplay>()
+                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
             }
         }
 

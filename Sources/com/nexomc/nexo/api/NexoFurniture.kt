@@ -155,12 +155,11 @@ object NexoFurniture {
      */
     @JvmStatic
     fun furnitureMechanic(location: Location?): FurnitureMechanic? {
-        if (!FurnitureFactory.isEnabled || location == null || !location.isLoaded) return null
-        val world = location.world ?: return null
-        val block = location.block
+        if (!FurnitureFactory.isEnabled || location == null) return null
         return IFurniturePacketManager.baseEntityFromHitbox(location)?.let(::furnitureMechanic) ?: let {
+            val block = location.block
             val centerLoc = toCenterBlockLocation(location)
-            world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
+            centerLoc.world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
                 .sortedBy { it.location.distanceSquared(centerLoc) }
                 .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
                 ?.let(::furnitureMechanic)
