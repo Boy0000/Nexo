@@ -5,7 +5,9 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import org.bukkit.entity.FallingBlock
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.block.BlockFromToEvent
 
 class ChorusBlockListener : Listener {
 
@@ -18,5 +20,10 @@ class ChorusBlockListener : Listener {
         val itemStack = NexoItems.itemFromId(mechanic.itemID)!!.build()
         fallingBlock.dropItem = false
         fallingBlock.world.dropItemNaturally(fallingBlock.location.toCenterLocation().subtract(0.0, 0.25, 0.0), itemStack)
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun BlockFromToEvent.onFlow() {
+        if (NexoBlocks.isNexoChorusBlock(toBlock)) isCancelled = true
     }
 }

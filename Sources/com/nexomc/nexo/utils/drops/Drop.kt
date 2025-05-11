@@ -5,9 +5,11 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.mechanics.misc.itemtype.ItemTypeMechanicFactory
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.getLinkedMapListOrNull
 import com.nexomc.nexo.utils.wrappers.EnchantmentWrapper
+import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
@@ -86,6 +88,10 @@ data class Drop(
         furnitureItem.editMeta { itemMeta: ItemMeta ->
             baseItem?.itemMeta?.takeIf(ItemMeta::hasDisplayName)?.let { itemMeta.displayName(it.displayName()) }
             baseEntity.persistentDataContainer.get(FurnitureMechanic.DISPLAY_NAME_KEY, PersistentDataType.STRING)?.also { itemMeta.displayName(it.deserialize()) }
+        }
+
+        if (VersionUtil.atleast("1.21.2")) runCatching {
+            furnitureItem.resetData(DataComponentTypes.BLOCK_DATA)
         }
 
         if (!canDrop(itemInHand)) return
