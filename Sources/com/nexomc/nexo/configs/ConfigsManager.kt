@@ -20,6 +20,7 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.printOnFailure
@@ -145,13 +146,15 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val glyphId = referenceSection.getString("reference") ?: return@onEach
                 val glyph = output.find { it.id == glyphId } ?: return@onEach Logs.logError("Reference-Glyph $referenceId tried referencing a Glyph $glyphId, but it does not exist...")
                 val permission = referenceSection.getString("permission") ?: glyph.permission
+                val placeholders = referenceSection.getStringListOrNull("chat.placeholders") ?: glyph.placeholders
                 val unicodes = glyph.unicodes.joinToString("")
 
-                if (unicodes.length <= index.last || index.first <= 0) {
-                    return@onEach Logs.logError("Reference-Glyph $referenceId used invalid index $index, $glyphId has indexes ${1 until unicodes.length}")
+                if (unicodes.length > index.last || index.first <= 0) {
+                    val i = if (index.count() == 1) index.first else index
+                    return@onEach Logs.logError("Reference-Glyph $referenceId used invalid index $i, $glyphId has indexes $index")
                 }
 
-                output += ReferenceGlyph(glyph, referenceId, index, permission)
+                output += ReferenceGlyph(glyph, referenceId, index, permission, placeholders)
             }
 
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) runCatching {

@@ -7,7 +7,6 @@ import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import java.util.regex.Pattern
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
@@ -16,11 +15,26 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import team.unnamed.creative.font.Font
 import team.unnamed.creative.font.FontProvider
+import java.util.regex.Pattern
 
 object RequiredGlyph : Glyph("required", Font.MINECRAFT_DEFAULT, REQUIRED_GLYPH, 8, 8, REQUIRED_CHAR)
 
-data class ReferenceGlyph(val glyph: Glyph, val referenceId: String, val index: IntRange, override val permission: String)
-    : Glyph(referenceId, glyph.font, glyph.texture, glyph.ascent, glyph.height, listOf(glyph.unicodes.joinToString("").substring(index.first - 1, index.last)), permission, listOf())
+data class ReferenceGlyph(
+    val glyph: Glyph,
+    val referenceId: String,
+    val index: IntRange,
+    val _permission: String,
+    val _placeholders: List<String>
+) : Glyph(
+    referenceId,
+    glyph.font,
+    glyph.texture,
+    glyph.ascent,
+    glyph.height,
+    listOf(glyph.unicodes.joinToString("").substring(index.first - 1, index.last)),
+    _permission,
+    _placeholders
+)
 
 open class Glyph(
     val id: String,
@@ -30,7 +44,7 @@ open class Glyph(
     val height: Int,
     val unicodes: List<String>,
 
-    open val permission: String = "",
+    val permission: String = "",
     val placeholders: List<String> = listOf(),
     val tabcomplete: Boolean = false,
     val isEmoji: Boolean = false,
@@ -55,11 +69,13 @@ open class Glyph(
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =
         Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
 
-    val baseRegex: Pattern
-    private val escapedRegex: Pattern
+    val baseRegex: Regex
+    private val escapedRegex: Regex
     val replacementConfig: TextReplacementConfig
+    private val placeholderMatch = "(${placeholders.joinToString("|", transform = Regex::escape)})"
     val placeholderReplacementConfig: TextReplacementConfig?
     val escapePlaceholderReplacementConfig: TextReplacementConfig?
+    val unescapePlaceholderReplacementConfig: TextReplacementConfig?
     val escapeReplacementConfig: TextReplacementConfig
     val unescapeReplacementConfig: TextReplacementConfig
 
@@ -80,28 +96,31 @@ open class Glyph(
     )
 
     init {
-        val baseRegex = "((<(glyph|g):$id)(:(c|colorable|\\d))*>)"
-        this.baseRegex = Pattern.compile("(?<!\\\\)$baseRegex")
-        escapedRegex = Pattern.compile("\\\\" + baseRegex)
-        replacementConfig = TextReplacementConfig.builder().match(this.baseRegex).replacement { match, builder ->
+        val _baseRegex = "((<(glyph|g):$id)(:(c|colorable|\\d))*>)"
+        baseRegex = Pattern.compile("(?<!\\\\)$_baseRegex").toRegex()
+        escapedRegex = Pattern.compile("\\\\" + _baseRegex).toRegex()
+        replacementConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
             val args = match.group(1).substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
             val colorable = args.any { it == "colorable" || it == "c" }
             val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
             glyphComponent(colorable, bitmapIndex)
         }.build()
         placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
-            ?.replacement(glyphComponent())?.build()
+            ?.match("(?<!\\\\)$placeholderMatch")?.replacement(glyphComponent())?.build()
         escapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(${placeholders.joinToString("|", transform = Regex::escape)})")
-            ?.replacement { match, b ->
+            ?.match("(?<!\\\\)$placeholderMatch")?.replacement { match, b ->
                 b.content("\\\\${match.group(1)}")
             }?.build()
+        unescapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("\\\\$placeholderMatch")?.replacement { match, b ->
+                b.content(match.group(1).removePrefix("\\"))
+            }?.build()
 
-        escapeReplacementConfig = TextReplacementConfig.builder().match(baseRegex).replacement { match, b ->
+
+        escapeReplacementConfig = TextReplacementConfig.builder().match(_baseRegex).replacement { match, b ->
             b.content("\\\\${match.group(1)}")
         }.build()
-        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex).replacement { match, b ->
+        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex.pattern).replacement { match, b ->
             b.content(match.group(1).removePrefix("\\"))
         }.build()
     }

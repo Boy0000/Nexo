@@ -22,12 +22,10 @@ class FontManager(configsManager: ConfigsManager) {
 
     fun registerEvents() {
         Bukkit.getPluginManager().registerEvents(fontListener, NexoPlugin.instance())
-        fontListener.registerChatHandlers()
     }
 
     fun unregisterEvents() {
         HandlerList.unregisterAll(fontListener)
-        fontListener.unregisterChatHandlers()
     }
 
     private fun loadGlyphs(glyphs: Collection<Glyph>) {

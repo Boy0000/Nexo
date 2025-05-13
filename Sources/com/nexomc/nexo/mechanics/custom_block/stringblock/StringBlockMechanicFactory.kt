@@ -13,12 +13,10 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.to
-import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
-import org.bukkit.Bukkit
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
@@ -100,7 +98,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     fun registerSaplingMechanic() {
         if (sapling || !WrappedWorldEdit.loaded) return
         saplingTask?.cancel()
-        saplingTask = SchedulerUtils.foliaScheduler.runTimer(Runnable { SaplingTask(saplingGrowthCheckDelay).runTask(NexoPlugin.instance()) }, 0, saplingGrowthCheckDelay.toLong())
+        saplingTask = SchedulerUtils.foliaScheduler.runTimer(SaplingTask(saplingGrowthCheckDelay), 0, saplingGrowthCheckDelay.toLong())
         sapling = true
     }
 

@@ -80,6 +80,9 @@ enum class RemovedSettings(private val path: String) {
     PACK_READER_LENIENT("Pack.generation.lenient"),
     WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
     WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
+
+    // Chat
+    CHAT_HANDLER("Chat.chat_handler"),
     ;
 
     override fun toString(): String {

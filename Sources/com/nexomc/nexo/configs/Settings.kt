@@ -1,7 +1,6 @@
 package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.fonts.FontListener.ChatHandler
 import com.nexomc.nexo.pack.PackObfuscator
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
@@ -35,9 +34,6 @@ enum class Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
-
-    // Chat
-    CHAT_HANDLER("Chat.chat_handler", ChatHandler.MODERN),
 
     // Config Tools
     GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),

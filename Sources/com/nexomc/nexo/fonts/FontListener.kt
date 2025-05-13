@@ -1,6 +1,5 @@
 package com.nexomc.nexo.fonts
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.GlyphHandlers
@@ -10,22 +9,16 @@ import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacy
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
-import com.nexomc.nexo.utils.logs.Logs
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import net.kyori.adventure.inventory.Book
-import net.kyori.adventure.text.TextComponent
-import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
-import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.SignChangeEvent
-import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerEditBookEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -33,35 +26,11 @@ import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.meta.BookMeta
 
 class FontListener(private val manager: FontManager) : Listener {
-    private val paperChatHandler: PaperChatHandler = PaperChatHandler()
-    private val spigotChatHandler: SpigotChatHandler = SpigotChatHandler()
 
-    enum class ChatHandler {
-        LEGACY, MODERN;
-
-        companion object {
-            val isLegacy: Boolean get() = get() == LEGACY
-
-            val isModern: Boolean get() = get() == MODERN
-
-            fun get(): ChatHandler {
-                return Settings.CHAT_HANDLER.toEnumOrGet(ChatHandler::class.java) { handler: String ->
-                    Logs.logError("Invalid chat-handler $handler defined in settings.yml, defaulting to $MODERN", false)
-                    Logs.logError("Valid options are: ${entries.toTypedArray().contentToString()}", true)
-                    MODERN
-                }
-            }
-        }
-    }
-
-    fun registerChatHandlers() {
-        Bukkit.getPluginManager().registerEvents(paperChatHandler, NexoPlugin.instance())
-        Bukkit.getPluginManager().registerEvents(spigotChatHandler, NexoPlugin.instance())
-    }
-
-    fun unregisterChatHandlers() {
-        HandlerList.unregisterAll(paperChatHandler)
-        HandlerList.unregisterAll(spigotChatHandler)
+    @EventHandler
+    fun AsyncChatDecorateEvent.onDecorate() {
+        val message = GlyphHandlers.escapePlaceholders(result(), player())
+        result(GlyphHandlers.escapeGlyphs(message, player()))
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -193,51 +162,5 @@ class FontListener(private val manager: FontManager) : Listener {
     @EventHandler
     fun PlayerJoinEvent.onPlayerJoin() {
         manager.sendGlyphTabCompletion(player)
-    }
-
-    inner class SpigotChatHandler : Listener {
-        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-        fun AsyncPlayerChatEvent.onPlayerChat() {
-            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy) return
-
-            format = format
-            message = format(message, player) ?: message
-        }
-
-        /**
-         * Formats a string with glyphs and placeholders
-         *
-         * @param string The string to format
-         * @param player The player to check permissions for, if null it parses the string without checking permissions
-         * @return The formatted string, or null if the player doesn't have permission for a glyph
-         */
-        private fun format(string: String, player: Player?): String? {
-            var component = AdventureUtils.MINI_MESSAGE_PLAYER(player).deserialize(string) as TextComponent
-            if (player != null) manager.unicodeGlyphMap.keys.forEach { character: Char ->
-                if (character !in component.content()) return@forEach
-                val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
-                if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
-                    return null
-                }
-            }
-
-            manager.placeholderGlyphMap.values.forEach { glyph ->
-                if (player != null && !glyph.hasPermission(player)) return@forEach
-                component = component.replaceText(glyph.placeholderReplacementConfig!!) as TextComponent
-            }
-
-            return AdventureUtils.LEGACY_SERIALIZER.serialize(component)
-        }
-    }
-
-
-    inner class PaperChatHandler : Listener {
-        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-        fun AsyncChatDecorateEvent.onPlayerChat() {
-            val player = player() ?: return
-            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern) return
-            result(GlyphHandlers.escapePlaceholders(GlyphHandlers.escapeGlyphs(result(), player), player))
-        }
     }
 }

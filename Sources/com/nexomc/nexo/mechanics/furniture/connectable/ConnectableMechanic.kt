@@ -14,6 +14,7 @@ import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
 
 enum class ConnectableItemType {
@@ -79,6 +80,10 @@ data class ConnectableMechanic(
         outer = section.getKey("outer") ?: section.getKey("default")?.appendSuffix("_outer"),
     )
 
+    fun scheduleUpdateState(baseEntity: ItemDisplay, delay: Long = 1L) {
+        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable { updateState(baseEntity) }, delay)
+    }
+
     fun updateState(baseEntity: ItemDisplay) {
         val type = determineConnectableShape(baseEntity)
         baseEntity.persistentDataContainer.set(CONNECTABLE_KEY, ConnectType.dataType, type)
@@ -89,16 +94,17 @@ data class ConnectableMechanic(
         SchedulerUtils.runTaskLater(2L) {
             val (leftLoc, rightLoc) = baseEntity.blockLocation.minus(1) to baseEntity.blockLocation.plus(1)
             val (aheadLoc, behindLoc) = baseEntity.blockLocation.minus(z = 1) to baseEntity.blockLocation.plus(z = 1)
-            IFurniturePacketManager.baseEntityFromHitbox(leftLoc)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(rightLoc)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(aheadLoc)?.takeIf { it.isValid }?.let(::updateState)
-            IFurniturePacketManager.baseEntityFromHitbox(behindLoc)?.takeIf { it.isValid }?.let(::updateState)
+            IFurniturePacketManager.baseEntityFromHitbox(leftLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)
+            IFurniturePacketManager.baseEntityFromHitbox(rightLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)
+            IFurniturePacketManager.baseEntityFromHitbox(aheadLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)
+            IFurniturePacketManager.baseEntityFromHitbox(behindLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)
         }
     }
 
     private fun determineConnectableShape(baseEntity: ItemDisplay): ConnectType {
         var currentType = baseEntity.persistentDataContainer.get(CONNECTABLE_KEY, ConnectType.dataType)
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return ConnectType.DEFAULT
+        val furnitureCheck = { entity: Entity -> entity.isValid && NexoFurniture.furnitureMechanic(entity) == mechanic }
 
         if (currentType?.isCornerRotated == true) baseEntity.setRotation(baseEntity.yaw - 90f, baseEntity.pitch)
 
@@ -117,18 +123,24 @@ data class ConnectableMechanic(
         val aheadBlock = baseEntity.location.add(aheadFacing.direction)
         val behindBlock = baseEntity.location.add(behindFacing.direction)
 
-        val leftEntity = IFurniturePacketManager.baseEntityFromHitbox(leftBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val rightEntity = IFurniturePacketManager.baseEntityFromHitbox(rightBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val aheadEntity = IFurniturePacketManager.baseEntityFromHitbox(aheadBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
-        val behindEntity = IFurniturePacketManager.baseEntityFromHitbox(behindBlock)?.takeIf { it.isValid && NexoFurniture.furnitureMechanic(it) == mechanic }
+        val leftEntity = IFurniturePacketManager.baseEntityFromHitbox(leftBlock)?.takeIf(furnitureCheck)
+        val rightEntity = IFurniturePacketManager.baseEntityFromHitbox(rightBlock)?.takeIf(furnitureCheck)
+        val aheadEntity = IFurniturePacketManager.baseEntityFromHitbox(aheadBlock)?.takeIf(furnitureCheck)
+        val behindEntity = IFurniturePacketManager.baseEntityFromHitbox(behindBlock)?.takeIf(furnitureCheck)
 
-        val leftState = leftEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)
-        val rightState = rightEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)
-        val aheadState = aheadEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)
-        val behindState = behindEntity?.persistentDataContainer?.get(CONNECTABLE_KEY, ConnectType.dataType)
+        val leftState = leftEntity?.let(ConnectType::fromEntity)
+        val rightState = rightEntity?.let(ConnectType::fromEntity)
+        val aheadState = aheadEntity?.let(ConnectType::fromEntity)
+        val behindState = behindEntity?.let(ConnectType::fromEntity)
 
-        if (leftState != null && leftEntity.facing == aheadFacing) currentType = ConnectType.RIGHT_END
-        if (rightState != null && rightEntity.facing == aheadFacing) currentType = ConnectType.LEFT_END
+        if (leftState != null) when (leftEntity.facing) {
+            leftEntity.facing -> currentType = ConnectType.RIGHT_END
+            else -> scheduleUpdateState(baseEntity)
+        }
+        if (rightState != null) when (rightEntity.facing) {
+            rightEntity.facing -> currentType = ConnectType.LEFT_END
+            else -> scheduleUpdateState(baseEntity)
+        }
         if (aheadState?.isCorner == false && aheadFacing != aheadEntity.facing) {
             if (rightState != null) currentType = ConnectType.INNER_CORNER
             if (leftState != null) currentType = ConnectType.INNER_CORNER_ROTATED
@@ -176,6 +188,7 @@ data class ConnectableMechanic(
 
         companion object {
             val dataType = DataType.asEnum(ConnectType::class.java)
+            fun fromEntity(entity: Entity): ConnectType? = entity.persistentDataContainer.get(CONNECTABLE_KEY, dataType)
         }
     }
 }

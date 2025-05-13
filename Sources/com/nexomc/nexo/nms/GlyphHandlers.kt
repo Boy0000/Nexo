@@ -4,8 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.utils.associateFast
 import com.nexomc.nexo.utils.filterFast
-import java.util.Locale
-import java.util.regex.Pattern
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -13,6 +11,8 @@ import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.entity.Player
 import team.unnamed.creative.font.Font
+import java.util.*
+import java.util.regex.Pattern
 
 object GlyphHandlers {
 
@@ -27,8 +27,8 @@ object GlyphHandlers {
         var component = component
 
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            val config = if (glyph.hasPermission(player)) glyph.placeholderReplacementConfig else return@forEach
-            component = component.replaceText(config ?: return@forEach)
+            val config = glyph.escapePlaceholderReplacementConfig?.takeUnless { glyph.hasPermission(player) } ?: return@forEach
+            component = component.replaceText(config)
         }
 
         return component
@@ -47,12 +47,21 @@ object GlyphHandlers {
         // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            if (glyph.hasPermission(player)) return@forEach
-
-            component = component.replaceText(glyph.escapeReplacementConfig)
+            val config = glyph.escapeReplacementConfig.takeUnless { glyph.hasPermission(player) } ?: return@forEach
+            component = component.replaceText(config)
         }
 
         return component.replaceText(ShiftTag.ESCAPE_REPLACEMENT_CONFIG)
+    }
+
+    fun unescapePlaceholders(component: Component): Component {
+        var component = component
+
+        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
+            component = component.replaceText(glyph.unescapePlaceholderReplacementConfig ?: return@forEach)
+        }
+
+        return component
     }
 
     fun unescapeGlyphs(component: Component): Component {
@@ -84,8 +93,11 @@ object GlyphHandlers {
         var component = GlobalTranslator.render(this, locale ?: Locale.US)
         val serialized = component.asFlatTextContent()
 
-        NexoPlugin.instance().fontManager().glyphs().filterFast { serialized.contains(it.baseRegex.toRegex()) }.forEach { glyph ->
+        NexoPlugin.instance().fontManager().glyphs().filterFast {
+            it.placeholders.any(serialized::contains) || it.baseRegex in serialized
+        }.forEach { glyph ->
             component = component.replaceText(glyph.replacementConfig)
+            component = component.replaceText(glyph.placeholderReplacementConfig ?: return@forEach)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)
     }

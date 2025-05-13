@@ -9,9 +9,8 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.persistence.PersistentDataType
-import org.bukkit.scheduler.BukkitRunnable
 
-class SaplingTask(private val delay: Int) : BukkitRunnable() {
+class SaplingTask(private val delay: Int) : Runnable {
 
     override fun run() {
         Bukkit.getWorlds().forEach { world ->
