@@ -1,11 +1,7 @@
 package com.nexomc.nexo.utils
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectArrayList
-import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.util.Collections
+import it.unimi.dsi.fastutil.objects.*
+import java.util.*
 
 fun <T> Sequence<T>.toFastList(): ObjectArrayList<T> {
     val it = iterator()
@@ -62,6 +58,21 @@ inline fun <T, R : Any> Iterable<T>.mapNotNullFast(transform: (T) -> R?): Object
 inline fun <T, R> Iterable<T>.mapFastSet(transform: (T) -> R): ObjectOpenHashSet<R> {
     return mapTo(ObjectOpenHashSet<R>((this as? Collection)?.size ?: 10), transform)
 }
+
+inline fun <T, reified R> Iterable<T>.toTypedArray(transform: (T) -> R): Array<R> {
+    val result = arrayOfNulls<R>(this.count())
+    var index = 0
+    for (item in this) result[index++] = transform(item)
+    return result.ensureCast<Array<R>>()
+}
+
+inline fun <T, reified R> Array<T>.toTypedArray(transform: (T) -> R): Array<R> {
+    val result = arrayOfNulls<R>(this.count())
+    var index = 0
+    for (item in this) result[index++] = transform(item)
+    return result.ensureCast<Array<R>>()
+}
+
 
 inline fun <T, K, V> Iterable<T>.associateFast(transform: (T) -> Pair<K, V>): Object2ObjectOpenHashMap<K, V> {
     val capacity = mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16)

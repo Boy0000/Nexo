@@ -42,7 +42,7 @@ class FontManager(configsManager: ConfigsManager) {
 
     fun glyphs(): Collection<Glyph> = glyphMap.values
 
-    fun emojis() = glyphMap.values.filter(Glyph::isEmoji)
+    fun emojis() = glyphMap.values.filter(Glyph::isEmoji).sortedBy { it.id }
 
     /**
      * Get a Glyph from a given Glyph-ID

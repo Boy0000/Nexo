@@ -35,4 +35,10 @@ class BarrierHitbox : BlockLocation {
             location.block.type == Material.WATER
         } ?: IFurniturePacketManager.BARRIER_DATA_WATERLOGGED
     }
+
+    constructor(location: Location, waterloggable: Boolean) : super(location) {
+        barrierData = IFurniturePacketManager.BARRIER_DATA.takeUnless {
+            waterloggable && location.block.type == Material.WATER
+        } ?: IFurniturePacketManager.BARRIER_DATA_WATERLOGGED
+    }
 }

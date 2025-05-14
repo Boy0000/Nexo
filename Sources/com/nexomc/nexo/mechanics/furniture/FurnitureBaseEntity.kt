@@ -1,31 +1,52 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
-import java.util.UUID
+import com.nexomc.nexo.utils.asColorable
+import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.DyedItemColor
 import org.bukkit.Bukkit
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import java.util.*
 
 class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: FurnitureMechanic) {
     fun refreshItem(baseEntity: ItemDisplay) {
         itemStack = (mechanic.placedItem(baseEntity)).apply {
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }.build().also { item ->
-            item.editMeta {
-                it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
-                it.displayName(null)
+            val color = FurnitureHelpers.furnitureDye(baseEntity)
+            runCatching {
+                //TODO Swap to NMS method when Colorable rework is merged
+                item.unsetData(DataComponentTypes.CUSTOM_NAME)
+                if (color != null) item.setData(DataComponentTypes.DYED_COLOR, DyedItemColor.dyedItemColor(color))
+                else item.unsetData(DataComponentTypes.DYED_COLOR)
+            }.onFailure {
+                item.editMeta {
+                    it.asColorable()?.color = color
+                    it.displayName(null)
+                }
             }
         }
         FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
     }
     fun itemStack(item: ItemStack, baseEntity: ItemDisplay) {
-        item.editMeta {
-            it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
-            it.displayName(null)
-            it.persistentDataContainer.set(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
+        val color = FurnitureHelpers.furnitureDye(baseEntity)
+        runCatching {
+            //TODO Swap to NMS method when Colorable rework is merged
+            if (color != null) item.setData(DataComponentTypes.DYED_COLOR, DyedItemColor.dyedItemColor(color))
+            else item.resetData(DataComponentTypes.DYED_COLOR)
+            item.unsetData(DataComponentTypes.CUSTOM_NAME)
+            item.editPersistentDataContainer {
+                it.set(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
+            }
+        }.onFailure {
+            item.editMeta {
+                it.asColorable()?.color = color
+                it.displayName(null)
+                it.persistentDataContainer.set(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
+            }
         }
         itemStack = item
         FurnitureFactory.instance()?.packetManager()?.sendFurnitureMetadataPacket(baseEntity, mechanic)
@@ -38,9 +59,17 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: Furnitu
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
         }.build()
 
-        itemStack.editMeta {
-            it.asColorable()?.color = FurnitureHelpers.furnitureDye(baseEntity)
-            it.displayName(null)
+        val color = FurnitureHelpers.furnitureDye(baseEntity)
+        runCatching {
+            //TODO Swap to NMS method when Colorable rework is merged
+            if (color != null) itemStack.setData(DataComponentTypes.DYED_COLOR, DyedItemColor.dyedItemColor(color))
+            else itemStack.resetData(DataComponentTypes.DYED_COLOR)
+            itemStack.unsetData(DataComponentTypes.CUSTOM_NAME)
+        }.onFailure {
+            itemStack.editMeta {
+                it.asColorable()?.color = color
+                it.displayName(null)
+            }
         }
     }
     val baseUuid: UUID = baseEntity.uniqueId
