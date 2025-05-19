@@ -11,17 +11,10 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.kotlindsl.anyExecutor
-import dev.jorel.commandapi.kotlindsl.entitySelectorArgumentManyPlayers
-import dev.jorel.commandapi.kotlindsl.integerArgument
-import dev.jorel.commandapi.kotlindsl.literalArgument
-import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
-import dev.jorel.commandapi.kotlindsl.playerExecutor
-import dev.jorel.commandapi.kotlindsl.stringArgument
-import dev.jorel.commandapi.kotlindsl.textArgument
-import java.util.concurrent.CompletableFuture
+import dev.jorel.commandapi.kotlindsl.*
 import net.kyori.adventure.audience.Audience
 import org.bukkit.entity.Player
+import java.util.concurrent.CompletableFuture
 import kotlin.jvm.optionals.getOrDefault
 import kotlin.jvm.optionals.getOrElse
 
@@ -29,6 +22,34 @@ internal fun CommandTree.inventoryCommand() = multiLiteralArgument(nodeName = "i
     withPermission("nexo.command.inventory")
     playerExecutor { player, _ ->
         NexoPlugin.instance().invManager().itemsView(player).open(player)
+    }
+}
+
+internal fun CommandTree.dropItemCommand() = literalArgument("drop") {
+    withPermission("nexo.command.drop")
+    stringArgument("item") {
+        replaceSuggestions(ArgumentSuggestions.stringsAsync {
+            CompletableFuture.supplyAsync { NexoItems.unexcludedItemNames() }
+        })
+        integerArgument("amount", 1, optional = true) {
+            entitySelectorArgumentOnePlayer("target", optional = true) {
+                anyExecutor { sender, args ->
+                    val itemID = args.get("item") as? String ?: return@anyExecutor
+                    val itemBuilder = NexoItems.itemFromId(itemID) ?: return@anyExecutor Message.ITEM_NOT_FOUND.send(sender, tagResolver("item", itemID))
+                    val targets = args.getOptional("targets")?.getOrElse {
+                        if (sender is Player) listOf(sender) else emptyList()
+                    }?.safeCast<Collection<Player>>()?.ifEmpty { null } ?: return@anyExecutor
+                    val amount = args.getOptionalByClass("amount", Int::class.java).orElse(1)
+                    val items = itemBuilder.buildArray(amount).filterNotNull()
+
+                    targets.forEach { target ->
+                        items.forEach { item ->
+                            target.world.dropItemNaturally(target.location, item)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

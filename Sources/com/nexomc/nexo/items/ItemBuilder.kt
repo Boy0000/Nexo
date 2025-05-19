@@ -675,7 +675,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     fun buildArray(amount: Int): Array<ItemStack?> {
         val built = build()
         val max = if (hasMaxStackSize()) maxStackSize!! else type.maxStackSize
-        val rest: Int = if (max == amount) amount else amount % max
+        val rest = if (max == amount) amount else amount % max
         val iterations = if (amount > max) (amount - rest) / max else 0
         val output = arrayOfNulls<ItemStack>(iterations + (if (rest > 0) 1 else 0))
 

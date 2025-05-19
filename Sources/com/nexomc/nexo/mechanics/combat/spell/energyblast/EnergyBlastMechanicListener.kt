@@ -12,7 +12,6 @@ import com.nexomc.nexo.utils.VectorUtils.rotateAroundAxisY
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.wrappers.ParticleWrapper
 import com.nexomc.protectionlib.ProtectionLib
-import java.util.EnumMap
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.damage.DamageSource
@@ -28,6 +27,7 @@ import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.util.Vector
+import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -36,14 +36,13 @@ class EnergyBlastMechanicListener(private val factory: EnergyBlastMechanicFactor
 
     @EventHandler(priority = EventPriority.NORMAL)
     fun PlayerInteractEvent.onPlayerUse() {
-        val block = clickedBlock ?: return
         val item = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
         val mechanic = factory.getMechanic(item) ?: return
         val location = clickedBlock?.location ?: player.location
 
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (useItemInHand() == Event.Result.DENY || !ProtectionLib.canUse(player, location)) return
-        if (BlockHelpers.isInteractable(block) && useInteractedBlock() == Event.Result.ALLOW) return
+        if (BlockHelpers.isInteractable(clickedBlock) && useInteractedBlock() == Event.Result.ALLOW) return
 
         mechanic.timer(player).let { it.takeIf { it.isFinished }?.reset() ?: return it.sendToPlayer(player) }
 

@@ -3,6 +3,7 @@ package com.nexomc.nexo.pack
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.groupByFast
+import com.nexomc.nexo.utils.remove
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
@@ -18,8 +19,12 @@ object ModernVersionPatcher {
 
     fun convertResources(resourcePack: ResourcePack) {
         resourcePack.models().associateBy(itemKeyPredicate).forEach { (itemKey, model) ->
-            val overrides = model.overrides().ifEmpty { return@forEach }
             val standardItem = resourcePack.item(itemKey) ?: standardItemModels[itemKey]
+            val overrides = model.overrides().ifEmpty {
+                if (standardItem?.model() !is SpecialItemModel) return@forEach
+                if (DisplayProperties.fromModel(model) == model.display()) return@forEach
+                listOf()
+            }
             val handSwap = standardItem?.handAnimationOnSwap() ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP
             val finalNewItemModel = standardItem?.let { existingItemModel ->
                 val baseItemModel = existingItemModel.model().takeUnless(simpleItemModelPredicate) ?: return@let null
@@ -159,5 +164,5 @@ object ModernVersionPatcher {
     }
 
     private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}
-    private val itemKeyPredicate = { model: Model -> Key.key(model.key().asString().replace("block/", "").replace("item/", "")) }
+    private val itemKeyPredicate = { model: Model -> Key.key(model.key().asString().remove("block/").remove("item/")) }
 }

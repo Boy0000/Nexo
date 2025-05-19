@@ -22,6 +22,7 @@ object CommandsManager {
             takeItemCommand()
             itemInfoCommand()
             inventoryCommand()
+            dropItemCommand()
             giveItemCommand()
             dumpLogCommand()
             convertCommand()

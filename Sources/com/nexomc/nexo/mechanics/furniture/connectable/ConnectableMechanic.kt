@@ -49,8 +49,8 @@ data class ConnectableMechanic(
 
     private val defaultItem by lazy {
         when (type) {
-            ConnectableItemType.ITEM_MODEL -> ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(default)
-            else -> NexoItems.itemFromId(default?.value()) ?: ItemBuilder(Material.BARRIER)
+            ConnectableItemType.ITEM_MODEL -> ItemBuilder(Material.PAPER).setItemModel(default)
+            else -> NexoItems.itemFromId(default?.value()) ?: ItemBuilder(Material.PAPER)
         }
     }
     private val straightItem by lazy { buildDisplayItem(straight, "straight") }
@@ -62,7 +62,7 @@ data class ConnectableMechanic(
     private fun buildDisplayItem(typeKey: Key?, suffix: String): ItemBuilder {
         return when (type) {
             ConnectableItemType.ITEM_MODEL -> when {
-                typeKey != null -> ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(typeKey)
+                typeKey != null -> ItemBuilder(Material.PAPER).setItemModel(typeKey)
                 else -> defaultItem.clone().setBlockStates(mapOf(BLOCKSTATE_KEY to suffix))
             }
             else -> NexoItems.itemFromId(typeKey?.value()) ?: defaultItem

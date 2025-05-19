@@ -11,13 +11,11 @@ import org.bukkit.entity.Player
 internal fun CommandTree.packCommand() = literalArgument("pack") {
     withPermission("nexo.command.pack")
     entitySelectorArgumentManyPlayers("players", optional = true) {
-        anyExecutor { commandSender, commandArguments ->
-            commandArguments.getOptional("players").map { it.safeCast<List<Player>>() }
-                .orElse(listOf(commandSender).filterIsInstance<Player>())?.forEach {
-                    NexoPlugin.instance().packServer().sendPack(it)
-                }
+        anyExecutor { sender, args ->
+            val packServer = NexoPlugin.instance().packServer()
+            args.getOptional("players").map { it.safeCast<List<Player>>() }.orElseGet {
+                if (sender is Player) listOf(sender) else null
+            }?.forEach(packServer::sendPack)
         }
     }
 }
-
-object PackCommand
