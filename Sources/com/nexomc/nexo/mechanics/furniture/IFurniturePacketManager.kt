@@ -123,10 +123,12 @@ interface IFurniturePacketManager {
             } } }.printOnFailure().getOrDefault(false)
         }
 
-        fun blockIsHitbox(block: Block, excludeUUID: UUID? = null): Boolean {
+        fun blockIsHitbox(block: Block, excludeUUID: UUID? = null, collisionOnly: Boolean = true): Boolean {
+            if (barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any(block.location::equals) })
+                return true
+            if (collisionOnly) return false
             val blockBox = BoundingBox.of(block)
-            return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any(block.location::equals) }
-                    || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+            return interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
 

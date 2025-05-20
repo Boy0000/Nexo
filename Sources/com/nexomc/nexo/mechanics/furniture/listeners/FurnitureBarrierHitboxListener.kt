@@ -4,7 +4,7 @@ import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.event.entity.EntityMoveEvent
-import java.util.UUID
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.ArmorStand
@@ -17,6 +17,7 @@ import org.bukkit.event.entity.EntityPlaceEvent
 import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import java.util.*
 
 class FurnitureBarrierHitboxListener() : Listener {
 
@@ -36,16 +37,16 @@ class FurnitureBarrierHitboxListener() : Listener {
     fun HangingBreakEvent.onHangingBreak() {
         if (cause != HangingBreakEvent.RemoveCause.PHYSICS) return
         val relative = entity.location.block.getRelative(entity.attachedFace)
-        if (IFurniturePacketManager.blockIsHitbox(relative)) isCancelled = true
+        if (IFurniturePacketManager.blockIsHitbox(relative, collisionOnly = false)) isCancelled = true
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun EntityPlaceEvent.onPlace() {
-        if (entity !is ArmorStand || !IFurniturePacketManager.blockIsHitbox(block)) return
+        if (entity !is ArmorStand || !IFurniturePacketManager.blockIsHitbox(block, collisionOnly = false)) return
         entity.setGravity(false)
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun NexoFurnitureBreakEvent.onBreak() {
         val hitboxLocs = IFurniturePacketManager.barrierHitboxLocationMap.get(baseEntity.uniqueId) ?: return
         baseEntity.world.getNearbyEntitiesByType(ArmorStand::class.java, baseEntity.location, 8.0).forEach {
@@ -53,30 +54,36 @@ class FurnitureBarrierHitboxListener() : Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockFromToEvent.onFlowThroughBarrier() {
         val toLoc = toBlock.location
         if (IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockFormEvent.onSnow() {
         val loc = block.location
         if (IFurniturePacketManager.barrierHitboxLocationMap.any { loc in it.value }) isCancelled = true
     }
 
-    private val flightCache: MutableSet<UUID> = mutableSetOf()
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    fun PlayerMoveEvent.onMove() {
-        if (from.blockX != to.blockX || from.blockY != to.blockY || from.blockZ != to.blockZ)
-            flightCache -= player.uniqueId
-    }
+    private val flightCache: ObjectOpenHashSet<UUID> = ObjectOpenHashSet()
+    init {
+        if (FurnitureFactory.instance()!!.tryPreventingBarrierKick && !Bukkit.getServer().allowFlight) {
+            FurnitureFactory.instance()?.registerListeners(object : Listener {
+                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+                fun PlayerMoveEvent.onMove() {
+                    if (!hasExplicitlyChangedBlock()) return
+                    flightCache -= player.uniqueId
+                }
 
-    @EventHandler(ignoreCancelled = true)
-    fun PlayerKickEvent.onKick() {
-        if (Bukkit.getServer().allowFlight || cause != PlayerKickEvent.Cause.FLYING_PLAYER) return
-        if (player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
-        flightCache += player.uniqueId
-        isCancelled = true
+                @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+                fun PlayerKickEvent.onKick() {
+                    if (cause != PlayerKickEvent.Cause.FLYING_PLAYER) return
+                    if (player.uniqueId !in flightCache && !IFurniturePacketManager.standingOnFurniture(player)) return
+                    flightCache += player.uniqueId
+                    isCancelled = true
+                }
+            })
+        }
     }
 }

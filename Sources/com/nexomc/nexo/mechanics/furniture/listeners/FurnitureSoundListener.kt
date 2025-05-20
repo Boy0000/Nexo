@@ -13,11 +13,7 @@ import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.bukkit.GameEvent
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Sound
-import org.bukkit.SoundCategory
+import org.bukkit.*
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
@@ -100,7 +96,7 @@ class FurnitureSoundListener : Listener {
         if (blockStandingOn.type == Material.TRIPWIRE) return
         val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location)
         if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
-        if (mechanic != null && !IFurniturePacketManager.blockIsHitbox(blockStandingOn)) return
+        if (mechanic != null && !IFurniturePacketManager.blockIsHitbox(blockStandingOn, null, true)) return
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

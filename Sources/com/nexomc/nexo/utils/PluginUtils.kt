@@ -8,6 +8,9 @@ object PluginUtils {
     val isSpartanEnabled by lazy { isEnabled("Spartan") }
     val isVacanEnabled by lazy { isEnabled("Vacan") }
 
+    val isMythicHUDEnabled by lazy { isEnabled("MythicHUD") }
+    val isBetterHUDEnabled by lazy { isEnabled("BetterHUD") }
+
     val isMMOItemsEnabled by lazy { isEnabled("MMOItems") }
     val isMythicMobsEnabled: Boolean by lazy { isEnabled("MythicMobs") }
     val isMythicCrucibleEnabled by lazy { isEnabled("MythicCrucible") }

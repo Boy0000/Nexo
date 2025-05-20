@@ -83,6 +83,7 @@ enum class RemovedSettings(private val path: String) {
 
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),
+    FORMAT_PACKETS("Plugin.formatting.packets"),
     ;
 
     override fun toString(): String {

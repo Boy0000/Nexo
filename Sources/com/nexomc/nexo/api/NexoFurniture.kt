@@ -161,7 +161,7 @@ object NexoFurniture {
             val centerLoc = toCenterBlockLocation(location)
             centerLoc.world.getNearbyEntitiesByType(ItemDisplay::class.java, centerLoc, 2.0)
                 .sortedBy { it.location.distanceSquared(centerLoc) }
-                .firstOrNull { IFurniturePacketManager.blockIsHitbox(block) }
+                .firstOrNull { IFurniturePacketManager.blockIsHitbox(block, collisionOnly = false) }
                 ?.let(::furnitureMechanic)
         }
     }

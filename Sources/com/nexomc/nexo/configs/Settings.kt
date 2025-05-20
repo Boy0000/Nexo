@@ -23,7 +23,9 @@ enum class Settings {
     FORMAT_SIGNS("Plugin.formatting.signs", true),
     FORMAT_CHAT("Plugin.formatting.chat", true),
     FORMAT_BOOKS("Plugin.formatting.books", true),
-    FORMAT_PACKETS("Plugin.formatting.packets", true),
+    FORMAT_TABLIST("Plugin.formatting.tablist", true),
+    FORMAT_BOSSBAR("Plugin.formatting.bossbar", true),
+    FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
 
     // WorldEdit
     WORLDEDIT_CUSTOM_BLOCKS("WorldEdit.customblock_mechanic", false),

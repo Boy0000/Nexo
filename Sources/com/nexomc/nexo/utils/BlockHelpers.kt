@@ -7,13 +7,7 @@ import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.util.UUID
-import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.SoundCategory
-import org.bukkit.Tag
-import org.bukkit.World
+import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.type.Snow
@@ -22,6 +16,7 @@ import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.util.BoundingBox
+import java.util.*
 
 object BlockHelpers {
     /**
@@ -80,7 +75,7 @@ object BlockHelpers {
             Material.SCULK_VEIN -> true
             in REPLACEABLE_BLOCKS -> true
             else -> false
-        } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID)
+        } && !IFurniturePacketManager.blockIsHitbox(block, excludeUUID, collisionOnly = false)
     }
 
     @JvmStatic

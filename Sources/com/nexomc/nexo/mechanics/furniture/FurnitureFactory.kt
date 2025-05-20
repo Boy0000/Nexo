@@ -28,10 +28,11 @@ import team.unnamed.creative.sound.SoundRegistry
 class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
     private val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
-    private val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
+    val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
     val defaultRotatableOnSneak = section.getBoolean("default_rotatable_on_sneak", false)
     val handleNonPlayerBarrierCollision = section.getBoolean("handle_non_player_barrier_collision", false)
+    val tryPreventingBarrierKick = section.getBoolean("try_preventing_barrier_kick", false)
 
     init {
         instance = this

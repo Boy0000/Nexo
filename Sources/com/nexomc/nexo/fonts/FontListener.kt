@@ -35,12 +35,12 @@ class FontListener(private val manager: FontManager) : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerJoinEvent.onJoin() {
-        if (Settings.FORMAT_PACKETS.toBool()) NMSHandlers.handler().packetHandler().inject(player)
+        NMSHandlers.handler().packetHandler().inject(player)
     }
 
     @EventHandler
     fun PlayerQuitEvent.onQuit() {
-        if (Settings.FORMAT_PACKETS.toBool()) NMSHandlers.handler().packetHandler().uninject(player)
+        NMSHandlers.handler().packetHandler().uninject(player)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
