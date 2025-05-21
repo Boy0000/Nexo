@@ -44,7 +44,7 @@ open class Glyph(
     val height: Int,
     val unicodes: List<String>,
 
-    val permission: String = "",
+    val permission: String = Settings.GLYPH_DEFAULT_PERMISSION.value?.toString()?.replace("<glyphid>", id) ?: "",
     val placeholders: List<String> = listOf(),
     val tabcomplete: Boolean = false,
     val isEmoji: Boolean = false,
@@ -83,13 +83,13 @@ open class Glyph(
 
     constructor(glyphSection: ConfigurationSection) : this(
         glyphSection.name,
-        glyphSection.getKey("font", Font.MINECRAFT_DEFAULT),
+        glyphSection.getKey("font", Settings.GLYPH_DEFAULT_FONT.toKey(Font.MINECRAFT_DEFAULT)),
         glyphSection.getKey("texture", REQUIRED_GLYPH).appendSuffix(".png"),
         glyphSection.getInt("ascent", 8),
         glyphSection.getInt("height", 8),
         calculateGlyphUnicodes(glyphSection),
 
-        glyphSection.getString("chat.permission") ?: "",
+        glyphSection.getString("chat.permission", Settings.GLYPH_DEFAULT_PERMISSION.value?.toString()?.replace("<glyphid>", glyphSection.name) ?: "")!!,
         glyphSection.getStringList("chat.placeholders"),
         glyphSection.getBoolean("chat.tabcomplete"),
         glyphSection.getBoolean("is_emoji")

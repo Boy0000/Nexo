@@ -5,6 +5,7 @@ import com.nexomc.nexo.pack.PackObfuscator
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
+import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
@@ -13,6 +14,7 @@ import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
+import team.unnamed.creative.font.Font
 
 enum class Settings {
     // Generic Plugin stuff
@@ -24,7 +26,7 @@ enum class Settings {
     FORMAT_CHAT("Plugin.formatting.chat", true),
     FORMAT_BOOKS("Plugin.formatting.books", true),
     FORMAT_TABLIST("Plugin.formatting.tablist", true),
-    FORMAT_BOSSBAR("Plugin.formatting.bossbar", true),
+    FORMAT_BOSSBAR("Plugin.formatting.bossbar", PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled),
     FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
 
     // WorldEdit
@@ -34,6 +36,8 @@ enum class Settings {
     // Glyphs
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only", true),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
+    GLYPH_DEFAULT_PERMISSION("Glyphs.default_permission", "nexo.glyphs.<glyphid>"),
+    GLYPH_DEFAULT_FONT("Glyphs.default_permission", Font.MINECRAFT_DEFAULT.asString()),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
 

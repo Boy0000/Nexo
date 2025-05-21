@@ -2,7 +2,7 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.fonts.ShiftTag
-import com.nexomc.nexo.utils.associateFast
+import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -19,7 +19,10 @@ object GlyphHandlers {
     private val randomKey = Key.key("random")
     private val randomComponent = NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent()
     private val defaultEmoteReplacementConfigs = NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }
-        .associateFast { it to TextReplacementConfig.builder().match(it.formattedUnicodes).replacement(Component.textOfChildren(randomComponent)).build() }
+        .associateFastWith {
+            TextReplacementConfig.builder().match("(${it.unicodes.joinToString("|")})")
+                .replacement(Component.textOfChildren(randomComponent)).build()
+        }
 
     private val colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>")
 
