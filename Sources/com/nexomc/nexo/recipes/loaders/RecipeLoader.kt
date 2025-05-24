@@ -2,7 +2,6 @@ package com.nexomc.nexo.recipes.loaders
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.recipes.CustomRecipe
@@ -31,8 +30,6 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
                     WrappedCrucibleItem(resultSection.getString("crucible_item")).build()
                 resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type") ->
                     result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"))
-                resultSection.isString("ecoitem_id") -> result =
-                    WrappedEcoItem(resultSection.getString("ecoitem_id")).build()
                 resultSection.isString("minecraft_type") -> {
                     val material = Material.getMaterial(resultSection.getString("minecraft_type", "AIR")!!)
                     if (material == null || material.isAir) return ItemStack(Material.AIR)
@@ -62,10 +59,6 @@ abstract class RecipeLoader protected constructor(protected val section: Configu
                     ingredient
                         ?: ItemStack(Material.AIR)
                 )
-            }
-            ingredientSection.isString("ecoitem_id") -> {
-                val ingredient = WrappedEcoItem(section.getString("ecoitem_id")).build()
-                return RecipeChoice.ExactChoice(ingredient ?: ItemStack(Material.AIR))
             }
             else -> {
                 ingredientSection.getString("minecraft_type")?.let {

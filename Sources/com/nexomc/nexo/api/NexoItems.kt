@@ -2,7 +2,6 @@ package com.nexomc.nexo.api
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
@@ -149,7 +148,6 @@ object NexoItems {
             section.contains("crucible_item") -> WrappedCrucibleItem(section.getString("crucible_item")).build()
             section.contains("mmoitems_id") && section.contains("mmoitems_type") ->
                 MMOItems.plugin.getItem(section.getString("mmoitems_type"), section.getString("mmoitems_id"))
-            section.contains("ecoitem_id") -> WrappedEcoItem(section.getString("ecoitem_id")).build()
             section.contains("minecraft_item") -> section.getItemStack("minecraft_item")
             else -> null
         }

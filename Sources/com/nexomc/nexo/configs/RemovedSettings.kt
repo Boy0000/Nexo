@@ -64,7 +64,6 @@ enum class RemovedSettings(private val path: String) {
     FORMAT_TITLES("Plugin.formatting.titles"),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
-    FORMAT_SCOREBOARD("Plugin.formatting.scoreboard"),
     PACK_GENERATE("Pack.generation.generate"),
     UPDATE_CONFIGS("ConfigsTool.enable_configs_updater"),
     GLYPH_HANDLER("Glyphs.glyph_handler"),

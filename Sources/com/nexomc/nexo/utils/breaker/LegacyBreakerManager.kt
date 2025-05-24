@@ -19,14 +19,13 @@ import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.wrapper.task.WrappedTask
-import java.util.Random
-import java.util.UUID
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.block.BlockBreakEvent
+import java.util.*
 import kotlin.math.min
 
 class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, ActiveBreakerData>) :
@@ -44,7 +43,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         if (!NexoFurnitureDamageEvent(mechanic, baseEntity, player).call()) return
 
         val breakTime = mechanic.breakable.breakTime(player)
-        NMSHandlers.handler().applyMiningEffect(player)
+        NMSHandlers.handler().playerUtils().applyMiningEffect(player)
         val activeBreakerData = ActiveBreakerData(
             player,
             block.location,
@@ -67,7 +66,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         }.call()) return
 
         val breakTime = mechanic.breakable.breakTime(player)
-        NMSHandlers.handler().applyMiningEffect(player)
+        NMSHandlers.handler().playerUtils().applyMiningEffect(player)
         val activeBreakerData = ActiveBreakerData(
             player,
             block.location,
@@ -87,7 +86,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
         activeBreakerData.cancelTasks()
         activeBreakerDataMap.remove(player.uniqueId)
         if (!player.isOnline) return
-        NMSHandlers.handler().removeMiningEffect(player)
+        NMSHandlers.handler().playerUtils().removeMiningEffect(player)
         activeBreakerData.resetProgress()
         activeBreakerData.sendBreakProgress()
     }
@@ -113,7 +112,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: MutableMap<UUID, Ac
                     activeBreakerData.sendBreakProgress()
                 }
                 BlockBreakEvent(block, player).call() && ProtectionLib.canBreak(player, block.location) -> {
-                    NMSHandlers.handler().removeMiningEffect(player)
+                    NMSHandlers.handler().playerUtils().removeMiningEffect(player)
                     activeBreakerData.resetProgress()
                     activeBreakerData.sendBreakProgress()
 

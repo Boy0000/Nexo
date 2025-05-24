@@ -19,11 +19,14 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.SignChangeEvent
+import org.bukkit.event.inventory.PrepareAnvilEvent
+import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerEditBookEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.meta.BookMeta
+import org.bukkit.persistence.PersistentDataType
 
 class FontListener(private val manager: FontManager) : Listener {
 
@@ -36,11 +39,22 @@ class FontListener(private val manager: FontManager) : Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     fun PlayerJoinEvent.onJoin() {
         NMSHandlers.handler().packetHandler().inject(player)
+        manager.sendGlyphTabCompletion(player)
     }
 
     @EventHandler
     fun PlayerQuitEvent.onQuit() {
         NMSHandlers.handler().packetHandler().uninject(player)
+    }
+
+    // Adds PDC entry of the original PlainText so that packet-handler can always ensure it is correctly named
+    @EventHandler
+    fun PrepareAnvilEvent.onRename() {
+        result?.editPersistentDataContainer {
+            if (inventory.renameText.isNullOrEmpty() || result?.itemMeta?.hasDisplayName() != true)
+                it.remove(Glyph.ORIGINAL_ITEM_RENAME_TEXT)
+            else it.set(Glyph.ORIGINAL_ITEM_RENAME_TEXT, PersistentDataType.STRING, inventory.renameText!!)
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -117,50 +131,5 @@ class FontListener(private val manager: FontManager) : Listener {
 
             setLine(index, parseLegacy(line))
         }
-    }
-
-    /*@EventHandler
-    fun InventoryClickEvent.onPlayerRename() {
-        val clickedInv = clickedInventory as? AnvilInventory ?: return
-        if (!Settings.FORMAT_ANVIL.toBool() || slot != 2) return
-
-        val player = whoClicked as Player
-        var displayName = clickedInv.renameText
-        val inputItem = clickedInv.getItem(0)
-        val resultItem = clickedInv.getItem(2)
-        if (resultItem == null || !NexoItems.exists(inputItem)) return
-
-        if (displayName != null) {
-            displayName = parseLegacyThroughMiniMessage(displayName)
-            manager.unicodeGlyphMap.keys.forEach { character: Char ->
-                if (character.toString() !in displayName!!) return@forEach
-                val glyph = manager.glyphFromName(manager.unicodeGlyphMap[character])
-                if (glyph.hasPermission(player)) return@forEach
-
-                val required = manager.glyphFromName("required")
-                val replacement = if (required.hasPermission(player)) required.character() else ""
-                Message.NO_PERMISSION.send(player, tagResolver("permission", glyph.permission))
-                displayName = displayName?.replace(character.toString(), replacement)
-            }
-
-            manager.placeholderGlyphMap.entries.forEach { (glyphId, glyph) ->
-                if (glyph.hasPermission(player)) displayName = displayName?.replace(glyphId, glyph.character())
-            }
-        }
-
-        // Since getRenameText is in PlainText, check if the displayName is the same as the rename text with all tags stripped
-        // If so retain the displayName of inputItem. This also fixes enchantments breaking names
-        // If the displayName is null, reset it to the "original" name
-        val strippedDownInputDisplay = AdventureUtils.MINI_MESSAGE.stripTags(parseLegacy(inputItem!!.itemMeta.displayName))
-        if (VersionUtil.below("1.20.5") && ((displayName.isNullOrEmpty() && NexoItems.exists(inputItem)) || strippedDownInputDisplay == displayName)) {
-            displayName = inputItem.itemMeta.persistentDataContainer.get(ItemBuilder.ORIGINAL_NAME_KEY, PersistentDataType.STRING)
-        }
-
-        resultItem.editMeta { it.displayName(displayName?.deserialize()) }
-    }*/
-
-    @EventHandler
-    fun PlayerJoinEvent.onPlayerJoin() {
-        manager.sendGlyphTabCompletion(player)
     }
 }

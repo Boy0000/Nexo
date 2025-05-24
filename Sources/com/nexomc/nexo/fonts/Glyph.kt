@@ -1,16 +1,16 @@
 package com.nexomc.nexo.fonts
 
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.fonts.GlyphShadow.Companion.glyphShadow
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
-import com.nexomc.nexo.utils.getKey
-import com.nexomc.nexo.utils.getStringListOrNull
-import com.nexomc.nexo.utils.getStringOrNull
-import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import team.unnamed.creative.font.Font
@@ -51,26 +51,32 @@ open class Glyph(
 ) {
 
     private val chars = unicodes.flatMap { it.toList() }.toCharArray()
-    val formattedUnicodes = unicodes.joinToString("\n") { it.toList().joinToString(Shift.of(-1)) }
-    private val unicodeComponent = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
-        listOfNotNull(Component.text(row.toList().joinToString(Shift.of(-1)), NamedTextColor.WHITE).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
+    val formattedUnicodes = unicodes.joinToString("\n") { it.joinToString(Shift.of(-1)) }
+    private val component = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
+        listOfNotNull(Component.text(row.joinToString(Shift.of(-1))).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
+    }.toTypedArray())
+    /*private val unicodeComponent = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
+        listOfNotNull(Component.text(row.joinToString(Shift.of(-1)), NamedTextColor.WHITE).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
     }.toTypedArray())
     private val colorableUnicodeComponent = Component.textOfChildren(
         *unicodes.flatMapIndexed { i, row ->
             listOfNotNull(
-                Component.text(row.toList().joinToString(Shift.of(-1))).font(font),
+                Component.text(row.joinToString(Shift.of(-1))).font(font),
                 Component.newline().takeIf { unicodes.size > 1 && i < unicodes.lastIndex }
             )
         }.toTypedArray()
-    )
+    )*/
 
-    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shift: String = Shift.of(0)) =
-        Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift", NamedTextColor.WHITE.takeUnless { colorable }).font(font)
-    private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false) =
-        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
+    private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shadow: GlyphShadow? = null, shift: String = Shift.of(0)) =
+        Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift")
+            .color(NamedTextColor.WHITE.takeUnless { colorable })
+            .glyphShadow(shadow)
+            .font(font)
+    private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false, shadow: GlyphShadow? = null) =
+        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, shadow, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
 
     val baseRegex: Regex
-    private val escapedRegex: Regex
+    val escapedRegex: Regex
     val replacementConfig: TextReplacementConfig
     private val placeholderMatch = "(${placeholders.joinToString("|", transform = Regex::escape)})"
     val placeholderReplacementConfig: TextReplacementConfig?
@@ -102,8 +108,9 @@ open class Glyph(
         replacementConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
             val args = match.group(1).substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
             val colorable = args.any { it == "colorable" || it == "c" }
+            val shadow = args.elementAtOrNull(args.indexOfFirst { it == "shadow" || it == "s" } + 1)
             val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
-            glyphComponent(colorable, bitmapIndex)
+            glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndex)
         }.build()
         placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(?<!\\\\)$placeholderMatch")?.replacement(glyphComponent())?.build()
@@ -150,6 +157,7 @@ open class Glyph(
     )
 
     companion object {
+        val ORIGINAL_ITEM_RENAME_TEXT = NamespacedKey.fromString("nexo:original_item_rename")!!
         val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")
         val REQUIRED_CHAR = Char(41999).toString()
 
@@ -190,11 +198,11 @@ open class Glyph(
     fun glyphTag() = "<glyph:$id>"
 
     @JvmOverloads
-    fun glyphComponent(colorable: Boolean = false, bitmapIndexRange: IntRange = IntRange.EMPTY): Component {
-        return when {
-            bitmapIndexRange == IntRange.EMPTY -> if (colorable) colorableUnicodeComponent else unicodeComponent
-            else -> bitmapComponent(bitmapIndexRange, colorable)
-        }
+    fun glyphComponent(colorable: Boolean = false, shadow: GlyphShadow? = null, bitmapIndexRange: IntRange = IntRange.EMPTY): Component {
+        return if (bitmapIndexRange == IntRange.EMPTY) component
+            .run { if (!colorable) children(children().map { it.color(NamedTextColor.WHITE) }) else this }
+            .glyphShadow(shadow)
+        else bitmapComponent(bitmapIndexRange, colorable, shadow)
     }
 
     val fontProvider by lazy { FontProvider.bitMap().file(texture).height(height).ascent(ascent.coerceAtMost(height)).characters(unicodes).build() }

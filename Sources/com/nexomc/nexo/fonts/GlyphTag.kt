@@ -1,6 +1,7 @@
 package com.nexomc.nexo.fonts
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -23,10 +24,11 @@ object GlyphTag {
         val arguments = mutableListOf<String>()
         while (args.hasNext()) arguments.add(args.pop().value())
 
-        val colorable = arguments.any { it == "colorable" || it == "c" }
+        val colorable = "colorable" in arguments || "c" in arguments
+        val shadow = arguments.elementAtOrNull(arguments.indexOfFirst { it == "shadow" || it == "s" } + 1)
         val bitmapIndexRange = arguments.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { IntRange(it, it) } } ?: IntRange.EMPTY
         val glyphComponent = when {
-            glyph.hasPermission(player) -> glyph.glyphComponent(colorable, bitmapIndexRange)
+            glyph.hasPermission(player) -> glyph.glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndexRange)
             else -> Component.text(glyph.glyphTag())
         }
         return Tag.selfClosingInserting(glyphComponent)

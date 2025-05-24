@@ -6,26 +6,15 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.AdventureUtils
-import com.nexomc.nexo.utils.ItemUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.ItemUtils.isTool
-import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.asColorable
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Tag
-import org.bukkit.entity.Entity
-import org.bukkit.entity.Item
-import org.bukkit.entity.ItemDisplay
-import org.bukkit.entity.ItemFrame
-import org.bukkit.entity.LivingEntity
-import org.bukkit.entity.Player
+import org.bukkit.entity.*
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -188,7 +177,7 @@ class ItemUpdater : Listener {
             }
 
             val newItemBuilder = NexoItems.itemFromId(id)?.takeUnless { it.nexoMeta?.noUpdate == true } ?: return oldItem
-            val newItem = NMSHandlers.handler().copyItemNBTTags(oldItem, newItemBuilder.build().clone())
+            val newItem = NMSHandlers.handler().itemUtils().copyItemNBTTags(oldItem, newItemBuilder.build().clone())
             newItem.amount = oldItem.amount
 
             newItem.editMeta { itemMeta ->
@@ -224,7 +213,6 @@ class ItemUpdater : Listener {
 
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true
 
-                itemMeta.asColorable().takeIf { oldMeta.asColorable() != null }?.color = oldMeta.asColorable()?.color
                 (itemMeta as? BundleMeta)?.setItems((oldMeta as? BundleMeta)?.items)
 
                 if (itemMeta is ArmorMeta) when {
@@ -276,10 +264,7 @@ class ItemUpdater : Listener {
                         newMeta.isGlider || oldMeta.isGlider -> itemMeta.isGlider = true
                     }
 
-                    when {
-                        newMeta.hasItemModel() -> itemMeta.itemModel = newMeta.itemModel
-                        oldMeta.hasItemModel() -> itemMeta.itemModel = oldMeta.itemModel
-                    }
+                    itemMeta.itemModel = newMeta.itemModel
 
                     when {
                         newMeta.hasUseCooldown() -> itemMeta.setUseCooldown(newMeta.useCooldown)
@@ -325,12 +310,14 @@ class ItemUpdater : Listener {
                 }
             }
 
+            newItem.asColorable().takeIf { oldItem.asColorable() != null }?.color = oldItem.asColorable()?.color
+
             runCatching {
                 newItem.copyDataFrom(oldItem, componentsToCopy::contains)
             }.onFailure {
-                NMSHandlers.handler().consumableComponent(newItem, NMSHandlers.handler().consumableComponent(oldItem))
-                NMSHandlers.handler().repairableComponent(newItem, NMSHandlers.handler().repairableComponent(oldItem))
-                NMSHandlers.handler().blockstateComponent(newItem, NMSHandlers.handler().blockstateComponent(oldItem))
+                NMSHandlers.handler().itemUtils().consumableComponent(newItem, NMSHandlers.handler().itemUtils().consumableComponent(oldItem))
+                NMSHandlers.handler().itemUtils().repairableComponent(newItem, NMSHandlers.handler().itemUtils().repairableComponent(oldItem))
+                NMSHandlers.handler().itemUtils().blockstateComponent(newItem, NMSHandlers.handler().itemUtils().blockstateComponent(oldItem))
             }
 
             return newItem

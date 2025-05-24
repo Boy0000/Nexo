@@ -3,7 +3,6 @@ package com.nexomc.nexo.items
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
@@ -56,7 +55,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         if ("hide_tooltip" in componentSection) itemBuilder.setHideToolTip(componentSection.getBoolean("hide_tooltip"))
 
         componentSection.getConfigurationSection("food")?.let { food: ConfigurationSection ->
-            NMSHandlers.handler().foodComponent(itemBuilder, food)
+            NMSHandlers.handler().itemUtils().foodComponent(itemBuilder, food)
         }
         parseToolComponent()
 
@@ -97,12 +96,12 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         if ("glider" in componentSection) itemBuilder.setGlider(componentSection.getBoolean("glider"))
 
         componentSection.getConfigurationSection("consumable")?.let { consumableSection ->
-            NMSHandlers.handler().consumableComponent(itemBuilder, consumableSection)
+            NMSHandlers.handler().itemUtils().consumableComponent(itemBuilder, consumableSection)
         }
 
         val repairableWith = componentSection.getStringListOrNull("repairable") ?: listOf(componentSection.getString("repairable", ""))
         repairableWith.filterNotNull().takeIf { it.isNotEmpty() && it.any { it.isNotEmpty() } }?.let { repairable ->
-            NMSHandlers.handler().repairableComponent(itemBuilder, repairable)
+            NMSHandlers.handler().itemUtils().repairableComponent(itemBuilder, repairable)
         }
 
         if (VersionUtil.below("1.21.4")) return
@@ -136,7 +135,6 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
             "mmoitems_id" in remainderSection && remainderSection.isString("mmoitems_type") ->
                 MMOItems.plugin.getItem(remainderSection.getString("mmoitems_type"), remainderSection.getString("mmoitems_id"))
 
-            "ecoitem_id" in remainderSection -> WrappedEcoItem(remainderSection.getString("ecoitem_id")).build()
             "minecraft_type" in remainderSection ->
                 ItemStack(Material.getMaterial(remainderSection.getString("minecraft_type", "") ?: return) ?: return)
             else -> remainderSection.getItemStack("minecraft_item")

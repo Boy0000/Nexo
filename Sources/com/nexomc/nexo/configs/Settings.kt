@@ -38,6 +38,7 @@ enum class Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_DEFAULT_PERMISSION("Glyphs.default_permission", "nexo.glyphs.<glyphid>"),
     GLYPH_DEFAULT_FONT("Glyphs.default_permission", Font.MINECRAFT_DEFAULT.asString()),
+    GLYPH_DEFAULT_SHADOW_COLOR("Glyphs.default_shadow_color", "#00000000"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
 

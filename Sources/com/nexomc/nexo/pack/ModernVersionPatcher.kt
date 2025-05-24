@@ -75,7 +75,7 @@ object ModernVersionPatcher {
                                 RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
                             }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
                                 val property = if (itemKey.asString().contains("crossbow")) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
-                                ItemModel.rangeDispatch(property, RangeDispatchItemModel.DEFAULT_SCALE, pullingEntries, baseOverrideModel)
+                                ItemModel.rangeDispatch(property, 0.05f, pullingEntries, baseOverrideModel)
                             } ?: baseOverrideModel
 
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)

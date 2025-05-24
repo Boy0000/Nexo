@@ -21,6 +21,8 @@ data class NexoMeta(
     var customModelData: Int? = null,
     var model: Key? = null,
     var parentModel: Key = Model.ITEM_GENERATED,
+    var dyeableModel: Key? = null,
+    var brokenModel: Key? = null,
     var blockingModel: Key? = null,
     var pullingModels: List<Key> = listOf(),
     var chargedModel: Key? = null,
@@ -130,17 +132,14 @@ data class NexoMeta(
         this.containsPackInfo = true
         this.parentModel = packSection.getKey("parent_model", Model.ITEM_GENERATED)
         this.model = parseModelKey(packSection, "model")
-        this.blockingModel = parseModelKey(packSection, "blocking_model")
-        this.castModel = parseModelKey(packSection, "cast_model")
-        this.chargedModel = parseModelKey(packSection, "charged_model")
-        this.fireworkModel = parseModelKey(packSection, "firework_model")
+        this.dyeableModel = parseModelKey(packSection, "dyeable_model") ?: packSection.getKey("dyeable_texture")?.dropExtension()
+        this.brokenModel = parseModelKey(packSection, "broken_model") ?: packSection.getKey("broken_texture")?.dropExtension()
+        this.blockingModel = parseModelKey(packSection, "blocking_model") ?: packSection.getKey("blocking_texture")?.dropExtension()
+        this.castModel = parseModelKey(packSection, "cast_model") ?: packSection.getKey("cast_texture")?.dropExtension()
+        this.chargedModel = parseModelKey(packSection, "charged_model") ?: packSection.getKey("charged_texture")?.dropExtension()
+        this.fireworkModel = parseModelKey(packSection, "firework_model") ?: packSection.getKey("firework_texture")?.dropExtension()
         this.pullingModels = (packSection.getStringListOrNull("pulling_models") ?: packSection.getStringList("pulling_textures")).map(KeyUtils::dropExtension)
         this.damagedModels = (packSection.getStringListOrNull("damaged_models") ?: packSection.getStringList("damaged_textures")).map(KeyUtils::dropExtension)
-
-        chargedModel = chargedModel ?: packSection.getKey("charged_texture")?.dropExtension()
-        fireworkModel = fireworkModel ?: packSection.getKey("firework_texture")?.dropExtension()
-        castModel = castModel ?: packSection.getKey("cast_texture")?.dropExtension()
-        blockingModel = blockingModel ?: packSection.getKey("blocking_texture")?.dropExtension()
 
         val textureSection = packSection.getConfigurationSection("textures")
         when {

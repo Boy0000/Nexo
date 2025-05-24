@@ -46,7 +46,8 @@ public class LibbyManager {
         libs.add(Library.builder().groupId("org{}jetbrains{}kotlinx").artifactId("kotlinx-coroutines-core").version("1.10.1").relocate("kotlinx{}", "com{}nexomc{}libs{}kotlinx{}").build());
         libs.add(Library.builder().groupId("org{}jetbrains{}kotlinx").artifactId("kotlinx-coroutines-core-jvm").version("1.10.1").relocate("kotlinx{}", "com{}nexomc{}libs{}kotlinx{}").build());
         libs.add(Library.builder().groupId("org{}jetbrains{}kotlin").artifactId("kotlin-stdlib").version("2.1.0").relocate("kotlin{}", "com{}nexomc{}libs{}kotlin{}").build());
-        //if (isLegacyServer()) libs.add(getLib("dev{}jorel", "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
+        libs.add(getLib("dev{}jorel", (isPaperServer() && !isLegacyServer()) ? "commandapi-bukkit-shade-mojang-mapped" : "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
+        libs.add(getLib("dev{}jorel", "commandapi-bukkit-kotlin", COMMAND_API_VERSION, "dev{}jorel").build());
 
         libs.add(getLib("com{}github{}stefvanschie{}inventoryframework", "IF", "0.10.19", "com{}github{}stefvanschie").build());
         libs.add(getLib("software{}amazon{}awssdk", "s3", "2.30.30", null, false).build());

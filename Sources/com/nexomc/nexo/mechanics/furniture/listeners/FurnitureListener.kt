@@ -39,6 +39,12 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.persistence.PersistentDataType
 
 class FurnitureListener : Listener {
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun EntityAddToWorldEvent.onAdd() {
+        NexoFurniture.convertFurniture(entity as? ItemDisplay ?: return)
+    }
+
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     fun PlayerInteractEvent.onLimitedPlacing() {
         val (block, itemId) = (clickedBlock?.takeIf { action == Action.RIGHT_CLICK_BLOCK } ?: return) to (item?.let(NexoItems::idFromItem) ?: return)
@@ -87,7 +93,7 @@ class FurnitureListener : Listener {
         val baseEntity = mechanic.place(block.location, yaw, blockFace, false) ?: return
         val pdc = baseEntity.persistentDataContainer
 
-        item.itemMeta?.asColorable()?.color?.asRGB()?.also {
+        item.asColorable()?.color?.asRGB()?.also {
             pdc.set(FurnitureMechanic.FURNITURE_DYE_KEY, PersistentDataType.INTEGER, it)
         }
         item.itemMeta.displayName()?.serialize()?.also {

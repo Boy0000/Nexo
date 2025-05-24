@@ -3,13 +3,17 @@ package com.nexomc.nexo.pack
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.NexoMeta
+import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.groupByFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
+import org.bukkit.Color
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.item.Item
 import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.property.ItemBooleanProperty
+import team.unnamed.creative.item.tint.TintSource
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
@@ -40,9 +44,23 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 }
 
                 //ItemModels
-                val itemKey = item.itemModel?.key() ?: return@forEach
+                val itemKey = item.itemModel?.key() ?: Key.key("nexo", NexoItems.idFromItem(item) ?: return@forEach)
                 val reference = resourcePack.model(itemKey) ?: item.nexoMeta?.model?.let(resourcePack::model) ?: return@forEach
-                resourcePack.item(itemKey) ?: resourcePack.item(Item.item(itemKey, ItemModel.reference(reference.key())))
+                val dyeableModel = item.nexoMeta?.dyeableModel?.let {
+                    resourcePack.model(it) ?: reference.toBuilder()
+                        .textures(ModelTextures.builder().layers(ModelTexture.ofKey(it.key())).build()).build()
+                        .apply(resourcePack::model)
+                } ?: resourcePack.model(itemKey.appendSuffix("_dyeable"))
+
+                when {
+                    resourcePack.item(itemKey) != null -> return@forEach
+                    dyeableModel != null -> {
+                        val falseModel = ItemModel.reference(reference.key())
+                        val trueModel = ItemModel.reference(dyeableModel.key(), TintSource.dye(item.color?.asRGB() ?: Color.WHITE.asRGB()))
+                        resourcePack.item(Item.item(itemKey, ItemModel.conditional(ItemBooleanProperty.hasComponent("minecraft:dyed_color"), trueModel, falseModel)))
+                    }
+                    item.color != null -> resourcePack.item(Item.item(itemKey, ItemModel.reference(reference.key(), TintSource.dye(item.color!!.asRGB()))))
+                }
             }
         }
     }

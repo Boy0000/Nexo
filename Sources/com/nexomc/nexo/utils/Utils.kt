@@ -11,6 +11,11 @@ fun <T> Result<T>.printOnFailure(debugOnly: Boolean = false): Result<T> {
     return this
 }
 
+inline fun <reified T> Collection<T>.indexOfOrNull(element: T): Int? {
+    return indexOf(element).takeIf { it >= 0 }
+}
+
+fun String.joinToString(separator: String) = this.toList().joinToString(separator)
 fun String.removeSpaces() = replace(" ", "")
 fun String.remove(remove: String) = replace(remove, "")
 internal fun String.appendIfMissing(suffix: String) = if (endsWith(suffix)) this else (this + suffix)
@@ -23,6 +28,11 @@ internal fun String.toIntRange(default: IntRange = IntRange.EMPTY): IntRange {
 internal fun String.toIntRangeOrNull(): IntRange? {
     val first = this.substringBefore("..").toIntOrNull() ?: return null
     val last = this.substringAfter("..").toIntOrNull()?.coerceAtLeast(first) ?: return null
+    return first..last
+}
+internal fun String.toIntRangeOrDefault(start: Int, end: Int): IntRange {
+    val first = this.substringBefore("..").toIntOrNull() ?: start
+    val last = this.substringAfter("..").toIntOrNull()?.coerceAtLeast(first) ?: end
     return first..last
 }
 

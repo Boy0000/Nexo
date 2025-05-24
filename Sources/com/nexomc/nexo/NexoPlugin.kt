@@ -5,12 +5,7 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.CommandsManager
 import com.nexomc.nexo.compatibilities.CompatibilitiesManager
 import com.nexomc.nexo.compatibilities.worldguard.NexoWorldguardFlags
-import com.nexomc.nexo.configs.ConfigsManager
-import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.configs.ResourceManager
-import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.configs.SettingsUpdater
-import com.nexomc.nexo.configs.SoundManager
+import com.nexomc.nexo.configs.*
 import com.nexomc.nexo.converter.Converter
 import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
@@ -34,11 +29,11 @@ import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.FoliaLib
-import java.util.concurrent.ConcurrentHashMap
-import java.util.jar.JarFile
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.concurrent.ConcurrentHashMap
+import java.util.jar.JarFile
 
 class NexoPlugin : JavaPlugin() {
     private lateinit var configsManager: ConfigsManager

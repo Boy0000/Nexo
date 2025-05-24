@@ -1,9 +1,13 @@
 package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.commands.toColor
+import com.nexomc.nexo.fonts.GlyphShadow
+import com.nexomc.nexo.fonts.Shift
 import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
@@ -12,7 +16,6 @@ import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.entity.Player
 import team.unnamed.creative.font.Font
 import java.util.*
-import java.util.regex.Pattern
 
 object GlyphHandlers {
 
@@ -24,7 +27,11 @@ object GlyphHandlers {
                 .replacement(Component.textOfChildren(randomComponent)).build()
         }
 
-    private val colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>")
+    val shiftRegex: Regex = "(?<!\\\\)<shift:(-?\\d+)>".toRegex()
+    val escapedShiftRegex: Regex = "\\\\<shift:(-?\\d+)>".toRegex()
+    private val colorableRegex: Regex = "\\|(c|colorable)".toRegex()
+    private val glyphShadowRegex = "(?:shadow|s):(\\S+)".toRegex()
+    private val bitmapIndexRegex: Regex = "\\|([0-9]+)(?:\\.\\.([0-9]+))?:".toRegex()
 
     fun escapePlaceholders(component: Component, player: Player?): Component {
         var component = component
@@ -103,5 +110,74 @@ object GlyphHandlers {
             component = component.replaceText(glyph.placeholderReplacementConfig ?: return@forEach)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)
+    }
+
+    @JvmStatic
+    fun String.transformGlyphs(): String {
+        var content = this
+
+        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.baseRegex.findAll(this).forEach { match ->
+            val colorable = colorableRegex in match.value
+            val shadow = GlyphShadow(glyphShadowRegex.find(match.value)?.groupValues?.firstOrNull()?.toColor())
+            val bitmapMatch = bitmapIndexRegex.find(match.value)
+            val startIndex = bitmapMatch?.groupValues?.get(1)?.toIntOrNull() ?: -1
+            val endIndex = bitmapMatch?.groupValues?.get(2)?.toIntOrNull()?.coerceAtLeast(startIndex) ?: startIndex
+
+            val component = glyph.glyphComponent(colorable, shadow, startIndex..endIndex).serialize()
+            content = content.replaceFirst(glyph.baseRegex, component)
+        }
+
+        shiftRegex.findAll(this).forEach { match ->
+            val shift = match.groupValues[1].toIntOrNull() ?: return@forEach
+            val shiftRegex = "(?<!\\\\):space_(-?$shift+):".toRegex()
+
+            content = content.replaceFirst(shiftRegex, Shift.of(shift))
+        }
+
+        return content
+    }
+
+    fun String.escapeGlyphs(player: Player?): String {
+        var content = this
+
+        NexoPlugin.instance().fontManager().glyphs().forEach {
+            if (it.font != Font.MINECRAFT_DEFAULT || it.hasPermission(player)) return@forEach
+
+            it.unicodes.forEach { unicode ->
+                content = content.replace(unicode, "<font:random>$unicode</font>")
+                unicode.forEach { char ->
+                    content = content.replace(char.toString(), "<font:random>$unicode</font>")
+                }
+            }
+        }
+
+        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.baseRegex.findAll(this).forEach { match ->
+            if (glyph.hasPermission(player)) return@forEach
+
+            content = content.replaceFirst("(?<!\\\\)${match.value}", "\\${match.value}")
+        }
+
+        shiftRegex.findAll(this).forEach { match ->
+            if (player?.hasPermission("nexo.shift") != false) return@forEach
+            val space = match.groupValues[1].toIntOrNull() ?: return@forEach
+
+            content = content.replaceFirst("(?<!\\\\)${match.value}", "\\<shift:$space>")
+        }
+
+        return content
+    }
+
+    fun String.unescapeGlyphs(): String {
+        var content = this
+
+        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.escapedRegex.findAll(this).forEach { match ->
+            content = content.replaceFirst(glyph.escapedRegex, match.value.removePrefix("\\"))
+        }
+
+        escapedShiftRegex.findAll(this).forEach { match ->
+            content = content.replaceFirst(match.value, match.value.removePrefix("\\"))
+        }
+
+        return content
     }
 }

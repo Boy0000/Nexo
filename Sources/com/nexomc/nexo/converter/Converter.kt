@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration
 data class Converter(
     val oraxenConverter: OraxenConverter,
     val itemsadderConverter: ItemsAdderConverter,
+    val nexoConverter: NexoConverter,
 ) {
     fun save() {
         runCatching {
@@ -15,6 +16,7 @@ data class Converter(
                     c.getConfigurationSection("oraxenConverter")?.set("hasBeenConverted", oraxenConverter.hasBeenConverted)
                     c.getConfigurationSection("itemsadderConverter")?.set("hasBeenConverted", itemsadderConverter.hasBeenConverted)
                     c.getConfigurationSection("itemsadderConverter")?.set("changedItemIds", itemsadderConverter.changedItemIds)
+                    c.getConfigurationSection("nexoConverter")?.set("furnitureConverter", nexoConverter.furnitureConverter)
                 }.save(it)
             }
         }.onFailure { it.printStackTrace() }
@@ -23,7 +25,16 @@ data class Converter(
     constructor(config: YamlConfiguration) : this(
         config.getConfigurationSection("oraxenConverter")?.let(::OraxenConverter) ?: OraxenConverter(),
         config.getConfigurationSection("itemsadderConverter")?.let(::ItemsAdderConverter) ?: ItemsAdderConverter(),
+        config.getConfigurationSection("nexoConverter")?.let(::NexoConverter) ?: NexoConverter()
     )
+
+    data class NexoConverter(val furnitureConverter: Map<String, String> = mapOf()) {
+        constructor(config: ConfigurationSection) : this(
+            config.getConfigurationSection("furnitureConverter")?.let { section ->
+                section.getKeys(false).associateWith { section.getString(it)!! }
+            } ?: mapOf()
+        )
+    }
 
     data class OraxenConverter(
         val convertItems: Boolean = true,

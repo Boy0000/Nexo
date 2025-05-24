@@ -5,18 +5,14 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
-import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.resolve
 import io.leangen.geantyref.TypeToken
-import java.io.File
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.io.File
 
 object OraxenConverter {
 
@@ -309,7 +305,10 @@ object OraxenConverter {
                         propertiesNode.node("displayHeight").renameNode("display_height")
                         propertiesNode.node("scale").takeIf(ConfigurationNode::virtual)?.let { scaleNode ->
                             val isFixed = propertiesNode.node("display_transform").string == "FIXED"
-                            val scaleString = listOf("x", "y", "z").joinToString(",") { scaleNode.childrenMap()[it]?.getDouble(if (isFixed) 0.5 else 1.0)?.toString()?.replace(".0", "") ?: if (isFixed) "0.5" else "1" }
+                            val scaleString = listOf("x", "y", "z").joinToString(",") {
+                                scaleNode.childrenMap()[it]?.getDouble(if (isFixed) 0.5 else 1.0)?.toString()?.remove(".0")
+                                    ?: if (isFixed) "0.5" else "1"
+                            }
                             scaleNode.set(scaleString)
                         }
                     }

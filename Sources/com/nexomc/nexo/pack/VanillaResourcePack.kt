@@ -13,6 +13,9 @@ import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.MinecraftVersion
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.remove
+import net.kyori.adventure.key.Key
+import team.unnamed.creative.ResourcePack
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStreamReader
@@ -21,8 +24,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import net.kyori.adventure.key.Key
-import team.unnamed.creative.ResourcePack
+import kotlin.io.resolve
 
 object VanillaResourcePack {
     private const val VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
@@ -95,7 +97,7 @@ object VanillaResourcePack {
         val sounds = JsonArray()
 
         objects.keySet().forEach { key ->
-            val soundKey = Key.key(key.replace("minecraft/sounds/", "").replace(".ogg", ""))
+            val soundKey = Key.key(key.remove("minecraft/sounds/").remove(".ogg"))
             if (!key.startsWith("minecraft/sounds/")) return@forEach
 
             vanillaSounds += soundKey

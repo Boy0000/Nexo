@@ -1,5 +1,6 @@
 package com.nexomc.nexo.api
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
@@ -203,6 +204,7 @@ object NexoFurniture {
     @JvmStatic
     fun updateFurniture(baseEntity: ItemDisplay) {
         if (!FurnitureFactory.isEnabled || !baseEntity.location.isLoaded) return
+        convertFurniture(baseEntity)
         val mechanic = furnitureMechanic(baseEntity)?.takeUnless { FurnitureSeat.isSeat(baseEntity)|| FurnitureBed.isBed(baseEntity) } ?: return
 
         FurnitureSeat.updateSeats(baseEntity, mechanic)
@@ -220,6 +222,17 @@ object NexoFurniture {
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)
             packetManager.sendLightMechanicPacket(baseEntity, mechanic)
         }
+    }
+
+    @JvmStatic
+    fun convertFurniture(baseEntity: ItemDisplay) {
+        val furnitureId = baseEntity.persistentDataContainer.get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING) ?: return
+        val converter = NexoPlugin.instance().converter().nexoConverter
+        if (!converter.furnitureConverter.containsKey(furnitureId)) return
+
+        val newId = converter.furnitureConverter[furnitureId] ?: return
+        if (newId.isEmpty() && baseEntity.isValid) baseEntity.remove()
+        else baseEntity.persistentDataContainer.set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, newId)
     }
 
     @JvmStatic

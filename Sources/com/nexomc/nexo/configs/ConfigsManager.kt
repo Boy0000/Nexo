@@ -147,9 +147,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val glyph = output.find { it.id == glyphId } ?: return@onEach Logs.logError("Reference-Glyph $referenceId tried referencing a Glyph $glyphId, but it does not exist...")
                 val permission = referenceSection.getString("permission") ?: glyph.permission
                 val placeholders = referenceSection.getStringListOrNull("chat.placeholders") ?: glyph.placeholders
-                val unicodes = glyph.unicodes.joinToString("")
 
-                if (unicodes.length > index.last || index.first <= 0) {
+                if (glyph.unicodes.joinToString("").count() < index.last || index.first <= 0) {
                     val i = if (index.count() == 1) index.first else index
                     return@onEach Logs.logError("Reference-Glyph $referenceId used invalid index $i, $glyphId has indexes $index")
                 }

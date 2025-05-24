@@ -6,13 +6,15 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.safeCast
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.TooltipDisplay
 import net.kyori.adventure.key.Key
@@ -38,9 +40,9 @@ import org.bukkit.potion.PotionType
 
 @Suppress("UnstableApiUsage")
 class ItemBuilder(private val itemStack: ItemStack) {
-    val persistentDataMap: MutableMap<PersistentDataSpace<*, *>, Any> = mutableMapOf();
-    val persistentDataContainer: PersistentDataContainer;
-    val enchantments: MutableMap<Enchantment, Int>;
+    val persistentDataMap: MutableMap<PersistentDataSpace<*, *>, Any> = mutableMapOf()
+    val persistentDataContainer: PersistentDataContainer
+    val enchantments: MutableMap<Enchantment, Int>
     var nexoMeta: NexoMeta? = null; private set
     var type: Material = Material.PAPER; private set
     var amount: Int; private set
@@ -102,8 +104,6 @@ class ItemBuilder(private val itemStack: ItemStack) {
     constructor(wrapped: WrappedCrucibleItem) : this(wrapped.build()!!) {
         this.cache = wrapped.cache
     }
-
-    constructor(wrapped: WrappedEcoItem) : this(wrapped.build()!!)
 
     constructor(itemBuilder: ItemBuilder) : this(itemBuilder.build())
 
@@ -168,6 +168,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
             itemModel = if (itemMeta.hasItemModel()) itemMeta.itemModel else null
             enchantable = if (itemMeta.hasEnchantable()) itemMeta.enchantable else null
             isGlider = if (itemMeta.isGlider) true else null
+
+            if (color == null) color = itemStack.getData(DataComponentTypes.DYED_COLOR)?.color()
+                ?: itemStack.getData(DataComponentTypes.MAP_COLOR)?.color()
+                ?: itemStack.getData(DataComponentTypes.BASE_COLOR)?.color
         }
 
         if (VersionUtil.atleast("1.21.4")) {
@@ -593,12 +597,15 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemMeta.lore(lore)
 
+        if (!itemMeta.hasItemModel() && nexoMeta?.dyeableModel != null) itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
+
         itemStack.itemMeta = itemMeta
 
-        NMSHandlers.handler().consumableComponent(itemStack, consumableComponent)
-        NMSHandlers.handler().repairableComponent(itemStack, repairableComponent)
-        NMSHandlers.handler().blockstateComponent(itemStack, blockStates)
-        NMSHandlers.handler().handleItemFlagToolTips(itemStack, itemFlags)
+        NMSHandlers.handler().itemUtils().asColorable(itemStack)?.color = color
+        NMSHandlers.handler().itemUtils().consumableComponent(itemStack, consumableComponent)
+        NMSHandlers.handler().itemUtils().repairableComponent(itemStack, repairableComponent)
+        NMSHandlers.handler().itemUtils().blockstateComponent(itemStack, blockStates)
+        NMSHandlers.handler().itemUtils().handleItemFlagToolTips(itemStack, itemFlags)
 
         if (VersionUtil.atleast("1.21.5") && tooltipDisplay != null) {
             itemStack.setData(DataComponentTypes.TOOLTIP_DISPLAY, tooltipDisplay!!)
@@ -607,7 +614,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
             when {
                 meta is PotionMeta -> {
-                    NMSHandlers.handler().consumableComponent(itemStack, null)
+                    NMSHandlers.handler().itemUtils().consumableComponent(itemStack, null)
                     meta.setFood(null)
                 }
                 meta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") ->

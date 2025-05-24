@@ -1,7 +1,6 @@
 package com.nexomc.nexo.utils.drops
 
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.safeCast
@@ -42,7 +41,6 @@ data class Loot(
             "nexo_item" in config -> NexoItems.itemFromId(config["nexo_item"].toString())?.build()
             "crucible_item" in config -> WrappedCrucibleItem(config["crucible_item"].toString()).build()
             "mmoitems_id" in config && "mmoitems_type" in config -> MMOItems.plugin.getItem(config["mmoitems_type"].toString(), config["mmoitems_id"].toString())
-            "ecoitem" in config -> WrappedEcoItem(config["ecoitem"].toString()).build()
             "minecraft_type" in config -> Material.getMaterial(config["minecraft_type"].toString())?.let(::ItemStack)
             "minecraft_item" in config -> config["minecraft_item"] as? ItemStack
             else -> null

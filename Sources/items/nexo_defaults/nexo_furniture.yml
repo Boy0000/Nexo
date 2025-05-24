@@ -7,6 +7,7 @@ arm_chair:
   material: PAPER
   Pack:
     model: nexo:item/nexo_furniture/arm_chair
+    dyeable_model: nexo:item/nexo_furniture/arm_chair_dyeable
   Mechanics:
     furniture:
       limited_placing:
@@ -27,6 +28,7 @@ coffee_table:
   material: PAPER
   Pack:
     model: nexo:item/nexo_furniture/coffee_table
+    dyeable_model: nexo:item/nexo_furniture/coffee_table_dyeable
   Mechanics:
     furniture:
       rotatable: false
@@ -66,6 +68,7 @@ sofa:
   material: PAPER
   Pack:
     model: nexo:item/nexo_furniture/sofa
+    dyeable_model: nexo:item/nexo_furniture/sofa_dyeable
   Mechanics:
     furniture:
       seats:
@@ -121,6 +124,7 @@ table_lamp:
   material: PAPER
   Pack:
     model: nexo:item/nexo_furniture/table_lamp
+    dyeable_model: nexo:item/nexo_furniture/table_lamp_dyeable
   Mechanics:
     furniture:
       rotatable: false
@@ -144,121 +148,7 @@ double_bed:
   material: PAPER
   Pack:
     model: nexo:item/nexo_furniture/double_bed
-  Mechanics:
-    furniture:
-      rotatable: false
-      limited_placing:
-        roof: false
-        floor: true
-        wall: false
-      restricted_rotation: VERY_STRICT
-      block_sounds:
-        place_sound: block.wood.place
-        break_sound: block.wood.break
-      hitbox:
-        barriers:
-          - 0..1,0,0..1
-      beds:
-        - 0,0,1 true true
-        - 1,0,1 true true
-arm_chair_dyeable:
-  itemname: "Arm Chair"
-  material: LEATHER_HORSE_ARMOR
-  color: 255, 255, 255
-  Pack:
-    model: nexo:item/nexo_furniture/arm_chair_dyeable
-  Mechanics:
-    furniture:
-      seats:
-      - 0,0,0
-      rotatable: false
-      limited_placing:
-        roof: false
-        floor: true
-        wall: false
-      restricted_rotation: VERY_STRICT
-      block_sounds:
-        place_sound: block.wood.place
-        break_sound: block.wood.break
-      hitbox:
-        barriers:
-        - 0,0,0
-coffee_table_dyeable:
-  itemname: "Coffee Table"
-  material: LEATHER_HORSE_ARMOR
-  color: 255, 255, 255
-  Pack:
-    model: nexo:item/nexo_furniture/coffee_table_dyeable
-  Mechanics:
-    furniture:
-      rotatable: false
-      limited_placing:
-        roof: false
-        floor: true
-        wall: false
-      restricted_rotation: VERY_STRICT
-      block_sounds:
-        place_sound: block.wood.place
-        break_sound: block.wood.break
-      hitbox:
-        barriers:
-        - 0,0,0
-        - 1,0,0
-sofa_dyeable:
-  itemname: "Sofa"
-  material: LEATHER_HORSE_ARMOR
-  color: 255, 255, 255
-  Pack:
-    model: nexo:item/nexo_furniture/sofa_dyeable
-  Mechanics:
-    furniture:
-      seats:
-      - -0.7,0,0
-      - 0.7,0,0
-      rotatable: false
-      limited_placing:
-        roof: false
-        floor: true
-        wall: false
-      restricted_rotation: VERY_STRICT
-      block_sounds:
-        place_sound: block.wood.place
-        break_sound: block.wood.break
-      hitbox:
-        barriers:
-        - 0,0,0
-        - 1,0,0
-        - -1,0,0
-table_lamp_dyeable:
-  itemname: "Table Lamp"
-  material: LEATHER_HORSE_ARMOR
-  color: 255, 255, 255
-  Pack:
-    model: nexo:item/nexo_furniture/table_lamp_dyeable
-  Mechanics:
-    furniture:
-      rotatable: false
-      limited_placing:
-        roof: false
-        floor: true
-        wall: false
-      restricted_rotation: VERY_STRICT
-      block_sounds:
-        place_sound: block.wood.place
-        break_sound: block.wood.break
-      hitbox:
-        barriers:
-        - 0,0,0
-      lights:
-        toggleable: true
-        lights:
-          - 0,1,0 15
-double_bed_dyeable:
-  itemname: "Double Bed Dyeable"
-  material: LEATHER_HORSE_ARMOR
-  color: 255, 255, 255
-  Pack:
-    model: nexo:item/nexo_furniture/double_bed_dyeable
+    dyeable_model: nexo:item/nexo_furniture/double_bed_dyeable
   Mechanics:
     furniture:
       rotatable: false

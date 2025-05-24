@@ -3,7 +3,6 @@ package com.nexomc.nexo.items
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.toColor
-import com.nexomc.nexo.compatibilities.ecoitems.WrappedEcoItem
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
@@ -41,7 +40,6 @@ class ItemParser(private val section: ConfigurationSection) {
     private val type: Material
     private var mmoItem: WrappedMMOItem? = null
     private var crucibleItem: WrappedCrucibleItem? = null
-    private var ecoItem: WrappedEcoItem? = null
     private var templateItem: ItemParser? = null
     var isConfigUpdated = false
         private set
@@ -52,9 +50,7 @@ class ItemParser(private val section: ConfigurationSection) {
 
         section.getConfigurationSection("crucible")?.also { crucibleItem = WrappedCrucibleItem(it) }
             ?: section.getConfigurationSection("mmoitem")?.also { mmoItem = WrappedMMOItem(it) }
-            ?: section.getConfigurationSection("ecoitem")?.also { ecoItem = WrappedEcoItem(it) }
             ?: (section.getStringOrNull("crucible_id") ?: section.getStringOrNull("crucible"))?.also { crucibleItem = WrappedCrucibleItem(it) }
-            ?: (section.getStringOrNull("ecoitem_id") ?: section.getStringOrNull("ecoitem"))?.also { ecoItem = WrappedEcoItem(it) }
 
         type = section.getString("material")?.let { material ->
             Material.matchMaterial(material).also {
@@ -70,7 +66,7 @@ class ItemParser(private val section: ConfigurationSection) {
     }
 
     fun buildItem(): ItemBuilder {
-        val item = crucibleItem?.let(::ItemBuilder) ?: mmoItem?.let(::ItemBuilder) ?: ecoItem?.let(::ItemBuilder) ?: ItemBuilder(type)
+        val item = crucibleItem?.let(::ItemBuilder) ?: mmoItem?.let(::ItemBuilder) ?: ItemBuilder(type)
         return applyConfig(templateItem?.applyConfig(item) ?: item)
     }
 
