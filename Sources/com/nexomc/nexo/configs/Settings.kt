@@ -30,6 +30,7 @@ enum class Settings {
     FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
 
     // WorldEdit
+    FAWE_HOOK("WorldEdit.fawe_hook", false),
     WORLDEDIT_CUSTOM_BLOCKS("WorldEdit.customblock_mechanic", false),
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic", false),
 
@@ -37,7 +38,7 @@ enum class Settings {
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only", true),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_DEFAULT_PERMISSION("Glyphs.default_permission", "nexo.glyphs.<glyphid>"),
-    GLYPH_DEFAULT_FONT("Glyphs.default_permission", Font.MINECRAFT_DEFAULT.asString()),
+    GLYPH_DEFAULT_FONT("Glyphs.default_permission", "nexo:default"),
     GLYPH_DEFAULT_SHADOW_COLOR("Glyphs.default_shadow_color", "#00000000"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),

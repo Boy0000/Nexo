@@ -102,11 +102,11 @@ open class Glyph(
     )
 
     init {
-        val _baseRegex = "((<(glyph|g):$id)(:(c|colorable|\\d))*>)"
+        val _baseRegex = """<(glyph|g):($id(?::(?:c|colorable|\d+(?:\.\.\d+)?|s|shadow)(?::[\w#]+)?)*)>"""
         baseRegex = Pattern.compile("(?<!\\\\)$_baseRegex").toRegex()
         escapedRegex = Pattern.compile("\\\\" + _baseRegex).toRegex()
         replacementConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
-            val args = match.group(1).substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
+            val args = match.group().substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
             val colorable = args.any { it == "colorable" || it == "c" }
             val shadow = args.elementAtOrNull(args.indexOfFirst { it == "shadow" || it == "s" } + 1)
             val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY

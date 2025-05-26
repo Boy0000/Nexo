@@ -21,6 +21,9 @@ interface CustomBlockType<T : CustomBlockMechanic> {
     fun placeCustomBlock(location: Location, itemID: String?)
     fun removeCustomBlock(block: Block, player: Player?, overrideDrop: Drop?): Boolean
 
+    fun placeWorldEdit(location: Location, mechanic: T)
+    fun removeWorldEdit(location: Location, mechanic: T)
+
     val clazz: Class<T>
 }
 

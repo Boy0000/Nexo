@@ -13,7 +13,9 @@ import com.sk89q.worldedit.entity.BaseEntity
 import com.sk89q.worldedit.entity.Entity
 import com.sk89q.worldedit.extent.AbstractDelegateExtent
 import com.sk89q.worldedit.extent.Extent
+import com.sk89q.worldedit.function.pattern.Pattern
 import com.sk89q.worldedit.math.BlockVector3
+import com.sk89q.worldedit.regions.Region
 import com.sk89q.worldedit.util.Location
 import com.sk89q.worldedit.world.block.BlockState
 import com.sk89q.worldedit.world.block.BlockStateHolder
@@ -56,12 +58,33 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
         return null
     }
 
+    override fun <B : BlockStateHolder<B?>?> setBlocks(region: Region?, block: B?): Int {
+        return super.setBlocks(region, block)
+    }
+
+    override fun setBlocks(region: Region, pattern: Pattern): Int {
+        region.forEach { block ->
+
+            val location = BukkitAdapter.adapt(this.world, block)
+            val stateBefore = BukkitAdapter.adapt(location.block.blockData)
+            val stateToSet = pattern.applyBlock(block)
+
+            processBlock(location, stateToSet, stateBefore)
+        }
+        return super.setBlocks(region, pattern)
+    }
+
+    override fun <T : BlockStateHolder<T?>?> setBlock(x: Int, y: Int, z: Int, block: T?): Boolean {
+        return super.setBlock(x, y, z, block)
+    }
+
     @Throws(WorldEditException::class)
     override fun <T : BlockStateHolder<T>?> setBlock(pos: BlockVector3, stateToSet: T): Boolean {
         if (!Settings.WORLDEDIT_CUSTOM_BLOCKS.toBool()) return super.setBlock(pos, stateToSet)
         val location = BukkitAdapter.adapt(this.world, pos)
+        val stateBefore = BukkitAdapter.adapt(location.block.blockData)
 
-        processBlock(location, stateToSet as BlockState)
+        processBlock(location, stateToSet as BlockState, stateBefore)
 
         return super.setBlock<T>(pos, stateToSet)
     }

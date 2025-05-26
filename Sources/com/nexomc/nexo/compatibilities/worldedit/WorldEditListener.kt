@@ -13,7 +13,5 @@ class WorldEditListener : Listener {
         completions = nexoBlockIDs.filter { it.contains(arg) }.plus(completions)
     }
 
-    companion object {
-        private val nexoBlockIDs by lazy { NexoItems.unexcludedItemNames().filter(NexoBlocks::isCustomBlock).map { "nexo:$it" } }
-    }
+    private val nexoBlockIDs by lazy { NexoItems.unexcludedItemNames().filter(NexoBlocks::isCustomBlock).map { "nexo:$it" } }
 }

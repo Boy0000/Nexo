@@ -18,9 +18,10 @@ class CustomBlocksFactory : InputParser<BaseBlock?>(WorldEdit.getInstance()) {
     }
 
     override fun parseFromInput(input: String, context: ParserContext?): BaseBlock? {
-        val blockId = input.substringAfter("nexo:").takeUnless { it == input } ?: return null
+        val blockId = input.removePrefix("nexo:")
+        val customBlock = NexoBlocks.customBlockMechanic(blockId) ?: return null
 
-        return createBaseBlockFromCustomBlock(NexoBlocks.customBlockMechanic(blockId) ?: return null)
+        return createBaseBlockFromCustomBlock(customBlock)
     }
 
     /**

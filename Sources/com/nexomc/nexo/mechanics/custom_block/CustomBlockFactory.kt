@@ -28,11 +28,7 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.logs.Logs
-import org.bukkit.Effect
-import org.bukkit.GameEvent
-import org.bukkit.GameMode
-import org.bukkit.Location
-import org.bukkit.Material
+import org.bukkit.*
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData
@@ -99,6 +95,9 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             return true
         }
 
+        override fun placeWorldEdit(location: Location, mechanic: NoteBlockMechanic) {}
+        override fun removeWorldEdit(location: Location, mechanic: NoteBlockMechanic) {}
+
         override val clazz: Class<NoteBlockMechanic>
             get() = NoteBlockMechanic::class.java
     }
@@ -159,6 +158,9 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             return true
         }
 
+        override fun placeWorldEdit(location: Location, mechanic: StringBlockMechanic) {}
+        override fun removeWorldEdit(location: Location, mechanic: StringBlockMechanic) {}
+
         override val clazz: Class<StringBlockMechanic>
             get() = StringBlockMechanic::class.java
     }
@@ -205,6 +207,9 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             block.type = Material.AIR
             return true
         }
+
+        override fun placeWorldEdit(location: Location, mechanic: ChorusBlockMechanic) {}
+        override fun removeWorldEdit(location: Location, mechanic: ChorusBlockMechanic) {}
 
         override val clazz: Class<ChorusBlockMechanic>
             get() = ChorusBlockMechanic::class.java

@@ -14,7 +14,8 @@ class WorldEditHandlers {
         if (!Settings.WORLDEDIT_FURNITURE.toBool() && !Settings.WORLDEDIT_CUSTOM_BLOCKS.toBool()) return
         val world = BukkitAdapter.adapt(world ?: return) ?: return
         if (stage == EditSession.Stage.BEFORE_CHANGE) {
-            if (WrappedWorldEdit.isFaweEnabled) extent.addPostProcessor(NexoCustomBlocksProcessor(world))
+            if (WrappedWorldEdit.isFaweEnabled && Settings.FAWE_HOOK.toBool())
+                extent.addPostProcessor(NexoCustomBlocksProcessor(world))
             else extent = NexoWorldEditExtent(extent, world)
         }
     }

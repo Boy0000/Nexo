@@ -5,14 +5,14 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.PackListener
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.logs.Logs
-import java.net.URI
-import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
+import java.net.URI
+import java.util.*
+import java.util.concurrent.CompletableFuture
 
 interface NexoPackServer {
     val isPackUploaded: Boolean
@@ -29,7 +29,7 @@ interface NexoPackServer {
             val packUrl = URI.create(packUrl())
 
             val request = ResourcePackRequest.resourcePackRequest()
-                .required(mandatory).replace(true).prompt(prompt)
+                .required(mandatory || player.hasPermission(BYPASS_PERMISSION)).replace(true).prompt(prompt)
                 .packs(ResourcePackInfo.resourcePackInfo(packUUID, packUrl, hash)).build()
             player.sendResourcePacks(request)
         }
@@ -53,6 +53,8 @@ interface NexoPackServer {
     }
 
     companion object {
+        const val BYPASS_PERMISSION = "nexo.resourcepack.bypass"
+
         fun registerDefaultPackServers() {
             PackServerRegistry.register("SELFHOST", ::SelfHostServer)
             PackServerRegistry.register("POLYMATH", ::PolymathServer)

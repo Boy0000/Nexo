@@ -7,9 +7,9 @@ import com.fastasyncworldedit.core.queue.IChunkGet
 import com.fastasyncworldedit.core.queue.IChunkSet
 import com.sk89q.worldedit.extent.Extent
 import com.sk89q.worldedit.world.block.BlockTypesCache
-import javax.annotation.Nullable
 import org.bukkit.Location
 import org.bukkit.World
+import javax.annotation.Nullable
 
 
 class NexoCustomBlocksProcessor(val world: World) : IBatchProcessor {
@@ -58,7 +58,7 @@ class NexoCustomBlocksProcessor(val world: World) : IBatchProcessor {
 
                         val location = Location(this.world, xx.toDouble(), yy.toDouble(), zz.toDouble())
 
-                        CustomBlocksWorldEditUtils.processBlock(location, stateSet)
+                        CustomBlocksWorldEditUtils.processBlock(location, stateSet, stateGet)
                         x++
                         index++
                     }

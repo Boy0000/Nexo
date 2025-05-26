@@ -20,12 +20,12 @@ import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.SignChangeEvent
 import org.bukkit.event.inventory.PrepareAnvilEvent
-import org.bukkit.event.player.AsyncPlayerChatEvent
 import org.bukkit.event.player.PlayerEditBookEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.meta.BookMeta
+import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
 
 class FontListener(private val manager: FontManager) : Listener {
@@ -50,11 +50,17 @@ class FontListener(private val manager: FontManager) : Listener {
     // Adds PDC entry of the original PlainText so that packet-handler can always ensure it is correctly named
     @EventHandler
     fun PrepareAnvilEvent.onRename() {
-        result?.editPersistentDataContainer {
+        val pdcTask =  { pdc: PersistentDataContainer ->
             if (inventory.renameText.isNullOrEmpty() || result?.itemMeta?.hasDisplayName() != true)
-                it.remove(Glyph.ORIGINAL_ITEM_RENAME_TEXT)
-            else it.set(Glyph.ORIGINAL_ITEM_RENAME_TEXT, PersistentDataType.STRING, inventory.renameText!!)
+                pdc.remove(Glyph.ORIGINAL_ITEM_RENAME_TEXT)
+            else pdc.set(Glyph.ORIGINAL_ITEM_RENAME_TEXT, PersistentDataType.STRING, inventory.renameText!!)
         }
+        runCatching {
+            result?.editPersistentDataContainer(pdcTask)
+        }.onFailure {
+            result?.itemMeta?.persistentDataContainer?.run(pdcTask)
+        }
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

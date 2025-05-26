@@ -597,7 +597,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemMeta.lore(lore)
 
-        if (!itemMeta.hasItemModel() && nexoMeta?.dyeableModel != null) itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
+        if (VersionUtil.atleast("1.21.2") && !itemMeta.hasItemModel() && nexoMeta?.dyeableModel != null)
+            itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
 
         itemStack.itemMeta = itemMeta
 
