@@ -19,6 +19,7 @@ class SaplingListener : Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     fun PlayerInteractEvent.onBoneMeal() {
         val block = clickedBlock?.takeIf { it.type == Material.TRIPWIRE } ?: return
+        val location = block.location
         val item = item?.takeIf { it.type == Material.BONE_MEAL } ?: return
         val mechanic = NexoBlocks.stringMechanic(block)?.takeIf { it.isSapling() } ?: return
         val sapling = mechanic.sapling()?.takeIf { it.hasSchematic() } ?: return
@@ -29,19 +30,16 @@ class SaplingListener : Listener {
         if (!sapling.canGrowFromBoneMeal || !WrappedWorldEdit.loaded) return
 
         val selectedSchematic = sapling.selectSchematic() ?: return
-        if (!sapling.replaceBlocks && WrappedWorldEdit.blocksInSchematic(block.location, selectedSchematic).isNotEmpty()) return
+        if (!sapling.canPlaceSchematic(location, selectedSchematic)) return
 
         if (player.gameMode != GameMode.CREATIVE) item.amount -= 1
-        block.world.playEffect(block.location, Effect.BONE_MEAL_USE, 3)
+        block.world.playEffect(location, Effect.BONE_MEAL_USE, 3)
 
         val pdc = block.persistentDataContainer
         val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - sapling.boneMealGrowthSpeedup
-        block.world.spawnParticle(ParticleWrapper.HAPPY_VILLAGER, block.location, 10, 0.5, 0.5, 0.5)
+        block.world.spawnParticle(ParticleWrapper.HAPPY_VILLAGER, location, 10, 0.5, 0.5, 0.5)
         player.swingMainHand()
-        if (growthTimeRemains <= 0) {
-            block.setType(Material.AIR, false)
-            if (sapling.hasGrowSound()) player.playSound(block.location, sapling.growSound!!, 1.0f, 0.8f)
-            WrappedWorldEdit.pasteSchematic(block.location, selectedSchematic, sapling.replaceBlocks, sapling.copyBiomes, sapling.copyEntities)
-        } else pdc.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains)
+        if (growthTimeRemains <= 0) sapling.placeSchematic(location, selectedSchematic)
+        else pdc.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains)
     }
 }

@@ -28,6 +28,8 @@ class FurnitureProperties(
     val translation: Vector3f = Vector3f(),
     val leftRotation: Quaternionf = Quaternionf(),
     val rightRotation: Quaternionf = Quaternionf(),
+
+    val offsetAgainstBlocks: Boolean = true
 ) {
 
     var scale = _scale
@@ -61,7 +63,8 @@ class FurnitureProperties(
             Billboard.FIXED
         } ?: Billboard.FIXED,
 
-        brightness = configSection.getConfigurationSection("brightness")?.let { Brightness(it.getInt("block_light"), it.getInt("sky_light")) }
+        brightness = configSection.getConfigurationSection("brightness")?.let { Brightness(it.getInt("block_light"), it.getInt("sky_light")) },
+        offsetAgainstBlocks = configSection.getBoolean("offset_against_blocks", true)
     ) {
         scale = configSection.getString("scale")?.let { vector3fFromString(it, if (isFixedTransform) 0.5f else 1f) } ?: if (isFixedTransform) Vector3f(0.5f, 0.5f, 0.5f) else Vector3f(1f,1f,1f)
     }

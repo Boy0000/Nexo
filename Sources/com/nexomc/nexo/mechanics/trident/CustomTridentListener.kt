@@ -15,6 +15,8 @@ class CustomTridentListener : Listener {
         val trident = entity as? Trident ?: return
         val mechanic = TridentFactory.instance()?.getMechanic(trident.itemStack) ?: return
 
+        trident.damage = mechanic.damage
+
         val tridentEntity = NMSHandlers.handler().customEntityHandler().createTridentEntity(trident, mechanic) ?: return
         SchedulerUtils.syncDelayedTask(1L) {
             tridentEntity.spawn(trident.location)

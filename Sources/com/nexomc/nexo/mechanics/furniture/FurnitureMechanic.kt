@@ -188,7 +188,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         }
         baseEntity.setRotation(yaw, pitch)
 
-        correctFurnitureTranslation(baseEntity, blockFace)
+        if (properties.offsetAgainstBlocks) correctFurnitureTranslation(baseEntity, blockFace)
 
         val pdc = baseEntity.persistentDataContainer
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, itemID)

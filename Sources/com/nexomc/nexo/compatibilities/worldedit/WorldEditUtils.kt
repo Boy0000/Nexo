@@ -112,7 +112,7 @@ object WorldEditUtils {
         return list
     }
 
-    fun blocksInSchematic(loc: Location, schematic: File): List<Block> {
+    fun blocksInSchematic(loc: Location, schematic: File, ignoreSelf: Boolean): List<Block> {
         val list = mutableListOf<Block>()
         val world = loc.world ?: return emptyList()
         val clipboardFormat = ClipboardFormats.findByFile(schematic) ?: return list
@@ -137,6 +137,9 @@ object WorldEditUtils {
                 }
             }
         }
+
+        list -= loc.block
+
         return list
     }
 }

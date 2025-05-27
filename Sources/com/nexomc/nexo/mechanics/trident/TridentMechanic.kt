@@ -18,6 +18,7 @@ class TridentMechanic(factory: MechanicFactory, section: ConfigurationSection) :
     val model: String? = section.getString("thrown_item", section.rootId.appendIfMissing("_throwing"))
     val transform = section.getEnum("display_transform", FurnitureTransform::class.java) ?: FurnitureTransform.NONE
     val rotation: Vector2f = section.getVector2f("rotation")
+    val damage: Double = section.getDouble("damage", 1.0)
 
     val itemStack by lazy {
         if (itemModel != null) ItemStack.of(Material.PAPER).apply { setData(DataComponentTypes.ITEM_MODEL, itemModel) }

@@ -34,9 +34,9 @@ object WrappedWorldEdit {
         if (loaded) WorldEditUtils.pasteSchematic(loc, schematic!!, replaceBlocks, shouldCopyBiomes, shouldCopyEntities)
     }
 
-    fun blocksInSchematic(loc: Location, schematic: File?): List<Block> {
+    fun blocksInSchematic(loc: Location, schematic: File?, ignoreSelf: Boolean): List<Block> {
         return when {
-            loaded -> WorldEditUtils.blocksInSchematic(loc, schematic!!)
+            loaded -> WorldEditUtils.blocksInSchematic(loc, schematic!!, ignoreSelf)
             else -> listOf()
         }
     }
