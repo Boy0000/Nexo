@@ -17,6 +17,7 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.EmptyServer
 import com.nexomc.nexo.pack.server.NexoPackServer
 import com.nexomc.nexo.recipes.RecipesManager
+import com.nexomc.nexo.utils.NexoDatapack
 import com.nexomc.nexo.utils.NexoMetrics
 import com.nexomc.nexo.utils.NoticeUtils
 import com.nexomc.nexo.utils.VersionUtil
@@ -50,13 +51,16 @@ class NexoPlugin : JavaPlugin() {
         private set
 
     override fun onLoad() {
-        if (!NexoLibsLoader.loadNexoLibs(this)) LibbyManager.loadLibs(this)
-        dataFolder.resolve("lib").deleteRecursively()
+//        if (!PaperPluginLoader.usedPaperPluginLoader) {
+//            NexoLibsLoader.loadNexoLibs(this)
+//            if (!NexoLibsLoader.usedNexoLoader) LibbyManager.loadLibs(this)
+//        }
         nexo = this
         foliaLib = FoliaLib(this)
         CommandAPIManager(this).load()
 
         NexoWorldguardFlags.registerFlags()
+        NexoDatapack.clearOldDatapacks()
     }
 
     override fun onEnable() {
@@ -174,7 +178,6 @@ class NexoPlugin : JavaPlugin() {
         fun instance() = nexo
 
         @JvmStatic
-        val jarFile: JarFile?
-            get() = runCatching { JarFile(nexo.file) }.getOrNull()
+        val jarFile: JarFile? by lazy { runCatching { JarFile(nexo.file) }.getOrNull() }
     }
 }

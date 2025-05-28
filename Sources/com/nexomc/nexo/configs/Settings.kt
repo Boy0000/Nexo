@@ -14,7 +14,6 @@ import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
-import team.unnamed.creative.font.Font
 
 enum class Settings {
     // Generic Plugin stuff
@@ -40,7 +39,7 @@ enum class Settings {
     GLYPH_DEFAULT_PERMISSION("Glyphs.default_permission", "nexo.glyphs.<glyphid>"),
     GLYPH_DEFAULT_FONT("Glyphs.default_permission", "nexo:default"),
     GLYPH_DEFAULT_SHADOW_COLOR("Glyphs.default_shadow_color", "#00000000"),
-    GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
+    GLYPH_HOVER_TEXT("Glyphs.hover_text", ""),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
 
     // Config Tools

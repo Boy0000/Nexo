@@ -17,7 +17,6 @@ public class LibbyManager {
 
     private static final ArrayList<Library> libs = new ArrayList<>();
     private static final String COMMAND_API_VERSION = "10.0.1";
-    private static final String CREATIVE_VERSION = "1.8.5-SNAPSHOT";
 
     public static void loadLibs(JavaPlugin plugin) {
         BukkitLibraryManager manager = new BukkitLibraryManager(plugin, "libs");

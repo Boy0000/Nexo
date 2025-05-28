@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.event.HoverEvent
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
@@ -52,20 +53,17 @@ open class Glyph(
 
     private val chars = unicodes.flatMap { it.toList() }.toCharArray()
     val formattedUnicodes = unicodes.joinToString("\n") { it.joinToString(Shift.of(-1)) }
-    private val component = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
-        listOfNotNull(Component.text(row.joinToString(Shift.of(-1))).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
-    }.toTypedArray())
-    /*private val unicodeComponent = Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
-        listOfNotNull(Component.text(row.joinToString(Shift.of(-1)), NamedTextColor.WHITE).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
-    }.toTypedArray())
-    private val colorableUnicodeComponent = Component.textOfChildren(
-        *unicodes.flatMapIndexed { i, row ->
-            listOfNotNull(
-                Component.text(row.joinToString(Shift.of(-1))).font(font),
-                Component.newline().takeIf { unicodes.size > 1 && i < unicodes.lastIndex }
-            )
-        }.toTypedArray()
-    )*/
+    private val component by lazy {
+        val placeholder = placeholders.firstOrNull()
+        val hoverText = Settings.GLYPH_HOVER_TEXT.toString().let {
+            if (placeholder != null) it.replace("<glyph_placeholder>", placeholder) else it
+        }.replace("<glyph_id>", id).takeIf { it.isNotEmpty() }?.deserialize()?.let { HoverEvent.showText(it) }
+
+        Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
+            val row = row.joinToString(Shift.of(-1))
+            listOfNotNull(Component.text(row).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
+        }.toTypedArray()).hoverEvent(hoverText).compact()
+    }
 
     private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shadow: GlyphShadow? = null, shift: String = Shift.of(0)) =
         Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift")

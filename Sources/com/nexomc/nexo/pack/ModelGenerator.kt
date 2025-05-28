@@ -46,11 +46,18 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 //ItemModels
                 val itemKey = item.itemModel?.key() ?: Key.key("nexo", NexoItems.idFromItem(item) ?: return@forEach)
                 val reference = resourcePack.model(itemKey) ?: item.nexoMeta?.model?.let(resourcePack::model) ?: return@forEach
+
                 val dyeableModel = item.nexoMeta?.dyeableModel?.let {
                     resourcePack.model(it) ?: reference.toBuilder()
                         .textures(ModelTextures.builder().layers(ModelTexture.ofKey(it.key())).build()).build()
                         .apply(resourcePack::model)
                 } ?: resourcePack.model(itemKey.appendSuffix("_dyeable"))
+
+                val throwingModel = item.nexoMeta?.throwingModel?.let {
+                    resourcePack.model(it) ?: reference.toBuilder()
+                        .textures(ModelTextures.builder().layers(ModelTexture.ofKey(it.key())).build()).build()
+                        .apply(resourcePack::model)
+                } ?: resourcePack.model(itemKey.appendSuffix("_throwing"))
 
                 when {
                     resourcePack.item(itemKey) != null -> return@forEach
@@ -60,6 +67,11 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                         resourcePack.item(Item.item(itemKey, ItemModel.conditional(ItemBooleanProperty.hasComponent("minecraft:dyed_color"), trueModel, falseModel)))
                     }
                     item.color != null -> resourcePack.item(Item.item(itemKey, ItemModel.reference(reference.key(), TintSource.dye(item.color!!.asRGB()))))
+                    throwingModel != null -> {
+                        val falseModel = ItemModel.reference(reference.key())
+                        val trueModel = ItemModel.reference(throwingModel.key())
+                        resourcePack.item(Item.item(itemKey, ItemModel.conditional(ItemBooleanProperty.usingItem(), trueModel, falseModel)))
+                    }
                 }
             }
         }

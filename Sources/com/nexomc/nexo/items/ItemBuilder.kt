@@ -597,7 +597,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         itemMeta.lore(lore)
 
-        if (VersionUtil.atleast("1.21.2") && !itemMeta.hasItemModel() && nexoMeta?.dyeableModel != null)
+        if (VersionUtil.atleast("1.21.2") && !itemMeta.hasItemModel() && (nexoMeta?.dyeableModel != null || nexoMeta?.throwingModel != null))
             itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
 
         itemStack.itemMeta = itemMeta
@@ -638,7 +638,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             }
             if (this.hasTrimPattern()) yamlConfig.set("$itemId.trim_pattern", trimPatternKey!!.asString())
 
-            if (!itemFlags.isNullOrEmpty()) yamlConfig.set("$itemId.ItemFlags", itemFlags!!.map(ItemFlag::name))
+            if (itemFlags.isNotEmpty()) yamlConfig.set("$itemId.ItemFlags", itemFlags.map(ItemFlag::name))
 
             if (hasEquippableComponent()) {
                 yamlConfig.set("$itemId.Components.equippable.slot", equippable!!.slot.name)

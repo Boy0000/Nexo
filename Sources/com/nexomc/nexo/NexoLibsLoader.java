@@ -13,11 +13,12 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public class NexoLibsLoader {
-    public static boolean loadNexoLibs(JavaPlugin plugin) {
+    public static boolean usedNexoLoader = false;
+    public static void loadNexoLibs(JavaPlugin plugin) {
         BukkitLibraryManager manager = new BukkitLibraryManager(plugin, "libs");
         File[] pluginFiles = Optional.ofNullable(plugin.getDataFolder().getParentFile().listFiles()).orElse(new File[]{});
         File nexoLibs = Arrays.stream(pluginFiles).filter(f -> f.getName().matches("NexoLibs-.*.lib")).findFirst().orElse(null);
-        if (nexoLibs == null) return false;
+        if (nexoLibs == null) return;
 
         URLClassLoaderHelper classLoader;
         try {
@@ -27,10 +28,9 @@ public class NexoLibsLoader {
             classLoader.addToClasspath(nexoLibs.toPath());
 
             Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "[Nexo] Loaded NexoLibs, skipping downloading libraries!");
-            return true;
+            usedNexoLoader = true;
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[Nexo] Failed to load NexoLibs...");
-            return false;
         }
     }
 }

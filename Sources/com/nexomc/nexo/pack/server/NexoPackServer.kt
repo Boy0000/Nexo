@@ -3,7 +3,6 @@ package com.nexomc.nexo.pack.server
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.PackListener
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
@@ -15,8 +14,7 @@ import java.util.*
 import java.util.concurrent.CompletableFuture
 
 interface NexoPackServer {
-    val isPackUploaded: Boolean
-        get() = uploadPack().isDone
+    val isPackUploaded: Boolean get() = uploadPack().isDone
 
     fun uploadPack(): CompletableFuture<Void> {
         return CompletableFuture.allOf(NexoPlugin.instance().packGenerator().packGenFuture)
@@ -55,6 +53,9 @@ interface NexoPackServer {
     companion object {
         const val BYPASS_PERMISSION = "nexo.resourcepack.bypass"
 
+        var mandatory = Settings.PACK_SEND_MANDATORY.toBool(); private set
+        var prompt = Settings.PACK_SEND_PROMPT.toComponent(); private set
+
         fun registerDefaultPackServers() {
             PackServerRegistry.register("SELFHOST", ::SelfHostServer)
             PackServerRegistry.register("POLYMATH", ::PolymathServer)
@@ -76,6 +77,9 @@ interface NexoPackServer {
                 EmptyServer()
             }
 
+            mandatory = Settings.PACK_SEND_MANDATORY.toBool()
+            prompt = Settings.PACK_SEND_PROMPT.toComponent()
+
             Logs.logInfo("PackServer set to $type")
             NexoPlugin.instance().packServer(server)
         }
@@ -89,7 +93,5 @@ interface NexoPackServer {
 
 
         private val packListener = PackListener()
-        val mandatory = Settings.PACK_SEND_MANDATORY.toBool()
-        val prompt = AdventureUtils.MINI_MESSAGE.deserialize(Settings.PACK_SEND_PROMPT.toString())
     }
 }

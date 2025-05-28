@@ -1,13 +1,8 @@
 package com.nexomc.nexo.items
 
-import com.nexomc.nexo.utils.KeyUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
-import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
-import com.nexomc.nexo.utils.getKey
-import com.nexomc.nexo.utils.getStringListOrNull
-import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.rootId
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
@@ -21,7 +16,10 @@ data class NexoMeta(
     var customModelData: Int? = null,
     var model: Key? = null,
     var parentModel: Key = Model.ITEM_GENERATED,
+
     var dyeableModel: Key? = null,
+    var throwingModel: Key? = null,
+
     var brokenModel: Key? = null,
     var blockingModel: Key? = null,
     var pullingModels: List<Key> = listOf(),

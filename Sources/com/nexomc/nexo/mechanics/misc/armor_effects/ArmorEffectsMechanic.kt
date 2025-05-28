@@ -9,6 +9,7 @@ import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
+import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
 class ArmorEffectsMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
@@ -30,8 +31,9 @@ class ArmorEffectsMechanic(factory: MechanicFactory, section: ConfigurationSecti
         val icon = section.getBoolean("icon", true)
 
         val requiresFullSet = section.getBoolean("requires_full_set", false)
+        val resetOnUnequip = section.getBoolean("reset_on_unequip", false)
         val potionEffect = PotionEffect(effectType, duration, amplifier, ambient, particles, icon)
-        armorEffects += ArmorEffect(potionEffect, requiresFullSet)
+        armorEffects += ArmorEffect(potionEffect, requiresFullSet, resetOnUnequip)
     }
 
     companion object {
@@ -49,6 +51,14 @@ class ArmorEffectsMechanic(factory: MechanicFactory, section: ConfigurationSecti
                 mechanic.armorEffects.forEach {
                     if (!it.requiresFullSet || usingFullSet) player.addPotionEffect(it)
                 }
+            }
+        }
+
+        fun removeEffects(player: Player, oldItem: ItemStack) {
+            val mechanic = ArmorEffectsFactory.instance().getMechanic(oldItem) ?: return
+
+            mechanic.armorEffects.forEach {
+                if (it.resetOnUnequip) player.removePotionEffect(it.effect.type)
             }
         }
 

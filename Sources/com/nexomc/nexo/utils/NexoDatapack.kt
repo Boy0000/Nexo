@@ -9,6 +9,15 @@ import org.bukkit.World
 
 open class NexoDatapack(key: String, description: String) {
 
+    companion object {
+        private val removedDatapacks = listOf("nexo_custom_blocks")
+        fun clearOldDatapacks() {
+            Bukkit.getServer().worldContainer.walkBottomUp().filter {
+                it.isDirectory && it.name in removedDatapacks
+            }.forEach { it.deleteRecursively() }
+        }
+    }
+
     val defaultWorld: World = Bukkit.getWorlds().first()
     val datapackName = "file/$key"
     val datapackFile = defaultWorld.worldFolder.resolve("datapacks/$key")

@@ -1,14 +1,10 @@
 package com.nexomc.nexo.mechanics.misc.armor_effects
 
-import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.event.EventHandler
-import org.bukkit.event.EventPriority
-import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
 
 class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(section) {
@@ -17,12 +13,7 @@ class ArmorEffectsFactory(section: ConfigurationSection) : MechanicFactory(secti
 
     init {
         instance = this
-        registerListeners(object : Listener {
-            @EventHandler(priority = EventPriority.HIGHEST)
-            fun PlayerArmorChangeEvent.onItemEquipped() {
-                ArmorEffectsMechanic.addEffects(player)
-            }
-        })
+        registerListeners(ArmorEffectsListener())
     }
 
     override fun parse(section: ConfigurationSection): ArmorEffectsMechanic {

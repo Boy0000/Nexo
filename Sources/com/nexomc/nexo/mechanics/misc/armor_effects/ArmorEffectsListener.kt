@@ -6,8 +6,10 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 
 class ArmorEffectsListener : Listener {
+
     @EventHandler(priority = EventPriority.HIGHEST)
     fun PlayerArmorChangeEvent.onItemEquipped() {
+        ArmorEffectsMechanic.removeEffects(player, oldItem)
         ArmorEffectsMechanic.addEffects(player)
     }
 }

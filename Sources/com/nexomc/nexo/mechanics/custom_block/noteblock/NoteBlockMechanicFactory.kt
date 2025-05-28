@@ -33,8 +33,6 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
     init {
         instance = this
 
-        NoteBlockDatapack().createDatapack()
-
         registerListeners(NoteBlockMechanicListener(), LogStripListener(), BeaconListener())
 
         // Physics-related stuff
