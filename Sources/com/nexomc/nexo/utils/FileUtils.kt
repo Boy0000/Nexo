@@ -14,7 +14,24 @@ fun Path.resolve(vararg path: String): Path {
     return path.fold(this) { file, segment -> file.resolve(segment) }
 }
 
+fun File.listYamlFiles(deep: Boolean = false): List<File> {
+    return if (deep) walkBottomUp().filter { file -> file.isFile && file.extension == "yml" && file.length() != 0L }.toFastList()
+    else listFiles { file -> file.isFile && file.extension == "yml" && file.length() == 0L }?.toList() ?: emptyList()
+}
+
+fun File.listJsonFiles(deep: Boolean = false): List<File> {
+    return if (deep) walkBottomUp().filter { file -> file.isFile && file.extension == "yml" && file.length() != 0L }.toFastList()
+    else listFiles { file -> file.isFile && file.extension == "json" && file.length() == 0L }?.toList() ?: emptyList()
+}
+
+fun File.listDirectories(): List<File> {
+    return walkBottomUp().filter { it.isDirectory }.toFastList()
+}
+
 object FileUtils {
+
+    fun isEmpty(directory: File): Boolean = directory.listFiles()?.isEmpty() ?: true
+
     @JvmStatic
     fun setHidden(path: Path) {
         runCatching {

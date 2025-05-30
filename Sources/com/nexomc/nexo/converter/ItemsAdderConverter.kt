@@ -9,18 +9,9 @@ import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.pack.VanillaResourcePack
 import com.nexomc.nexo.pack.creative.NexoPackReader
-import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFastSet
-import com.nexomc.nexo.utils.plusFast
-import com.nexomc.nexo.utils.prependIfMissing
-import com.nexomc.nexo.utils.resolve
-import com.nexomc.nexo.utils.toFastList
-import com.nexomc.nexo.utils.toFastMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
-import java.io.File
-import java.math.BigDecimal
-import java.math.RoundingMode
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -29,23 +20,22 @@ import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.NodePath
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.io.File
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 object ItemsAdderConverter {
 
     val ITEMSADDER_ITEM_KEY = NamespacedKey.fromString("itemsadder")
 
     private val nexoFolder = NexoPlugin.instance().dataFolder
-    private val iaFolder = nexoFolder.parentFile.resolve("ItemsAdder")
+    private val iaFolder = nexoFolder.resolve("converter", "ItemsAdder")
     private val vanillaModels by lazy { VanillaResourcePack.resourcePack.models().mapFastSet { it.key().asMinimalString().removeSuffix(".json") } }
     private val vanillaTextures by lazy { VanillaResourcePack.resourcePack.textures().mapFastSet { it.key().asMinimalString().removeSuffix(".png") } }
 
     fun convert() {
         val iaConverter = NexoPlugin.instance().converter().itemsadderConverter
-        if (!iaFolder.exists()) {
-            iaConverter.hasBeenConverted = true
-            NexoPlugin.instance().converter().save()
-            return
-        }
+        if (!iaFolder.exists() || FileUtils.isEmpty(iaFolder)) return
 
         Logs.logInfo("Starting conversion of ItemsAdder-setup...")
 
@@ -68,16 +58,17 @@ object ItemsAdderConverter {
             // ItemsAdder/data/resource_pack/[assets]
             iaFolder.resolve("data", "resource_pack").takeIf { it.exists() }?.copyRecursively(nexoIaPack, true)
 
-            // ItemsAdder/contents/resourcepack/[assets]
-            iaFolder.resolve("contents").listFiles { file -> file.isDirectory }
-                ?.mapNotNull { it.resolve("resourcepack").takeIf(File::exists) }?.forEach { resourcePack ->
+            // ItemsAdder/contents/(resourcepack|resource_pack)/[assets]
+            iaFolder.resolve("contents").listDirectories().mapNotNull {
+                it.resolve("resourcepack").takeIf(File::exists) ?: it.resolve("resource_pack").takeIf(File::exists)
+            }.forEach { resourcePack ->
                 val target = nexoIaPack.takeIf { resourcePack.resolve("assets").exists() } ?: nexoIaPack.resolve("assets")
                 resourcePack.copyRecursively(target, true)
             }
 
             // ItemsAdder/contents/namespace/(assets/)(textures/models)...
-            iaFolder.resolve("contents").listFiles { file -> file.isDirectory && file.name != "resourcepack" }?.forEach { namespace ->
-                namespace.listFiles { file -> file.isDirectory && file.name != "configs" && file.name != "resourcepack" }?.forEach { dir ->
+            iaFolder.resolve("contents").listFiles { file -> file.isDirectory && file.name != "resourcepack" && file.name != "resource_pack" }?.forEach { namespace ->
+                namespace.listFiles { file -> file.isDirectory && file.name != "configs" && file.name != "resourcepack" && file.name != "resource_pack" }?.forEach { dir ->
                     val target = if (dir.name == "assets") nexoIaPack.resolve("assets") else nexoIaPack.resolve("assets", namespace.name, dir.name)
                     dir.copyRecursively(target, true)
                 }
@@ -461,8 +452,7 @@ object ItemsAdderConverter {
             if (!nexoRecipeNode.empty()) nexoRecipeLoader.save(nexoRecipeNode)
         }
 
-        iaConverter.hasBeenConverted = true
-        NexoPlugin.instance().converter().save()
+        iaFolder.deleteRecursively()
         Logs.logSuccess("Finished conversion of ItemsAdder- to Nexo-setup!.")
     }
 

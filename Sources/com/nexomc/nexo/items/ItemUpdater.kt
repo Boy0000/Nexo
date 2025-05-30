@@ -31,7 +31,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ArmorMeta
 import org.bukkit.inventory.meta.BundleMeta
 import org.bukkit.inventory.meta.Damageable
-import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
 
 @Suppress("UnstableApiUsage")
@@ -170,10 +169,9 @@ class ItemUpdater : Listener {
 
             val id = NexoItems.idFromItem(oldItem) ?: return oldItem
 
-            oldItem.editMeta { itemMeta: ItemMeta ->
-                val pdc = itemMeta.persistentDataContainer
-                pdc.remove(IF_UUID)
-                pdc.remove(MF_GUI)
+            ItemUtils.editPersistentDataContainer(oldItem) {
+                it.remove(IF_UUID)
+                it.remove(MF_GUI)
             }
 
             val newItemBuilder = NexoItems.itemFromId(id)?.takeUnless { it.nexoMeta?.noUpdate == true } ?: return oldItem
@@ -247,11 +245,9 @@ class ItemUpdater : Listener {
                     }
                 }
 
-                if (VersionUtil.atleast("1.21")) {
-                    when {
-                        newMeta.hasJukeboxPlayable() -> itemMeta.setJukeboxPlayable(newMeta.jukeboxPlayable)
-                        oldMeta.hasJukeboxPlayable() -> itemMeta.setJukeboxPlayable(oldMeta.jukeboxPlayable)
-                    }
+                if (VersionUtil.atleast("1.21")) when {
+                    newMeta.hasJukeboxPlayable() -> itemMeta.setJukeboxPlayable(newMeta.jukeboxPlayable)
+                    oldMeta.hasJukeboxPlayable() -> itemMeta.setJukeboxPlayable(oldMeta.jukeboxPlayable)
                 }
 
                 if (VersionUtil.atleast("1.21.2")) {
@@ -315,9 +311,10 @@ class ItemUpdater : Listener {
             runCatching {
                 newItem.copyDataFrom(oldItem, componentsToCopy::contains)
             }.onFailure {
-                NMSHandlers.handler().itemUtils().consumableComponent(newItem, NMSHandlers.handler().itemUtils().consumableComponent(oldItem))
-                NMSHandlers.handler().itemUtils().repairableComponent(newItem, NMSHandlers.handler().itemUtils().repairableComponent(oldItem))
-                NMSHandlers.handler().itemUtils().blockstateComponent(newItem, NMSHandlers.handler().itemUtils().blockstateComponent(oldItem))
+                val itemUtils = NMSHandlers.handler().itemUtils()
+                itemUtils.consumableComponent(newItem, itemUtils.consumableComponent(oldItem))
+                itemUtils.repairableComponent(newItem, itemUtils.repairableComponent(oldItem))
+                itemUtils.blockstateComponent(newItem, itemUtils.blockstateComponent(oldItem))
             }
 
             return newItem

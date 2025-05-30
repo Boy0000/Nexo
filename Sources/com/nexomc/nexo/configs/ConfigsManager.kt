@@ -4,7 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.converter.NexoConverter
-import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.fonts.ReferenceGlyph
 import com.nexomc.nexo.items.CustomModelData
@@ -17,14 +16,15 @@ import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.associateFastLinkedWith
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.printOnFailure
-import com.nexomc.nexo.utils.toFastList
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import net.kyori.adventure.key.Key
@@ -171,11 +171,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return output
     }
 
-    internal fun parseItemConfig(): Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>> {
-        return Object2ObjectLinkedOpenHashMap<File, Object2ObjectLinkedOpenHashMap<String, ItemBuilder>>().apply {
-            for (file: File in itemFiles()) this[file] = parseItemConfig(file)
-        }
-    }
+    internal fun parseItemConfig() = itemFiles().associateFastLinkedWith { parseItemConfig(it) }
 
     fun assignAllUsedCustomModelDatas() {
         val assignedModelDatas = Object2ObjectLinkedOpenHashMap<Material, Object2ObjectLinkedOpenHashMap<Int, Key>>()
@@ -226,10 +222,10 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     private val ERROR_ITEM by lazy { ItemBuilder(Material.PODZOL) }
     private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
-        if (NexoPlugin.instance().converter().oraxenConverter.convertItems) OraxenConverter.processItemConfigs(itemFile)
-        NexoConverter.processItemConfigs(itemFile)
         val config = loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
+
+        NexoConverter.processItemConfigs(config)
 
         config.childSections().forEach { itemId, section ->
             if (!ItemTemplate.isTemplate(itemId)) parseMap[itemId] = ItemParser(section)
@@ -275,9 +271,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return map
     }
 
-    private fun itemFiles(): List<File> = itemsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
+    private fun itemFiles(): List<File> = itemsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sorted()
 
-    private fun glyphFiles(): List<File> = glyphsFolder.walkBottomUp().filter { it.extension == "yml" && it.readText().isNotEmpty() }.filter(NexoYaml::isValidYaml).sorted().toFastList()
+    private fun glyphFiles(): List<File> = glyphsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sorted()
 
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")

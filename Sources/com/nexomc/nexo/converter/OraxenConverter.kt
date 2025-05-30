@@ -17,61 +17,50 @@ import java.io.File
 object OraxenConverter {
 
     private val nexoFolder = NexoPlugin.instance().dataFolder
-    private val oraxenFolder = nexoFolder.parentFile.resolve("Oraxen")
-    private val tempFolder = oraxenFolder.resolveSibling("OraxenTemporary")
+    private val oraxenFolder = nexoFolder.resolve("converter", "Oraxen")
 
     fun convert() {
         val oraxenConverter = NexoPlugin.instance().converter().oraxenConverter
-        if (!oraxenFolder.exists()) {
-            oraxenConverter.hasBeenConverted = true
-            NexoPlugin.instance().converter().save()
-            return
-        }
+        if (!oraxenFolder.exists() || FileUtils.isEmpty(oraxenFolder)) return
 
         Logs.logInfo("Starting conversion of Oraxen-setup...")
-        tempFolder.deleteRecursively()
-        oraxenFolder.copyRecursively(tempFolder)
 
-        tempFolder.listFiles { file -> file.isFile && file.extension == "yml" }
-            ?.takeUnless { oraxenConverter.hasBeenConverted }
-            ?.forEach { file ->
-                file.copyTo(nexoFolder.resolve(file.relativeTo(tempFolder)), overwrite = true)
-                Logs.logInfo("Copied ${file.name} from Oraxen to Nexo...")
-            }
+        oraxenFolder.listYamlFiles(true).forEach { file ->
+            file.copyTo(nexoFolder.resolve(file.relativeTo(oraxenFolder)), overwrite = true)
+            Logs.logInfo("Copied ${file.name} from Oraxen to Nexo...")
+        }
 
-        tempFolder.resolve("languages").listFiles { file -> file.isFile && file.extension == "yml" }
-            ?.takeUnless { oraxenConverter.hasBeenConverted }
-            ?.forEach { lang ->
-                lang.writeText(lang.readText()
-                    .replace("<gradient:#9055FF:#13E2DA>", "<gradient:#46C392:#7FC794>")
-                    .replace("Oraxen", "Nexo")
-                    .replace("/o", "/nexo")
-                    .replace("oraxen", "nexo")
-
-                )
-            }
+        oraxenFolder.resolve("languages").listYamlFiles().forEach { lang ->
+            lang.writeText(lang.readText()
+                .replace("<gradient:#9055FF:#13E2DA>", "<gradient:#46C392:#7FC794>")
+                .replace("Oraxen", "Nexo")
+                .replace("/o", "/nexo")
+                .replace("oraxen", "nexo")
+            )
+        }
 
         if (oraxenConverter.convertSettings) processSettings(nexoFolder)
 
         arrayOf("sound.yml", "hud.yml", "gestures", "font.yml").forEach {
-            tempFolder.resolve(it).deleteRecursively()
+            oraxenFolder.resolve(it).deleteRecursively()
             nexoFolder.resolve(it).deleteRecursively()
         }
 
         if (oraxenConverter.convertItems) {
-            tempFolder.resolve("items").walkBottomUp().filter { it.extension == "yml" }.forEach {
+            oraxenFolder.resolve("items").listYamlFiles().forEach {
                 processItemConfigs(it)
                 Logs.logSuccess("Finished converting item-config ${it.name}")
                 it.copyTo(it.parentFile.resolve("oraxen_items").resolve(it.name))
                 it.delete()
             }
-            tempFolder.resolve("recipes").listFiles()?.filter { it.extension == "yml" && it.readText().isNotEmpty() }?.forEach {
+            oraxenFolder.resolve("recipes").listYamlFiles().forEach {
+                if (it.readText().isEmpty()) return@forEach
                 processRecipes(it)
                 Logs.logSuccess("Finished converting recipe-config ${it.name}")
             }
         }
 
-        tempFolder.resolve("glyphs").walkBottomUp().filter { it.extension == "yml" }.forEach {
+        oraxenFolder.resolve("glyphs").listYamlFiles(true).forEach {
             val target = it.parentFile.resolve("oraxen_glyphs").resolve(it.name)
             when (it.name) {
                 "required.yml", "shifts.yml" -> {
@@ -91,23 +80,21 @@ object OraxenConverter {
         }
 
         if (oraxenConverter.convertResourcePack) {
-            val packFolder = tempFolder.resolve("pack")
+            val packFolder = oraxenFolder.resolve("pack")
             processPackFolder(packFolder)
             packFolder.resolve("pack.mcmeta").delete()
             packFolder.resolve("pack.png").delete()
             Logs.logSuccess("Finished converting Resourcepack folders")
         }
 
-        tempFolder.copyRecursively(nexoFolder, false) { file, _ ->
+        oraxenFolder.copyRecursively(nexoFolder, false) { file, _ ->
             val oraxenFile = oraxenFolder.resolve(file.relativeTo(nexoFolder))
             if (!oraxenFile.path.startsWith("plugins\\Oraxen\\pack"))
                 Logs.logWarn("Skipping copying of <gold>${oraxenFile.path}</gold> as it already exists...")
             OnErrorAction.SKIP
         }
 
-        tempFolder.deleteRecursively()
-        oraxenConverter.hasBeenConverted = true
-        NexoPlugin.instance().converter().save()
+        oraxenFolder.deleteRecursively()
         Logs.logSuccess("Finished conversion of Oraxen- to Nexo-setup!.")
     }
 
@@ -177,7 +164,6 @@ object OraxenConverter {
                     ingredientNode.node("nexo_item").set(it)
                 }
             }
-
         }
 
         runCatching {

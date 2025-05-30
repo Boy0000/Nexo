@@ -9,6 +9,7 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
@@ -16,7 +17,6 @@ import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.util.Objects
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -27,6 +27,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
+import java.util.*
 
 class StorageMechanic(section: ConfigurationSection) {
     private val rows: Int = section.getInt("rows", 6)
@@ -90,8 +91,8 @@ class StorageMechanic(section: ConfigurationSection) {
         if (isShulker) {
             val mechanic = NexoBlocks.noteBlockMechanic(block) ?: return
             val shulker = NexoItems.itemFromId(mechanic.itemID)?.build() ?: return
-            shulker.editMeta {
-                it.persistentDataContainer.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)
+            ItemUtils.editPersistentDataContainer(shulker) {
+                it.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items)
             }
             block.world.dropItemNaturally(loc, shulker)
         } else items.filterNotNull().forEach { block.world.dropItemNaturally(loc, it) }
@@ -125,10 +126,7 @@ class StorageMechanic(section: ConfigurationSection) {
             baseEntity.world.dropItemNaturally(loc, it)
         }
 
-        if (gui != null) {
-            val players = gui.inventory.viewers.toTypedArray<HumanEntity>()
-            for (player: HumanEntity in players) gui.close(player)
-        }
+        gui?.inventory?.viewers?.toTypedArray<HumanEntity>()?.forEach(gui::close)
         pdc.remove(STORAGE_KEY)
         displayStorages.remove(baseEntity)
     }

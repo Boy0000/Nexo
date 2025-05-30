@@ -12,24 +12,21 @@ import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture
 
 internal fun CommandTree.recipesCommand() = literalArgument("recipes") {
+    val recipeManager = RecipeEventManager.instance()
     withPermission("nexo.command.recipes")
     literalArgument("show") {
         withPermission("nexo.command.recipes.show")
         textArgument("type") {
             replaceSuggestions(ArgumentSuggestions.stringsAsync {
-                CompletableFuture.supplyAsync { RecipeEventManager.instance().permittedRecipeNames(it.sender) }
+                CompletableFuture.supplyAsync { recipeManager.permittedRecipeNames(it.sender) }
             })
             anyExecutor { sender, args ->
-                if (sender is Player) {
-                    var recipes = RecipeEventManager.instance().permittedRecipes(sender)
-                    val param = args.get("type") as String
-                    if ("all" != param) recipes = recipes.filter { it.name == param }
-                    if (recipes.isEmpty()) {
-                        Message.RECIPE_NO_RECIPE.send(sender)
-                        return@anyExecutor
-                    }
-                    NexoPlugin.instance().invManager().recipesShowcase(0, recipes).show(sender)
-                } else Message.NOT_PLAYER.send(sender)
+                if (sender !is Player) return@anyExecutor Message.NOT_PLAYER.send(sender)
+                val param = args.get("type") as? String ?: return@anyExecutor Message.RECIPE_NO_RECIPE.send(sender)
+                val recipes = recipeManager.permittedRecipes(sender).filter { it.name == param || param == "all" }
+                if (recipes.isEmpty()) return@anyExecutor Message.RECIPE_NO_RECIPE.send(sender)
+
+                NexoPlugin.instance().invManager().recipesShowcase(0, recipes).open(sender)
             }
         }
     }

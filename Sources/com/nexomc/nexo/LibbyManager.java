@@ -48,7 +48,6 @@ public class LibbyManager {
         libs.add(getLib("dev{}jorel", (isPaperServer() && !isLegacyServer()) ? "commandapi-bukkit-shade-mojang-mapped" : "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
         libs.add(getLib("dev{}jorel", "commandapi-bukkit-kotlin", COMMAND_API_VERSION, "dev{}jorel").build());
 
-        libs.add(getLib("com{}github{}stefvanschie{}inventoryframework", "IF", "0.10.19", "com{}github{}stefvanschie").build());
         libs.add(getLib("software{}amazon{}awssdk", "s3", "2.30.30", null, false).build());
     }
 

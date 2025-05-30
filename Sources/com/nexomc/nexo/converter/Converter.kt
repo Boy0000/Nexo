@@ -13,10 +13,12 @@ data class Converter(
         runCatching {
             NexoPlugin.instance().dataFolder.resolve("converter.yml").let {
                 NexoPlugin.instance().resourceManager().converter.config.also { c ->
-                    c.getConfigurationSection("oraxenConverter")?.set("hasBeenConverted", oraxenConverter.hasBeenConverted)
-                    c.getConfigurationSection("itemsadderConverter")?.set("hasBeenConverted", itemsadderConverter.hasBeenConverted)
-                    c.getConfigurationSection("itemsadderConverter")?.set("changedItemIds", itemsadderConverter.changedItemIds)
-                    c.getConfigurationSection("nexoConverter")?.set("furnitureConverter", nexoConverter.furnitureConverter)
+                    c.getConfigurationSection("itemsadderConverter")?.apply {
+                        set("changedItemIds", itemsadderConverter.changedItemIds)
+                        set("hasBeenConverted", null)
+                    }
+                    c.set("oraxenConverter.hasBeenConverted", null)
+                    c.set("nexoConverter.furnitureConverter", nexoConverter.furnitureConverter)
                 }.save(it)
             }
         }.onFailure { it.printStackTrace() }
@@ -40,16 +42,13 @@ data class Converter(
         val convertItems: Boolean = true,
         val convertResourcePack: Boolean = true,
         val convertSettings: Boolean = true,
-        val convertFurnitureOnLoad: Boolean = true,
-
-        var hasBeenConverted: Boolean = false,
+        val convertFurnitureOnLoad: Boolean = true
     ) {
         constructor(oraxenConverter: ConfigurationSection) : this(
             oraxenConverter.getBoolean("convertItems"),
             oraxenConverter.getBoolean("convertResourcePack"),
             oraxenConverter.getBoolean("convertSettings"),
-            oraxenConverter.getBoolean("convertFurnitureOnLoad"),
-            oraxenConverter.getBoolean("hasBeenConverted", true)
+            oraxenConverter.getBoolean("convertFurnitureOnLoad")
         )
     }
 
@@ -59,7 +58,6 @@ data class Converter(
         val convertSettings: Boolean = true,
         val convertFurnitureOnLoad: Boolean = true,
 
-        var hasBeenConverted: Boolean = false,
         val changedItemIds: MutableMap<String, String> = mutableMapOf()
     ) {
         constructor(config: ConfigurationSection) : this(
@@ -67,7 +65,6 @@ data class Converter(
             config.getBoolean("convertResourcePack"),
             config.getBoolean("convertSettings"),
             config.getBoolean("convertFurnitureOnLoad"),
-            config.getBoolean("hasBeenConverted", true),
             config.getConfigurationSection("changedItemIds")?.let {
                 it.getKeys(false).associateWith { s -> it.getString(s)!! }.toMutableMap()
             } ?: mutableMapOf()

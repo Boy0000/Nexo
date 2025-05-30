@@ -198,7 +198,7 @@ open class Glyph(
     @JvmOverloads
     fun glyphComponent(colorable: Boolean = false, shadow: GlyphShadow? = null, bitmapIndexRange: IntRange = IntRange.EMPTY): Component {
         return if (bitmapIndexRange == IntRange.EMPTY) component
-            .run { if (!colorable) children(children().map { it.color(NamedTextColor.WHITE) }) else this }
+            .run { if (!colorable) color(NamedTextColor.WHITE).children(children().map { it.color(NamedTextColor.WHITE) }) else this }
             .glyphShadow(shadow)
         else bitmapComponent(bitmapIndexRange, colorable, shadow)
     }

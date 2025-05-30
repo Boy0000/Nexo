@@ -41,8 +41,6 @@ public class PaperPluginLoader implements PluginLoader {
             "dev.jorel:commandapi-bukkit-shade-mojang-mapped:" + COMMAND_API_VERSION,
             "dev.jorel:commandapi-bukkit-kotlin:" + COMMAND_API_VERSION,
 
-            "com.github.stefvanschie.inventoryframework:IF:0.10.19",
-
             "org.springframework:spring-expression:6.0.8",
             "org.spongepowered:configurate-yaml:4.2.0",
             "org.spongepowered:configurate-extra-kotlin:4.2.0",

@@ -104,6 +104,12 @@ fun ConfigurationSection.getVector2f(key: String): Vector2f {
     return Vector2f(x, y)
 }
 
+fun ConfigurationSection.rename(oldKey: String, newKey: String): ConfigurationSection {
+    set(newKey, get(oldKey))
+    set(oldKey, null)
+    return this
+}
+
 class NexoYaml : YamlConfiguration() {
     override fun load(file: File) {
         runCatching {

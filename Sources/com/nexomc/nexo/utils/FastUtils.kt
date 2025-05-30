@@ -94,6 +94,11 @@ inline fun <K, V> Iterable<K>.associateFastWith(valueSelector: (K) -> V): Object
     return associateWithTo(result, valueSelector)
 }
 
+inline fun <K, V> Iterable<K>.associateFastLinkedWith(valueSelector: (K) -> V): Object2ObjectLinkedOpenHashMap<K, V> {
+    val result = Object2ObjectLinkedOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    return associateWithTo(result, valueSelector)
+}
+
 inline fun <T, K, V> Iterable<T>.associateFastByNotNull(
     keySelector: (T) -> K?,
     valueSelector: (T) -> V?

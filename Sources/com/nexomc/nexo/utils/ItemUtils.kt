@@ -5,8 +5,19 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.components.FoodComponent
+import org.bukkit.persistence.PersistentDataContainer
 
 object ItemUtils {
+
+    fun editPersistentDataContainer(itemStack: ItemStack, action: (PersistentDataContainer) -> Unit) {
+        runCatching {
+            itemStack.editPersistentDataContainer { action.invoke(it) }
+        }.onFailure {
+            itemStack.editMeta {
+                action.invoke(it.persistentDataContainer)
+            }
+        }
+    }
 
     fun itemStacks(vararg materials: Material): List<ItemStack> {
         return materials.map(::ItemStack)

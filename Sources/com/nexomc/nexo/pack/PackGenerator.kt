@@ -7,7 +7,6 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPostPackGenerateEvent
 import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.ReferenceGlyph
 import com.nexomc.nexo.fonts.Shift
 import com.nexomc.nexo.fonts.ShiftTag
@@ -17,26 +16,16 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.FileUtils
-import com.nexomc.nexo.utils.PluginUtils
-import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.customarmor.ComponentCustomArmor
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType.Companion.setting
 import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
-import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.prependIfMissing
-import com.nexomc.nexo.utils.resolve
 import com.ticxo.modelengine.api.ModelEngineAPI
-import java.io.File
-import java.net.URI
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.BuiltResourcePack
@@ -48,6 +37,10 @@ import team.unnamed.creative.font.ReferenceFontProvider
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.metadata.pack.PackFormat
 import team.unnamed.creative.sound.SoundRegistry
+import java.io.File
+import java.net.URI
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
 class PackGenerator {
     private val packDownloader: PackDownloader = PackDownloader()
@@ -115,9 +108,6 @@ class PackGenerator {
                         else Logs.logError(it.message!!)
                     }
                 }
-
-                if (NexoPlugin.instance().converter().oraxenConverter.convertResourcePack)
-                    OraxenConverter.processPackFolder(packFolder)
 
                 resourcePack.packMeta(PackFormat.format(NMSHandlers.handler().resourcepackFormat(), 22, 99), "Nexo's default pack.".deserialize())
 

@@ -4,6 +4,7 @@ import com.destroystokyo.paper.event.player.PlayerArmorChangeEvent
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemUpdater
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.logs.Logs
 import net.kyori.adventure.key.Key
 import org.bukkit.NamespacedKey
@@ -43,8 +44,8 @@ class CustomArmorListener : Listener {
             itemIds.distinct().size > 1 -> inventory.result = ItemStack.empty()
             // If they are all identical, ensure output is said NexoItem
             itemIds.distinct().size == 1 -> inventory.result = inventory.result?.let {
-                it.editMeta { meta ->
-                    meta.persistentDataContainer.set(NexoItems.ITEM_ID, PersistentDataType.STRING, itemIds.first())
+                ItemUtils.editPersistentDataContainer(it) { pdc ->
+                    pdc.set(NexoItems.ITEM_ID, PersistentDataType.STRING, itemIds.first())
                 }
                 ItemUpdater.updateItem(it)
             }
