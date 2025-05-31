@@ -28,7 +28,7 @@ object VersionUtil {
 
     fun below(versionString: String) = !atleast(versionString)
 
-    val isFoliaServer: Boolean = NexoPlugin.instance().foliaLib.isFolia
+    val isFoliaServer by lazy { NexoPlugin.instance().foliaLib.isFolia }
 
     val isCompiled by lazy { manifestMap.isEmpty() || ((manifestMap["Compiled"]?.toBoolean() == true) && !isValidCompiler) }
 
@@ -36,9 +36,9 @@ object VersionUtil {
 
     val isCI: Boolean by lazy { manifestMap["CI"]?.toBoolean() == true }
 
-    private val isValidCompiler: Boolean by lazy { manifestMap["Built-By"]?.equals("sivert", ignoreCase = true) == true }
+    private val isValidCompiler by lazy { manifestMap["Built-By"]?.equals("sivert", ignoreCase = true) == true }
 
-    val isLeaked = JarReader.checkIsLeaked()
+    val isLeaked by lazy { JarReader.checkIsLeaked() }
 
     enum class NMSVersion {
         v1_21_R4, v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;

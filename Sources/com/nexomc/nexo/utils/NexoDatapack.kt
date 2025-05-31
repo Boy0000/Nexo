@@ -1,5 +1,6 @@
 package com.nexomc.nexo.utils
 
+import com.nexomc.nexo.NexoBootstrapper
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.JsonBuilder.plus
@@ -10,7 +11,10 @@ import org.bukkit.World
 open class NexoDatapack(key: String, description: String) {
 
     companion object {
-        private val removedDatapacks = listOf("nexo_custom_blocks")
+        private val removedDatapacks = listOfNotNull(
+            if (NexoBootstrapper.bootsStrung) "nexo_custom_blocks" else null
+        )
+
         fun clearOldDatapacks() {
             Bukkit.getServer().worldContainer.walkBottomUp().filter {
                 it.isDirectory && it.name in removedDatapacks

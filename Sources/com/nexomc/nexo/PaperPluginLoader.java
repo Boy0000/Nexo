@@ -23,6 +23,7 @@ import static org.eclipse.aether.repository.RepositoryPolicy.*;
 public class PaperPluginLoader implements PluginLoader {
 
     public static boolean usedPaperPluginLoader = false;
+    private static final List<String> libraries = new ArrayList<>();
 
     private static final String COMMAND_API_VERSION = "10.0.1";
 
@@ -33,24 +34,30 @@ public class PaperPluginLoader implements PluginLoader {
         new Repo("paper", "https://repo.papermc.io/repository/maven-public/")
     );
 
+    static {
+        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1");
+        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1");
+        libraries.add("org.jetbrains.kotlin:kotlin-stdlib:2.0.21");
 
-    private static final List<String> libraries = List.of(
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1",
-            "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1",
-            "org.jetbrains.kotlin:kotlin-stdlib:2.0.21",
-            "dev.jorel:commandapi-bukkit-shade-mojang-mapped:" + COMMAND_API_VERSION,
-            "dev.jorel:commandapi-bukkit-kotlin:" + COMMAND_API_VERSION,
+        try {
+            Class.forName("org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer");
+            libraries.add("dev.jorel:commandapi-bukkit-shade:" + COMMAND_API_VERSION);
+        } catch (Exception e) {
+            libraries.add("dev.jorel:commandapi-bukkit-shade-mojang-mapped:" + COMMAND_API_VERSION);
+        }
 
-            "org.springframework:spring-expression:6.0.8",
-            "org.spongepowered:configurate-yaml:4.2.0",
-            "org.spongepowered:configurate-extra-kotlin:4.2.0",
-            "gs.mclo:java:2.2.1",
-            "commons-io:commons-io:2.18.0",
-            "com.google.code.gson:gson:2.11.0",
-            "org.apache.commons:commons-lang3:3.17.0",
-            "org.apache.httpcomponents.client5:httpclient5:5.4.3",
-            "org.glassfish:javax.json:1.1.4"
-    );
+        libraries.add("dev.jorel:commandapi-bukkit-kotlin:" + COMMAND_API_VERSION);
+        libraries.add("org.springframework:spring-expression:6.0.8");
+        libraries.add("org.spongepowered:configurate-yaml:4.2.0");
+        libraries.add("org.spongepowered:configurate-extra-kotlin:4.2.0");
+        libraries.add("gs.mclo:java:2.2.1");
+        libraries.add("commons-io:commons-io:2.18.0");
+        libraries.add("com.google.code.gson:gson:2.11.0");
+        libraries.add("org.apache.commons:commons-lang3:3.17.0");
+        libraries.add("org.apache.httpcomponents.client5:httpclient5:5.4.3");
+        libraries.add("org.glassfish:javax.json:1.1.4");
+    }
+
 
     @Override
     public void classloader(PluginClasspathBuilder classpathBuilder) {

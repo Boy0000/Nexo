@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
+import com.nexomc.nexo.NexoBootstrapper
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.mechanics.MechanicFactory
@@ -32,6 +33,8 @@ class NoteBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(
 
     init {
         instance = this
+
+        if (!NexoBootstrapper.bootsStrung) NoteBlockDatapack().createDatapack()
 
         registerListeners(NoteBlockMechanicListener(), LogStripListener(), BeaconListener())
 

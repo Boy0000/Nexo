@@ -18,11 +18,11 @@ package com.nexomc.nexo.utils
 
 import com.google.common.collect.ComparisonChain
 import com.google.common.collect.Ordering
-import java.io.Serializable
-import java.util.Objects
-import java.util.regex.Pattern
 import org.bukkit.Bukkit
 import org.bukkit.Server
+import java.io.Serializable
+import java.util.*
+import java.util.regex.Pattern
 import kotlin.concurrent.Volatile
 import kotlin.math.min
 
@@ -215,7 +215,7 @@ class MinecraftVersion : Comparable<MinecraftVersion?>, Serializable {
         }
 
         private fun atOrAbove(version: MinecraftVersion): Boolean {
-            return currentVersion!!.isAtLeast(version)
+            return currentVersion.isAtLeast(version)
         }
     }
 }
