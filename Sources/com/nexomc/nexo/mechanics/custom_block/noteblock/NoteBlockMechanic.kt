@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
+import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.directional.DirectionalBlock
 import com.nexomc.nexo.mechanics.custom_block.noteblock.logstrip.LogStripping
@@ -41,7 +41,7 @@ class NoteBlockMechanic(factory: MechanicFactory, section: ConfigurationSection)
 
     val isDirectional = directional != null
 
-    override val breakable: BreakableMechanic = directional?.parentMechanic?.breakable ?: super.breakable
+    override val breakable: Breakable = directional?.parentMechanic?.breakable ?: super.breakable
 
     override fun hasLight(): Boolean {
         return directional?.parentMechanic?.hasLight() ?: super.hasLight()

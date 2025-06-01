@@ -61,7 +61,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     // 1.20.5+ properties
     var foodComponent: FoodComponent? = null; private set
     var toolComponent: ToolComponent? = null; private set
-    var enchantmentGlindOverride: Boolean? = null; private set
+    var enchantmentGlintOverride: Boolean? = null; private set
     var maxStackSize: Int? = null; private set
     var itemName: Component? = null; private set
     var fireResistant: Boolean? = null; private set
@@ -151,7 +151,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             hideToolTip = if (itemMeta.isHideTooltip) true else null
             foodComponent = if (itemMeta.hasFood()) itemMeta.food else null
             toolComponent = if (itemMeta.hasTool()) itemMeta.tool else null
-            enchantmentGlindOverride = if (itemMeta.hasEnchantmentGlintOverride()) itemMeta.enchantmentGlintOverride else null
+            enchantmentGlintOverride = if (itemMeta.hasEnchantmentGlintOverride()) itemMeta.enchantmentGlintOverride else null
             rarity = if (itemMeta.hasRarity()) itemMeta.rarity else null
             maxStackSize = if (itemMeta.hasMaxStackSize()) itemMeta.maxStackSize else null
         }
@@ -253,9 +253,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         }
 
     fun getTrimPattern(): TrimPattern? {
-        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type) || trimPattern == null) return null
-        val key = NamespacedKey.fromString(trimPattern!!.asString()) ?: return null
-        return Registry.TRIM_PATTERN.get(key)
+        return trimPattern?.asString()?.let(NamespacedKey::fromString)?.let(Registry.TRIM_PATTERN::get)
     }
 
     fun setTrimPattern(trimKey: Key?): ItemBuilder {
@@ -409,12 +407,12 @@ class ItemBuilder(private val itemStack: ItemStack) {
         return this
     }
 
-    fun hasEnchantmentGlindOverride(): Boolean {
-        return VersionUtil.atleast("1.20.5") && enchantmentGlindOverride != null
+    fun hasEnchantmentGlintOverride(): Boolean {
+        return VersionUtil.atleast("1.20.5") && enchantmentGlintOverride != null
     }
 
-    fun setEnchantmentGlindOverride(enchantmentGlintOverride: Boolean?): ItemBuilder {
-        this.enchantmentGlindOverride = enchantmentGlintOverride
+    fun setEnchantmentGlintOverride(enchantmentGlintOverride: Boolean?): ItemBuilder {
+        this.enchantmentGlintOverride = enchantmentGlintOverride
         return this
     }
 
@@ -536,7 +534,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             if (itemMeta is Damageable) itemMeta.setMaxDamage(durability)
             if (itemName != null) itemMeta.itemName(itemName)
             if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize)
-            if (hasEnchantmentGlindOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlindOverride)
+            if (hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride)
             if (hasRarity()) itemMeta.setRarity(rarity)
             if (hasFoodComponent()) itemMeta.setFood(foodComponent)
             if (hasToolComponent()) itemMeta.setTool(toolComponent)
@@ -662,9 +660,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
                 runCatching { itemMeta.effect = fireWorkBuilder.build() }
             }
-            itemMeta is ArmorMeta && hasTrimPattern() -> {
-                itemMeta.trim = ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()!!)
-            }
+            itemMeta is ArmorMeta && hasTrimPattern() -> itemMeta.trim = ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()!!)
         }
     }
 

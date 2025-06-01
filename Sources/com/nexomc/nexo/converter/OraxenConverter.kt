@@ -30,7 +30,7 @@ object OraxenConverter {
             Logs.logInfo("Copied ${file.name} from Oraxen to Nexo...")
         }
 
-        oraxenFolder.resolve("languages").listYamlFiles().forEach { lang ->
+        oraxenFolder.resolve("messages").listYamlFiles().forEach { lang ->
             lang.writeText(lang.readText()
                 .replace("<gradient:#9055FF:#13E2DA>", "<gradient:#46C392:#7FC794>")
                 .replace("Oraxen", "Nexo")

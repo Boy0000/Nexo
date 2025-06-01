@@ -7,6 +7,8 @@ import com.nexomc.nexo.utils.FileUtils.setHidden
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
+import org.apache.commons.lang3.StringUtils
+import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStreamReader
@@ -14,11 +16,10 @@ import java.net.HttpURLConnection
 import java.net.URI
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import org.apache.commons.lang3.StringUtils
-import org.bukkit.configuration.file.YamlConfiguration
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
@@ -45,7 +46,7 @@ class PackDownloader {
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
                 }
             }.also { requiredPackDownload = it }
-        }
+        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
     }
 
     fun downloadDefaultPack(): CompletableFuture<Void> {
@@ -71,7 +72,7 @@ class PackDownloader {
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
                 }
             }.also { defaultPackDownload = it }
-        }
+        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
     }
 
     private fun logSkipReason() {

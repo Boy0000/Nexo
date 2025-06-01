@@ -4,6 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.CustomDataTypes
 import com.nexomc.nexo.utils.VectorUtils.vectorFromString
 import com.nexomc.nexo.utils.toFastMap
@@ -112,6 +113,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
         }
 
         fun removeBeds(baseEntity: ItemDisplay) {
+            if (!baseEntity.location.isLoaded) return
             baseEntity.persistentDataContainer.getOrDefault(BED_KEY, CustomDataTypes.UUID_LIST, listOf())
                 .mapNotNull(Bukkit::getEntity).forEach { bed ->
                     bed.passengers.forEach(bed::removePassenger)

@@ -304,8 +304,17 @@ class PackGenerator {
     }
 
     private fun parseLanguageFiles() {
+        NexoPlugin.instance().configsManager().languages.childSections().forEach { langKey, section ->
+            val key = Key.key(langKey.lowercase())
+            val language = resourcePack.language(key)?.translations() ?: mutableMapOf()
+
+            language += section.getValues(true).filterValuesInstanceOf<String>()
+
+            resourcePack.language(Language.language(key, language))
+        }
+
         parseGlobalLanguage()
-        ArrayList(resourcePack.languages()).forEach { language ->
+        resourcePack.languages().toList().forEach { language ->
             LinkedHashSet<Map.Entry<String, String>>(language.translations().entries).forEach { (key, value) ->
                 language.translations()[key] = parseLegacyThroughMiniMessage(value)
                 language.translations().remove("DO_NOT_ALTER_THIS_LINE")

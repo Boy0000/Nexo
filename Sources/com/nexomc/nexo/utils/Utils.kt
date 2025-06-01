@@ -40,6 +40,11 @@ fun IntRange.randomOrMin(): Int =
     if (start >= endInclusive) start
     else Random.nextInt(start, endInclusive)
 
+
+inline fun <reified V> Map<String, *>.filterValuesInstanceOf(): Map<String, V> {
+    return mapNotNull { (key, value) -> if (value is V) key to value else null }.toMap()
+}
+
 fun <T, Z> Map<T, Z?>.filterValuesNotNull() = filterValues { it != null }.ensureCast<Map<T, Z>>()
 inline fun <K, V> Iterable<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K, V> {
     return associateWith(valueSelector).filterValuesNotNull()

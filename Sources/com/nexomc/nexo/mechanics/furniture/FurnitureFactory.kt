@@ -13,6 +13,7 @@ import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionTask
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBarrierHitboxListener
+import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBreakListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurniturePacketListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
@@ -40,6 +41,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
             FurnitureListener(),
             FurniturePacketListener(),
             FurnitureBarrierHitboxListener(),
+            FurnitureBreakListener(),
             EvolutionListener(),
             JukeboxListener(),
         )

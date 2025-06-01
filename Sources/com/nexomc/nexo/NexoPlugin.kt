@@ -10,6 +10,7 @@ import com.nexomc.nexo.converter.Converter
 import com.nexomc.nexo.converter.ItemsAdderConverter
 import com.nexomc.nexo.converter.OraxenConverter
 import com.nexomc.nexo.fonts.FontManager
+import com.nexomc.nexo.fonts.NexoTranslator
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
@@ -30,6 +31,7 @@ import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.FoliaLib
+import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
@@ -71,7 +73,7 @@ class NexoPlugin : JavaPlugin() {
         fontManager = FontManager(configsManager)
         soundManager = SoundManager(configsManager.sounds)
         breakerManager = when {
-            VersionUtil.atleast("1.20.5") -> ModernBreakerManager(ConcurrentHashMap())
+            VersionUtil.atleast("1.20.5") -> ModernBreakerManager(ConcurrentHashMap(), ConcurrentHashMap())
             else -> LegacyBreakerManager(ConcurrentHashMap())
         }
         ProtectionLib.debug = Settings.DEBUG.toBool()
@@ -142,6 +144,9 @@ class NexoPlugin : JavaPlugin() {
         this.fontManager.unregisterEvents()
         this.fontManager = fontManager
         fontManager.registerEvents()
+
+        GlobalTranslator.translator().sources().filter { it.name() == NexoTranslator.key }.forEach(GlobalTranslator.translator()::removeSource)
+        GlobalTranslator.translator().addSource(NexoTranslator())
     }
 
     fun soundManager() = soundManager

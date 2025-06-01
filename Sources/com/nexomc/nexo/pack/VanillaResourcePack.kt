@@ -5,6 +5,7 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.api.NexoPack
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.FileUtils
@@ -21,6 +22,7 @@ import java.io.File
 import java.io.InputStreamReader
 import java.net.URI
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -28,7 +30,7 @@ import kotlin.io.resolve
 
 object VanillaResourcePack {
     private const val VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
-    var resourcePack = ResourcePack.resourcePack()
+    val resourcePack = ResourcePack.resourcePack()
     val vanillaSounds = mutableListOf<Key>()
     private val version = MinecraftVersion.currentVersion.version.removeSuffix(".0")
     private val zipPath = NexoPlugin.instance().dataFolder.resolve("pack/.assetCache/$version").apply(File::mkdirs).resolve("$version.zip")
@@ -78,14 +80,14 @@ object VanillaResourcePack {
 
             readVanillaRP()
             Logs.logSuccess("Finished extracting latest vanilla-resourcepack!")
-        }
+        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
 
         return future!!
     }
 
     private fun readVanillaRP() {
         runCatching {
-            resourcePack = NexoPackReader.INSTANCE.readFile(zipPath)
+            NexoPack.overwritePack(resourcePack, NexoPackReader.INSTANCE.readFile(zipPath))
         }.onFailure {
             Logs.logWarn("Failed to read Vanilla ResourcePack-cache...")
             if (Settings.DEBUG.toBool()) it.printStackTrace()

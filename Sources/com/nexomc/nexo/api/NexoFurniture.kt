@@ -127,7 +127,8 @@ object NexoFurniture {
     @JvmOverloads
     @JvmStatic
     fun remove(baseEntity: Entity, player: Player? = null, drop: Drop? = null): Boolean {
-        val mechanic = (baseEntity as? ItemDisplay)?.let(::furnitureMechanic) ?: return false
+        val baseEntity = baseEntity.takeIf { it.location.isLoaded } as? ItemDisplay ?: return false
+        val mechanic = furnitureMechanic(baseEntity) ?: return false
 
         // Allows for changing the FurnitureType in config and still remove old entities
         if (player != null) {

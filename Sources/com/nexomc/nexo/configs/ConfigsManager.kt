@@ -14,7 +14,6 @@ import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastLinkedWith
 import com.nexomc.nexo.utils.associateFastWith
@@ -39,27 +38,25 @@ import kotlin.io.resolve
 
 class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null
-    var mechanics: YamlConfiguration = defaultMechanics
-        private set
-    var sounds: YamlConfiguration = defaultSounds
-        private set
-    var language: YamlConfiguration = defaultLanguage
-        private set
+    var mechanics: YamlConfiguration = defaultMechanics; private set
+    var sounds: YamlConfiguration = defaultSounds; private set
+    var languages: YamlConfiguration = defaultLanguages; private set
+    var messages: YamlConfiguration = defaultMessages; private set
 
     fun settings(): YamlConfiguration {
         if (settings == null) settings = Settings.validateSettings()
         return settings!!
     }
 
-    fun settingsFile() = File(plugin.dataFolder, "settings.yml")
-
     fun validatesConfig() {
         val resourceManager = NexoPlugin.instance().resourceManager()
         settings = Settings.validateSettings()
         mechanics = validate(resourceManager, "mechanics.yml", defaultMechanics)
         sounds = validate(resourceManager, "sounds.yml", defaultSounds)
-        plugin.dataFolder.resolve("languages").mkdir()
-        language = validate(resourceManager, "languages/${Settings.PLUGIN_LANGUAGE}.yml", defaultLanguage)
+        languages = validate(resourceManager, "languages.yml", defaultLanguages)
+        val messagesFolder = plugin.dataFolder.resolve("messages").apply { mkdirs() }
+        plugin.dataFolder.resolve("languages").takeIf { it.exists() && it.isDirectory }?.renameTo(messagesFolder)
+        messages = validate(resourceManager, "messages/${Settings.PLUGIN_LANGUAGE}.yml", defaultMessages)
         AdventureUtils.reload()
 
         if (itemsFolder.list().isNullOrEmpty() && Settings.GENERATE_DEFAULT_CONFIGS.toBool()) resourceManager.extractConfigsInFolder("items", "yml")
@@ -79,7 +76,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         defaultConfiguration: YamlConfiguration
     ): YamlConfiguration {
         val configurationFile = resourcesManager.extractConfiguration(configName)
-        val configuration = loadConfiguration(configurationFile)
+        val configuration = NexoYaml.loadConfiguration(configurationFile)
         var updated = false
 
         defaultConfiguration.getKeys(true).forEach { key: String ->
@@ -119,7 +116,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
         glyphFiles().forEach(NexoConverter::processGlyphConfigs)
 
-        glyphFiles().associateWith(::loadConfiguration).apply {
+        glyphFiles().associateWith(NexoYaml::loadConfiguration).apply {
             entries.flatMap { it.value.childSections().entries }.forEach { (glyphId, glyphSection) ->
                 // Reference glyphs do not contain unicodes as they link to a normal glyph only
                 if (glyphSection.contains("reference")) referenceGlyphs[glyphId] = glyphSection
@@ -176,7 +173,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     fun assignAllUsedCustomModelDatas() {
         val assignedModelDatas = Object2ObjectLinkedOpenHashMap<Material, Object2ObjectLinkedOpenHashMap<Int, Key>>()
         itemFiles().forEach file@{ file ->
-            val config = loadConfiguration(file)
+            val config = NexoYaml.loadConfiguration(file)
 
             config.getKeys(false).associateFastWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
                 val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
@@ -200,7 +197,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     fun parseAllItemTemplates() {
-        itemFiles().mapFast(::loadConfiguration).forEach { configuration ->
+        itemFiles().mapFast(NexoYaml::loadConfiguration).forEach { configuration ->
             configuration.childSections().values.filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
         }
     }
@@ -222,7 +219,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
     private val ERROR_ITEM by lazy { ItemBuilder(Material.PODZOL) }
     private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
-        val config = loadConfiguration(itemFile)
+        val config = NexoYaml.loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
 
         NexoConverter.processItemConfigs(config)
@@ -278,10 +275,12 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")
         private val defaultSounds: YamlConfiguration = extractDefault("sounds.yml")
-        private val defaultLanguage: YamlConfiguration = extractDefault("languages/english.yml")
+        private val defaultLanguages: YamlConfiguration = extractDefault("languages.yml")
+        private val defaultMessages: YamlConfiguration = extractDefault("messages/english.yml")
         private val itemsFolder: File = NexoPlugin.instance().dataFolder.resolve("items")
         private val glyphsFolder: File = NexoPlugin.instance().dataFolder.resolve("glyphs")
         val schematicsFolder: File = NexoPlugin.instance().dataFolder.resolve("schematics")
+        val settingsFile = NexoPlugin.instance().dataFolder.resolve("settings.yml")
 
         private fun extractDefault(source: String): YamlConfiguration {
             return NexoPlugin.instance().getResource(source)?.use {

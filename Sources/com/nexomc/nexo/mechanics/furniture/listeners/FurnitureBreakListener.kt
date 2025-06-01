@@ -1,8 +1,8 @@
-package com.nexomc.nexo.mechanics.custom_block
+package com.nexomc.nexo.mechanics.furniture.listeners
 
-import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.api.NexoBlocks
+import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.breaker.FurnitureBreakerManager
 import org.bukkit.GameMode
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -14,38 +14,40 @@ import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
 
-class CustomBlockMiningListener : Listener {
+class FurnitureBreakListener : Listener {
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    fun BlockDamageEvent.onDamageCustomBlock() {
+    fun BlockDamageEvent.onDamageFurniture() {
         if (VersionUtil.below("1.20.5")) isCancelled = true
-        val mechanic = NexoBlocks.customBlockMechanic(block) ?: return
+        val baseEntity = NexoFurniture.baseEntity(block) ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.breakable.hardness == 0.0 } ?: return
         if (player.gameMode == GameMode.CREATIVE) return
 
-        NexoPlugin.instance().breakerManager().startBlockBreak(player, block, mechanic)
+        FurnitureBreakerManager.startFurnitureBreak(player, baseEntity, mechanic, block)
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    fun BlockDamageAbortEvent.onDamageAbort() {
-        NexoPlugin.instance().breakerManager().stopBlockBreak(player)
+    @EventHandler
+    fun BlockDamageAbortEvent.onAbort() {
+        FurnitureBreakerManager.stopFurnitureBreak(player)
     }
 
     @EventHandler
     fun BlockBreakEvent.onBlockBreak() {
-        if (VersionUtil.atleast("1.20.5")) NexoPlugin.instance().breakerManager().stopBlockBreak(player)
+        FurnitureBreakerManager.stopFurnitureBreak(player)
     }
 
     @EventHandler
     fun PlayerQuitEvent.onDisconnect() {
-        NexoPlugin.instance().breakerManager().stopBlockBreak(player)
+        FurnitureBreakerManager.stopFurnitureBreak(player)
     }
 
     @EventHandler
     fun PlayerSwapHandItemsEvent.onSwapHand() {
-        NexoPlugin.instance().breakerManager().stopBlockBreak(player)
+        FurnitureBreakerManager.stopFurnitureBreak(player)
     }
 
     @EventHandler
     fun PlayerDropItemEvent.onDropHand() {
-        NexoPlugin.instance().breakerManager().stopBlockBreak(player)
+        FurnitureBreakerManager.stopFurnitureBreak(player)
     }
 }

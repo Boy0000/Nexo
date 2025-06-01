@@ -9,6 +9,7 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.getEnum
 import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getKeyListOrNull
 import com.nexomc.nexo.utils.getNamespacedKey
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
@@ -16,7 +17,6 @@ import io.papermc.paper.datacomponent.item.TooltipDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.Indyuce.mmoitems.MMOItems
-import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -43,7 +43,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
             itemBuilder.maxStackSize(componentSection.getInt("max_stack_size").coerceIn(1..99))
 
         if ("enchantment_glint_override" in componentSection)
-            itemBuilder.setEnchantmentGlindOverride(componentSection.getBoolean("enchantment_glint_override"))
+            itemBuilder.setEnchantmentGlintOverride(componentSection.getBoolean("enchantment_glint_override"))
 
         if ("durability" in componentSection) {
             itemBuilder.isDamagedOnBlockBreak = componentSection.getBoolean("durability.damage_block_break")
@@ -115,12 +115,12 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         }
 
         if (VersionUtil.below("1.21.5")) return
-        componentSection.getStringListOrNull("tooltip_display")?.let { displayList ->
+        componentSection.getKeyListOrNull("tooltip_display")?.let { displayList ->
             if (itemBuilder.hideToolTip == true) {
                 TooltipDisplay.tooltipDisplay().hideTooltip(true).build()
             } else {
                 val registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.DATA_COMPONENT_TYPE)
-                TooltipDisplay.tooltipDisplay().addHiddenComponents(*displayList.map(Key::key).mapNotNull(registry::get).toTypedArray()).build()
+                TooltipDisplay.tooltipDisplay().addHiddenComponents(*displayList.mapNotNull(registry::get).toTypedArray()).build()
             }
         }.also(itemBuilder::setTooltipDisplay)
     }

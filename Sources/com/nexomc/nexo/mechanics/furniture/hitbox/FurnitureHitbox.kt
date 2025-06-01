@@ -2,14 +2,7 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
-import com.nexomc.nexo.utils.flatMapSetFast
-import com.nexomc.nexo.utils.getStringListOrNull
-import com.nexomc.nexo.utils.mapFast
-import com.nexomc.nexo.utils.mapFastSet
-import com.nexomc.nexo.utils.plusFast
-import com.nexomc.nexo.utils.remove
-import com.nexomc.nexo.utils.removeSpaces
-import com.nexomc.nexo.utils.toIntRangeOrNull
+import com.nexomc.nexo.utils.*
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
@@ -72,10 +65,10 @@ data class FurnitureHitbox(
         barriers.mapFast { it.groundRotate(rotation).add(center) }
 
     fun interactionLocations(center: Location, rotation: Float) =
-        interactions.mapFast { center.toCenterLocation().clone().add(it.offset(rotation)) }
+        interactions.mapFast { center.toCenterLocation().add(it.offset(rotation)) }
 
     fun interactionBoundingBoxes(center: Location, rotation: Float) =
-        interactions.mapFast { it.boundingBox(center.toCenterLocation().clone().add(it.offset(rotation))) }
+        interactions.mapFast { it.boundingBox(center.toCenterLocation().add(it.offset(rotation))) }
 
     fun shulkerLocations(center: Location, rotation: Float) =
         shulkers.mapFast { center.clone().add(it.offset(rotation)) }

@@ -1,32 +1,22 @@
 package com.nexomc.nexo.utils.breaker
 
-import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
+import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
-import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
 import org.bukkit.GameMode
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.block.Block
-import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.inventory.EquipmentSlotGroup
+import org.bukkit.scheduler.BukkitTask
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
-class ModernBreakerManager(private val modifierMap: ConcurrentHashMap<UUID, AttributeModifier>) : BreakerManager {
+class ModernBreakerManager(private val modifierMap: ConcurrentHashMap<UUID, AttributeModifier>, private val furnitureMap: ConcurrentHashMap<UUID, BukkitTask>) : BreakerManager {
 
     companion object {
         private val KEY = NamespacedKey.fromString("nexo:custom_breaking_speed")!!
-    }
-
-    override fun startFurnitureBreak(
-        player: Player,
-        baseEntity: ItemDisplay,
-        mechanic: FurnitureMechanic,
-        block: Block
-    ) {
-        //TODO See if this can be handled even with packet-barriers
     }
 
     override fun startBlockBreak(player: Player, block: Block, mechanic: CustomBlockMechanic) {
@@ -40,7 +30,7 @@ class ModernBreakerManager(private val modifierMap: ConcurrentHashMap<UUID, Attr
         removeTransientModifier(player)
     }
 
-    private fun createBreakingModifier(player: Player, breakable: BreakableMechanic): AttributeModifier {
+    private fun createBreakingModifier(player: Player, breakable: Breakable): AttributeModifier {
         return AttributeModifier(KEY, (0.24 / breakable.hardness * breakable.speedMultiplier(player)) - 1, AttributeModifier.Operation.MULTIPLY_SCALAR_1, EquipmentSlotGroup.HAND)
     }
 

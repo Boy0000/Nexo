@@ -49,12 +49,12 @@ enum class Message(val path: String) {
 
 
     override fun toString(): String {
-        return NexoPlugin.instance().configsManager().language.getString(path)!!
+        return NexoPlugin.instance().configsManager().messages.getString(path)!!
     }
 
     fun send(sender: CommandSender?, vararg placeholders: TagResolver) {
         if (sender == null) return
-        val lang = NexoPlugin.instance().configsManager().language.getString(path).takeUnless { it.isNullOrEmpty() } ?: return
+        val lang = NexoPlugin.instance().configsManager().messages.getString(path).takeUnless { it.isNullOrEmpty() } ?: return
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(*placeholders)))
     }
 

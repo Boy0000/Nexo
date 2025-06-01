@@ -107,7 +107,6 @@ class FurniturePacketListener : Listener {
     fun WorldUnloadEvent.onUnload() {
         world.entities.filterIsInstance<ItemDisplay>().forEach { itemDisplay ->
             val uuid = itemDisplay.uniqueId
-            FurnitureBed.removeBeds(itemDisplay)
 
             furnitureBaseMap.remove(uuid)
             IFurniturePacketManager.interactionHitboxPacketMap.remove(uuid)
@@ -192,7 +191,7 @@ class FurniturePacketListener : Listener {
                 }
             }
             action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.location) -> {
-                BlockBreakEvent(baseEntity.location.block, player).call {
+                if (mechanic.breakable.hardness == 0.0 || player.gameMode == GameMode.CREATIVE) BlockBreakEvent(baseEntity.location.block, player).call {
                     NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
                         NexoFurniture.remove(baseEntity, player)
                     }

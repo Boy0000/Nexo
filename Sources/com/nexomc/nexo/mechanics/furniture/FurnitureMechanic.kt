@@ -8,7 +8,7 @@ import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
+import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.connectable.ConnectableMechanic
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
@@ -61,7 +61,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
     val rotatable: Rotatable = section.get("rotatable")?.let(::Rotatable) ?: Rotatable()
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
-    val breakable: BreakableMechanic = BreakableMechanic(section)
+    val breakable: Breakable = Breakable(section).apply { if (!section.contains("hardness")) hardness = 0.0 }
     val waterloggable: Boolean = section.getBoolean("waterloggable")
     val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
@@ -247,8 +247,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         return hitbox.hitboxLocations(baseEntity.location, yaw).any { !BlockHelpers.isReplaceable(it.block, baseEntity.uniqueId) }
     }
 
-    fun notEnoughSpace(rootLocation: Location, yaw: Float): Boolean {
-        return hitbox.hitboxLocations(rootLocation.clone(), yaw).any { !BlockHelpers.isReplaceable(it.block) }
+    fun notEnoughSpace(location: Location, yaw: Float): Boolean {
+        return hitbox.hitboxLocations(location, yaw).any { !BlockHelpers.isReplaceable(it.block) }
     }
 
     fun runClickActions(player: Player) {

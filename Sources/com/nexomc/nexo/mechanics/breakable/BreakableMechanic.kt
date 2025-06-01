@@ -15,12 +15,15 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
 
-class BreakableMechanic(section: ConfigurationSection) {
-    private val itemId: String = section.rootId
-    val hardness: Double = section.getDouble("hardness", 1.0)
-    val drop: Drop = when(val dropSection = section.getConfigurationSection("drop")) {
-        null -> Drop(mutableListOf(Loot(itemId, 1.0)), false, false, itemId)
-        else -> Drop.createDrop(CustomBlockFactory.instance()?.toolTypes, dropSection, itemId)
+data class Breakable(var hardness: Double = 1.0, var drop: Drop = Drop.emptyDrop()) {
+
+    constructor(section: ConfigurationSection) : this() {
+        val itemId: String = section.rootId
+        hardness = section.getDouble("hardness", 1.0)
+        drop = when(val dropSection = section.getConfigurationSection("drop")) {
+            null -> Drop(mutableListOf(Loot(itemId, 1.0)), false, false, itemId)
+            else -> Drop.createDrop(CustomBlockFactory.instance()?.toolTypes, dropSection, itemId)
+        }
     }
 
     /**

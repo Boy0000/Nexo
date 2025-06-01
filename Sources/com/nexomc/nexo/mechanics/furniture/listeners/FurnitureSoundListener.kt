@@ -86,11 +86,9 @@ class FurnitureSoundListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
-        val entity = entity as? Player ?: return
-        if (!entity.location.isLoaded || isAsynchronous) return
-
-        val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.isEmpty } ?: return
-        val (cause, soundGroup) = entity.lastDamageCause to blockStandingOn.blockData.soundGroup
+        val player = entity?.takeIf { it.location.isLoaded && !isAsynchronous } as? Player ?: return
+        val blockStandingOn = BlockHelpers.entityStandingOn(player)?.takeUnless { it.isEmpty } ?: return
+        val (cause, soundGroup) = player.lastDamageCause to blockStandingOn.blockData.soundGroup
 
         if (event === GameEvent.HIT_GROUND && cause != null && cause.cause != EntityDamageEvent.DamageCause.FALL) return
         if (blockStandingOn.type == Material.TRIPWIRE) return
@@ -108,7 +106,7 @@ class FurnitureSoundListener : Listener {
             else -> return
         }
 
-        BlockHelpers.playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
+        BlockHelpers.playCustomBlockSound(player.location, sound, SoundCategory.PLAYERS, volume, pitch)
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

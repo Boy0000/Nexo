@@ -3,7 +3,7 @@ package com.nexomc.nexo.mechanics.custom_block
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.breakable.BreakableMechanic
+import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.utils.actions.ClickAction
@@ -26,7 +26,7 @@ abstract class CustomBlockMechanic(factory: MechanicFactory, section: Configurat
     val limitedPlacing: LimitedPlacing? = section.getConfigurationSection("limited_placing")?.let(::LimitedPlacing)
     val clickActions: List<ClickAction> = parseList(section)
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
-    open val breakable: BreakableMechanic = BreakableMechanic(section)
+    open val breakable: Breakable = Breakable(section)
     val isBlastResistant: Boolean = section.getBoolean("blast_resistant")
     val immovable: Boolean = section.getBoolean("immovable")
 
