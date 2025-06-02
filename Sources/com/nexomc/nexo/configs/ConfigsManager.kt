@@ -143,7 +143,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val glyphId = referenceSection.getString("reference") ?: return@onEach
                 val glyph = output.find { it.id == glyphId } ?: return@onEach Logs.logError("Reference-Glyph $referenceId tried referencing a Glyph $glyphId, but it does not exist...")
                 val permission = referenceSection.getString("permission") ?: glyph.permission
-                val placeholders = referenceSection.getStringListOrNull("chat.placeholders") ?: glyph.placeholders
+                val placeholders = referenceSection.getStringListOrNull("placeholders") ?: glyph.placeholders
 
                 if (glyph.unicodes.joinToString("").count() < index.last || index.first <= 0) {
                     val i = if (index.count() == 1) index.first else index
@@ -217,7 +217,11 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         }
     }
 
-    private val ERROR_ITEM by lazy { ItemBuilder(Material.PODZOL) }
+    val ERROR_ITEM by lazy {
+        runCatching {
+            ItemParser(Settings.ERROR_ITEM.toConfigSection()!!).buildItem()
+        }.getOrDefault(ItemBuilder(Material.PODZOL))
+    }
     private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
         val config = NexoYaml.loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()

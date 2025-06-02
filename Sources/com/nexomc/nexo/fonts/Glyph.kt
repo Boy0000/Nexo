@@ -93,9 +93,9 @@ open class Glyph(
         glyphSection.getInt("height", 8),
         calculateGlyphUnicodes(glyphSection),
 
-        glyphSection.getString("chat.permission", Settings.GLYPH_DEFAULT_PERMISSION.value?.toString()?.replace("<glyphid>", glyphSection.name) ?: "")!!,
-        glyphSection.getStringList("chat.placeholders"),
-        glyphSection.getBoolean("chat.tabcomplete"),
+        glyphSection.getString("permission", Settings.GLYPH_DEFAULT_PERMISSION.value?.toString()?.replace("<glyphid>", glyphSection.name) ?: "")!!,
+        glyphSection.getStringList("placeholders"),
+        glyphSection.getBoolean("tabcomplete"),
         glyphSection.getBoolean("is_emoji")
     )
 
@@ -155,6 +155,8 @@ open class Glyph(
     )
 
     companion object {
+        val ORIGINAL_SIGN_FRONT_LINES = NamespacedKey.fromString("nexo:original_sign_front_lines")!!
+        val ORIGINAL_SIGN_BACK_LINES = NamespacedKey.fromString("nexo:original_sign_back_lines")!!
         val ORIGINAL_ITEM_RENAME_TEXT = NamespacedKey.fromString("nexo:original_item_rename")!!
         val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")
         val REQUIRED_CHAR = Char(41999).toString()

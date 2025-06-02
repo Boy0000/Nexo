@@ -8,7 +8,6 @@ import com.nexomc.nexo.fonts.ShiftTag
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.serialize
-import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TextReplacementConfig
@@ -19,7 +18,6 @@ import java.util.*
 
 object GlyphHandlers {
 
-    private val randomKey = Key.key("random")
     private val randomComponent = NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent()
     private val defaultEmoteReplacementConfigs = NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }
         .associateFastWith {
@@ -33,6 +31,10 @@ object GlyphHandlers {
     private val glyphShadowRegex = "(?:shadow|s):(\\S+)".toRegex()
     private val bitmapIndexRegex: Regex = "\\|([0-9]+)(?:\\.\\.([0-9]+))?:".toRegex()
 
+    fun escapeGlyphs(component: Component, player: Player?): Component {
+        return escapePlaceholders(escapeGlyphTags(component, player), player)
+    }
+
     fun escapePlaceholders(component: Component, player: Player?): Component {
         var component = component
 
@@ -44,7 +46,7 @@ object GlyphHandlers {
         return component
     }
 
-    fun escapeGlyphs(component: Component, player: Player?): Component {
+    fun escapeGlyphTags(component: Component, player: Player?): Component {
         var component = component
         val serialized = component.asFlatTextContent()
 
@@ -74,7 +76,7 @@ object GlyphHandlers {
         return component
     }
 
-    fun unescapeGlyphs(component: Component): Component {
+    fun unescapeGlyphTags(component: Component): Component {
         var component = component
 
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
@@ -137,7 +139,7 @@ object GlyphHandlers {
         return content
     }
 
-    fun String.escapeGlyphs(player: Player?): String {
+    fun String.escapeGlyphTags(player: Player?): String {
         var content = this
 
         NexoPlugin.instance().fontManager().glyphs().forEach {
@@ -167,7 +169,7 @@ object GlyphHandlers {
         return content
     }
 
-    fun String.unescapeGlyphs(): String {
+    fun String.unescapeGlyphTags(): String {
         var content = this
 
         for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.escapedRegex.findAll(this).forEach { match ->

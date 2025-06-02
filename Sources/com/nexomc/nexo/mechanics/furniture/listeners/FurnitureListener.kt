@@ -1,12 +1,15 @@
 package com.nexomc.nexo.mechanics.furniture.listeners
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
 import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
@@ -209,11 +212,29 @@ class FurnitureListener : Listener {
         if (NexoFurniture.isFurniture(player.vehicle)) player.leaveVehicle()
     }
 
+    private val ERROR_ITEM by lazy {
+        runCatching {
+            ItemParser(Settings.INVALID_FURNITURE_ITEM.toConfigSection()!!).buildItem()
+        }.getOrDefault(NexoPlugin.instance().configsManager().ERROR_ITEM).build()
+    }
     @EventHandler
     fun EntityAddToWorldEvent.onInvalidFurniture() {
-        if (entity !is ItemDisplay || !Settings.REMOVE_INVALID_FURNITURE.toBool()) return
+        val baseEntity = entity as? ItemDisplay ?: return
         if (!entity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY) || NexoFurniture.isFurniture(entity)) return
-        else entity.remove()
+
+        if (Settings.REMOVE_INVALID_FURNITURE.toBool()) entity.remove()
+        else baseEntity.setItemStack(ERROR_ITEM)
+    }
+
+    @EventHandler
+    fun NexoMechanicsRegisteredEvent.onInvalidFurniture() {
+        SchedulerUtils.runAtWorldEntities<ItemDisplay> { baseEntity ->
+            if (!baseEntity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY)) return@runAtWorldEntities
+            if (NexoFurniture.isFurniture(baseEntity)) return@runAtWorldEntities
+
+            if (Settings.REMOVE_INVALID_FURNITURE.toBool()) baseEntity.remove()
+            else baseEntity.setItemStack(ERROR_ITEM)
+        }
     }
 
     companion object {

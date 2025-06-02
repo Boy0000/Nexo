@@ -48,9 +48,24 @@ object NexoConverter {
         val resourceContent = YamlConfiguration().apply { loadFromString(resource.readAllBytes().decodeToString()) }
 
         val glyphConfig = NexoYaml.loadConfiguration(glyphFile)
+        // Merge default glyphs with existing glyphs
         resourceContent.childSections().forEach { key, section ->
             if (glyphConfig.get(key) == null) glyphConfig.set(key, section)
         }
+
+        glyphConfig.childSections().forEach { key, section ->
+            val chatSection = section.getConfigurationSection("chat")
+            if (chatSection != null) {
+                NexoYaml.copyConfigurationSection(chatSection, section)
+                section.set("chat", null)
+            }
+        }
+
         glyphConfig.save(glyphFile)
+    }
+
+    fun processSettings(settings: YamlConfiguration) {
+        if (settings.getString(Settings.GLYPH_DEFAULT_PERMISSION.path)?.contains(":") == true)
+            settings.set(Settings.GLYPH_DEFAULT_PERMISSION.path, null)
     }
 }

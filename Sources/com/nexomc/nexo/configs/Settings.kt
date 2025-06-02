@@ -1,6 +1,7 @@
 package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.converter.NexoConverter
 import com.nexomc.nexo.pack.PackObfuscator
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
@@ -37,7 +38,7 @@ enum class Settings {
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only", true),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_DEFAULT_PERMISSION("Glyphs.default_permission", "nexo.glyphs.<glyphid>"),
-    GLYPH_DEFAULT_FONT("Glyphs.default_permission", "nexo:default"),
+    GLYPH_DEFAULT_FONT("Glyphs.default_font", "nexo:default"),
     GLYPH_DEFAULT_SHADOW_COLOR("Glyphs.default_shadow_color", "#00000000"),
     GLYPH_HOVER_TEXT("Glyphs.hover_text", ""),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
@@ -48,8 +49,9 @@ enum class Settings {
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigTools.disable_automatic_glyph_code", false),
     INITIAL_CUSTOM_MODEL_DATA("ConfigTools.initial_custom_model_data", 1000),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigTools.skipped_model_data_numbers", emptyList<Int>()),
-    ERROR_ITEM("ConfigTools.error_item", mapOf("material" to Material.PODZOL.name, "excludeFromInventory" to false, "injectId" to false)),
+    ERROR_ITEM("ConfigTools.error_item", mapOf("material" to Material.PODZOL.name, "injectId" to false)),
     REMOVE_INVALID_FURNITURE("ConfigTools.remove_invalid_furniture", false),
+    INVALID_FURNITURE_ITEM("ConfigTools.invalid_furniture_item", mapOf("material" to Material.BARRIER.name)),
 
     // Custom Armor
     CUSTOM_ARMOR_TYPE("CustomArmor.type", if (VersionUtil.atleast("1.21.2")) CustomArmorType.COMPONENT else CustomArmorType.TRIMS),
@@ -243,6 +245,8 @@ enum class Settings {
 
             settings.options().copyDefaults(true).indent(2).parseComments(true)
             settings.addDefaults(defaultSettings())
+
+            NexoConverter.processSettings(settings)
 
             runCatching {
                 settingsFile.createNewFile()
