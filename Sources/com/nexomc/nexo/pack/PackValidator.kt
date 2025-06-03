@@ -1,5 +1,6 @@
 package com.nexomc.nexo.pack
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.fonts.Glyph
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
@@ -18,6 +19,7 @@ import team.unnamed.creative.atlas.Atlas
 import team.unnamed.creative.atlas.PalettedPermutationsAtlasSource
 import team.unnamed.creative.atlas.SingleAtlasSource
 import team.unnamed.creative.font.BitMapFontProvider
+import team.unnamed.creative.font.Font
 import team.unnamed.creative.texture.Texture
 import java.awt.Dimension
 import javax.imageio.ImageIO
@@ -36,22 +38,16 @@ class PackValidator(val resourcePack: ResourcePack) {
     fun validatePack() {
         invalidTextures.clear()
         Logs.logInfo("Validating ResourcePack files...")
-        val palettedPermutations =
-            resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()
-                ?.flatMapFast { source ->
-                    source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
-                        if (resourcePack.texture(texture) == null && VanillaResourcePack.resourcePack.texture(
-                                texture
-                            ) == null
-                        ) {
-                            logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
-                            return@textures emptyList()
-                        }
-                        source.permutations().keys.map { permutation ->
-                            texture.key().removeSuffix(".png").appendSuffix("_$permutation").appendPng()
-                        }
-                    }
-                } ?: emptyList()
+        val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()?.flatMapFast { source ->
+            source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
+                if ((resourcePack.texture(texture) ?: VanillaResourcePack.resourcePack.texture(texture)) == null) {
+                    logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
+                    emptyList()
+                } else source.permutations().keys.map { permutation ->
+                    texture.key().removeSuffix(".png").appendSuffix("_$permutation.png")
+                }
+            }
+        } ?: emptyList()
 
         if (Settings.PACK_VALIDATE_MODELS.toBool()) resourcePack.models().forEach { model ->
             model.textures().layers().forEach layers@{
@@ -69,14 +65,6 @@ class PackValidator(val resourcePack: ResourcePack) {
                 resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
                     ?: logMissingTexture("Model", model.key(), key)
             }
-
-            //model.textures().particle()?.also {
-            //    val key = it.key()?.appendPng() ?: return@also
-            //    if (DefaultResourcePackExtractor.vanillaResourcePack.texture(key) != null) return@also
-            //    if (key in palettedPermutations) return@also
-            //    resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
-            //        ?: logMissingTexture("Model", model.key(), key)
-            //}
         }
 
         if (Settings.PACK_VALIDATE_FONTS.toBool()) resourcePack.fonts().map { font ->
@@ -106,6 +94,16 @@ class PackValidator(val resourcePack: ResourcePack) {
                 if (key in palettedPermutations) return@forEach
                 if (resourcePack.texture(key) != null) return@forEach
                 logMissingTexture("Atlas", Atlas.BLOCKS.key(), key)
+            }
+        }
+
+        val glyphs = NexoPlugin.instance().fontManager().glyphs().filter { it.font != Font.MINECRAFT_DEFAULT }
+        val unicodes = glyphs.flatMap { it.unicodes.flatMap { it.toCharArray().toList() } }
+        if (Settings.PACK_VALIDATE_LANGUAGES.toBool()) resourcePack.languages().forEach { language ->
+            language.translations().forEach { (key, translation) ->
+                if (unicodes.none { it in translation }) return@forEach
+                Logs.logWarn("Non Default-font Glyph detected in ${language.key()} at $key")
+                Logs.logWarn("If this is for the Escape Menu, the Glyph must use \'font: minecraft:default\'")
             }
         }
     }

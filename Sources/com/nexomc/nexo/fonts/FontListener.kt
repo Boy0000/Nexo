@@ -1,14 +1,12 @@
 package com.nexomc.nexo.fonts
 
 import com.jeff_media.morepersistentdatatypes.DataType
-import com.nexomc.nexo.configs.Message
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.fonts.Glyph.Companion.ORIGINAL_SIGN_BACK_LINES
 import com.nexomc.nexo.fonts.Glyph.Companion.ORIGINAL_SIGN_FRONT_LINES
 import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.GlyphHandlers.transformGlyphs
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.CustomDataTypes
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.deserialize
@@ -16,7 +14,6 @@ import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatCommandDecorateEvent
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
 import io.papermc.paper.event.player.PlayerOpenSignEvent
-import kotlinx.coroutines.delay
 import org.bukkit.block.Sign
 import org.bukkit.block.sign.Side
 import org.bukkit.event.EventHandler
@@ -29,7 +26,6 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
-import kotlin.collections.forEachIndexed
 
 class FontListener(private val manager: FontManager) : Listener {
 

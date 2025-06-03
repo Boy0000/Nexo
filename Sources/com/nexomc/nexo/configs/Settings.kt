@@ -95,6 +95,7 @@ enum class Settings {
     PACK_VALIDATE_MODELS("Pack.validate.models", true),
     PACK_VALIDATE_FONTS("Pack.validate.fonts", true),
     PACK_VALIDATE_ATLAS("Pack.validate.atlas", true),
+    PACK_VALIDATE_LANGUAGES("Pack.validate.languages", true),
 
     PACK_SERVER_TYPE("Pack.server.type", "POLYMATH"),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),

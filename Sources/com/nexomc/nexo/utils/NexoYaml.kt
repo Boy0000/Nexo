@@ -105,8 +105,8 @@ fun ConfigurationSection.getVector2f(key: String): Vector2f {
 }
 
 fun ConfigurationSection.rename(oldKey: String, newKey: String): ConfigurationSection {
-    val existing = get(newKey)
-    set(newKey, get(oldKey))
+    val old = get(oldKey) ?: return this
+    set(newKey, old)
     set(oldKey, null)
     return this
 }
