@@ -4,8 +4,10 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.converter.NexoConverter
-import com.nexomc.nexo.fonts.Glyph
-import com.nexomc.nexo.fonts.ReferenceGlyph
+import com.nexomc.nexo.glyphs.AnimatedGlyph
+import com.nexomc.nexo.glyphs.Glyph
+import com.nexomc.nexo.glyphs.ReferenceGlyph
+import com.nexomc.nexo.glyphs.RequiredGlyph
 import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
@@ -33,7 +35,6 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
-import java.io.InputStreamReader
 import kotlin.io.resolve
 
 class ConfigsManager(private val plugin: JavaPlugin) {
@@ -112,14 +113,14 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     fun parseGlyphConfigs(): Collection<Glyph> {
         val output = mutableListOf<Glyph>()
         val referenceGlyphs = mutableMapOf<String, ConfigurationSection>()
+        val gifGlyphs = mutableMapOf<String, ConfigurationSection>()
         Glyph.assignedGlyphUnicodes.clear()
 
-        glyphFiles().forEach(NexoConverter::processGlyphConfigs)
-
-        glyphFiles().associateWith(NexoYaml::loadConfiguration).apply {
+        glyphFiles().onEach(NexoConverter::processGlyphConfigs).associateWith(NexoYaml::loadConfiguration).apply {
             entries.flatMap { it.value.childSections().entries }.forEach { (glyphId, glyphSection) ->
                 // Reference glyphs do not contain unicodes as they link to a normal glyph only
-                if (glyphSection.contains("reference")) referenceGlyphs[glyphId] = glyphSection
+                if ("reference" in glyphSection) referenceGlyphs[glyphId] = glyphSection
+                if ("gif" in glyphSection) gifGlyphs[glyphId] = glyphSection
                 else Glyph.assignedGlyphUnicodes[glyphId] = Glyph.definedUnicodes(glyphSection) ?: return@forEach
             }
         }.onEach { (file, configuration) ->
@@ -127,7 +128,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
 
             configuration.childSections().entries.onEach { (glyphId, glyphSection) ->
                 // Skip reference-glyphs until all normal glyphs are parsed
-                if (glyphId in referenceGlyphs) return@onEach
+                if (glyphId in referenceGlyphs || glyphId in gifGlyphs) return@onEach
 
                 runCatching {
                     if (!fileChanged || glyphId !in Glyph.assignedGlyphUnicodes) fileChanged = true
@@ -137,7 +138,6 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     if (Settings.DEBUG.toBool()) it.printStackTrace()
                 }
             }.onEach { (referenceId, _) ->
-                if (referenceId !in referenceGlyphs) return@onEach
                 val referenceSection = referenceGlyphs[referenceId] ?: return@onEach
                 val index = referenceSection.getString("index")?.toIntRangeOrNull() ?: return@onEach
                 val glyphId = referenceSection.getString("reference") ?: return@onEach
@@ -151,6 +151,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 }
 
                 output += ReferenceGlyph(glyph, referenceId, index, permission, placeholders)
+            }.onEach { (gifId, _) ->
+                output += AnimatedGlyph(gifGlyphs[gifId] ?: return@onEach)
             }
 
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) runCatching {
@@ -162,7 +164,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         }
 
         runCatching {
-            output += com.nexomc.nexo.fonts.RequiredGlyph
+            output += RequiredGlyph
         }.printOnFailure()
 
         return output
@@ -287,9 +289,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         val settingsFile = NexoPlugin.instance().dataFolder.resolve("settings.yml")
 
         private fun extractDefault(source: String): YamlConfiguration {
-            return NexoPlugin.instance().getResource(source)?.use {
+            return NexoPlugin.instance().getResource(source)?.bufferedReader()?.use {
                 runCatching {
-                    YamlConfiguration.loadConfiguration(InputStreamReader(it))
+                    YamlConfiguration.loadConfiguration(it)
                 }.onFailure {
                     Logs.logError("Failed to extract default file: $source")
                     if (Settings.DEBUG.toBool()) it.printStackTrace()

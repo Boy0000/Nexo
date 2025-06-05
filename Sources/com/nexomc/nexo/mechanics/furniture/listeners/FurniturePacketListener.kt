@@ -7,7 +7,7 @@ import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoFurniture
-import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
+import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockHelpers
@@ -127,7 +127,7 @@ class FurniturePacketListener : Listener {
     }
 
     @EventHandler
-    fun NexoMechanicsRegisteredEvent.onFurnitureFactory() {
+    fun NexoItemsLoadedEvent.onFurnitureFactory() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         SchedulerUtils.runAtWorldEntities<ItemDisplay> { entity ->
             val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@runAtWorldEntities

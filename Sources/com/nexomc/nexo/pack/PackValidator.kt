@@ -2,7 +2,8 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.fonts.Glyph
+import com.nexomc.nexo.glyphs.AnimatedGlyph
+import com.nexomc.nexo.glyphs.Glyph
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.appendIfMissing
@@ -74,6 +75,7 @@ class PackValidator(val resourcePack: ResourcePack) {
                         val key = provider.file().appendPng()
                         if (key in palettedPermutations || provider.characters().size > 1) return@providers provider
                         if (VanillaResourcePack.resourcePack.texture(key) != null) return@providers provider
+
                         resourcePack.texture(key)?.also { validateTextureSize(it, 256, false) }
                             ?.let { return@providers provider }
 
@@ -132,11 +134,15 @@ class PackValidator(val resourcePack: ResourcePack) {
             }
         }.flatten().toSet()
     }
+    private val gifTextures by lazy {
+        NexoPlugin.instance().fontManager().glyphs().filterIsInstance<AnimatedGlyph>().map(AnimatedGlyph::texture)
+    }
 
     private fun Double.isPowerOfTwo(): Boolean = ceil(log2(this)) == floor(log2(this)) && this != 0.0
     private fun validateTextureSize(texture: Texture, maxResolution: Int, checkMipmap: Boolean) {
         runCatching {
             if (texture.key().removeSuffix(".png") in uvTextures) return
+            if (texture.key() in gifTextures) return
             if (texture.hasMetadata() || resourcePack.unknownFile("assets/${texture.key().namespace()}/textures/${texture.key().value()}.mcmeta") != null) return
 
             val (width, height) = texture.dimensions()?.let { it.width to it.height } ?: return

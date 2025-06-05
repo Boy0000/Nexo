@@ -7,9 +7,9 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPostPackGenerateEvent
 import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.fonts.ReferenceGlyph
-import com.nexomc.nexo.fonts.Shift
-import com.nexomc.nexo.fonts.ShiftTag
+import com.nexomc.nexo.glyphs.ReferenceGlyph
+import com.nexomc.nexo.glyphs.Shift
+import com.nexomc.nexo.glyphs.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.nms.NMSHandlers
@@ -53,6 +53,7 @@ class PackGenerator {
     private val componentCustomArmor: ComponentCustomArmor?
     private val modelGenerator: ModelGenerator
     private val atlasGenerator: AtlasGenerator
+    private val gifGenerator: GifGenerator
     var packGenFuture: CompletableFuture<Void>? = null
         private set
 
@@ -124,6 +125,7 @@ class PackGenerator {
                 FurnitureFactory.instance()?.soundRegistries(resourcePack)
                 modelGenerator.generateModels()
                 atlasGenerator.generateAtlasFile()
+                gifGenerator.generateGifFiles()
                 addGlyphFiles()
                 addShiftProvider()
                 addSoundFile()
@@ -211,11 +213,9 @@ class PackGenerator {
 
     private fun addGlyphFiles() {
         NexoPlugin.instance().fontManager().glyphs().groupBy { it.font }.forEach { (font, glyphs) ->
-            val builder = resourcePack.font(font)?.toBuilder() ?: Font.font().key(font)
-            glyphs.forEach {
-                if (it !is ReferenceGlyph) builder.addProvider(it.fontProvider)
-            }
-            builder.build().addTo(resourcePack)
+            val providers = resourcePack.font(font)?.providers() ?: emptyList()
+            val glyphProviders = glyphs.filterNot { it is ReferenceGlyph }.flatMap { it.fontProviders.toList() }
+            resourcePack.font(font, providers.plus(glyphProviders))
         }
     }
 
@@ -351,6 +351,7 @@ class PackGenerator {
         componentCustomArmor = ComponentCustomArmor(resourcePack).takeIf { setting == CustomArmorType.COMPONENT }
         modelGenerator = ModelGenerator(resourcePack)
         atlasGenerator = AtlasGenerator(resourcePack)
+        gifGenerator = GifGenerator(resourcePack)
     }
 
     private fun removeExcludedFileExtensions() {

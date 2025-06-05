@@ -1,7 +1,7 @@
 package com.nexomc.nexo.commands
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.fonts.Glyph
+import com.nexomc.nexo.glyphs.Glyph
 import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.mapFast
 import dev.jorel.commandapi.CommandTree

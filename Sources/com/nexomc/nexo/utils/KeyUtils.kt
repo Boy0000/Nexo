@@ -6,6 +6,7 @@ import net.kyori.adventure.key.Key
 object KeyUtils {
     fun Key.removeSuffix(suffix: String) = Key.key(asString().removeSuffix(suffix))
     fun Key.appendSuffix(suffix: String) = Key.key(asString().appendIfMissing(suffix))
+    fun Key.replace(replace: String, with: String) = Key.key(asString().replace(replace, with))
 
     @JvmField
     val MALFORMED_KEY_PLACEHOLDER = Key.key("item/barrier")

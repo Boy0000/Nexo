@@ -9,5 +9,6 @@ interface Colorable {
 }
 
 fun ItemStack.asColorable(): Colorable? {
+    if (this.isEmpty) return null
     return NMSHandlers.handler().itemUtils().asColorable(this)
 }

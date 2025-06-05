@@ -2,9 +2,9 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.commands.toColor
-import com.nexomc.nexo.fonts.GlyphShadow
-import com.nexomc.nexo.fonts.Shift
-import com.nexomc.nexo.fonts.ShiftTag
+import com.nexomc.nexo.glyphs.GlyphShadow
+import com.nexomc.nexo.glyphs.Shift
+import com.nexomc.nexo.glyphs.ShiftTag
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.serialize

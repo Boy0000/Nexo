@@ -1,8 +1,8 @@
 package com.nexomc.nexo.compatibilities.placeholderapi
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.fonts.RequiredGlyph
-import com.nexomc.nexo.fonts.Shift
+import com.nexomc.nexo.glyphs.RequiredGlyph
+import com.nexomc.nexo.glyphs.Shift
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import net.kyori.adventure.key.Key
 import org.bukkit.OfflinePlayer

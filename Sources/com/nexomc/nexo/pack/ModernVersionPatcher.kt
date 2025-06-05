@@ -69,13 +69,14 @@ object ModernVersionPatcher {
                         // If there are any pull-override predicates it is a bow, and we build a RangeDispatchItemModel for the Entry, otherwise a simple ReferenceItemModel
                         val onTrueCmdEntries = trueOverrides.groupBy { it.predicate().customModelData }.mapNotNull { (cmd, overrides) ->
                             val baseOverrideModel = overrides.firstOrNull()?.let { ItemModel.reference(it.model()) } ?: return@mapNotNull null
+                            val scale = RangeDispatchItemModel.DEFAULT_SCALE.takeUnless { itemKey.asMinimalString() == "bow" } ?: 0.05f
 
                             // If the overrides contain any pull, we make a bow-type model
                             val finalModel = overrides.drop(1).mapNotNull {
                                 RangeDispatchItemModel.Entry.entry(it.predicate().pull ?: return@mapNotNull null, ItemModel.reference(it.model()))
                             }.takeUnless { it.isEmpty() }?.let { pullingEntries ->
-                                val property = if (itemKey.asString().contains("crossbow")) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
-                                ItemModel.rangeDispatch(property, 0.05f, pullingEntries, baseOverrideModel)
+                                val property = if ("crossbow" in itemKey.asString()) ItemNumericProperty.crossbowPull() else ItemNumericProperty.useDuration()
+                                ItemModel.rangeDispatch(property, scale, pullingEntries, baseOverrideModel)
                             } ?: baseOverrideModel
 
                             RangeDispatchItemModel.Entry.entry(cmd ?: return@mapNotNull null, finalModel)

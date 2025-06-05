@@ -42,6 +42,7 @@ enum class Settings {
     GLYPH_DEFAULT_SHADOW_COLOR("Glyphs.default_shadow_color", "#00000000"),
     GLYPH_HOVER_TEXT("Glyphs.hover_text", ""),
     SHIFT_FONT("Glyphs.shift_font", "nexo:shift"),
+    GENERATE_GIF_SHADERS("Glyphs.generate_gif_shaders", !PluginUtils.isMythicHUDEnabled && !PluginUtils.isBetterHUDEnabled),
 
     // Config Tools
     GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),

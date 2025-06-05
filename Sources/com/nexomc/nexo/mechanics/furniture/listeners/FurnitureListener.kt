@@ -4,7 +4,7 @@ import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
+import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurniturePlaceEvent
 import com.nexomc.nexo.configs.Message
@@ -227,10 +227,13 @@ class FurnitureListener : Listener {
     }
 
     @EventHandler
-    fun NexoMechanicsRegisteredEvent.onInvalidFurniture() {
+    fun NexoItemsLoadedEvent.onInvalidFurniture() {
         SchedulerUtils.runAtWorldEntities<ItemDisplay> { baseEntity ->
             if (!baseEntity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY)) return@runAtWorldEntities
-            if (NexoFurniture.isFurniture(baseEntity)) return@runAtWorldEntities
+            if (NexoFurniture.isFurniture(baseEntity)) {
+                if (baseEntity.itemStack.isSimilar(ERROR_ITEM)) baseEntity.setItemStack(null)
+                return@runAtWorldEntities
+            }
 
             if (Settings.REMOVE_INVALID_FURNITURE.toBool()) baseEntity.remove()
             else baseEntity.setItemStack(ERROR_ITEM)

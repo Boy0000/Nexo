@@ -3,6 +3,8 @@ package com.nexomc.nexo.fonts
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.ConfigsManager
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.glyphs.Glyph
+import com.nexomc.nexo.glyphs.ReferenceGlyph
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
@@ -17,7 +19,7 @@ class FontManager(configsManager: ConfigsManager) {
     private val fontListener: FontListener = FontListener(this)
 
     init {
-        loadGlyphs(configsManager.parseGlyphConfigs())
+        configsManager.parseGlyphConfigs().forEach(::registerGlyph)
     }
 
     fun registerEvents() {
@@ -28,15 +30,14 @@ class FontManager(configsManager: ConfigsManager) {
         HandlerList.unregisterAll(fontListener)
     }
 
-    private fun loadGlyphs(glyphs: Collection<Glyph>) {
-        val unicodeTabcompletion = Settings.UNICODE_COMPLETIONS.toBool()
-        glyphs.forEach { glyph: Glyph ->
-            if (glyph.unicodes.none(String::isNotEmpty)) return@forEach
-            glyphMap[glyph.id] = glyph
-            if (glyph is ReferenceGlyph) return@forEach
-            for (unicodes in glyph.unicodes) for (char in unicodes) unicodeGlyphMap[char] = glyph.id
-            for (placeholder in glyph.placeholders) placeholderGlyphMap[placeholder] = glyph
-            if (glyph.tabcomplete) if (unicodeTabcompletion) tabcompletions.add(glyph.formattedUnicodes) else tabcompletions.addAll(glyph.placeholders)
+    fun registerGlyph(glyph: Glyph) {
+        glyphMap[glyph.id] = glyph
+        if (glyph is ReferenceGlyph) return
+        for (unicodes in glyph.unicodes) for (char in unicodes) unicodeGlyphMap[char] = glyph.id
+        for (placeholder in glyph.placeholders) placeholderGlyphMap[placeholder] = glyph
+        if (glyph.tabcomplete) when {
+            Settings.UNICODE_COMPLETIONS.toBool() -> tabcompletions += glyph.formattedUnicodes
+            else -> tabcompletions += glyph.placeholders
         }
     }
 

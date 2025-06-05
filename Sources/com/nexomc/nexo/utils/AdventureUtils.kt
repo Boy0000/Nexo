@@ -3,8 +3,8 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.configs.Message
-import com.nexomc.nexo.fonts.GlyphTag
-import com.nexomc.nexo.fonts.ShiftTag
+import com.nexomc.nexo.glyphs.GlyphTag
+import com.nexomc.nexo.glyphs.ShiftTag
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import net.kyori.adventure.text.format.TextColor

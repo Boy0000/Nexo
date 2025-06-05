@@ -2,8 +2,10 @@ package com.nexomc.nexo.fonts
 
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.fonts.Glyph.Companion.ORIGINAL_SIGN_BACK_LINES
-import com.nexomc.nexo.fonts.Glyph.Companion.ORIGINAL_SIGN_FRONT_LINES
+import com.nexomc.nexo.glyphs.Glyph.Companion.ORIGINAL_SIGN_BACK_LINES
+import com.nexomc.nexo.glyphs.Glyph.Companion.ORIGINAL_SIGN_FRONT_LINES
+import com.nexomc.nexo.glyphs.Glyph
+import com.nexomc.nexo.glyphs.GlyphTag
 import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.GlyphHandlers.transformGlyphs
 import com.nexomc.nexo.nms.NMSHandlers
