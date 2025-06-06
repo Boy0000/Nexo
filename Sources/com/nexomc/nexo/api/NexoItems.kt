@@ -7,23 +7,20 @@ import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.mechanics.MechanicsManager
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
-import com.nexomc.nexo.utils.ItemUtils
-import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.flatMapFast
+import com.nexomc.nexo.utils.ItemUtils.persistentDataView
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
-import java.io.File
-import java.util.Optional
 import net.Indyuce.mmoitems.MMOItems
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
+import java.io.File
+import java.util.*
 
 object NexoItems {
     val ITEM_ID = NamespacedKey(NexoPlugin.instance(), "id")
@@ -83,7 +80,7 @@ object NexoItems {
 
     //TODO Swap this to item?.persistentDataContainer when dropping <1.21.1
     @JvmStatic
-    fun idFromItem(item: ItemStack?): String? = item?.itemMeta?.persistentDataContainer?.get(ITEM_ID, PersistentDataType.STRING)
+    fun idFromItem(item: ItemStack?): String? = item?.persistentDataView?.get(ITEM_ID, PersistentDataType.STRING)
 
     @JvmStatic
     fun exists(itemId: String?): Boolean = itemId in itemNames

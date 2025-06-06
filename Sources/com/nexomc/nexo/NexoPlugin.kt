@@ -31,7 +31,6 @@ import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.FoliaLib
-import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
@@ -99,6 +98,7 @@ class NexoPlugin : JavaPlugin() {
             NexoItems.loadItems()
             RecipesManager.load()
             packGenerator.generatePack()
+            NexoTranslator.registerTranslations()
         }
 
         CompatibilitiesManager.enableCompatibilies()
@@ -145,8 +145,7 @@ class NexoPlugin : JavaPlugin() {
         this.fontManager = fontManager
         fontManager.registerEvents()
 
-        GlobalTranslator.translator().sources().filter { it.name() == NexoTranslator.key }.forEach(GlobalTranslator.translator()::removeSource)
-        GlobalTranslator.translator().addSource(NexoTranslator())
+        NexoTranslator.registerTranslations()
     }
 
     fun soundManager() = soundManager

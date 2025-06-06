@@ -28,6 +28,7 @@ enum class Settings {
     FORMAT_TABLIST("Plugin.formatting.tablist", true),
     FORMAT_BOSSBAR("Plugin.formatting.bossbar", PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled),
     FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
+    FORMAT_ITEMS("Plugin.formatting.items", true),
 
     // WorldEdit
     FAWE_HOOK("WorldEdit.fawe_hook", false),

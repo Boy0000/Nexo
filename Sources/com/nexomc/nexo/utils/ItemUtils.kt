@@ -9,6 +9,10 @@ import org.bukkit.persistence.PersistentDataContainer
 
 object ItemUtils {
 
+    val ItemStack.persistentDataView: PersistentDataContainer? get() = runCatching {
+        persistentDataContainer as PersistentDataContainer
+    }.getOrDefault(itemMeta?.persistentDataContainer)
+
     fun editPersistentDataContainer(itemStack: ItemStack, action: (PersistentDataContainer) -> Unit) {
         runCatching {
             itemStack.editPersistentDataContainer { action.invoke(it) }

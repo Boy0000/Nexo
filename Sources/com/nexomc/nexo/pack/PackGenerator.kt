@@ -7,6 +7,7 @@ import com.nexomc.nexo.api.events.resourcepack.NexoPostPackGenerateEvent
 import com.nexomc.nexo.api.events.resourcepack.NexoPrePackGenerateEvent
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.fonts.NexoTranslator
 import com.nexomc.nexo.glyphs.ReferenceGlyph
 import com.nexomc.nexo.glyphs.Shift
 import com.nexomc.nexo.glyphs.ShiftTag
@@ -180,6 +181,7 @@ class PackGenerator {
                 }
                 if (sendToOnline) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
             }
+            NexoTranslator.registerTranslations()
         }
     }
 
@@ -316,7 +318,11 @@ class PackGenerator {
         parseGlobalLanguage()
         resourcePack.languages().toList().forEach { language ->
             LinkedHashSet<Map.Entry<String, String>>(language.translations().entries).forEach { (key, value) ->
-                language.translations()[key] = parseLegacyThroughMiniMessage(value)
+                language.translations()[key] = when {
+                    key.startsWith("menu.") -> parseLegacyThroughMiniMessage(value)
+                    AdventureUtils.containsLegacyCodes(value) -> parseLegacyThroughMiniMessage(value)
+                    else -> value
+                }
                 language.translations().remove("DO_NOT_ALTER_THIS_LINE")
             }
             resourcePack.language(language)

@@ -20,6 +20,11 @@ fun String.deserialize(): Component = AdventureUtils.MINI_MESSAGE.deserialize(th
 
 object AdventureUtils {
 
+    private val legacyRegex = "[&§]\\w".toRegex()
+    fun containsLegacyCodes(value: String): Boolean {
+        return value.contains(legacyRegex)
+    }
+
     fun reload() {
         MM = MiniMessage.builder().tags(NexoTagResolver).build()
     }

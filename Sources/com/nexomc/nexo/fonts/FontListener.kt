@@ -68,7 +68,7 @@ class FontListener(private val manager: FontManager) : Listener {
 
     }
 
-    @EventHandler(ignoreCancelled = true)
+    /*@EventHandler(ignoreCancelled = true)
     fun SignChangeEvent.onSignGlyph() {
         if (!Settings.FORMAT_SIGNS.toBool()) return
 
@@ -120,5 +120,5 @@ class FontListener(private val manager: FontManager) : Listener {
                 GlyphHandlers.unescapeGlyphTags(GlyphHandlers.escapeGlyphs(it, player).transformGlyphs(player.locale()))
             })
         }
-    }
+    }*/
 }
