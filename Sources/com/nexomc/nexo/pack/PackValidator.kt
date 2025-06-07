@@ -34,7 +34,7 @@ class PackValidator(val resourcePack: ResourcePack) {
     private val requiredTexture = resourcePack.texture(Glyph.REQUIRED_GLYPH)
 
     private fun Key.appendPng() = Key.key(this.asString().appendIfMissing(".png"))
-    val invalidTextures = mutableListOf<Key>()
+    val invalidTextures = mutableSetOf<Key>()
 
     fun validatePack() {
         invalidTextures.clear()
@@ -55,16 +55,18 @@ class PackValidator(val resourcePack: ResourcePack) {
                 val key = it.key()?.appendPng() ?: return@layers
                 if (key in palettedPermutations) return@layers
                 if (VanillaResourcePack.resourcePack.texture(key) != null) return@layers
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
-                    ?: logMissingTexture("Model", model.key(), key)
+
+                val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                if (texture == null) logMissingTexture("Model", model.key(), key)
             }
 
             model.textures().variables().entries.forEach variables@{
                 val key = it.value.key()?.appendPng() ?: return@variables
                 if (key in palettedPermutations) return@variables
                 if (VanillaResourcePack.resourcePack.texture(key) != null) return@variables
-                resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
-                    ?: logMissingTexture("Model", model.key(), key)
+
+                val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                if (texture == null) logMissingTexture("Model", model.key(), key)
             }
         }
 
@@ -76,8 +78,8 @@ class PackValidator(val resourcePack: ResourcePack) {
                         if (key in palettedPermutations || provider.characters().size > 1) return@providers provider
                         if (VanillaResourcePack.resourcePack.texture(key) != null) return@providers provider
 
-                        resourcePack.texture(key)?.also { validateTextureSize(it, 256, false) }
-                            ?.let { return@providers provider }
+                        val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                        if (texture != null) return@providers provider
 
                         logMissingTexture("Font", font.key(), key)
                         Logs.logWarn("It has been temporarily replaced with a placeholder-image to not break the pack")
@@ -162,8 +164,6 @@ class PackValidator(val resourcePack: ResourcePack) {
     }
 
     private fun logMissingTexture(prefix: String, parentKey: Key, key: Key) {
-        if (key in invalidTextures) return
-        invalidTextures += key
-        Logs.logError("$prefix <#E24D47><i>$parentKey</i></#E24D47> is trying to use texture <#E24D47><i>$key</i></#E24D47>, but it does not exist within Nexo's ResourcePacks")
+        if (invalidTextures.add(key)) Logs.logError("$prefix <#E24D47><i>$parentKey</i></#E24D47> is trying to use texture <#E24D47><i>$key</i></#E24D47>, but it does not exist within Nexo's ResourcePacks")
     }
 }

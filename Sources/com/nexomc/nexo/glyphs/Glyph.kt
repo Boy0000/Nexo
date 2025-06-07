@@ -45,14 +45,14 @@ open class Glyph(
         Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
             val row = row.joinToString(Shift.of(-1))
             listOfNotNull(Component.text(row).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
-        }.toTypedArray()).hoverEvent(hoverText).compact()
+        }.toTypedArray()).hoverEvent(hoverText)
     }
 
     private fun bitmapComponent(bitmapIndex: Int, colorable: Boolean = false, shadow: GlyphShadow? = null, shift: String = Shift.of(0)) =
         Component.text("${chars.elementAtOrNull(bitmapIndex - 1) ?: chars.first()}$shift", if (colorable) null else defaultColor)
             .glyphShadow(shadow).font(font)
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false, shadow: GlyphShadow? = null) =
-        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, shadow, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray()).compact()
+        Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, shadow, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
 
     val baseRegex: Regex
     val escapedRegex: Regex

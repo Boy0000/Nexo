@@ -36,7 +36,7 @@ data class AnimatedGlyph(val section: ConfigurationSection) : Glyph(section) {
         }.replace("<glyph_id>", id).takeIf { it.isNotEmpty() }?.deserialize()?.let { HoverEvent.showText(it) }
 
         Component.text(0.until(frameCount).joinToString(unicode(frameCount), transform = ::unicode))
-            .font(font).color(GIF_COLOR).hoverEvent(hoverText).compact()
+            .font(font).color(GIF_COLOR).hoverEvent(hoverText)
     }
 
     private val fontProvider: SpaceFontProvider by lazy { FontProvider.space().advance(unicode(frameCount), offset).build() }
