@@ -111,6 +111,11 @@ fun ConfigurationSection.rename(oldKey: String, newKey: String): ConfigurationSe
     return this
 }
 
+fun ConfigurationSection.remove(key: String): ConfigurationSection {
+    set(key, null)
+    return this
+}
+
 class NexoYaml : YamlConfiguration() {
     override fun load(file: File) {
         runCatching {

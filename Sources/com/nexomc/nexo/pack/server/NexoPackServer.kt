@@ -27,7 +27,7 @@ interface NexoPackServer {
             val packUrl = URI.create(packUrl())
 
             val request = ResourcePackRequest.resourcePackRequest()
-                .required(mandatory || player.hasPermission(BYPASS_PERMISSION)).replace(true).prompt(prompt)
+                .required(mandatory && !player.hasPermission(BYPASS_PERMISSION)).replace(true).prompt(prompt)
                 .packs(ResourcePackInfo.resourcePackInfo(packUUID, packUrl, hash)).build()
             player.sendResourcePacks(request)
         }

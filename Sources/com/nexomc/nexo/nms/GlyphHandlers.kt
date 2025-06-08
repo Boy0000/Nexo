@@ -39,7 +39,7 @@ object GlyphHandlers {
         var component = component
 
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            val config = glyph.escapePlaceholderReplacementConfig?.takeUnless { glyph.hasPermission(player) } ?: return@forEach
+            val config = glyph.escapePlaceholderConfig?.takeUnless { glyph.hasPermission(player) } ?: return@forEach
             component = component.replaceText(config)
         }
 
@@ -59,7 +59,7 @@ object GlyphHandlers {
         // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            val config = glyph.escapeReplacementConfig.takeUnless { glyph.hasPermission(player) } ?: return@forEach
+            val config = glyph.escapeTagConfig.takeUnless { glyph.hasPermission(player) } ?: return@forEach
             component = component.replaceText(config)
         }
 
@@ -70,7 +70,7 @@ object GlyphHandlers {
         var component = component
 
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            component = component.replaceText(glyph.unescapePlaceholderReplacementConfig ?: return@forEach)
+            component = component.replaceText(glyph.unescapePlaceholderConfig ?: return@forEach)
         }
 
         return component
@@ -80,7 +80,7 @@ object GlyphHandlers {
         var component = component
 
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            component = component.replaceText(glyph.unescapeReplacementConfig)
+            component = component.replaceText(glyph.unescapeTagConfig)
         }
 
         return component.replaceText(ShiftTag.ESCAPE_REPLACEMENT_CONFIG)
@@ -108,8 +108,8 @@ object GlyphHandlers {
         NexoPlugin.instance().fontManager().glyphs().filterFast {
             it.placeholders.any(serialized::contains) || it.baseRegex in serialized
         }.forEach { glyph ->
-            component = component.replaceText(glyph.replacementConfig)
-            component = component.replaceText(glyph.placeholderReplacementConfig ?: return@forEach)
+            component = component.replaceText(glyph.tagConfig)
+            component = component.replaceText(glyph.placeholderConfig ?: return@forEach)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)
     }

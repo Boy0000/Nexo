@@ -56,13 +56,13 @@ open class Glyph(
 
     val baseRegex: Regex
     val escapedRegex: Regex
-    val replacementConfig: TextReplacementConfig
     private val placeholderMatch = "(${placeholders.joinToString("|", transform = Regex::escape)})"
-    val placeholderReplacementConfig: TextReplacementConfig?
-    val escapePlaceholderReplacementConfig: TextReplacementConfig?
-    val unescapePlaceholderReplacementConfig: TextReplacementConfig?
-    val escapeReplacementConfig: TextReplacementConfig
-    val unescapeReplacementConfig: TextReplacementConfig
+    val tagConfig: TextReplacementConfig
+    val escapeTagConfig: TextReplacementConfig
+    val unescapeTagConfig: TextReplacementConfig
+    val placeholderConfig: TextReplacementConfig?
+    val escapePlaceholderConfig: TextReplacementConfig?
+    val unescapePlaceholderConfig: TextReplacementConfig?
 
     constructor(id: String, font: Key, texture: Key, ascent: Int, height: Int, unicode: String) : this(id, font, texture, ascent, height, listOf(unicode))
 
@@ -84,29 +84,29 @@ open class Glyph(
         val _baseRegex = """<(glyph|g):($id(?::(?:c|colorable|\d+(?:\.\.\d+)?|s|shadow)(?::[\w#]+)?)*)>"""
         baseRegex = Pattern.compile("(?<!\\\\)$_baseRegex").toRegex()
         escapedRegex = Pattern.compile("\\\\" + _baseRegex).toRegex()
-        replacementConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
+        tagConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
             val args = match.group().substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
             val colorable = args.any { it == "colorable" || it == "c" }
             val shadow = args.elementAtOrNull(args.indexOfFirst { it == "shadow" || it == "s" } + 1)
             val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
             glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndex)
         }.build()
-        placeholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+        placeholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(?<!\\\\)$placeholderMatch")?.replacement(glyphComponent())?.build()
-        escapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+        escapePlaceholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("(?<!\\\\)$placeholderMatch")?.replacement { match, b ->
                 b.content("\\\\${match.group(1)}")
             }?.build()
-        unescapePlaceholderReplacementConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+        unescapePlaceholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
             ?.match("\\\\$placeholderMatch")?.replacement { match, b ->
                 b.content(match.group(1).removePrefix("\\"))
             }?.build()
 
 
-        escapeReplacementConfig = TextReplacementConfig.builder().match(_baseRegex).replacement { match, b ->
+        escapeTagConfig = TextReplacementConfig.builder().match(_baseRegex).replacement { match, b ->
             b.content("\\\\${match.group(1)}")
         }.build()
-        unescapeReplacementConfig = TextReplacementConfig.builder().match(escapedRegex.pattern).replacement { match, b ->
+        unescapeTagConfig = TextReplacementConfig.builder().match(escapedRegex.pattern).replacement { match, b ->
             b.content(match.group(1).removePrefix("\\"))
         }.build()
     }
@@ -153,18 +153,13 @@ open class Glyph(
                     val usedCharIds = assignedGlyphUnicodes.values.flatten().flatMap { it.map(Char::code) }.sorted().toMutableSet()
                     val (rows, columns) = glyphSection.getInt("rows", 1) to glyphSection.getInt("columns", 1)
 
-                    (0 until rows).map { row ->
-                        (0 until columns).map { column ->
-                            while (min in usedCharIds) min++
-                            usedCharIds.add(min)
-                            min.toChar()
-                        }.joinToString("")
-                    }.also { unicodes ->
+                    (0 until rows * columns).map { index ->
+                        while (min in usedCharIds) min++
+                        min.apply(usedCharIds::add).toChar()
+                    }.chunked(columns).map { it.joinToString("") }.also { unicodes ->
                         if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) return@also
-                        if (unicodes.size == 1) glyphSection.set("char", unicodes.first())
-                        else glyphSection.set("char", unicodes)
-                        glyphSection.set("rows", null)
-                        glyphSection.set("columns", null)
+                        glyphSection.set("char", if (unicodes.size == 1) unicodes.first() else unicodes)
+                        glyphSection.remove("rows").remove("columns")
                     }
                 }
             }
@@ -176,7 +171,7 @@ open class Glyph(
     /**
      * Useful to easily get the MiniMessage-tag for a glyph
      */
-    fun glyphTag() = "<glyph:$id>"
+    val glyphTag = "<glyph:$id>"
 
     @JvmOverloads
     fun glyphComponent(colorable: Boolean = false, shadow: GlyphShadow? = null, bitmapIndexRange: IntRange = IntRange.EMPTY): Component {
@@ -187,6 +182,6 @@ open class Glyph(
     }
 
     open val fontProviders: Array<FontProvider> by lazy {
-        arrayOf(FontProvider.bitMap().file(texture).height(height).ascent(ascent.coerceAtMost(height)).characters(unicodes).build())
+        arrayOf(FontProvider.bitMap(texture, height, ascent.coerceAtMost(height), unicodes))
     }
 }

@@ -20,7 +20,7 @@ class NexoExpansion(private val plugin: NexoPlugin) : PlaceholderExpansion() {
         val glyph = plugin.fontManager().glyphFromName(params)
 
         return when {
-            glyph !is RequiredGlyph -> if (glyph.font == DEFAULT_FONT) glyph.formattedUnicodes else glyph.glyphTag()
+            glyph !is RequiredGlyph -> if (glyph.font == DEFAULT_FONT) glyph.formattedUnicodes else glyph.glyphTag
             params.startsWith("shift_") -> Shift.of(params.substringAfter("shift_").toIntOrNull() ?: return null)
             params == "pack_hash" -> plugin.packGenerator().builtPack()?.hash()
             else -> ""

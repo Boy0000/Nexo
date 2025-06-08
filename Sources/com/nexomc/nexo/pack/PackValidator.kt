@@ -4,16 +4,11 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.glyphs.AnimatedGlyph
 import com.nexomc.nexo.glyphs.Glyph
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
-import com.nexomc.nexo.utils.appendIfMissing
-import com.nexomc.nexo.utils.associateFast
-import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.filterFastIsInstance
-import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFast
-import com.nexomc.nexo.utils.printOnFailure
+import it.unimi.dsi.fastutil.booleans.BooleanLists.emptyList
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas
@@ -41,14 +36,17 @@ class PackValidator(val resourcePack: ResourcePack) {
         Logs.logInfo("Validating ResourcePack files...")
         val palettedPermutations = resourcePack.atlas(Atlas.BLOCKS)?.sources()?.filterFastIsInstance<PalettedPermutationsAtlasSource>()?.flatMapFast { source ->
             source.textures().mapFast { it.appendPng() }.flatMapFast textures@{ texture ->
-                if ((resourcePack.texture(texture) ?: VanillaResourcePack.resourcePack.texture(texture)) == null) {
+                val texture = resourcePack.texture(texture) ?: VanillaResourcePack.resourcePack.texture(texture)
+                    ?: return@textures run {
                     logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
-                    emptyList()
-                } else source.permutations().keys.map { permutation ->
+                    kotlin.collections.emptyList()
+                }
+
+                source.permutations().keys.map { permutation ->
                     texture.key().removeSuffix(".png").appendSuffix("_$permutation.png")
                 }
             }
-        } ?: emptyList()
+        } ?: kotlin.collections.emptyList()
 
         if (Settings.PACK_VALIDATE_MODELS.toBool()) resourcePack.models().forEach { model ->
             model.textures().layers().forEach layers@{
@@ -56,7 +54,7 @@ class PackValidator(val resourcePack: ResourcePack) {
                 if (key in palettedPermutations) return@layers
                 if (VanillaResourcePack.resourcePack.texture(key) != null) return@layers
 
-                val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                val texture = resourcePack.texture(key)?.also(::validateTextureSize)
                 if (texture == null) logMissingTexture("Model", model.key(), key)
             }
 
@@ -65,7 +63,7 @@ class PackValidator(val resourcePack: ResourcePack) {
                 if (key in palettedPermutations) return@variables
                 if (VanillaResourcePack.resourcePack.texture(key) != null) return@variables
 
-                val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                val texture = resourcePack.texture(key)?.also(::validateTextureSize)
                 if (texture == null) logMissingTexture("Model", model.key(), key)
             }
         }
@@ -78,7 +76,7 @@ class PackValidator(val resourcePack: ResourcePack) {
                         if (key in palettedPermutations || provider.characters().size > 1) return@providers provider
                         if (VanillaResourcePack.resourcePack.texture(key) != null) return@providers provider
 
-                        val texture = resourcePack.texture(key)?.also { t -> validateTextureSize(t, 512, true) }
+                        val texture = resourcePack.texture(key)?.also { validateTextureSize(it, 256, false) }
                         if (texture != null) return@providers provider
 
                         logMissingTexture("Font", font.key(), key)
@@ -95,8 +93,7 @@ class PackValidator(val resourcePack: ResourcePack) {
             atlas.sources().filterIsInstance<SingleAtlasSource>().forEach { source ->
                 val key = source.resource().appendPng()
                 if (VanillaResourcePack.resourcePack.texture(key) != null) return@forEach
-                if (key in palettedPermutations) return@forEach
-                if (resourcePack.texture(key) != null) return@forEach
+                if (key in palettedPermutations || resourcePack.texture(key) != null) return@forEach
                 logMissingTexture("Atlas", Atlas.BLOCKS.key(), key)
             }
         }
@@ -117,13 +114,10 @@ class PackValidator(val resourcePack: ResourcePack) {
         if (this.key() in textureDimensionCache) return null
 
         MemoryCacheImageInputStream(data().toByteArray().inputStream()).use { input ->
-            val readers = ImageIO.getImageReaders(input)
-            if (readers.hasNext()) {
-                val reader = readers.next()
-                reader.input = input
-                return Dimension(reader.getWidth(0), reader.getHeight(0)).also {
-                    textureDimensionCache[this.key()] = it
-                }
+            val readers = ImageIO.getImageReaders(input).takeIf { it.hasNext() } ?: return@use
+            val reader = readers.next().apply { this.input = input }
+            return Dimension(reader.getWidth(0), reader.getHeight(0)).also {
+                textureDimensionCache[this.key()] = it
             }
         }
         return null
@@ -141,7 +135,7 @@ class PackValidator(val resourcePack: ResourcePack) {
     }
 
     private fun Double.isPowerOfTwo(): Boolean = ceil(log2(this)) == floor(log2(this)) && this != 0.0
-    private fun validateTextureSize(texture: Texture, maxResolution: Int, checkMipmap: Boolean) {
+    private fun validateTextureSize(texture: Texture, maxResolution: Int = 512, checkMipmap: Boolean = true) {
         runCatching {
             if (texture.key().removeSuffix(".png") in uvTextures) return
             if (texture.key() in gifTextures) return
@@ -155,11 +149,10 @@ class PackValidator(val resourcePack: ResourcePack) {
             }
 
             if (max(width, height) > maxResolution) {
-                Logs.logError("Texture <#E24D47><i>${texture.key()}</i></#E24D47> is above allowed ${maxResolution}x$maxResolution resolution...")
+                Logs.logError("Texture <#E24D47><i>${texture.key()}</i></#E24D47> is above allowed 512x512 resolution...")
                 Logs.logWarn("It has been temporarily replaced with a placeholder-image to not break the pack")
                 texture.toBuilder().data(requiredTexture?.data() ?: texture.data()).build()
             }
-
         }.printOnFailure(true)
     }
 

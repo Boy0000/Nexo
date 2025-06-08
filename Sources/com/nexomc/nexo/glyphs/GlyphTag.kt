@@ -2,7 +2,6 @@ package com.nexomc.nexo.glyphs
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.commands.toColor
-import com.nexomc.nexo.glyphs.GlyphShadow
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -30,7 +29,7 @@ object GlyphTag {
         val bitmapIndexRange = arguments.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { IntRange(it, it) } } ?: IntRange.EMPTY
         val glyphComponent = when {
             glyph.hasPermission(player) -> glyph.glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndexRange)
-            else -> Component.text(glyph.glyphTag())
+            else -> Component.text(glyph.glyphTag)
         }
         return Tag.selfClosingInserting(glyphComponent)
     }
