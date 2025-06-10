@@ -7,6 +7,7 @@ import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.remove
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.event.HoverEvent
@@ -29,18 +30,22 @@ data class AnimatedGlyph(val section: ConfigurationSection) : Glyph(section) {
     override val font: Key = Key.key("nexo", "gifs/$id")
     override val defaultColor: TextColor = GIF_COLOR
     override val unicodes: MutableList<String> = mutableListOf() // Altered when calculating frame-count
-    override val component by lazy {
-        val placeholder = placeholders.firstOrNull()
+    override fun registerComponent(): Component {
         val hoverText = Settings.GLYPH_HOVER_TEXT.toString().let {
-            if (placeholder != null) it.replace("<glyph_placeholder>", placeholder) else it
+            placeholders.firstOrNull()?.let { p -> it.replace("<glyph_placeholder>", p) } ?: it
         }.replace("<glyph_id>", id).takeIf { it.isNotEmpty() }?.deserialize()?.let { HoverEvent.showText(it) }
 
-        Component.text(0.until(frameCount).joinToString(unicode(frameCount), transform = ::unicode))
+        return Component.text(0.until(frameCount).joinToString(unicode(frameCount), transform = ::unicode))
             .font(font).color(GIF_COLOR).hoverEvent(hoverText)
     }
 
     private val fontProvider: SpaceFontProvider by lazy { FontProvider.space().advance(unicode(frameCount), offset).build() }
     override val fontProviders: Array<FontProvider> by lazy { super.fontProviders + fontProvider }
+
+    init {
+        section.remove("char").remove("chars")
+        calculateGlyphUnicodes(section)
+    }
 
     companion object {
         const val PRIVATE_USE_FIRST = 57344

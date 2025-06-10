@@ -36,13 +36,14 @@ open class Glyph(
     open val defaultColor: TextColor = NamedTextColor.WHITE
     private val chars by lazy { unicodes.flatMap { it.toList() }.toCharArray() }
     val formattedUnicodes by lazy { unicodes.joinToString("\n") { it.joinToString(Shift.of(-1)) } }
-    open val component by lazy {
+    val component by lazy { registerComponent() }
+    open fun registerComponent(): Component {
         val placeholder = placeholders.firstOrNull()
         val hoverText = Settings.GLYPH_HOVER_TEXT.toString().let {
             if (placeholder != null) it.replace("<glyph_placeholder>", placeholder) else it
         }.replace("<glyph_id>", id).takeIf { it.isNotEmpty() }?.deserialize()?.let { HoverEvent.showText(it) }
 
-        Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
+        return Component.textOfChildren(*unicodes.flatMapIndexed { i, row ->
             val row = row.joinToString(Shift.of(-1))
             listOfNotNull(Component.text(row).font(font), Component.newline().takeIf { unicodes.size != i + 1 })
         }.toTypedArray()).hoverEvent(hoverText)
@@ -54,15 +55,45 @@ open class Glyph(
     private fun bitmapComponent(indexRange: IntRange, colorable: Boolean = false, shadow: GlyphShadow? = null) =
         Component.textOfChildren(*indexRange.map { bitmapComponent(it, colorable, shadow, Shift.of(-1).takeIf { indexRange.count() > 1 } ?: "") }.toTypedArray())
 
-    val baseRegex: Regex
-    val escapedRegex: Regex
+    private val _baseRegex = """<(glyph|g):($id(?::(?:c|colorable|\d+(?:\.\.\d+)?|s|shadow)(?::[\w#]+)?)*)>"""
+    val baseRegex: Regex = Pattern.compile("(?<!\\\\)$_baseRegex").toRegex()
+    val escapedRegex: Regex = Pattern.compile("\\\\" + _baseRegex).toRegex()
     private val placeholderMatch = "(${placeholders.joinToString("|", transform = Regex::escape)})"
-    val tagConfig: TextReplacementConfig
-    val escapeTagConfig: TextReplacementConfig
-    val unescapeTagConfig: TextReplacementConfig
-    val placeholderConfig: TextReplacementConfig?
-    val escapePlaceholderConfig: TextReplacementConfig?
-    val unescapePlaceholderConfig: TextReplacementConfig?
+    val tagConfig: TextReplacementConfig by lazy {
+        TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
+            val args = match.group().substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
+            val colorable = args.any { it == "colorable" || it == "c" }
+            val shadow = args.elementAtOrNull(args.indexOfFirst { it == "shadow" || it == "s" } + 1)
+            val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
+            glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndex)
+        }.build()
+    }
+    val escapeTagConfig: TextReplacementConfig by lazy {
+        TextReplacementConfig.builder().match(_baseRegex).replacement { match, b ->
+            b.content("\\\\${match.group(1)}")
+        }.build()
+    }
+    val unescapeTagConfig: TextReplacementConfig by lazy {
+        TextReplacementConfig.builder().match(escapedRegex.pattern).replacement { match, b ->
+            b.content(match.group(1).removePrefix("\\"))
+        }.build()
+    }
+    val placeholderConfig: TextReplacementConfig? by lazy {
+        TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("(?<!\\\\)$placeholderMatch")?.replacement(glyphComponent())?.build()
+    }
+    val escapePlaceholderConfig: TextReplacementConfig? by lazy {
+        TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("(?<!\\\\)$placeholderMatch")?.replacement { match, b ->
+                b.content("\\\\${match.group(1)}")
+            }?.build()
+    }
+    val unescapePlaceholderConfig: TextReplacementConfig? by lazy {
+        TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
+            ?.match("\\\\$placeholderMatch")?.replacement { match, b ->
+                b.content(match.group(1).removePrefix("\\"))
+            }?.build()
+    }
 
     constructor(id: String, font: Key, texture: Key, ascent: Int, height: Int, unicode: String) : this(id, font, texture, ascent, height, listOf(unicode))
 
@@ -79,37 +110,6 @@ open class Glyph(
         glyphSection.getBoolean("tabcomplete"),
         glyphSection.getBoolean("is_emoji")
     )
-
-    init {
-        val _baseRegex = """<(glyph|g):($id(?::(?:c|colorable|\d+(?:\.\.\d+)?|s|shadow)(?::[\w#]+)?)*)>"""
-        baseRegex = Pattern.compile("(?<!\\\\)$_baseRegex").toRegex()
-        escapedRegex = Pattern.compile("\\\\" + _baseRegex).toRegex()
-        tagConfig = TextReplacementConfig.builder().match(this.baseRegex.pattern).replacement { match, builder ->
-            val args = match.group().substringAfter("<glyph:").substringAfter("<g:").substringBefore(">").split(":")
-            val colorable = args.any { it == "colorable" || it == "c" }
-            val shadow = args.elementAtOrNull(args.indexOfFirst { it == "shadow" || it == "s" } + 1)
-            val bitmapIndex = args.firstNotNullOfOrNull { it.toIntRangeOrNull() ?: it.toIntOrNull()?.let { i ->IntRange(i, i) } } ?: IntRange.EMPTY
-            glyphComponent(colorable, GlyphShadow(shadow?.toColor()), bitmapIndex)
-        }.build()
-        placeholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(?<!\\\\)$placeholderMatch")?.replacement(glyphComponent())?.build()
-        escapePlaceholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("(?<!\\\\)$placeholderMatch")?.replacement { match, b ->
-                b.content("\\\\${match.group(1)}")
-            }?.build()
-        unescapePlaceholderConfig = TextReplacementConfig.builder().takeIf { placeholders.isNotEmpty() }
-            ?.match("\\\\$placeholderMatch")?.replacement { match, b ->
-                b.content(match.group(1).removePrefix("\\"))
-            }?.build()
-
-
-        escapeTagConfig = TextReplacementConfig.builder().match(_baseRegex).replacement { match, b ->
-            b.content("\\\\${match.group(1)}")
-        }.build()
-        unescapeTagConfig = TextReplacementConfig.builder().match(escapedRegex.pattern).replacement { match, b ->
-            b.content(match.group(1).removePrefix("\\"))
-        }.build()
-    }
 
     fun copy(
         id: String = this.id,

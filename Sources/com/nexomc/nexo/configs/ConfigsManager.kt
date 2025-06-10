@@ -150,9 +150,19 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     return@onEach Logs.logError("Reference-Glyph $referenceId used invalid index $i, $glyphId has indexes $index")
                 }
 
-                output += ReferenceGlyph(glyph, referenceId, index, permission, placeholders)
+                runCatching {
+                    output += ReferenceGlyph(glyph, referenceId, index, permission, placeholders)
+                }.onFailure {
+                    Logs.logWarn("Failed to load Reference Glyph $glyphId")
+                    if (Settings.DEBUG.toBool()) it.printStackTrace()
+                }
             }.onEach { (gifId, _) ->
-                output += AnimatedGlyph(gifGlyphs[gifId] ?: return@onEach)
+                runCatching {
+                    output += AnimatedGlyph(gifGlyphs[gifId] ?: return@onEach)
+                }.onFailure {
+                    Logs.logWarn("Failed to load AnimatedGlyph $gifId")
+                    if (Settings.DEBUG.toBool()) it.printStackTrace()
+                }
             }
 
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) runCatching {

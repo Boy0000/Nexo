@@ -24,7 +24,7 @@ class GifGenerator(private val resourcePack: ResourcePack) {
     private fun generateShaderFiles() {
         val overlays = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
         overlays += OverlayEntry.of(PackFormat.format(34, 32, 34), "nexo_1_21_1")
-        overlays += OverlayEntry.of(PackFormat.format(42, 42, 46), "nexo_1_21_3")
+        overlays += OverlayEntry.of(PackFormat.format(42, 42, 55), "nexo_1_21_3")
         resourcePack.overlaysMeta(OverlaysMeta.of(overlays))
 
         resourcePack.overlay(Overlay.overlay("nexo_1_21_1").apply { writables("v1_21_1") })
