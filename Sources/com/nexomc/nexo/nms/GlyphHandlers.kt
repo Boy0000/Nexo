@@ -66,6 +66,10 @@ object GlyphHandlers {
         return component.replaceText(ShiftTag.ESCAPE_REPLACEMENT_CONFIG)
     }
 
+    fun unescapeGlyphs(component: Component): Component {
+        return unescapePlaceholders(unescapeGlyphTags(component))
+    }
+
     fun unescapePlaceholders(component: Component): Component {
         var component = component
 
