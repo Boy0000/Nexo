@@ -2,13 +2,13 @@ package com.nexomc.nexo.glyphs
 
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.substringBetween
-import java.util.regex.Pattern
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import java.util.regex.Pattern
 
 object ShiftTag {
     private const val SHIFT = "shift"
@@ -28,5 +28,9 @@ object ShiftTag {
     private fun shiftTag(args: ArgumentQueue): Tag {
         val shift = args.popOr("A shift value is required").value().toIntOrNull() ?: 0
         return Tag.selfClosingInserting(Component.text(Shift.of(shift)).font(FONT))
+    }
+
+    fun containsTag(string: String): Boolean {
+        return string.contains("<$SHIFT:") || string.contains("<$SHIFT_SHORT:>")
     }
 }

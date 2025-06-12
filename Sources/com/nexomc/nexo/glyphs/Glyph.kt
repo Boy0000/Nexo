@@ -1,5 +1,6 @@
 package com.nexomc.nexo.glyphs
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.glyphs.GlyphShadow.Companion.glyphShadow
@@ -34,7 +35,7 @@ open class Glyph(
 ) {
 
     open val defaultColor: TextColor = NamedTextColor.WHITE
-    private val chars by lazy { unicodes.flatMap { it.toList() }.toCharArray() }
+    val chars by lazy { unicodes.flatMap { it.toList() }.toCharArray() }
     val formattedUnicodes by lazy { unicodes.joinToString("\n") { it.joinToString(Shift.of(-1)) } }
     val component by lazy { registerComponent() }
     open fun registerComponent(): Component {
@@ -163,6 +164,10 @@ open class Glyph(
                     }
                 }
             }
+        }
+
+        fun containsTagOrPlaceholder(string: String): Boolean {
+            return GlyphTag.containsTag(string) || NexoPlugin.instance().fontManager().placeholderGlyphMap.keys.any(string::contains)
         }
     }
 

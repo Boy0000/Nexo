@@ -1,13 +1,10 @@
 package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
-import com.nexomc.nexo.commands.toColor
-import com.nexomc.nexo.glyphs.GlyphShadow
-import com.nexomc.nexo.glyphs.Shift
+import com.nexomc.nexo.glyphs.Glyph
 import com.nexomc.nexo.glyphs.ShiftTag
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.filterFast
-import com.nexomc.nexo.utils.serialize
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.TextReplacementConfig
@@ -18,18 +15,17 @@ import java.util.*
 
 object GlyphHandlers {
 
-    private val randomComponent = NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent()
-    private val defaultEmoteReplacementConfigs = NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }
-        .associateFastWith {
-            TextReplacementConfig.builder().match("(${it.unicodes.joinToString("|")})")
-                .replacement(Component.textOfChildren(randomComponent)).build()
+    private val randomComponent by lazy {
+        Component.textOfChildren(NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent())
+    }
+    private val defaultEmoteReplacementConfigs by lazy {
+        NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }.associateFastWith {
+            when (it.unicodes.size) {
+                1 -> TextReplacementConfig.builder().matchLiteral(it.unicodes.first())
+                else -> TextReplacementConfig.builder().match("(${it.unicodes.joinToString("|").removeSuffix("|")})")
+            }.replacement(randomComponent).build()
         }
-
-    val shiftRegex: Regex = "(?<!\\\\)<shift:(-?\\d+)>".toRegex()
-    val escapedShiftRegex: Regex = "\\\\<shift:(-?\\d+)>".toRegex()
-    private val colorableRegex: Regex = "\\|(c|colorable)".toRegex()
-    private val glyphShadowRegex = "(?:shadow|s):(\\S+)".toRegex()
-    private val bitmapIndexRegex: Regex = "\\|([0-9]+)(?:\\.\\.([0-9]+))?:".toRegex()
+    }
 
     fun escapeGlyphs(component: Component, player: Player?): Component {
         return escapePlaceholders(escapeGlyphTags(component, player), player)
@@ -53,7 +49,7 @@ object GlyphHandlers {
         // Replace all unicodes found in default font with a random one
         // This is to prevent use of unicodes from the font the chat is in
         defaultEmoteReplacementConfigs.filterFast { !it.key.hasPermission(player) }.forEach { (glyph, config) ->
-            if (glyph.unicodes.joinToString("").any(serialized::contains)) component = component.replaceText(config)
+            if (glyph.chars.any(serialized::contains)) component = component.replaceText(config)
         }
 
         // Replace raw unicode usage of non-permitted Glyphs with random font
@@ -82,8 +78,9 @@ object GlyphHandlers {
 
     fun unescapeGlyphTags(component: Component): Component {
         var component = component
+        val serialized = component.asFlatTextContent()
 
-        NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
+        if (Glyph.containsTagOrPlaceholder(serialized)) NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
             component = component.replaceText(glyph.unescapeTagConfig)
         }
 
@@ -91,17 +88,16 @@ object GlyphHandlers {
     }
 
     private fun Component.asFlatTextContent(): String {
-        var flattened = ""
-        val flatText = (this@asFlatTextContent as? TextComponent) ?: return flattened
-        flattened += flatText.content()
-        flattened += flatText.children().joinToString("") { it.asFlatTextContent() }
-        (flatText.hoverEvent()?.value() as? Component)?.let { hover ->
-            val hoverText = hover as? TextComponent ?: return@let
-            flattened += hoverText.content()
-            flattened += hoverText.children().joinToString("") { it.asFlatTextContent() }
+        val flatText = (this@asFlatTextContent as? TextComponent) ?: return ""
+        return buildString {
+            append(flatText.content())
+            append(flatText.children().joinToString("") { it.asFlatTextContent() })
+            (flatText.hoverEvent()?.value() as? Component)?.let { hover ->
+                val hoverText = hover as? TextComponent ?: return@let
+                append(hoverText.content())
+                append(hoverText.children().joinToString("") { it.asFlatTextContent() })
+            }
         }
-
-        return flattened
     }
 
     @JvmStatic
@@ -109,81 +105,12 @@ object GlyphHandlers {
         var component = GlobalTranslator.render(this, locale ?: Locale.US)
         val serialized = component.asFlatTextContent()
 
-        NexoPlugin.instance().fontManager().glyphs().filterFast {
-            it.placeholders.any(serialized::contains) || it.baseRegex in serialized
+        if (Glyph.containsTagOrPlaceholder(serialized)) NexoPlugin.instance().fontManager().glyphs().filterFast {
+            it.placeholders.any(serialized::contains) || it.baseRegex.containsMatchIn(serialized)
         }.forEach { glyph ->
             component = component.replaceText(glyph.tagConfig)
             component = component.replaceText(glyph.placeholderConfig ?: return@forEach)
         }
         return component.replaceText(ShiftTag.REPLACEMENT_CONFIG)
-    }
-
-    @JvmStatic
-    fun String.transformGlyphs(): String {
-        var content = this
-
-        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.baseRegex.findAll(this).forEach { match ->
-            val colorable = colorableRegex in match.value
-            val shadow = GlyphShadow(glyphShadowRegex.find(match.value)?.groupValues?.firstOrNull()?.toColor())
-            val bitmapMatch = bitmapIndexRegex.find(match.value)
-            val startIndex = bitmapMatch?.groupValues?.get(1)?.toIntOrNull() ?: -1
-            val endIndex = bitmapMatch?.groupValues?.get(2)?.toIntOrNull()?.coerceAtLeast(startIndex) ?: startIndex
-
-            val component = glyph.glyphComponent(colorable, shadow, startIndex..endIndex).serialize()
-            content = content.replaceFirst(glyph.baseRegex, component)
-        }
-
-        shiftRegex.findAll(this).forEach { match ->
-            val shift = match.groupValues[1].toIntOrNull() ?: return@forEach
-            val shiftRegex = "(?<!\\\\):space_(-?$shift+):".toRegex()
-
-            content = content.replaceFirst(shiftRegex, Shift.of(shift))
-        }
-
-        return content
-    }
-
-    fun String.escapeGlyphTags(player: Player?): String {
-        var content = this
-
-        NexoPlugin.instance().fontManager().glyphs().forEach {
-            if (it.font != Font.MINECRAFT_DEFAULT || it.hasPermission(player)) return@forEach
-
-            it.unicodes.forEach { unicode ->
-                content = content.replace(unicode, "<font:random>$unicode</font>")
-                unicode.forEach { char ->
-                    content = content.replace(char.toString(), "<font:random>$unicode</font>")
-                }
-            }
-        }
-
-        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.baseRegex.findAll(this).forEach { match ->
-            if (glyph.hasPermission(player)) return@forEach
-
-            content = content.replaceFirst("(?<!\\\\)${match.value}", "\\${match.value}")
-        }
-
-        shiftRegex.findAll(this).forEach { match ->
-            if (player?.hasPermission("nexo.shift") != false) return@forEach
-            val space = match.groupValues[1].toIntOrNull() ?: return@forEach
-
-            content = content.replaceFirst("(?<!\\\\)${match.value}", "\\<shift:$space>")
-        }
-
-        return content
-    }
-
-    fun String.unescapeGlyphTags(): String {
-        var content = this
-
-        for (glyph in NexoPlugin.instance().fontManager().glyphs()) glyph.escapedRegex.findAll(this).forEach { match ->
-            content = content.replaceFirst(glyph.escapedRegex, match.value.removePrefix("\\"))
-        }
-
-        escapedShiftRegex.findAll(this).forEach { match ->
-            content = content.replaceFirst(match.value, match.value.removePrefix("\\"))
-        }
-
-        return content
     }
 }
