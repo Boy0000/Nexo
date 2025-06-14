@@ -16,7 +16,10 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
 
 fun Component.serialize(): String = AdventureUtils.MINI_MESSAGE.serialize(this)
-fun String.deserialize(): Component = AdventureUtils.MINI_MESSAGE.deserialize(this)
+fun String.deserialize(): Component  = AdventureUtils.MINI_MESSAGE.deserialize(when {
+    AdventureUtils.containsLegacyCodes(this) -> AdventureUtils.parseLegacy(this)
+    else -> this
+})
 
 object AdventureUtils {
 

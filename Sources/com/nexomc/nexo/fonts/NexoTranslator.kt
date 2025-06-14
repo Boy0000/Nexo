@@ -28,11 +28,10 @@ class NexoTranslator : Translator {
 
     override fun translate(component: TranslatableComponent, locale: Locale): Component? {
         val resourcePack = NexoPlugin.instance().packGenerator().resourcePack()
-        val lang = resourcePack.language(locale.toKey()) ?: resourcePack.language(DEFAULT_LANG_KEY)
+        val lang = resourcePack.language(locale.toKey()) ?: resourcePack.language(DEFAULT_LANG_KEY) ?: return component
+        val translation = lang.translation(component.key())?.deserialize() ?: return component
 
-        return lang?.translation(component.key())?.deserialize()?.let {
-            if (component.children().isNotEmpty()) it.children(component.children()) else it
-        } ?: component
+        return if (component.children().isNotEmpty()) translation.children(component.children()) else translation
     }
 
     override fun name() = key

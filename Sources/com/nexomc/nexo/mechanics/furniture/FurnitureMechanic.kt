@@ -14,6 +14,7 @@ import com.nexomc.nexo.mechanics.furniture.connectable.ConnectableMechanic
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
+import com.nexomc.nexo.mechanics.furniture.hitbox.InteractionHitbox
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxBlock
 import com.nexomc.nexo.mechanics.furniture.rotatable.Rotatable
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
@@ -28,6 +29,7 @@ import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.logs.Logs
 import com.ticxo.modelengine.api.ModelEngineAPI
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Location
@@ -67,7 +69,9 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
     val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
     val connectable = section.getConfigurationSection("connectable")?.let(::ConnectableMechanic)
 
-    val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox) ?: section.getStringListOrNull("hitbox")?.let(::FurnitureHitbox) ?: FurnitureHitbox.EMPTY
+    val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox)
+        ?: section.getStringListOrNull("hitbox")?.let(::FurnitureHitbox)
+        ?: FurnitureHitbox(interactions = ObjectOpenHashSet.of(InteractionHitbox()))
 
     enum class RestrictedRotation {
         NONE, STRICT, VERY_STRICT;
