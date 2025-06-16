@@ -4,11 +4,11 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.NexoMeta
+import com.nexomc.nexo.pack.NexoOverlay
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.Quadruple
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
-import java.util.Collections
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -18,11 +18,8 @@ import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.equipment.Equipment
 import team.unnamed.creative.equipment.EquipmentLayer
 import team.unnamed.creative.equipment.EquipmentLayerType
-import team.unnamed.creative.metadata.overlays.OverlayEntry
-import team.unnamed.creative.metadata.overlays.OverlaysMeta
-import team.unnamed.creative.metadata.pack.PackFormat
-import team.unnamed.creative.overlay.Overlay
 import team.unnamed.creative.texture.Texture
+import java.util.*
 
 class ComponentCustomArmor(private val resourcePack: ResourcePack) {
     fun generatePackFiles() {
@@ -57,14 +54,10 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
             if (resourcePack.equipment(key) == null) resourcePack.equipment(equipment)
             if (resourcePack.equipment(elytraKey) == null) resourcePack.equipment(elytraEquipment)
 
-            val overlays = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
             // Add overlay for saddle-equipment layers and limit to 1.21.5+ clients
-            resourcePack.overlay(Overlay.overlay("nexo_1_21_5").apply { equipment(saddleEquipment) })
-            overlays += OverlayEntry.of(PackFormat.format(55, 55, 99), "nexo_1_21_5")
+            NexoOverlay.V1_21_5.overlay.equipment(saddleEquipment)
             // Add overlay for harness-equipment layers and limit to 1.21.6+ clients
-            resourcePack.overlay(Overlay.overlay("nexo_1_21_6").apply { equipment(harnessEquipment) })
-            overlays += OverlayEntry.of(PackFormat.format(56, 56, 99), "nexo_1_21_6")
-            resourcePack.overlaysMeta(OverlaysMeta.of(overlays))
+            NexoOverlay.V1_21_6.overlay.equipment(harnessEquipment)
         }
     }
 

@@ -18,10 +18,7 @@ import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.EmptyServer
 import com.nexomc.nexo.pack.server.NexoPackServer
 import com.nexomc.nexo.recipes.RecipesManager
-import com.nexomc.nexo.utils.NexoDatapack
-import com.nexomc.nexo.utils.NexoMetrics
-import com.nexomc.nexo.utils.NoticeUtils
-import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.actions.ClickActionManager
 import com.nexomc.nexo.utils.breaker.BreakerManager
 import com.nexomc.nexo.utils.breaker.LegacyBreakerManager
@@ -106,6 +103,10 @@ class NexoPlugin : JavaPlugin() {
         if (VersionUtil.isCI) NoticeUtils.ciNotice()
         if (VersionUtil.isLeaked) NoticeUtils.leakNotice()
         if (LibbyManager.failedLibs) NoticeUtils.failedLibs()
+
+        SchedulerUtils.runTaskLater(10L) {
+            JarReader.postStartupCheck()
+        }
     }
 
     override fun onDisable() {

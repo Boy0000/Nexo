@@ -117,7 +117,7 @@ data class FurnitureBed(val offset: Vector, val skipNight: Boolean = true, val r
             baseEntity.persistentDataContainer.getOrDefault(BED_KEY, CustomDataTypes.UUID_LIST, listOf())
                 .mapNotNull(Bukkit::getEntity).forEach { bed ->
                     bed.passengers.forEach(bed::removePassenger)
-                    if (!bed.isDead) bed.remove()
+                    if (bed.isValid) bed.remove()
                 }
         }
     }

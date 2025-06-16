@@ -5,9 +5,6 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.glyphs.AnimatedGlyph
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.metadata.overlays.OverlayEntry
-import team.unnamed.creative.metadata.overlays.OverlaysMeta
-import team.unnamed.creative.metadata.pack.PackFormat
 import team.unnamed.creative.overlay.Overlay
 
 class GifGenerator(private val resourcePack: ResourcePack) {
@@ -18,17 +15,10 @@ class GifGenerator(private val resourcePack: ResourcePack) {
             glyph.generateSplitGif(resourcePack)
         }
 
-        if (Settings.GENERATE_GIF_SHADERS.toBool()) generateShaderFiles()
-    }
-
-    private fun generateShaderFiles() {
-        val overlays = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
-        overlays += OverlayEntry.of(PackFormat.format(34, 32, 34), "nexo_1_21_1")
-        overlays += OverlayEntry.of(PackFormat.format(42, 42, 55), "nexo_1_21_3")
-        resourcePack.overlaysMeta(OverlaysMeta.of(overlays))
-
-        resourcePack.overlay(Overlay.overlay("nexo_1_21_1").apply { writables("v1_21_1") })
-        resourcePack.overlay(Overlay.overlay("nexo_1_21_3").apply { writables("v1_21_3") })
+        if (Settings.GENERATE_GIF_SHADERS.toBool()) {
+            NexoOverlay.V1_21_1.overlay.writables("v1_21_1")
+            NexoOverlay.V1_21_3.overlay.writables("v1_21_3")
+        }
     }
 
     private val path = "assets/minecraft/shaders/core/rendertype_text"

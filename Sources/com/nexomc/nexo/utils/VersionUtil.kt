@@ -38,7 +38,16 @@ object VersionUtil {
 
     private val isValidCompiler by lazy { manifestMap["Built-By"]?.equals("sivert", ignoreCase = true) == true }
 
-    val isLeaked by lazy { JarReader.checkIsLeaked() }
+    private var _leaked: Boolean? = null
+    var isLeaked: Boolean
+        get() {
+            if (_leaked ==  null) _leaked = JarReader.checkIsLeaked()
+            return _leaked!!
+        }
+        internal set(value) {
+            _leaked = value
+            NoticeUtils.leakNotice()
+        }
 
     enum class NMSVersion {
         v1_21_R4, v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;

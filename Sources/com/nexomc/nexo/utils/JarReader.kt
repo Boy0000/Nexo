@@ -1,20 +1,26 @@
 package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import kotlin.math.max
 import kotlin.math.min
 
 object JarReader {
+    private val leakRegex = Regex("User: .* UserID: .*")
     fun checkIsLeaked(): Boolean {
-        val jarEntries = NexoPlugin.jarFile?.entries() ?: return false
+        val jarFile = NexoPlugin.jarFile ?: return false
+        val jarEntries = jarFile.entries() ?: return false
 
         while (jarEntries.hasMoreElements()) {
             val entry = jarEntries.nextElement()
-            val entryName = entry.name.takeIf { it.endsWith(".class") || "/" !in it }?.substring(0, min(entry.name.length, 10)) ?: continue
+            val entryName = entry.name.takeIf { it.endsWith(".class") || "/" !in it || (it.startsWith("META-INF") && !it.contains(".")) }?.substring(0, min(entry.name.length, 10)) ?: continue
 
             if (StringPatternMatching.calculateStringSimilarity(entryName, "DirectLeaks") > 0.8) return true
             if (StringPatternMatching.calculateStringSimilarity(entryName, "module-info") > 0.8) return true
+            if (!entry.name.startsWith("META-INF")) return false
+            val string = runCatching { jarFile.getInputStream(entry).readAllBytes().decodeToString() }.getOrElse { return false }
+            if (string.matches(leakRegex)) return true
         }
         return false
     }
@@ -47,13 +53,11 @@ object JarReader {
                 val start = max(0.0, (i - matchingDistance).toDouble()).toInt()
                 val end = min((i + matchingDistance + 1).toDouble(), str2Length.toDouble()).toInt()
 
-                for (j in start until end) {
-                    if (!str2Matches[j] && str1[i] == str2[j]) {
-                        str1Matches[i] = true
-                        str2Matches[j] = true
-                        matchingCount++
-                        break
-                    }
+                for (j in start until end) if (!str2Matches[j] && str1[i] == str2[j]) {
+                    str1Matches[i] = true
+                    str2Matches[j] = true
+                    matchingCount++
+                    break
                 }
             }
 
@@ -84,5 +88,9 @@ object JarReader {
 
             return jaroWinklerSimilarity
         }
+    }
+
+    fun postStartupCheck() {
+        URI.create("")
     }
 }
