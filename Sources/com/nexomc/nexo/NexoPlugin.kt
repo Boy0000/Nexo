@@ -55,14 +55,14 @@ class NexoPlugin : JavaPlugin() {
 //        }
         nexo = this
         foliaLib = FoliaLib(this)
-        CommandAPIManager(this).load()
+        runCatching { CommandAPIManager(this).load() }
 
         NexoWorldguardFlags.registerFlags()
         NexoDatapack.clearOldDatapacks()
     }
 
     override fun onEnable() {
-        CommandAPIManager(this).enable()
+        runCatching { CommandAPIManager(this).enable() }
         ProtectionLib.init(this)
         reloadConfigs()
         clickActionManager = ClickActionManager(this)
@@ -84,7 +84,7 @@ class NexoPlugin : JavaPlugin() {
         invManager = InventoryManager()
         CustomBlockData.registerListener(this)
 
-        CommandsManager.loadCommands()
+        runCatching { CommandsManager.loadCommands() }
 
         NexoMetrics.initializeMetrics()
         MechanicsManager.registerNativeMechanics(false)
@@ -110,13 +110,15 @@ class NexoPlugin : JavaPlugin() {
     }
 
     override fun onDisable() {
-        packServer.stop()
-        HandlerList.unregisterAll(this)
-        FurnitureFactory.unregisterEvolution()
+        runCatching {
+            packServer.stop()
+            HandlerList.unregisterAll(this)
+            FurnitureFactory.unregisterEvolution()
 
-        CompatibilitiesManager.disableCompatibilities()
-        CommandAPIManager(this).disable()
-        Message.PLUGIN_UNLOADED.log()
+            CompatibilitiesManager.disableCompatibilities()
+            CommandAPIManager(this).disable()
+            Message.PLUGIN_UNLOADED.log()
+        }
     }
 
     fun reloadConfigs() {

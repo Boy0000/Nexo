@@ -174,10 +174,10 @@ class ItemParser(private val section: ConfigurationSection) {
     }
 
     private fun mergeWithTemplateSection(): ConfigurationSection {
-        if (templateItem == null) return section
+        val templateSection = templateItem?.section ?: return section
 
         return YamlConfiguration().createSection(section.name).also {
-            copyConfigurationSection(templateItem!!.section, it)
+            copyConfigurationSection(templateSection, it)
             copyConfigurationSection(section, it)
         }
     }

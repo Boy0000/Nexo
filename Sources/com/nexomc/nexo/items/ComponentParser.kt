@@ -166,6 +166,11 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         equippableSection.getNamespacedKey("camera_overlay")?.apply(equippableComponent::setCameraOverlay)
         equippableSection.getKey("equip_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
 
+        if (VersionUtil.atleast("1.21.6")) {
+            //equippableComponent.canBeSheared = equippableSection.getBoolean("can_be_sheared", true)
+            //equippableSection.getKey("shearing_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setShearingSound)
+        }
+
         item.setEquippableComponent(equippableComponent)
     }
 

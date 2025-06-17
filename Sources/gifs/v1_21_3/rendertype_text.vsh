@@ -80,6 +80,4 @@ void main() {
         texCoord0 = newUV0;
     }
     //Nexo Animated Glyphs - end
-
-    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
 }

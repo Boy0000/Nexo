@@ -66,14 +66,17 @@ interface IFurniturePacketManager {
 
         val interactionHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
         val shulkerHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
+        val ghastHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
 
         val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
         val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
         val shulkerHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
+        val ghastHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
 
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
             interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
                 ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
+                ?: ghastHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
 
         fun baseEntityFromHitbox(location: Location): ItemDisplay? {
             return baseEntityFromHitbox(BlockLocation(location), location.world)
@@ -87,12 +90,15 @@ interface IFurniturePacketManager {
                 world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
                 world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
+            } ?: ghastHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
             }
         }
 
         fun mechanicFromHitbox(entityId: Int): FurnitureMechanic? =
             interactionHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
                 ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
+                ?: ghastHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
 
         fun mechanicFromHitbox(location: BlockLocation): FurnitureMechanic? {
             val barrierVec = location.toVector()
@@ -102,11 +108,16 @@ interface IFurniturePacketManager {
                 subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
                 subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+            } ?: ghastHitboxIdMap.firstNotNullOfOrNull { subEntity ->
+                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
             }
         }
 
         fun hitboxLocFromId(entityId: Int, world: World): Location? {
-            val subEntity = interactionHitboxIdMap.find { entityId in it.entityIds } ?: shulkerHitboxIdMap.find { entityId in it.entityIds } ?: return null
+            val subEntity = interactionHitboxIdMap.find { entityId in it.entityIds }
+                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }
+                ?: ghastHitboxIdMap.find { entityId in it.entityIds }
+                ?: return null
             return subEntity.hitboxLocation(entityId)?.toLocation(world)
         }
 
@@ -130,6 +141,7 @@ interface IFurniturePacketManager {
             val blockBox = BoundingBox.of(block)
             return interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || ghastHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
 
         fun blockIsHitbox(location: Location, excludeUUID: UUID? = null): Boolean {
@@ -138,6 +150,7 @@ interface IFurniturePacketManager {
             return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.blockX == x && it.blockY == y && it.blockZ == z && it.world == world } }
                     || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
                     || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || ghastHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
     }
 }

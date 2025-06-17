@@ -13,12 +13,14 @@ data class FurnitureHitbox(
     val barriers: ObjectOpenHashSet<BarrierHitbox> = ObjectOpenHashSet(),
     val interactions: ObjectOpenHashSet<InteractionHitbox> = ObjectOpenHashSet(),
     val shulkers: ObjectOpenHashSet<ShulkerHitbox> = ObjectOpenHashSet(),
+    val ghasts: ObjectOpenHashSet<GhastHitbox> = ObjectOpenHashSet(),
 ) {
 
     constructor(hitboxSection: ConfigurationSection) : this(
         (hitboxSection.getStringListOrNull("barriers") ?: hitboxSection.getString("barriers")?.let(::listOf))?.flatMapSetFast(::parseHitbox) ?: listOf(),
         hitboxSection.getStringList("interactions").mapFastSet(::InteractionHitbox),
-        hitboxSection.getStringList("shulkers").map(::ShulkerHitbox)
+        hitboxSection.getStringList("shulkers").map(::ShulkerHitbox),
+        hitboxSection.getStringList("ghasts").map(::GhastHitbox)
     )
 
     constructor(hitboxList: Collection<String>) : this() {
@@ -30,6 +32,7 @@ data class FurnitureHitbox(
                 "BARRIER", "B" -> barriers.add(BarrierHitbox(hitbox))
                 "INTERACTION", "I" -> interactions.add(InteractionHitbox(hitbox))
                 "SHULKER", "S" -> shulkers.add(ShulkerHitbox(hitbox))
+                "GHAST", "G" -> ghasts.add(GhastHitbox(hitbox))
             }
         }
     }
@@ -38,13 +41,18 @@ data class FurnitureHitbox(
         barriers: Collection<BarrierHitbox>,
         interactions: Collection<InteractionHitbox>,
         shulkers: Collection<ShulkerHitbox>,
-    ) : this(ObjectOpenHashSet(barriers), ObjectOpenHashSet(interactions), ObjectOpenHashSet(shulkers))
+        ghasts: Collection<GhastHitbox>,
+    ) : this(
+        ObjectOpenHashSet(barriers), ObjectOpenHashSet(interactions),
+        ObjectOpenHashSet(shulkers), ObjectOpenHashSet(ghasts)
+    )
 
     fun hitboxHeight(): Double {
         val highestBarrier = barriers.maxOfOrNull { it.y + 1 } ?: 0
         val highestInteraction = interactions.maxOfOrNull { it.offset.clone().add(Vector(0f, it.height, 0f)).y } ?: 0.0
         val highestShulker = shulkers.maxOfOrNull { it.offset.clone().add(Vector(0f, it.length.toFloat(), 0f)).y } ?: 0.0
-        return highestInteraction.coerceAtLeast(highestBarrier.toDouble()).coerceAtLeast(highestShulker)
+        val highestGhast = ghasts.maxOfOrNull { it.offset.clone().add(Vector(0f, it.scale.toFloat(), 0f)).y } ?: 0.0
+        return highestInteraction.coerceAtLeast(highestBarrier.toDouble()).coerceAtLeast(highestShulker).coerceAtLeast(highestGhast)
     }
 
     fun refreshHitboxes(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {

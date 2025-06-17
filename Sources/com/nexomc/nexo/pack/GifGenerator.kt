@@ -18,6 +18,7 @@ class GifGenerator(private val resourcePack: ResourcePack) {
         if (Settings.GENERATE_GIF_SHADERS.toBool()) {
             NexoOverlay.V1_21_1.overlay.writables("v1_21_1")
             NexoOverlay.V1_21_3.overlay.writables("v1_21_3")
+            NexoOverlay.V1_21_6.overlay.writables("v1_21_6")
         }
     }
 

@@ -124,6 +124,8 @@ class FurniturePacketListener : Listener {
 
         mechanic.hitbox.refreshHitboxes(baseEntity, mechanic)
         mechanic.light.refreshLights(baseEntity, mechanic)
+        FurnitureSeat.updateSeats(baseEntity, mechanic)
+        FurnitureBed.updateBeds(baseEntity, mechanic)
     }
 
     @EventHandler
