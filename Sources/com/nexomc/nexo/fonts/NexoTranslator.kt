@@ -2,6 +2,7 @@ package com.nexomc.nexo.fonts
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.pack.VanillaResourcePack
 import com.nexomc.nexo.utils.deserialize
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -29,9 +30,14 @@ class NexoTranslator : Translator {
     override fun translate(component: TranslatableComponent, locale: Locale): Component? {
         val resourcePack = NexoPlugin.instance().packGenerator().resourcePack()
         val lang = resourcePack.language(locale.toKey()) ?: resourcePack.language(DEFAULT_LANG_KEY) ?: return component
-        val translation = lang.translation(component.key())?.deserialize() ?: return component
+        val translation = lang.translation(component.key()) ?: return component
+        val vanillaLang = VanillaResourcePack.resourcePack.language(locale.toKey()) ?: VanillaResourcePack.resourcePack.language(DEFAULT_LANG_KEY)
+        if (vanillaLang?.translation(component.key()) == translation) return component
 
-        return if (component.children().isNotEmpty()) translation.children(component.children()) else translation
+        return when {
+            component.children().isNotEmpty() -> translation.deserialize().children(component.children())
+            else -> translation.deserialize()
+        }
     }
 
     override fun name() = key

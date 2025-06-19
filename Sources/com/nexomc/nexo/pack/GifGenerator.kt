@@ -22,10 +22,15 @@ class GifGenerator(private val resourcePack: ResourcePack) {
         }
     }
 
-    private val path = "assets/minecraft/shaders/core/rendertype_text"
     private fun Overlay.writables(version: String) {
+        var path = "assets/minecraft/shaders/core/rendertype_text"
         unknownFile("$path.json", Writable.resource(classLoader, "gifs/$version/rendertype_text.json"))
         unknownFile("$path.vsh", Writable.resource(classLoader, "gifs/$version/rendertype_text.vsh"))
         unknownFile("$path.fsh", Writable.resource(classLoader, "gifs/$version/rendertype_text.fsh"))
+
+        path += "_see_through"
+        unknownFile("$path.json", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.json"))
+        unknownFile("$path.vsh", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.vsh"))
+        unknownFile("$path.fsh", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.fsh"))
     }
 }
