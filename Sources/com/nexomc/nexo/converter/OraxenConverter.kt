@@ -187,7 +187,9 @@ object OraxenConverter {
 
             runCatching {
                 itemNode.node("Pack").removeChild("generate_model")
-                itemNode.node("displayname").renameNode("itemname")
+                itemNode.node("displayname").renameNode("itemname")?.apply {
+                    if (AdventureUtils.containsLegacyCodes(string ?: "")) set(string?.deserialize()?.serialize())
+                }
                 itemNode.node("injectID").renameNode("injectId")
                 itemNode.node("trim_pattern")?.let { it.set(it.string?.replace("oraxen", "nexo")) }
                 itemNode.node("Components", "equippable", "model")?.let { it.set(it.string?.replace("oraxen", "nexo")) }

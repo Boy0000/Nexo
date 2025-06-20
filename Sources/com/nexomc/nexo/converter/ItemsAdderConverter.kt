@@ -96,7 +96,11 @@ object ItemsAdderConverter {
         val recipeNodes = mutableMapOf<String, List<ConfigurationNode>>()
         if (iaConverter.convertItems) configFiles.forEach { itemFile ->
             val iaLoader = YamlConfigurationLoader.builder().indent(2).nodeStyle(NodeStyle.BLOCK).file(itemFile).build()
-            val iaNode = iaLoader.load()
+            val iaNode = runCatching { iaLoader.load() }.getOrElse {
+                Logs.logError("Failed to load & convert ${itemFile.path}")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+                return@forEach
+            }
             val namespace = iaNode.node("info", "namespace").string
 
             val nexoItemFile = nexoFolder.resolve("items/itemsadder/$namespace/${itemFile.name}")
@@ -116,7 +120,9 @@ object ItemsAdderConverter {
                 }).also(registeredItemIds::add)
                 var nexoItem: ConfigurationNode = nexoItemNode.node(itemId)
 
-                iaItem.node("display_name").ifExists { nexoItem.node("itemname").set(AdventureUtils.parseLegacy(it.string!!))}
+                iaItem.node("display_name").ifExists {
+                    nexoItem.node("itemname").set(it.string?.deserialize()?.serialize())
+                }
                 nexoItem.node("material").set(iaItem.node("resource", "material").getString("PAPER"))
                 iaItem.node("lore").ifExists {
                     nexoItem.node("lore").set(it.stringListOrNull?.map(AdventureUtils::parseLegacy))
