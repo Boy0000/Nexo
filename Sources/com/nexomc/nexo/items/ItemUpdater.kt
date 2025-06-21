@@ -207,7 +207,7 @@ class ItemUpdater : Listener {
                 if (newMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = newMeta.attributeModifiers
                 else if (oldMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = oldMeta.attributeModifiers
 
-                if (itemMeta is Damageable && oldMeta is Damageable && oldMeta.hasDamage()) itemMeta.damage = oldMeta.damage
+                if (itemMeta is Damageable && oldMeta is Damageable && oldMeta.hasDamage()) itemMeta.damage = oldMeta.damage.coerceAtMost(itemMeta.maxDamage)
 
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true
 

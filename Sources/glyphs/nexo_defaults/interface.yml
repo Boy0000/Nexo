@@ -4,5 +4,5 @@ menu_items:
   height: 256
 brewing_stand_recipe_builder:
   texture: required/ui/brewing_stand_recipe_builder
-  ascent: 37
+  ascent: 13
   height: 256

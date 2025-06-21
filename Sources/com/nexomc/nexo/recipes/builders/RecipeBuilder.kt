@@ -66,7 +66,7 @@ abstract class RecipeBuilder(
 
     fun validSlot(slot: Int, slotType: InventoryType.SlotType): Boolean {
         return when (this) {
-            is ShapedBuilder, is ShapelessBuilder -> slotType == InventoryType.SlotType.RESULT
+            is ShapedBuilder, is ShapelessBuilder, is CookingBuilder -> slotType == InventoryType.SlotType.RESULT
             is BrewingBuilder -> slot != 4 && slot != 1 && (slotType == InventoryType.SlotType.FUEL || slotType == InventoryType.SlotType.CRAFTING)
             else -> false
         }

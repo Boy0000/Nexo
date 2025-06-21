@@ -50,7 +50,9 @@ object NexoConverter {
         val glyphConfig = NexoYaml.loadConfiguration(glyphFile)
         // Merge default glyphs with existing glyphs
         resourceContent.childSections().forEach { key, section ->
-            if (glyphConfig.get(key) == null) glyphConfig.set(key, section)
+            val char = glyphConfig.get("$key.char")
+            glyphConfig.set(key, section)
+            glyphConfig.set("$key.char", char)
         }
 
         glyphConfig.childSections().forEach { key, section ->

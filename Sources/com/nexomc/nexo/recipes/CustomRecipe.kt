@@ -7,7 +7,6 @@ import org.bukkit.inventory.Recipe
 import org.bukkit.inventory.ShapedRecipe
 import org.bukkit.inventory.ShapelessRecipe
 import org.bukkit.inventory.meta.LeatherArmorMeta
-import java.util.*
 
 class CustomRecipe(
     val name: String,
@@ -65,16 +64,12 @@ class CustomRecipe(
             when (bukkitRecipe) {
                 is ShapedRecipe -> {
                     val ingredients = ArrayList<ItemStack?>(9)
-                    for (row in bukkitRecipe.shape) {
-                        val chars = row.toCharArray()
-                        for (charIndex in 0..2) {
-                            if (charIndex >= chars.size) {
-                                ingredients.add(null)
-                                continue
-                            }
-                            ingredients.add(bukkitRecipe.ingredientMap[chars[charIndex]])
-                        }
+                    for (rowIndex in 0..2) {
+                        val row = bukkitRecipe.shape.getOrNull(rowIndex) ?: ""
+                        val chars = row.padEnd(3, '_')
+                        for (char in chars) ingredients.add(bukkitRecipe.ingredientMap[char])
                     }
+
                     return CustomRecipe(bukkitRecipe.key.key, bukkitRecipe.group, bukkitRecipe.result, ingredients, true)
                 }
 

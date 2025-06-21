@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack
 
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.metadata.overlays.OverlayEntry
+import team.unnamed.creative.metadata.overlays.OverlaysMeta
 import team.unnamed.creative.metadata.pack.PackFormat
 import team.unnamed.creative.overlay.Overlay
 
@@ -20,9 +21,12 @@ enum class NexoOverlay(val id: String, val format: Int) {
 
 object Overlays {
     fun addToResourcepack(resourcePack: ResourcePack) {
-        NexoOverlay.entries.forEach { resourcePack.overlay(it.overlay) }
         val entries = resourcePack.overlaysMeta()?.entries() ?: mutableListOf()
-        NexoOverlay.entries.forEach { entries += it.entry }
+        NexoOverlay.entries.forEach {
+            resourcePack.overlay(it.overlay)
+            entries += it.entry
+        }
+        resourcePack.overlaysMeta(OverlaysMeta.of(entries.distinctBy { it.directory() }))
     }
 }
 

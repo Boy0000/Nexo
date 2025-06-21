@@ -29,7 +29,7 @@ enum class Settings {
     FORMAT_BOSSBAR("Plugin.formatting.bossbar", PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled),
     FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
     FORMAT_ITEMS("Plugin.formatting.items", true),
-    FORMAT_BYTEBUF("Plugin.formatting.bytebuf", false),
+    FORMAT_PACKETEVENTS("Plugin.formatting.packetevents", true),
 
     // WorldEdit
     FAWE_HOOK("WorldEdit.fawe_hook", false),

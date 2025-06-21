@@ -22,8 +22,14 @@ class RecipeBuilderEvents : Listener {
 
         isCancelled = true
         val (currentResult, currentCursor) = (currentItem ?: empty).clone() to cursor.clone()
-        currentItem = currentCursor
-        setCursor(currentResult)
+
+        if (isLeftClick)  {
+            currentItem = currentCursor
+            setCursor(currentResult)
+        } else if (isRightClick) {
+            currentItem = currentCursor.clone().apply { amount = 1 }
+            setCursor(currentCursor.subtract(1))
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
