@@ -15,6 +15,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
 
+fun Component.serializeStrict(): String = AdventureUtils.STRICT_MINI_MESSAGE.serialize(this)
 fun Component.serialize(): String = AdventureUtils.MINI_MESSAGE.serialize(this)
 fun String.deserialize(): Component  = AdventureUtils.MINI_MESSAGE.deserialize(when {
     AdventureUtils.containsLegacyCodes(this) -> AdventureUtils.parseLegacy(this)
@@ -37,6 +38,7 @@ object AdventureUtils {
 
     @JvmField
     val STANDARD_MINI_MESSAGE = MiniMessage.miniMessage()
+    val STRICT_MINI_MESSAGE = MiniMessage.builder().strict(true).build()
 
     private val NexoTagResolver get() = TagResolver.resolver(
         TagResolver.standard(),

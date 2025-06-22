@@ -1,10 +1,15 @@
 package com.nexomc.nexo.fonts
 
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.glyphs.Glyph
 import com.nexomc.nexo.nms.GlyphHandlers
 import com.nexomc.nexo.nms.NMSHandlers
+import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.event.player.AsyncChatCommandDecorateEvent
 import io.papermc.paper.event.player.AsyncChatDecorateEvent
+import me.neznamy.tab.api.TabAPI
+import me.neznamy.tab.api.event.player.PlayerLoadEvent
+import me.neznamy.tab.api.event.plugin.TabLoadEvent
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -13,6 +18,8 @@ import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.persistence.PersistentDataContainer
 import org.bukkit.persistence.PersistentDataType
+import team.unnamed.creative.font.Font
+
 
 class FontListener(private val manager: FontManager) : Listener {
 
