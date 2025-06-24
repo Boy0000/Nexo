@@ -8,7 +8,7 @@ import org.bukkit.configuration.ConfigurationSection
 class BlockLockerMechanic(section: ConfigurationSection) {
     val canProtect: Boolean = section.getBoolean("can_protect", true)
     val protectionType: ProtectionType =
-        section.getString("protection_type")?.toEnumOrElse(ProtectionType::class.java) {
+        section.getString("protection_type")?.toEnumOrElse<ProtectionType> {
             Logs.logError("Invalid protection type $it for BlockLocker mechanic in item ${section.parent?.parent.toString()}, defaulting to CONTAINER")
             ProtectionType.CONTAINER
         } ?: ProtectionType.CONTAINER

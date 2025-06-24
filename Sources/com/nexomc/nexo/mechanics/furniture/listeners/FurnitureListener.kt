@@ -219,8 +219,8 @@ class FurnitureListener : Listener {
     }
     @EventHandler
     fun EntityAddToWorldEvent.onInvalidFurniture() {
-        val baseEntity = entity as? ItemDisplay ?: return
-        if (!entity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY) || NexoFurniture.isFurniture(entity)) return
+        val baseEntity = (entity as? ItemDisplay)?.takeIf { it.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY) } ?: return
+        if (NexoFurniture.isFurniture(baseEntity)) return baseEntity.setItemStack(baseEntity.itemStack.takeUnless { it.isSimilar(ERROR_ITEM) })
 
         if (Settings.REMOVE_INVALID_FURNITURE.toBool()) entity.remove()
         else baseEntity.setItemStack(ERROR_ITEM)
@@ -230,10 +230,7 @@ class FurnitureListener : Listener {
     fun NexoItemsLoadedEvent.onInvalidFurniture() {
         SchedulerUtils.runAtWorldEntities<ItemDisplay> { baseEntity ->
             if (!baseEntity.persistentDataContainer.has(FurnitureMechanic.FURNITURE_KEY)) return@runAtWorldEntities
-            if (NexoFurniture.isFurniture(baseEntity)) {
-                if (baseEntity.itemStack.isSimilar(ERROR_ITEM)) baseEntity.setItemStack(null)
-                return@runAtWorldEntities
-            }
+            if (NexoFurniture.isFurniture(baseEntity)) return@runAtWorldEntities baseEntity.setItemStack(baseEntity.itemStack.takeUnless { it.isSimilar(ERROR_ITEM) })
 
             if (Settings.REMOVE_INVALID_FURNITURE.toBool()) baseEntity.remove()
             else baseEntity.setItemStack(ERROR_ITEM)

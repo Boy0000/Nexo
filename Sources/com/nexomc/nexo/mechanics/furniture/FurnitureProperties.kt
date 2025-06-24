@@ -43,7 +43,7 @@ class FurnitureProperties(
                     displayWidth = configSection.getDouble("display_width", 0.0).toFloat(),
         displayHeight = configSection.getDouble("display_height", 0.0).toFloat(),
 
-        displayTransform = configSection.getString("display_transform")?.toEnumOrElse(ItemDisplayTransform::class.java) { transform ->
+        displayTransform = configSection.getString("display_transform")?.toEnumOrElse<ItemDisplayTransform> { transform ->
             val itemID = configSection.rootId
             Logs.logError("Use of illegal ItemDisplayTransform <i>$transform</i> in furniture <gold>$itemID")
             Logs.logWarn("Allowed ones are: <gold>${ItemDisplayTransform.entries.joinToString { it.name }}")
@@ -55,7 +55,7 @@ class FurnitureProperties(
         leftRotation = configSection.getString("left_rotation")?.let { quaternionfFromString(it, 0f) } ?: Quaternionf(),
         rightRotation = configSection.getString("right_rotation")?.let { quaternionfFromString(it, 0f) } ?: Quaternionf(),
 
-        trackingRotation = configSection.getString("tracking_rotation")?.toEnumOrElse(Billboard::class.java) { tracking ->
+        trackingRotation = configSection.getString("tracking_rotation")?.toEnumOrElse<Billboard> { tracking ->
             val itemID = configSection.rootId
             Logs.logError("Use of illegal tracking-rotation $tracking in $itemID furniture.")
             Logs.logError("Allowed ones are: ${Billboard.entries.joinToString { it.name }}")

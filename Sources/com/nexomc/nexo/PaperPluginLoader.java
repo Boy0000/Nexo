@@ -25,7 +25,7 @@ public class PaperPluginLoader implements PluginLoader {
     public static boolean usedPaperPluginLoader = false;
     private static final List<String> libraries = new ArrayList<>();
 
-    private static final String COMMAND_API_VERSION = "10.0.1";
+    private static final String COMMAND_API_VERSION = "10.1.0";
 
     private static final List<Repo> repositories = List.of(
         new Repo("central", "https://repo1.maven.org/maven2/"),

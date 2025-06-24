@@ -57,7 +57,7 @@ class FurniturePacketListener : Listener {
             packetManager.sendHitboxEntityPacket(itemDisplay, mechanic, player)
             packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
             packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
-        }, 2L)
+        }, 4L)
     }
 
     @EventHandler

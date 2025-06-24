@@ -51,6 +51,7 @@ fun String.toColor(): Color? {
                     else -> null
                 }
             }
+            this.toIntOrNull() != null -> Color.fromRGB(this.toInt())
             else -> NamedTextColor.NAMES.value(this)?.value()?.let(Color::fromRGB)
         }
     }.printOnFailure(true).getOrNull()

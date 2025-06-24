@@ -25,7 +25,6 @@ object CommandsManager {
             dropItemCommand()
             giveItemCommand()
             dumpLogCommand()
-            convertCommand()
             dyeCommand()
 
             anyExecutor { sender, _ ->
