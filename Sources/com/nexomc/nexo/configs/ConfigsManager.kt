@@ -26,6 +26,7 @@ import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.rename
 import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import net.kyori.adventure.key.Key
@@ -237,14 +238,16 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
         val config = NexoYaml.loadConfiguration(itemFile)
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
+        var configUpdated = false
 
+        val copy = YamlConfiguration().also { NexoYaml.copyConfigurationSection(config, it) }
         NexoConverter.processItemConfigs(config)
+        if (!NexoYaml.equals(copy, config)) configUpdated = true
 
         config.childSections().forEach { itemId, section ->
             if (!ItemTemplate.isTemplate(itemId)) parseMap[itemId] = ItemParser(section)
         }
 
-        var configUpdated = false
         val map = Object2ObjectLinkedOpenHashMap<String, ItemBuilder>()
         parseMap.forEach { (itemId, itemParser) ->
             map[itemId] = runCatching {
@@ -260,14 +263,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         if (configUpdated) {
             config.childSections().forEach { _, section ->
                 when {
-                    VersionUtil.atleast("1.20.5") -> section.getString("displayname")?.also {
-                        section.set("itemname", it)
-                        section.set("displayname", null)
-                    }
-                    else -> section.getString("itemname")?.also {
-                        section.set("displayname", it)
-                        section.set("itemname", null)
-                    }
+                    VersionUtil.atleast("1.20.5") -> section.rename("displayname", "itemname")
+                    else -> section.rename("itemname", "dispayname")
                 }
                 section.getMapList("AttributeModifiers").takeUnless { it.isEmpty() }?.map {
                     it.remove("key")

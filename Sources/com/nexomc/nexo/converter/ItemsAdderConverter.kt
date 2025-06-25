@@ -20,7 +20,6 @@ import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.NodePath
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
-import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -59,11 +58,11 @@ object ItemsAdderConverter {
             iaFolder.resolve("data", "resource_pack").takeIf { it.exists() }?.copyRecursively(nexoIaPack, true)
 
             // ItemsAdder/contents/(resourcepack|resource_pack)/[assets]
-            iaFolder.resolve("contents").listDirectories().mapNotNull {
-                it.resolve("resourcepack").takeIf(File::exists) ?: it.resolve("resource_pack").takeIf(File::exists)
+            iaFolder.resolve("contents").listDirectories().flatMapFastNotNull {
+                listOf(it.resolve("resourcepack"), it.resolve("resource_pack"))
             }.forEach { resourcePack ->
                 val target = nexoIaPack.takeIf { resourcePack.resolve("assets").exists() } ?: nexoIaPack.resolve("assets")
-                resourcePack.copyRecursively(target, true)
+                if (resourcePack.exists()) resourcePack.copyRecursively(target, true)
             }
 
             // ItemsAdder/contents/namespace/(assets/)(textures/models)...

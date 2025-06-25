@@ -40,24 +40,22 @@ object NexoItems {
 
         // Mutate existing maps instead of reassigning
         itemMap.clear()
-        itemMap.putAll(NexoPlugin.instance().configsManager().parseItemConfig())
+        itemMap += NexoPlugin.instance().configsManager().parseItemConfig()
 
         itemNames.clear()
-        itemNames.addAll(itemMap.values.asSequence().flatMap { it.keys.asSequence() })
+        itemNames += itemMap.values.asSequence().flatMap { it.keys.asSequence() }
 
         items.clear()
-        items.addAll(itemMap.values.asSequence().flatMap { it.values.asSequence() })
+        items += itemMap.values.asSequence().flatMap { it.values.asSequence() }
 
         entries.clear()
-        entries.putAll(itemMap.values.asSequence().flatMap { it.entries.asSequence() }.associate { it.key to it.value })
+        entries += itemMap.values.asSequence().flatMap { it.entries.asSequence() }.associate { it.key to it.value }
 
         unexcludedItems.clear()
-        unexcludedItems.putAll(
-            itemMap.asSequence().mapNotNull { (file, map) ->
-                val filtered = map.values.filterFast { it.nexoMeta?.excludedFromInventory == false }
-                if (filtered.isNotEmpty()) file to ObjectArrayList(filtered) else null
-            }
-        )
+        unexcludedItems += itemMap.asSequence().mapNotNull { (file, map) ->
+            val filtered = map.values.filterFast { it.nexoMeta?.excludedFromInventory == false }
+            if (filtered.isNotEmpty()) file to filtered else null
+        }
 
         ensureComponentDataHandled()
 

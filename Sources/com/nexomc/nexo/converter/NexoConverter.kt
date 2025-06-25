@@ -2,11 +2,8 @@ package com.nexomc.nexo.converter
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.NexoYaml
-import com.nexomc.nexo.utils.childSections
-import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.rename
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
@@ -19,6 +16,9 @@ object NexoConverter {
             val furnitureSection = section.getConfigurationSection("Mechanics.furniture") ?: return@forEach
 
             runCatching {
+                furnitureSection.rename("display_entity_properties", "properties")
+                furnitureSection.rename("hitbox.barrierHitboxes", "hitbox.barriers")
+                furnitureSection.remove("type")
                 furnitureSection.getStringListOrNull("lights")?.apply {
                     furnitureSection.set("lights", null)
                     furnitureSection.set("lights.lights", this)

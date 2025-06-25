@@ -106,7 +106,11 @@ fun ConfigurationSection.getVector2f(key: String): Vector2f {
 
 fun ConfigurationSection.rename(oldKey: String, newKey: String): ConfigurationSection {
     val old = get(oldKey) ?: return this
-    set(newKey, old)
+    if (old is ConfigurationSection) {
+        val target = getConfigurationSection(newKey) ?: YamlConfiguration()
+        NexoYaml.copyConfigurationSection(old, target)
+        set(newKey, target)
+    } else set(newKey, old)
     set(oldKey, null)
     return this
 }
@@ -166,6 +170,29 @@ class NexoYaml : YamlConfiguration() {
                     copyConfigurationSection(sourceValue, targetSection)
                 } else target[key] = sourceValue
             }
+        }
+
+        fun equals(first: ConfigurationSection, second: ConfigurationSection): Boolean {
+            // Check if both sections have the same set of keys
+            val firstKeys = first.getKeys(false)
+            val secondKeys = second.getKeys(false)
+            if (firstKeys != secondKeys) return false
+
+            // Compare each key-value pair
+            for (key in firstKeys) {
+                val firstValue = first.get(key)
+                val secondValue = second.get(key)
+
+                // Check if both values are ConfigurationSections
+                when {
+                    firstValue is ConfigurationSection && secondValue is ConfigurationSection ->
+                        if (!equals(firstValue, secondValue)) return false
+                    firstValue is ConfigurationSection || secondValue is ConfigurationSection -> return false
+                    else -> if (firstValue != secondValue) return false
+                }
+            }
+
+            return true
         }
     }
 }
