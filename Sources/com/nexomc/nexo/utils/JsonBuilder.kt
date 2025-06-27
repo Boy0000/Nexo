@@ -1,5 +1,6 @@
 package com.nexomc.nexo.utils
 
+import com.google.gson.JsonNull
 import com.google.gson.JsonParser
 import team.unnamed.creative.base.Writable
 
@@ -22,6 +23,11 @@ object JsonBuilder {
     fun JsonObject.array(key: String): JsonArray? = runCatching { this.getAsJsonArray(key) }.getOrNull()
     fun JsonArray.objects(): List<JsonObject> = this.asJsonArray.asList().filterIsInstance<JsonObject>()
 
+    fun JsonObject.minus(string: String): JsonObject {
+        this.remove(string)
+        return this
+    }
+
     fun JsonObject.plus(string: String, any: Any?) = apply {
         when (any) {
             is Boolean -> addProperty(string, any)
@@ -31,20 +37,23 @@ object JsonBuilder {
             is JsonElement -> add(string, any)
         }
     }
+
     fun List<JsonElement>.toJsonArray(): JsonArray = JsonArray().apply {
         this@toJsonArray.forEach {
             add(it)
         }
     }
-    fun JsonArray.plus(any: Any) = apply {
+
+    fun JsonArray.plus(any: Any?): JsonArray = apply {
         when (any) {
+            null -> add(JsonNull.INSTANCE)
             is Boolean -> add(any)
             is Number -> add(any)
             is String -> add(any)
             is Char -> add(any)
             is JsonArray -> addAll(any)
             is JsonElement -> add(any)
-            is Collection<*> -> any.forEach { this@plus.plus(it) }
+            is Collection<*> -> any.forEach { element: Any? -> this.plus(element) }
         }
     }
 }

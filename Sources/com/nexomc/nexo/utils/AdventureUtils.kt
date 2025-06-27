@@ -21,6 +21,13 @@ fun String.deserialize(): Component  = AdventureUtils.MINI_MESSAGE.deserialize(w
     AdventureUtils.containsLegacyCodes(this) -> AdventureUtils.parseLegacy(this)
     else -> this
 })
+fun Component.toSimpleString(): String {
+    return this.toString().replace(Regex(", (obfuscated|bold|strikethrough|underlined|italic)=not_set"), "")
+        .replace(Regex(", (color|shadowColor|clickEvent|hoverEvent|insertion|font)=null"), "")
+        .replace(Regex("StyleImpl\\{(\\s*)}"), "{}")
+        .replace(Regex(",\\s*}"), "}")
+        .replace(Regex(", children=\\[]"), "")
+}
 
 object AdventureUtils {
 

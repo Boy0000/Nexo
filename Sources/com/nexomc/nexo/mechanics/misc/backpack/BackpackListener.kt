@@ -22,6 +22,7 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
+import org.bukkit.event.player.PlayerDropItemEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerSwapHandItemsEvent
@@ -33,6 +34,11 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
     @EventHandler(priority = EventPriority.MONITOR)
     fun BlockPlaceEvent.onBlockPlace() {
         if (isBackpack(player.inventory.itemInMainHand)) isCancelled = true
+    }
+
+    @EventHandler
+    fun PlayerDropItemEvent.onDrop() {
+        if (isBackpack(itemDrop.itemStack)) closeBackpack(player)
     }
 
     @EventHandler

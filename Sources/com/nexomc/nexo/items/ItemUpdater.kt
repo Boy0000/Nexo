@@ -207,7 +207,7 @@ class ItemUpdater : Listener {
                 if (newMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = newMeta.attributeModifiers
                 else if (oldMeta.hasAttributeModifiers()) itemMeta.attributeModifiers = oldMeta.attributeModifiers
 
-                val maxDamage = (itemMeta as? Damageable)?.takeIf { it.hasMaxDamage() }?.maxDamage ?: newItem.type.maxDurability.toInt()
+                val maxDamage = (itemMeta as? Damageable)?.takeIf { VersionUtil.atleast("1.20.6") && it.hasMaxDamage() }?.maxDamage ?: newItem.type.maxDurability.toInt()
                 if (itemMeta is Damageable && oldMeta is Damageable && oldMeta.hasDamage()) itemMeta.damage = oldMeta.damage.coerceAtMost(maxDamage)
 
                 if (oldMeta.isUnbreakable) itemMeta.isUnbreakable = true

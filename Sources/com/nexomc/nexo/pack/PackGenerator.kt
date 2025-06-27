@@ -27,6 +27,7 @@ import com.nexomc.nexo.utils.customarmor.TrimsCustomArmor
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayableDatapack
 import com.nexomc.nexo.utils.logs.Logs
 import com.ticxo.modelengine.api.ModelEngineAPI
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.BuiltResourcePack
@@ -319,8 +320,7 @@ class PackGenerator {
         resourcePack.languages().toList().forEach { language ->
             LinkedHashSet<Map.Entry<String, String>>(language.translations().entries).forEach { (key, value) ->
                 language.translations()[key] = when {
-                    key.startsWith("menu.") -> parseLegacyThroughMiniMessage(value)
-                    AdventureUtils.containsLegacyCodes(value) -> parseLegacyThroughMiniMessage(value)
+                    key in escapeMenuLangKeys -> parseLegacyThroughMiniMessage(value)
                     else -> value
                 }
                 language.translations().remove("DO_NOT_ALTER_THIS_LINE")
@@ -328,12 +328,16 @@ class PackGenerator {
             resourcePack.language(language)
         }
     }
+    private val escapeMenuLangKeys = ObjectArrayList.of(
+        "menu.game", "menu.disconnect", "menu.feedback", "menu.options", "menu.playerReporting",
+        "menu.reportBugs", "menu.returnToGame", "menu.sendFeedback", "gui.stats", "gui.advancements", "modmenu.title"
+    )
 
     private fun parseGlobalLanguage() {
         val globalLanguage = resourcePack.language(Key.key("global")) ?: return
         Logs.logInfo("Converting global lang file to individual language files...")
 
-        VanillaResourcePack.resourcePack.languages().mapTo(LinkedHashSet()) { it.key() }.forEach { langKey ->
+        VanillaResourcePack.vanillaLangKeys.forEach { langKey ->
             val language = resourcePack.language(langKey) ?: Language.language(langKey, mapOf())
             val newTranslations = LinkedHashMap(language.translations())
 
