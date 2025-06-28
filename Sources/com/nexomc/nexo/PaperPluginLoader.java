@@ -1,13 +1,9 @@
 package com.nexomc.nexo;
 
-import io.netty.handler.codec.compression.Snappy;
 import io.papermc.paper.plugin.loader.PluginClasspathBuilder;
 import io.papermc.paper.plugin.loader.PluginLoader;
 import io.papermc.paper.plugin.loader.library.impl.JarLibrary;
 import io.papermc.paper.plugin.loader.library.impl.MavenLibraryResolver;
-import net.byteflux.libby.Library;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -18,7 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.eclipse.aether.repository.RepositoryPolicy.*;
+import static org.eclipse.aether.repository.RepositoryPolicy.CHECKSUM_POLICY_IGNORE;
+import static org.eclipse.aether.repository.RepositoryPolicy.UPDATE_POLICY_ALWAYS;
 
 public class PaperPluginLoader implements PluginLoader {
 
@@ -28,11 +25,24 @@ public class PaperPluginLoader implements PluginLoader {
     private static final String COMMAND_API_VERSION = "10.1.0";
 
     private static final List<Repo> repositories = List.of(
-        new Repo("central", "https://repo1.maven.org/maven2/"),
+        new Repo("central", getDefaultMavenCentralMirror()),
         new Repo("nexomc-release", "https://repo.nexomc.com/releases"),
         new Repo("nexomc-snapshot", "https://repo.nexomc.com/snapshots"),
         new Repo("paper", "https://repo.papermc.io/repository/maven-public/")
     );
+
+    private static String getDefaultMavenCentralMirror() {
+        String central = System.getenv("PAPER_DEFAULT_CENTRAL_REPOSITORY");
+        if (central == null) {
+            central = System.getProperty("org.bukkit.plugin.java.LibraryLoader.centralURL");
+        }
+
+        if (central == null) {
+            central = "https://maven-central.storage-download.googleapis.com/maven2";
+        }
+
+        return central;
+    }
 
     static {
         libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1");
@@ -61,14 +71,12 @@ public class PaperPluginLoader implements PluginLoader {
 
     @Override
     public void classloader(PluginClasspathBuilder classpathBuilder) {
-        System.out.println("<red>PaperPluginLoader.classloader");
         File nexoLibs = Arrays.stream(classpathBuilder.getContext().getPluginSource().getParent().toFile().listFiles())
                 .filter(f -> f.getName().matches("NexoLibs-.*.lib")).findFirst().orElse(null);
 
         if (nexoLibs != null) try {
             classpathBuilder.addLibrary(new JarLibrary(nexoLibs.toPath()));
             usedPaperPluginLoader = true;
-            System.out.println("<red>PaperPluginLoader.classloader");
             return;
         } catch (Exception e) {
             e.printStackTrace();

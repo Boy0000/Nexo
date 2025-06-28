@@ -11,6 +11,10 @@ fun <T> Result<T>.printOnFailure(debugOnly: Boolean = false): Result<T> {
     return this
 }
 
+inline fun <T> T.applyIf(condition: Boolean, transform: T.() -> T): T =
+    if (condition) transform() else this
+
+
 inline fun <reified T> Collection<T>.indexOfOrNull(element: T): Int? {
     return indexOf(element).takeIf { it >= 0 }
 }
