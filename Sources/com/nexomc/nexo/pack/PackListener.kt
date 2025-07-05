@@ -15,6 +15,8 @@ class PackListener : Listener {
         // If both are false, return early
         if (!Settings.PACK_SEND_ON_JOIN.toBool() && !Settings.PACK_SEND_PRE_JOIN.toBool()) return
 
+        if (Settings.PACK_SEND_PRE_JOIN.toBool() && VersionUtil.atleast("1.21.7")) return
+
         // If on-join is false and pre-join is true, check sub-conditions
         if (!Settings.PACK_SEND_ON_JOIN.toBool() && Settings.PACK_SEND_PRE_JOIN.toBool()) {
             if (VersionUtil.atleast("1.21") && player.hasResourcePack()) return

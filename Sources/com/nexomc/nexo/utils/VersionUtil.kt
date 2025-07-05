@@ -9,6 +9,7 @@ object VersionUtil {
     private val versionMap = Object2ObjectOpenHashMap<NMSVersion, Array<MinecraftVersion>>()
 
     init {
+        versionMap[NMSVersion.v1_21_R6] = arrayOf(MinecraftVersion("1.21.7"))
         versionMap[NMSVersion.v1_21_R5] = arrayOf(MinecraftVersion("1.21.6"))
         versionMap[NMSVersion.v1_21_R4] = arrayOf(MinecraftVersion("1.21.5"))
         versionMap[NMSVersion.v1_21_R3] = arrayOf(MinecraftVersion("1.21.4"))
@@ -51,7 +52,7 @@ object VersionUtil {
         }
 
     enum class NMSVersion {
-        v1_21_R5, v1_21_R4, v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;
+        v1_21_R6, v1_21_R5, v1_21_R4, v1_21_R3, v1_21_R2, v1_21_R1, v1_20_R4, v1_20_R3, UNKNOWN;
     }
 
     fun matchesServer(version: NMSVersion) =

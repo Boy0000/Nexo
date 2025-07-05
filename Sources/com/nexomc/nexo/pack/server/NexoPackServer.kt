@@ -4,6 +4,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.PackListener
 import com.nexomc.nexo.utils.logs.Logs
+import io.papermc.paper.connection.PlayerConfigurationConnection
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
 import org.bukkit.Bukkit
@@ -18,6 +19,20 @@ interface NexoPackServer {
 
     fun uploadPack(): CompletableFuture<Void> {
         return CompletableFuture.allOf(NexoPlugin.instance().packGenerator().packGenFuture)
+    }
+
+    fun sendPack(connection: Any, reconfigure: Boolean) {
+        val connection = connection as? PlayerConfigurationConnection ?: return
+        val future = if (reconfigure) null else CompletableFuture<Void>()
+        val info = NexoPlugin.instance().packServer().packInfo() ?: return
+        val request = ResourcePackRequest.resourcePackRequest()
+            .required(mandatory).replace(true).prompt(prompt)
+            .packs(info).callback { uuid, status, audience ->
+                if (!status.intermediate()) future?.complete(null) ?: connection.completeReconfiguration()
+            }.build()
+
+        connection.audience.sendResourcePacks(request)
+        future?.join()
     }
 
     fun sendPack(player: Player) {

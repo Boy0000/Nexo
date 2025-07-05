@@ -20,7 +20,7 @@ class SoundAction(meta: ActionMeta<Player?>) : Action<Player>(meta) {
         runCatching {
             val sound = Sound.sound(Key.key(parsed), source, volume, pitch)
             if (self) player.playSound(sound)
-            else player.playSound(sound, player.x, player.y, player.z)
+            else player.world.playSound(sound, player.x, player.y, player.z)
         }.printOnFailure()
     }
 

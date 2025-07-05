@@ -15,7 +15,7 @@ object GlyphTag {
     val RESOLVER = TagResolver.resolver(mutableSetOf(GLYPH, GLYPH_SHORT)) { args, ctx -> glyphTag(null, args) }
 
     fun containsTag(string: String): Boolean {
-        return string.contains("<$GLYPH:") || string.contains("<$GLYPH_SHORT:>")
+        return string.contains("<$GLYPH:") || string.contains("<$GLYPH_SHORT:")
     }
 
     fun getResolverForPlayer(player: Player?): TagResolver {
