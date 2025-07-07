@@ -31,6 +31,6 @@ object ShiftTag {
     }
 
     fun containsTag(string: String): Boolean {
-        return string.contains("<$SHIFT:") || string.contains("<$SHIFT_SHORT:>")
+        return string.contains("<$SHIFT:") || string.contains("<$SHIFT_SHORT:")
     }
 }

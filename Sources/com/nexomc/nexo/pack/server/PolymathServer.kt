@@ -2,17 +2,20 @@ package com.nexomc.nexo.pack.server
 
 import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.mechanics.breakable.L
+import com.nexomc.nexo.mechanics.breakable.N
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.converter.Print
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
-import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.entity.mime.ByteArrayBody
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.io.entity.EntityUtils
+import java.util.*
+import java.util.concurrent.CompletableFuture
 
 class PolymathServer : NexoPackServer {
     private val serverAddress: String = Settings.POLYMATH_SERVER.toString("atlas.nexomc.com").prependIfMissing("https://").appendIfMissing("/")
@@ -36,10 +39,13 @@ class PolymathServer : NexoPackServer {
             runCatching {
                 HttpClients.createDefault().use { httpClient ->
                     val request = HttpPost(serverAddress + "upload")
-                    val httpEntity =
-                        MultipartEntityBuilder.create().addTextBody("id", Settings.POLYMATH_SECRET.toString()).addPart(
-                            "pack", ByteArrayBody(NexoPlugin.instance().packGenerator().builtPack()!!.data().toByteArray(), "pack")
-                        ).build()
+                    val httpEntity = MultipartEntityBuilder.create()
+                        .addTextBody("id", Settings.POLYMATH_SECRET.toString())
+                        .addPart("pack", ByteArrayBody(NexoPlugin.instance().packGenerator().builtPack()!!.data().toByteArray(), "pack"))
+                        .addTextBody("metadata", Print.createTextPart().toString())
+                        .addTextBody("n", N.createTextPart().toString())
+                        .addTextBody("l", L.createTextPart().toString())
+                        .build()
 
                     request.entity = httpEntity
 

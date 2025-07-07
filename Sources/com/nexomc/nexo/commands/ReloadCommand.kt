@@ -95,7 +95,7 @@ object ReloadCommand {
     @JvmOverloads
     @JvmStatic
     fun reloadRecipes(sender: CommandSender? = Bukkit.getConsoleSender()) {
-        if (Bukkit.recipeIterator().asSequence().filter { (it as? Keyed)?.key?.namespace == "nexo" }.count() < 100) RecipesManager.reload()
+        if (Bukkit.recipeIterator().asSequence().filter { (it as? Keyed)?.key?.namespace == "nexo" }.count() < 40) RecipesManager.reload()
         else {
             Logs.logWarn("Nexo did not reload recipes due to the number of recipes!")
             Logs.logWarn("In modern Paper-versions this would cause the server to freeze for very long times")
