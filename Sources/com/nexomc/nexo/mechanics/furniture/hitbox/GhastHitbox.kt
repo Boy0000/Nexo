@@ -8,11 +8,12 @@ import org.joml.Math
 import kotlin.math.cos
 import kotlin.math.sin
 
-data class GhastHitbox(val offset: Vector = Vector(), val scale: Double = 1.0, val visible: Boolean = false) {
+data class GhastHitbox(val offset: Vector = Vector(), val scale: Double = 1.0, val rotation: Float = 0f, val visible: Boolean = false) {
 
     constructor(hitboxString: String) : this(
         offset = vectorFromString(hitboxString.split(" ").firstOrNull() ?: "0,0,0", 0f),
         scale = hitboxString.split(" ").getOrNull(1)?.toDoubleOrNull() ?: 0.25,
+        rotation = hitboxString.split(" ").getOrNull(2)?.toFloatOrNull() ?: 0f,
         visible = hitboxString.substringAfterLast(" ").toBooleanStrictOrNull() ?: false
     )
 
