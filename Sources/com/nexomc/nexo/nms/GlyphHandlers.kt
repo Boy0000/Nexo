@@ -55,7 +55,7 @@ object GlyphHandlers {
         // Replace raw unicode usage of non-permitted Glyphs with random font
         // This will always show a white square
         NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            if (!glyph.hasPermission(player)) return@forEach
+            if (glyph.hasPermission(player)) return@forEach
             component = component.replaceText(glyph.escapeTagConfig)
         }
 
