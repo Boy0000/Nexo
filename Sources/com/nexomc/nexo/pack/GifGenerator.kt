@@ -18,19 +18,25 @@ class GifGenerator(private val resourcePack: ResourcePack) {
         if (Settings.GENERATE_GIF_SHADERS.toBool()) {
             NexoOverlay.V1_21_1.overlay.writables("v1_21_1")
             NexoOverlay.V1_21_3.overlay.writables("v1_21_3")
+            NexoOverlay.V1_21_4.overlay.writables("v1_21_3")
+            NexoOverlay.V1_21_5.overlay.writables("v1_21_3")
             NexoOverlay.V1_21_6.overlay.writables("v1_21_6")
         }
     }
 
     private fun Overlay.writables(version: String) {
-        var path = "assets/minecraft/shaders/core/rendertype_text"
-        unknownFile("$path.json", Writable.resource(classLoader, "gifs/$version/rendertype_text.json"))
-        unknownFile("$path.vsh", Writable.resource(classLoader, "gifs/$version/rendertype_text.vsh"))
-        unknownFile("$path.fsh", Writable.resource(classLoader, "gifs/$version/rendertype_text.fsh"))
+        val basePath = "assets/minecraft/shaders/core"
+        val baseName = "shaders/gifs/$version"
 
-        path += "_see_through"
-        unknownFile("$path.json", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.json"))
-        unknownFile("$path.vsh", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.vsh"))
-        unknownFile("$path.fsh", Writable.resource(classLoader, "gifs/$version/rendertype_text_see_through.fsh"))
+        fun writeShaderFiles(suffix: String) {
+            val fullPath = "$basePath/$suffix"
+            val fullName = "$baseName/$suffix"
+            listOf("json", "vsh", "fsh").forEach { ext ->
+                unknownFile("$fullPath.$ext", Writable.resource(classLoader, "$fullName.$ext"))
+            }
+        }
+
+        writeShaderFiles("rendertype_text")
+        writeShaderFiles("rendertype_text_see_through")
     }
 }

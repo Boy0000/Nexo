@@ -38,12 +38,12 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
     @EventHandler
     fun PlayerDropItemEvent.onDrop() {
-        if (isBackpack(itemDrop.itemStack)) closeBackpack(player)
+        closeBackpack(player, true)
     }
 
     @EventHandler
     fun PlayerQuitEvent.onPlayerDisconnect() {
-        closeBackpack(player)
+        closeBackpack(player, true)
     }
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -129,9 +129,9 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
         createGUI(mechanic, itemInHand)?.open(player)
     }
 
-    private fun closeBackpack(player: Player) {
+    private fun closeBackpack(player: Player, force: Boolean = false) {
         val holder = topInventoryForPlayer(player).holder
-        if (!isBackpack(player.inventory.itemInMainHand)) return
+        if (!force && !isBackpack(player.inventory.itemInMainHand)) return
         if (holder is StorageGui) holder.close(player, true)
     }
 }

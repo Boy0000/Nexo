@@ -16,7 +16,15 @@ enum class NexoOverlay(val id: String, val format: Int) {
     V1_21_6("nexo_1_21_6", 63);
 
     val overlay: Overlay = Overlay.overlay(id)
-    val entry: OverlayEntry = OverlayEntry.of(PackFormat.format(format, format, 99), id)
+    val entry: OverlayEntry by lazy {
+        OverlayEntry.of(
+            PackFormat.format(
+                format,
+                format,
+                NexoOverlay.entries.elementAtOrNull(NexoOverlay.entries.indexOf(this) + 1)?.format?.minus(1) ?: 99
+            ), id
+        )
+    }
 }
 
 object Overlays {

@@ -18,9 +18,9 @@ class FurnitureBreakListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockDamageEvent.onDamageFurniture() {
-        if (VersionUtil.below("1.20.5")) isCancelled = true
         val baseEntity = NexoFurniture.baseEntity(block) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.breakable.hardness == 0.0 } ?: return
+        if (VersionUtil.below("1.20.5")) isCancelled = true
         if (player.gameMode == GameMode.CREATIVE) return
 
         FurnitureBreakerManager.startFurnitureBreak(player, baseEntity, mechanic, block)

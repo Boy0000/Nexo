@@ -233,7 +233,14 @@ class PackGenerator {
 
     private fun handleScoreboardTablist() {
         if (!Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() && !Settings.HIDE_TABLIST_BACKGROUND.toBool()) return
-        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_gui.vsh", ScoreboardBackground.modernFile())
+
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_20_4, "rendertype_gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_20_6, "rendertype_gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_1, "rendertype_gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_3, "gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_4, "gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_5, "gui")
+        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_6, "gui")
     }
 
     private fun importRequiredPack() {
