@@ -119,7 +119,7 @@ class FurnitureListener : Listener {
 
     @EventHandler
     fun PlayerInteractEvent.onPlaceAgainstFurniture() {
-        val block = clickedBlock ?: return
+        val block = interactionPoint?.block ?: clickedBlock ?: return
         val itemStack = item?.takeUnless { VersionUtil.atleast("1.21.2") && player.hasCooldown(it) } ?: return
         val (isItemFrame, isArmorStand, isPainting) = with(itemStack.type) {
             ("ITEM_FRAME" in name) to ("ARMOR_STAND" in name) to ("PAINTING" in name)

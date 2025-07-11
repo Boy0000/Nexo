@@ -11,6 +11,7 @@ import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.entity.FallingBlock
+import org.bukkit.persistence.PersistentDataType
 
 object NoteMechanicHelpers {
 
@@ -55,7 +56,10 @@ object NoteMechanicHelpers {
         val fallingLocation = toCenterBlockLocation(blockAbove.location)
         val fallingData = NexoBlocks.blockData(mechanic.itemID) ?: return
         NexoBlocks.remove(blockAbove.location, null, Drop.emptyDrop())
-        blockAbove.world.spawn(fallingLocation, FallingBlock::class.java).blockData = fallingData
+
+        val falling = blockAbove.world.spawn(fallingLocation, FallingBlock::class.java)
+        falling.blockData = fallingData!!
+        falling.persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
         handleFallingNexoBlockAbove(blockAbove)
     }
 }

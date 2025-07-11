@@ -121,11 +121,11 @@ object CustomBlockHelpers {
                         newMechanic.isFalling() && blockBelow.type.isAir() -> {
                             val fallingLocation = toCenterBlockLocation(target.location)
                             NexoBlocks.remove(target.location, null, Drop.emptyDrop())
-                            if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty())
-                                target.world.spawn(fallingLocation, FallingBlock::class.java).apply {
-                                    blockData = newData!!
-                                    persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
-                                }
+                            if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty()) {
+                                val falling = target.world.spawn(fallingLocation, FallingBlock::class.java)
+                                falling.blockData = newData!!
+                                falling.persistentDataContainer.set(NoteBlockMechanic.FALLING_KEY, PersistentDataType.BYTE, 1)
+                            }
                             NoteMechanicHelpers.handleFallingNexoBlockAbove(target)
                         }
                         else -> {
