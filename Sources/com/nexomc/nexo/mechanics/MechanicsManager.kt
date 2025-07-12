@@ -26,7 +26,6 @@ import com.nexomc.nexo.mechanics.trident.TridentFactory
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.tcoded.folialib.wrapper.task.WrappedTask
-import java.util.Collections
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.HandlerList
@@ -102,10 +101,9 @@ object MechanicsManager {
     }
 
     fun unregisterTasks() {
-        MECHANIC_TASKS.values.forEach { tasks ->
-            tasks.forEach { taskId -> SchedulerUtils.foliaScheduler.cancelTask(taskId) }
-        }
-        MECHANIC_TASKS.clear()
+        MECHANIC_TASKS.onEach {
+            it.value.forEach(SchedulerUtils.foliaScheduler::cancelTask)
+        }.clear()
     }
 
     fun unregisterTasks(mechanicId: String) {
@@ -113,19 +111,19 @@ object MechanicsManager {
             value.forEach { taskId ->
                 SchedulerUtils.foliaScheduler.cancelTask(taskId)
             }
-            Collections.emptyList()
+            mutableListOf()
         }
     }
 
     fun registerListeners(plugin: JavaPlugin, mechanicId: String, vararg listeners: Listener) {
-        for (listener: Listener in listeners) Bukkit.getPluginManager().registerEvents(listener, plugin)
+        for (listener in listeners) Bukkit.getPluginManager().registerEvents(listener, plugin)
         MECHANICS_LISTENERS.compute(mechanicId) { _, value ->
             (value ?: mutableListOf()).also { it += listeners }
         }
     }
 
     fun unregisterListeners() {
-        for (listener in MECHANICS_LISTENERS.values.flatten()) HandlerList.unregisterAll(listener)
+        MECHANICS_LISTENERS.values.flatten().forEach(HandlerList::unregisterAll)
     }
 
     fun unregisterListeners(mechanicId: String?) {

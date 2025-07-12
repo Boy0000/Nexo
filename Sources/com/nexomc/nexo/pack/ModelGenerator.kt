@@ -44,7 +44,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 }
 
                 //ItemModels
-                val itemKey = item.itemModel?.key() ?: Key.key("nexo", NexoItems.idFromItem(item) ?: return@forEach)
+                val itemKey = item.itemModel?.key() ?: Key.key("nexo", NexoItems.idFromItem(item)?.lowercase() ?: return@forEach)
                 val reference = resourcePack.model(itemKey) ?: item.nexoMeta?.model?.let(resourcePack::model) ?: return@forEach
 
                 val dyeableModel = item.nexoMeta?.dyeableModel?.let {
