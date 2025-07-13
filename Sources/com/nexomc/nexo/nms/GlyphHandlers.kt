@@ -2,6 +2,7 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.glyphs.Glyph
+import com.nexomc.nexo.glyphs.RequiredGlyph
 import com.nexomc.nexo.glyphs.ShiftTag
 import com.nexomc.nexo.utils.associateFastWith
 import net.kyori.adventure.text.Component
@@ -14,15 +15,12 @@ import java.util.*
 
 object GlyphHandlers {
 
-    private val randomComponent by lazy {
-        Component.textOfChildren(NexoPlugin.instance().fontManager().glyphFromID("required")!!.glyphComponent())
-    }
     private val defaultEmoteReplacementConfigs by lazy {
         NexoPlugin.instance().fontManager().glyphs().filter { it.font == Font.MINECRAFT_DEFAULT }.associateFastWith {
             when (it.unicodes.size) {
                 1 -> TextReplacementConfig.builder().matchLiteral(it.unicodes.first())
                 else -> TextReplacementConfig.builder().match("(${it.unicodes.joinToString("|").removeSuffix("|")})")
-            }.replacement(randomComponent).build()
+            }.replacement(RequiredGlyph.component).build()
         }
     }
 
@@ -110,7 +108,7 @@ object GlyphHandlers {
         val serialized = component.asFlatTextContent()
 
         if (Glyph.containsTagOrPlaceholder(serialized)) NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            if (glyph.baseRegex.containsMatchIn(serialized)) component = component.replaceText(glyph.tagConfig)
+            if (glyph.id in serialized && glyph.baseRegex.containsMatchIn(serialized)) component = component.replaceText(glyph.tagConfig)
             if (glyph.placeholders.any(serialized::contains)) glyph.placeholderConfig?.let { component = component.replaceText(it) }
         }
 

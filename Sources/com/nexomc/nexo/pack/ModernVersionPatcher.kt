@@ -7,12 +7,14 @@ import com.nexomc.nexo.utils.remove
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
+import team.unnamed.creative.base.Vector3Float
 import team.unnamed.creative.item.*
 import team.unnamed.creative.item.property.ItemNumericProperty
 import team.unnamed.creative.item.property.ItemStringProperty
 import team.unnamed.creative.item.special.HeadSpecialRender
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.ItemPredicate
+import team.unnamed.creative.model.ItemTransform
 import team.unnamed.creative.model.Model
 
 object ModernVersionPatcher {
@@ -26,6 +28,11 @@ object ModernVersionPatcher {
                 listOf()
             }
             val handSwap = standardItem?.handAnimationOnSwap() ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP
+            val oversizedInGui = standardItem?.oversizedInGui() ?: let {
+                if (itemKey.value() == "player_head" && model.display()[ItemTransform.Type.GUI]?.scale() != Vector3Float.ONE) true
+                else Item.DEFAULT_OVERSIZED_IN_GUI
+            }
+
             val finalNewItemModel = standardItem?.let { existingItemModel ->
                 val baseItemModel = existingItemModel.model().takeUnless(simpleItemModelPredicate) ?: return@let null
 
@@ -128,7 +135,7 @@ object ModernVersionPatcher {
                 }
             } ?: modelObject(standardItem?.model(), overrides, itemKey)
 
-            resourcePack.item(Item.item(itemKey, finalNewItemModel, handSwap))
+            resourcePack.item(Item.item(itemKey, finalNewItemModel, handSwap, oversizedInGui))
         }
     }
 

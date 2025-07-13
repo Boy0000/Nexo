@@ -126,6 +126,7 @@ class FurnitureListener : Listener {
         }
 
         if (action != Action.RIGHT_CLICK_BLOCK || useItemInHand() == Event.Result.DENY) return
+        if (!block.isEmpty && block.type != Material.BARRIER) return
         if (!itemStack.type.isBlock && !isItemFrame && !isArmorStand && !isPainting) return
 
         val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(block.location) ?: return

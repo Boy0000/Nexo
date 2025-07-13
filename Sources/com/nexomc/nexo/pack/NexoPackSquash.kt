@@ -2,13 +2,12 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
 import com.nexomc.nexo.utils.FileUtils
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
-import java.io.File
 import team.unnamed.creative.ResourcePack
+import java.io.File
 
 class NexoPackSquash(private val resourcePack: ResourcePack) {
 
@@ -29,6 +28,10 @@ class NexoPackSquash(private val resourcePack: ResourcePack) {
     fun squashPack(hash: String): Boolean {
         val inputDirectory = packSquashCache.resolve(hash)
         val squashedZip = packSquashCache.resolve("$hash.zip")
+
+        packSquashCache.listFiles().filter { it.extension == "zip" }.sortedByDescending(File::lastModified).forEachIndexed { i, file ->
+            if (i >= Settings.PACKSQUASH_CACHE_SIZE.toInt()) file.delete()
+        }
 
         return runCatching {
             val packSquashExe = File(Settings.PACKSQUASH_EXEC_PATH.toString()).apply { setExecutable(true) }
@@ -65,7 +68,10 @@ class NexoPackSquash(private val resourcePack: ResourcePack) {
             Logs.logError("Failed to squash pack with PackSquash: ${it.message}")
             if (Settings.DEBUG.toBool()) it.printStackTrace()
             squashedZip.delete()
-        }.apply { inputDirectory.deleteRecursively() }.isSuccess
+        }.apply {
+            inputDirectory.deleteRecursively()
+            squashedZip.setLastModified(System.currentTimeMillis())
+        }.isSuccess
     }
 
     private fun File.absolutePath() = this.absolutePath.replace("\\", "/")

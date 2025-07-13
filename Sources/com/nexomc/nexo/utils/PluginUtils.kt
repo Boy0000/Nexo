@@ -10,6 +10,7 @@ object PluginUtils {
 
     val isMythicHUDEnabled by lazy { isEnabled("MythicHUD") }
     val isBetterHUDEnabled by lazy { isEnabled("BetterHUD") }
+    val isTABEnabled by lazy { isEnabled("TAB") || isEnabled("TAB-Bridge") }
 
     val isMMOItemsEnabled by lazy { isEnabled("MMOItems") }
     val isMythicMobsEnabled: Boolean by lazy { isEnabled("MythicMobs") }

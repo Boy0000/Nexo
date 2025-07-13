@@ -4,6 +4,7 @@ import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.breaker.FurnitureBreakerManager
 import org.bukkit.GameMode
+import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
@@ -18,6 +19,7 @@ class FurnitureBreakListener : Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun BlockDamageEvent.onDamageFurniture() {
+        if (block.type != Material.BARRIER && !block.isEmpty) return
         val baseEntity = NexoFurniture.baseEntity(block) ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity)?.takeUnless { it.breakable.hardness == 0.0 } ?: return
         if (VersionUtil.below("1.20.5")) isCancelled = true

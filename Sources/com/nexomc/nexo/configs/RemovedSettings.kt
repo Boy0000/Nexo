@@ -1,6 +1,8 @@
 package com.nexomc.nexo.configs
 
-enum class RemovedSettings(private val path: String) {
+import com.nexomc.nexo.utils.toTypedArray
+
+enum class RemovedSettings(val path: String, vararg subPaths: String) {
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
     AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
@@ -85,13 +87,21 @@ enum class RemovedSettings(private val path: String) {
     CHAT_HANDLER("Chat.chat_handler"),
     FORMAT_PACKETS("Plugin.formatting.packets"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),
+
+    FORMAT_PACKETEVENTS("Plugin.formatting.packetevents", "Plugin.formatting.tablist", "Plugin.formatting.scoreboard", "Plugin.formatting.bossbar")
     ;
+
+    val subPaths: Array<String> = subPaths.toTypedArray { it.toString() }
 
     override fun toString(): String {
         return this.path
     }
 
+    fun toStringList(): List<String> {
+        return listOf(this.path).plus(this.subPaths)
+    }
+
     companion object {
-        fun toStringList() = entries.map { it.toString() }
+        fun toStringList() = entries.flatMap { it.toStringList() }
     }
 }

@@ -8,6 +8,7 @@ import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.EntityType
 import org.bukkit.inventory.EquipmentSlot
+import team.unnamed.creative.item.Item
 import team.unnamed.creative.model.Model
 import team.unnamed.creative.model.ModelTexture
 import team.unnamed.creative.model.ModelTextures
@@ -37,6 +38,8 @@ data class NexoMeta(
     var disableEnchanting: Boolean = false,
     var generateModel: Boolean = false,
     var customArmorTextures: CustomArmorTextures? = null,
+    var handSwapAnimation: Boolean = true,
+    var oversizedInGui: Boolean = false,
 ) {
 
     data class CustomArmorTextures(
@@ -167,6 +170,8 @@ data class NexoMeta(
             val itemId = packSection.parent!!.name
             itemId.replace(CustomArmorType.itemIdRegex, "$1").takeUnless { it == itemId || it.isBlank() }?.let(::CustomArmorTextures)
         }
+        this.handSwapAnimation = packSection.getBoolean("hand_swap_animation", Item.DEFAULT_HAND_ANIMATION_ON_SWAP)
+        this.oversizedInGui = packSection.getBoolean("oversized_in_gui", Item.DEFAULT_OVERSIZED_IN_GUI)
     }
 
     private fun parseModelKey(configSection: ConfigurationSection, configString: String): Key? {

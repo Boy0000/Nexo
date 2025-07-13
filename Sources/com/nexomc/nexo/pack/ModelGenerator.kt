@@ -44,7 +44,8 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                 }
 
                 //ItemModels
-                val itemKey = item.itemModel?.key() ?: Key.key("nexo", NexoItems.idFromItem(item)?.lowercase() ?: return@forEach)
+                val itemId = NexoItems.idFromItem(item)?.lowercase() ?: return@forEach
+                val itemKey = item.itemModel?.key() ?: Key.key("nexo", itemId)
                 val reference = resourcePack.model(itemKey) ?: item.nexoMeta?.model?.let(resourcePack::model) ?: return@forEach
 
                 val dyeableModel = item.nexoMeta?.dyeableModel?.let {
@@ -59,20 +60,33 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                         .apply(resourcePack::model)
                 } ?: resourcePack.model(itemKey.appendSuffix("_throwing"))
 
-                when {
+                val handSwapAnimation = item.nexoMeta?.handSwapAnimation.takeUnless { it == Item.DEFAULT_HAND_ANIMATION_ON_SWAP }
+                val oversizedInGui = item.nexoMeta?.oversizedInGui.takeUnless { it == Item.DEFAULT_OVERSIZED_IN_GUI }
+                val itemModel = when {
                     resourcePack.item(itemKey) != null -> return@forEach
                     dyeableModel != null -> {
                         val falseModel = ItemModel.reference(reference.key())
                         val trueModel = ItemModel.reference(dyeableModel.key(), TintSource.dye(item.color?.asRGB() ?: Color.WHITE.asRGB()))
-                        resourcePack.item(Item.item(itemKey, ItemModel.conditional(ItemBooleanProperty.hasComponent("minecraft:dyed_color"), trueModel, falseModel)))
+                        ItemModel.conditional(ItemBooleanProperty.hasComponent("minecraft:dyed_color"), trueModel, falseModel)
                     }
-                    item.color != null -> resourcePack.item(Item.item(itemKey, ItemModel.reference(reference.key(), TintSource.dye(item.color!!.asRGB()))))
+                    item.color != null -> ItemModel.reference(reference.key(), TintSource.dye(item.color!!.asRGB()))
                     throwingModel != null -> {
                         val falseModel = ItemModel.reference(reference.key())
                         val trueModel = ItemModel.reference(throwingModel.key())
-                        resourcePack.item(Item.item(itemKey, ItemModel.conditional(ItemBooleanProperty.usingItem(), trueModel, falseModel)))
+                        ItemModel.conditional(ItemBooleanProperty.usingItem(), trueModel, falseModel)
                     }
+                    oversizedInGui != null || handSwapAnimation != null ->
+                        ItemModel.reference(item.nexoMeta?.model ?: Key.key("nexo:$itemId"))
+                    else -> return@forEach
                 }
+
+                resourcePack.item(
+                    Item.item(
+                        itemKey, itemModel,
+                        handSwapAnimation ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP,
+                        oversizedInGui ?: Item.DEFAULT_OVERSIZED_IN_GUI
+                    )
+                )
             }
         }
     }

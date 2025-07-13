@@ -59,7 +59,7 @@ class FurnitureSoundListener : Listener {
 
         if (NexoBlocks.isNexoStringBlock(block) || block.type == Material.TRIPWIRE && mechanicBelow != null && mechanicBelow.isTall) return
         if (block.blockData.soundGroup.breakSound != Sound.BLOCK_STONE_BREAK) return
-        if (NexoFurniture.isFurniture(location) && block.type == Material.BARRIER || block.isEmpty) return
+        if ((block.type == Material.BARRIER || block.isEmpty) && NexoFurniture.isFurniture(location)) return
 
         if (isCancelled || !ProtectionLib.canBreak(player, location)) return
         BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_BREAK, BlockSounds.VANILLA_BREAK_VOLUME, BlockSounds.VANILLA_BREAK_PITCH)

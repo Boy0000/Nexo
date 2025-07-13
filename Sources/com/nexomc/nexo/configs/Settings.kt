@@ -25,11 +25,12 @@ enum class Settings {
     FORMAT_SIGNS("Plugin.formatting.signs", true),
     FORMAT_CHAT("Plugin.formatting.chat", true),
     FORMAT_BOOKS("Plugin.formatting.books", true),
-    FORMAT_TABLIST("Plugin.formatting.tablist", true),
-    FORMAT_BOSSBAR("Plugin.formatting.bossbar", PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled),
-    FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", true),
+    FORMAT_TABLIST("Plugin.formatting.tablist", !PluginUtils.isTABEnabled),
+    FORMAT_BOSSBAR("Plugin.formatting.bossbar", !(PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled)),
+    FORMAT_SCOREBOARD("Plugin.formatting.scoreboard", !PluginUtils.isTABEnabled),
     FORMAT_ITEMS("Plugin.formatting.items", true),
-    FORMAT_PACKETEVENTS("Plugin.formatting.packetevents", true),
+    FORMAT_PACKET_EVENTS("Plugin.formatting.packet_events", !PluginUtils.isTABEnabled),
+    FORMAT_ENTITY_DATA("Plugin.formatting.entity_data", true),
 
     // WorldEdit
     FAWE_HOOK("WorldEdit.fawe_hook", false),
@@ -94,6 +95,7 @@ enum class Settings {
     PACK_USE_PACKSQUASH("Pack.generation.packsquash.enabled", false),
     PACKSQUASH_EXEC_PATH("Pack.generation.packsquash.executable_path", "plugins/Nexo/pack/packsquash/packsquash"),
     PACKSQUASH_SETTINGS_PATH("Pack.generation.packsquash.settings_path", "plugins/Nexo/pack/packsquash/packsquash.toml"),
+    PACKSQUASH_CACHE_SIZE("Pack.generation.packsquash.cache_size", 5),
 
     PACK_VALIDATE_MODELS("Pack.validate.models", true),
     PACK_VALIDATE_FONTS("Pack.validate.fonts", true),
