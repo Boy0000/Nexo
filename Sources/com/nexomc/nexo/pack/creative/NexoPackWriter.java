@@ -1,10 +1,8 @@
 package com.nexomc.nexo.pack.creative;
 
 import com.google.gson.stream.JsonWriter;
-import com.nexomc.nexo.NexoPlugin;
 import com.nexomc.nexo.configs.Settings;
 import com.nexomc.nexo.nms.NMSHandlers;
-import com.nexomc.nexo.utils.logs.Logs;
 import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
@@ -32,7 +30,6 @@ import team.unnamed.creative.texture.Texture;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,12 +44,11 @@ public class NexoPackWriter implements MinecraftResourcePackWriter {
         INSTANCE = new NexoPackWriter();
         targetPackFormat = NMSHandlers.handler().resourcepackFormat();
         prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
-        debug = Settings.DEBUG.toBool();
+        boolean debug = Settings.DEBUG.toBool();
     }
 
     private static int targetPackFormat = NMSHandlers.handler().resourcepackFormat();
     private static boolean prettyPrinting = !Settings.PACK_MINIMIZE_JSON.toBool();
-    private static boolean debug = Settings.DEBUG.toBool();
 
     private NexoPackWriter() {
     }

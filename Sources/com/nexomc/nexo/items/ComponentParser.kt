@@ -1,28 +1,21 @@
+@file:Suppress("removal")
+
 package com.nexomc.nexo.items
 
-import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.getEnum
-import com.nexomc.nexo.utils.getKey
-import com.nexomc.nexo.utils.getKeyListOrNull
-import com.nexomc.nexo.utils.getNamespacedKey
-import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.logs.Logs
 import io.papermc.paper.datacomponent.item.TooltipDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.Indyuce.mmoitems.MMOItems
 import org.apache.commons.lang3.EnumUtils
-import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.NamespacedKey
-import org.bukkit.Registry
-import org.bukkit.Tag
+import org.bukkit.*
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.damage.DamageType
 import org.bukkit.entity.EntityType
@@ -31,7 +24,7 @@ import org.bukkit.inventory.ItemRarity
 import org.bukkit.inventory.ItemStack
 import org.bukkit.tag.DamageTypeTags
 
-@Suppress("UnstableApiUsage")
+@Suppress("UnstableApiUsage", "removal")
 class ComponentParser(section: ConfigurationSection, private val itemBuilder: ItemBuilder) {
     private val componentSection: ConfigurationSection? = section.getConfigurationSection("Components")
     private val itemId: String = section.name
@@ -60,6 +53,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         parseToolComponent()
 
         if (VersionUtil.below("1.21")) return
+
+        itemBuilder.setPaintingVariant(componentSection.getKey("painting_variant"))
 
         componentSection.getConfigurationSection("jukebox_playable")?.let { jukeboxSection ->
             ItemStack(itemBuilder.type).itemMeta.jukeboxPlayable.also {
@@ -165,11 +160,6 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         equippableSection.getNamespacedKey("model")?.apply(equippableComponent::setModel)
         equippableSection.getNamespacedKey("camera_overlay")?.apply(equippableComponent::setCameraOverlay)
         equippableSection.getKey("equip_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
-
-        if (VersionUtil.atleast("1.21.6")) {
-            //equippableComponent.canBeSheared = equippableSection.getBoolean("can_be_sheared", true)
-            //equippableSection.getKey("shearing_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setShearingSound)
-        }
 
         item.setEquippableComponent(equippableComponent)
     }

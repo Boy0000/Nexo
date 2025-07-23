@@ -2,13 +2,14 @@ package com.nexomc.nexo;
 
 import net.byteflux.libby.BukkitLibraryManager;
 import net.byteflux.libby.classloader.URLClassLoaderHelper;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -27,10 +28,10 @@ public class NexoLibsLoader {
             classLoader = (URLClassLoaderHelper) classLoaderField.get(manager);
             classLoader.addToClasspath(nexoLibs.toPath());
 
-            Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "[Nexo] Loaded NexoLibs, skipping downloading libraries!");
+            plugin.getComponentLogger().info(Component.text("[Nexo] Loaded NexoLibs, skipping downloading libraries!", NamedTextColor.GREEN));
             usedNexoLoader = true;
         } catch (Exception e) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[Nexo] Failed to load NexoLibs...");
+            plugin.getComponentLogger().error("[Nexo] Failed to load NexoLibs...");
         }
     }
 }

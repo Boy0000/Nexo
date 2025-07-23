@@ -50,6 +50,12 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
     fun PlayerInteractEvent.onPlayerInteract() {
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (hand == EquipmentSlot.OFF_HAND || useItemInHand() == Event.Result.DENY) return
+
+        if (clickedBlock?.type == Material.DECORATED_POT) {
+            if (!player.isSneaking) return
+            else setUseInteractedBlock(Event.Result.DENY)
+        }
+
         setUseItemInHand(Event.Result.ALLOW)
         openBackpack(player)
     }

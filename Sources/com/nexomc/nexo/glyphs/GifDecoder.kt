@@ -12,7 +12,6 @@ import java.io.InputStream
 
 class GifDecoder {
     companion object {
-        const val STATUS_OK = 0
         const val STATUS_FORMAT_ERROR = 1
         const val STATUS_OPEN_ERROR = 2
         private const val MAX_STACK_SIZE = 4096

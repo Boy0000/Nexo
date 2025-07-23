@@ -25,11 +25,13 @@ class WorldGuardCompatibility : CompatibilityProvider<WorldGuardPlugin>() {
         val interactState = query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_INTERACT_FLAG, Flags.INTERACT)
 
         // Query subflags independently (does not affect useFurniture)
-        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_TOGGLE_LIGHT_FLAG)?.toResult(canToggleLight)?.let{ canToggleLight = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_TOGGLE_LIGHT_FLAG)?.toResult(canToggleLight)?.let { canToggleLight = it }
         query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_SIT_FLAG)?.toResult()?.let { canSit = it }
-        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_ROTATE_FLAG)?.toResult(canRotate)?.let{ canRotate = it }
-        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_OPEN_STORAGE_FLAG)?.toResult(canOpenStorage)?.let{ canOpenStorage = it }
-        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_CLICKACTION_FLAG)?.toResult(canRunAction)?.let{ canRunAction = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_OPEN_STORAGE_FLAG)?.toResult(canOpenStorage)?.let { canOpenStorage = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_CLICKACTION_FLAG)?.toResult(canRunAction)?.let { canRunAction = it }
+        query.queryState(location, localPlayer, NexoWorldguardFlags.FURNITURE_ROTATE_FLAG)?.toResult(canRotate)?.let {
+            if (it == Event.Result.ALLOW && mechanic.rotatable.shouldRotate(player)) canRotate = it
+        }
 
         // Set useFurniture **only based on interactState**
         useFurniture = interactState.toResult(useFurniture)

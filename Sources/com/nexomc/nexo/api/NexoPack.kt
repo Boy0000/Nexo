@@ -92,6 +92,7 @@ object NexoPack {
         importedContainer.textures().forEach(container::texture)
         importedContainer.sounds().forEach(container::sound)
         importedContainer.unknownFiles().forEach(container::unknownFile)
+        importedContainer.waypointStyles().forEach(container::waypointStyle)
 
         importedContainer.equipment().forEach { equipment ->
             val oldEquipment = container.equipment(equipment.key()) ?: return@forEach container.equipment(equipment)

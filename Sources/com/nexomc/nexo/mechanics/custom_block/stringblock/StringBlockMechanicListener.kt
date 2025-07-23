@@ -65,7 +65,7 @@ class StringBlockMechanicListener : Listener {
 
         isCancelled = true
         val mechanicBelow = NexoBlocks.stringMechanic(changedBelow)
-        if (NexoBlocks.isNexoStringBlock(changed)) NexoBlocks.remove(changed.location, null, true)
+        if (NexoBlocks.isNexoStringBlock(changed)) NexoBlocks.remove(changed.location, forceDrop = true)
         else if (mechanicBelow != null && mechanicBelow.isTall)
             NexoBlocks.remove(changedBelow.location, forceDrop = true)
     }

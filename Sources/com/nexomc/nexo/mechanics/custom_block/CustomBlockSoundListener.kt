@@ -17,22 +17,13 @@ import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.bukkit.GameEvent
-import org.bukkit.Location
-import org.bukkit.Material
-import org.bukkit.Sound
-import org.bukkit.SoundCategory
+import org.bukkit.*
 import org.bukkit.block.Block
-import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockDamageAbortEvent
-import org.bukkit.event.block.BlockDamageEvent
-import org.bukkit.event.block.BlockPistonExtendEvent
-import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.block.*
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
@@ -95,13 +86,14 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
-        val entity = entity as? LivingEntity ?: return
-        if (entity !is Player && customSounds.playersOnly) return
-        if (!entity.location.isLoaded || isAsynchronous) return
-        if (event == GameEvent.HIT_GROUND && entity.fallDistance < (AttributeWrapper.SAFE_FALL_DISTANCE?.let(entity::getAttribute)?.value ?: 4.0)) return
-        if (event == GameEvent.STEP && (entity.isInWater || entity.isSwimming || entity.isSneaking || entity.isInLava)) return
+        val player = entity as? Player ?: return
+        val fallDistance = AttributeWrapper.SAFE_FALL_DISTANCE?.let(player::getAttribute)?.value ?: return
 
-        val blockStandingOn = BlockHelpers.entityStandingOn(entity)?.takeUnless { it.type.isAir } ?: return
+        if (!player.location.isLoaded || isAsynchronous) return
+        if (event == GameEvent.HIT_GROUND && player.fallDistance < fallDistance) return
+        if (event == GameEvent.STEP && (player.isInWater || player.isSwimming || player.isSneaking || player.isInLava)) return
+
+        val blockStandingOn = BlockHelpers.entityStandingOn(player)?.takeUnless { it.type.isAir } ?: return
         if (blockStandingOn.blockData.soundGroup.stepSound != Sound.BLOCK_WOOD_STEP) return
         val mechanic = NexoBlocks.customBlockMechanic(blockStandingOn)
 
@@ -117,7 +109,7 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
             else -> return
         }
 
-        BlockHelpers.playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
+        BlockHelpers.playCustomBlockSound(player.location, sound, SoundCategory.PLAYERS, volume, pitch)
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -172,21 +164,16 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     fun GenericGameEvent.onStepFallString() {
-        val entity = (entity as? LivingEntity)?.takeIf { it.location.isLoaded && !isAsynchronous } ?: return
-        if (entity !is Player && customSounds.playersOnly) return
+        val player = (entity as? Player)?.takeIf { it.location.isLoaded && !isAsynchronous } ?: return
 
-        if (entity.lastDamageCause?.cause != EntityDamageEvent.DamageCause.FALL || event == GameEvent.HIT_GROUND) return
-        val blockSounds = NexoBlocks.stringMechanic(entity.location.block)?.blockSounds ?: return
+        if (player.lastDamageCause?.cause != EntityDamageEvent.DamageCause.FALL || event == GameEvent.HIT_GROUND) return
+        val blockSounds = NexoBlocks.stringMechanic(player.location.block)?.blockSounds ?: return
 
-        val (sound, volume, pitch) = when {
-            event == GameEvent.STEP && blockSounds.hasStepSound() ->
-                blockSounds.stepSound to blockSounds.stepVolume to blockSounds.stepPitch
-
-            event == GameEvent.HIT_GROUND && blockSounds.hasFallSound() ->
-                blockSounds.fallSound to blockSounds.fallVolume to blockSounds.fallPitch
-
+        val (sound, volume, pitch) = when (event) {
+            event if blockSounds.hasStepSound() -> blockSounds.stepSound to blockSounds.stepVolume to blockSounds.stepPitch
+            event if blockSounds.hasFallSound() -> blockSounds.fallSound to blockSounds.fallVolume to blockSounds.fallPitch
             else -> return
         }
-        BlockHelpers.playCustomBlockSound(entity.location, sound, SoundCategory.PLAYERS, volume, pitch)
+        BlockHelpers.playCustomBlockSound(player.location, sound, SoundCategory.PLAYERS, volume, pitch)
     }
 }

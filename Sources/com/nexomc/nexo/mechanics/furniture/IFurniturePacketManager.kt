@@ -7,7 +7,6 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
@@ -64,19 +63,21 @@ interface IFurniturePacketManager {
         val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, Array<BarrierHitbox>>()
         val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
 
+        val lightPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
+        val lightLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
+
         val interactionHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
         val shulkerHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
         val ghastHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
 
-        val lightMechanicPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
-        val interactionHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
-        val shulkerHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
-        val ghastHitboxIdMap = ObjectOpenHashSet<FurnitureSubEntity>()
+        val interactionHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
+        val shulkerHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
+        val ghastHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
 
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
-            interactionHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
-                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
-                ?: ghastHitboxIdMap.find { entityId in it.entityIds }?.baseEntity()
+            interactionHitboxIdMap.values.find { entityId in it.entityIds }?.baseEntity()
+                ?: shulkerHitboxIdMap.values.find { entityId in it.entityIds }?.baseEntity()
+                ?: ghastHitboxIdMap.values.find { entityId in it.entityIds }?.baseEntity()
 
         fun baseEntityFromHitbox(location: Location): ItemDisplay? {
             return baseEntityFromHitbox(BlockLocation(location), location.world)
@@ -87,36 +88,42 @@ interface IFurniturePacketManager {
             return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
                 world.takeIf { hitboxes.any { it == location } }?.getEntity(uuid) as? ItemDisplay
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
+                world.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.value.baseUuid) as? ItemDisplay
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
+                world.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.value.baseUuid) as? ItemDisplay
             } ?: ghastHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                world.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.baseUuid) as? ItemDisplay
+                world.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.getEntity(subEntity.value.baseUuid) as? ItemDisplay
+            }
+        }
+
+        fun baseEntityFromLight(location: BlockLocation, world: World): ItemDisplay? {
+            return lightPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
+                world.takeIf { hitboxes.any { it == location } }?.getEntity(uuid) as? ItemDisplay
             }
         }
 
         fun mechanicFromHitbox(entityId: Int): FurnitureMechanic? =
-            interactionHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
-                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
-                ?: ghastHitboxIdMap.find { entityId in it.entityIds }?.mechanic()
+            interactionHitboxIdMap.values.find { entityId in it.entityIds }?.mechanic()
+                ?: shulkerHitboxIdMap.values.find { entityId in it.entityIds }?.mechanic()
+                ?: ghastHitboxIdMap.values.find { entityId in it.entityIds }?.mechanic()
 
         fun mechanicFromHitbox(location: BlockLocation): FurnitureMechanic? {
             val barrierVec = location.toVector()
             return barrierHitboxPositionMap.firstNotNullOfOrNull { (uuid, hitboxes) ->
                 furnitureBaseMap.takeIf { location in hitboxes }?.get(uuid)?.mechanic()
             } ?: interactionHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+                subEntity.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.value?.mechanic()
             } ?: shulkerHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+                subEntity.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.value?.mechanic()
             } ?: ghastHitboxIdMap.firstNotNullOfOrNull { subEntity ->
-                subEntity.takeIf { subEntity.boundingBoxes.any { it.contains(barrierVec) } }?.mechanic()
+                subEntity.takeIf { subEntity.value.boundingBoxes.any { it.contains(barrierVec) } }?.value?.mechanic()
             }
         }
 
         fun hitboxLocFromId(entityId: Int, world: World): Location? {
-            val subEntity = interactionHitboxIdMap.find { entityId in it.entityIds }
-                ?: shulkerHitboxIdMap.find { entityId in it.entityIds }
-                ?: ghastHitboxIdMap.find { entityId in it.entityIds }
+            val subEntity = interactionHitboxIdMap.values.find { entityId in it.entityIds }
+                ?: shulkerHitboxIdMap.values.find { entityId in it.entityIds }
+                ?: ghastHitboxIdMap.values.find { entityId in it.entityIds }
                 ?: return null
             return subEntity.hitboxLocation(entityId)?.toLocation(world)
         }
@@ -139,18 +146,24 @@ interface IFurniturePacketManager {
                 return true
             if (collisionOnly) return false
             val blockBox = BoundingBox.of(block)
-            return interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
-                    || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
-                    || ghastHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+            return interactionHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || shulkerHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || ghastHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
         }
 
         fun blockIsHitbox(location: Location, excludeUUID: UUID? = null): Boolean {
             val (x, y, z, world) = location.blockX to location.blockY to location.blockZ to location.world
             val blockBox = BoundingBox.of(location.toCenterLocation(), 0.5, 0.5, 0.5)
             return barrierHitboxLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any { it.blockX == x && it.blockY == y && it.blockZ == z && it.world == world } }
-                    || interactionHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
-                    || shulkerHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
-                    || ghastHitboxIdMap.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || interactionHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || shulkerHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+                    || ghastHitboxIdMap.values.any { it.baseUuid != excludeUUID && it.boundingBoxes.any(blockBox::overlaps) }
+        }
+
+        fun blockIsLight(vec: Vector, world: World, excludeUUID: UUID? = null): Boolean {
+            return runCatching { lightLocationMap.any { (uuid, locations) -> uuid != excludeUUID && locations.any {
+                it.x == vec.x && it.y == vec.y && it.z == vec.z && it.world == world
+            } } }.printOnFailure().getOrDefault(false)
         }
     }
 }

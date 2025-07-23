@@ -97,11 +97,7 @@ enum class RemovedSettings(val path: String, vararg subPaths: String) {
         return this.path
     }
 
-    fun toStringList(): List<String> {
-        return listOf(this.path).plus(this.subPaths)
-    }
-
     companion object {
-        fun toStringList() = entries.flatMap { it.toStringList() }
+        fun toMap() = entries.associate { it.path to it.subPaths }
     }
 }

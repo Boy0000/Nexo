@@ -9,10 +9,12 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import net.kyori.adventure.key.Key
 import org.bukkit.Color
+import org.bukkit.Material
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.item.Item
 import team.unnamed.creative.item.ItemModel
 import team.unnamed.creative.item.property.ItemBooleanProperty
+import team.unnamed.creative.item.special.SpecialRender
 import team.unnamed.creative.item.tint.TintSource
 import team.unnamed.creative.model.ItemOverride
 import team.unnamed.creative.model.Model
@@ -75,8 +77,11 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                         val trueModel = ItemModel.reference(throwingModel.key())
                         ItemModel.conditional(ItemBooleanProperty.usingItem(), trueModel, falseModel)
                     }
-                    oversizedInGui != null || handSwapAnimation != null ->
-                        ItemModel.reference(item.nexoMeta?.model ?: Key.key("nexo:$itemId"))
+                    oversizedInGui != null || handSwapAnimation != null -> {
+                        val modelKey = item.nexoMeta?.model ?: Key.key("nexo:$itemId")
+                        if (type == Material.PLAYER_HEAD) ItemModel.special(SpecialRender.playerHead(), modelKey)
+                        else ItemModel.reference(modelKey)
+                    }
                     else -> return@forEach
                 }
 

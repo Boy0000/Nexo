@@ -1,6 +1,6 @@
 package com.nexomc.nexo.utils
 
-import com.nexomc.nexo.NexoBootstrapper
+import com.nexomc.nexo.NexoBootstrap
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.JsonBuilder.plus
@@ -12,7 +12,8 @@ open class NexoDatapack(key: String, description: String) {
 
     companion object {
         private val removedDatapacks = listOfNotNull(
-            if (NexoBootstrapper.bootsStrung) "nexo_custom_blocks" else null
+            if (NexoBootstrap.bootsStrung) "nexo_custom_blocks" else null,
+            if (NexoBootstrap.bootsStrung) "nexo_music_discs" else null,
         )
 
         fun clearOldDatapacks() {

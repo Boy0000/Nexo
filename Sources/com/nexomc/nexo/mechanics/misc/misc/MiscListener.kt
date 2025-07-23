@@ -2,18 +2,10 @@ package com.nexomc.nexo.mechanics.misc.misc
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.protectionlib.ProtectionLib
-import org.bukkit.Effect
-import org.bukkit.GameMode
-import org.bukkit.Material
-import org.bukkit.Sound
-import org.bukkit.Tag
+import org.bukkit.*
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Levelled
-import org.bukkit.entity.Entity
-import org.bukkit.entity.Horse
-import org.bukkit.entity.Item
-import org.bukkit.entity.Piglin
-import org.bukkit.entity.Player
+import org.bukkit.entity.*
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -127,9 +119,10 @@ class MiscListener : Listener {
     fun EntityDamageByBlockEvent.onItemBurn() {
         val mechanic = getMiscMechanic(entity) ?: return
 
-        when {
-            cause == EntityDamageEvent.DamageCause.CONTACT && !mechanic.cactusBreaks -> isCancelled = true
-            cause == EntityDamageEvent.DamageCause.LAVA && !mechanic.burnsInLava -> isCancelled = true
+        when (cause) {
+            EntityDamageEvent.DamageCause.CONTACT if !mechanic.cactusBreaks -> isCancelled = true
+            EntityDamageEvent.DamageCause.LAVA if !mechanic.burnsInLava -> isCancelled = true
+            else -> {}
         }
     }
 
@@ -157,9 +150,9 @@ class MiscListener : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun InventoryClickEvent.onDisableHorseArmorEquip() {
         if (inventory !is HorseInventory) return
-        val item = when {
-            action == InventoryAction.PLACE_ALL && clickedInventory is HorseInventory -> cursor
-            action == InventoryAction.MOVE_TO_OTHER_INVENTORY && clickedInventory is PlayerInventory -> currentItem
+        val item = when (action) {
+            InventoryAction.PLACE_ALL if clickedInventory is HorseInventory -> cursor
+            InventoryAction.MOVE_TO_OTHER_INVENTORY if clickedInventory is PlayerInventory -> currentItem
             else -> return
         }
 

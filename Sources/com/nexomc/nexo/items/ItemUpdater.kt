@@ -313,6 +313,7 @@ class ItemUpdater : Listener {
                 newItem.copyDataFrom(oldItem, componentsToCopy::contains)
             }.onFailure {
                 val itemUtils = NMSHandlers.handler().itemUtils()
+                itemUtils.paintingVariant(newItem, itemUtils.paintingVariant(oldItem))
                 itemUtils.consumableComponent(newItem, itemUtils.consumableComponent(oldItem))
                 itemUtils.repairableComponent(newItem, itemUtils.repairableComponent(oldItem))
                 itemUtils.blockstateComponent(newItem, itemUtils.blockstateComponent(oldItem))

@@ -1,4 +1,4 @@
-@file:Suppress("UnusedReceiverParameter", "UnusedReceiverParameter", "UnusedReceiverParameter")
+@file:Suppress("UnusedReceiverParameter", "UnusedReceiverParameter")
 
 package com.nexomc.nexo.mechanics.furniture.listeners
 
@@ -95,7 +95,9 @@ class FurniturePacketListener : Listener {
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
 
-        FurnitureBed.removeBeds(itemDisplay)
+        SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
+            FurnitureBed.removeBeds(itemDisplay)
+        }, 1L)
 
         furnitureBaseMap.remove(itemDisplay.uniqueId)
         packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
@@ -113,7 +115,8 @@ class FurniturePacketListener : Listener {
             IFurniturePacketManager.shulkerHitboxPacketMap.remove(uuid)
             IFurniturePacketManager.barrierHitboxPositionMap.remove(uuid)
             IFurniturePacketManager.barrierHitboxLocationMap.remove(uuid)
-            IFurniturePacketManager.lightMechanicPositionMap.remove(uuid)
+            IFurniturePacketManager.lightPositionMap.remove(uuid)
+            IFurniturePacketManager.lightLocationMap.remove(uuid)
         }
     }
 
@@ -174,8 +177,8 @@ class FurniturePacketListener : Listener {
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
         val interactionPoint = interactionPoint ?: clickedBlock?.location?.toCenterLocation()
 
-         when {
-            action == Action.RIGHT_CLICK_BLOCK -> {
+         when (action) {
+            Action.RIGHT_CLICK_BLOCK -> {
                 if (!ProtectionLib.canBuild(player, baseEntity.location)) setUseItemInHand(Event.Result.DENY)
                 val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.let { it.isBlock && it != Material.LILY_PAD && it != Material.FROGSPAWN }
                 if (useItemInHand() != Event.Result.DENY && validBlockItem && (!mechanic.isInteractable(player) || player.isSneaking)) {
@@ -192,13 +195,14 @@ class FurniturePacketListener : Listener {
                     setUseItemInHand(useItemInHand)
                 }
             }
-            action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.location) -> {
+            Action.LEFT_CLICK_BLOCK if ProtectionLib.canBreak(player, baseEntity.location) -> {
                 if (mechanic.breakable.hardness == 0.0 || player.gameMode == GameMode.CREATIVE) BlockBreakEvent(baseEntity.location.block, player).call {
                     NexoFurnitureBreakEvent(mechanic, baseEntity, player).call {
                         NexoFurniture.remove(baseEntity, player)
                     }
                 }
             }
+             else -> {}
         }
     }
 

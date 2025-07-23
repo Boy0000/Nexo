@@ -26,6 +26,3 @@ interface CustomBlockType<T : CustomBlockMechanic> {
 
     val clazz: Class<T>
 }
-
-
-

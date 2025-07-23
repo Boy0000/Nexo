@@ -120,6 +120,34 @@ fun ConfigurationSection.remove(key: String): ConfigurationSection {
     return this
 }
 
+fun ConfigurationSection.sectionList(key: String): List<ConfigurationSection> {
+    return getMapList(key).map { map ->
+        YamlConfiguration().apply {
+            map.entries.forEach { (key, value) ->
+                if (key is String) {
+                    set(key, convertToConfigurationSection(value))
+                }
+            }
+        }
+    }
+}
+
+private fun convertToConfigurationSection(value: Any?): Any? {
+    return when (value) {
+        is Map<*, *> -> {
+            val section = YamlConfiguration()
+            value.entries.forEach { (key, nestedValue) ->
+                if (key is String) {
+                    section.set(key, convertToConfigurationSection(nestedValue))
+                }
+            }
+            section
+        }
+        is List<*> -> value.map { convertToConfigurationSection(it) }
+        else -> value
+    }
+}
+
 class NexoYaml : YamlConfiguration() {
     override fun load(file: File) {
         runCatching {
@@ -131,23 +159,27 @@ class NexoYaml : YamlConfiguration() {
     }
 
     companion object {
-        fun isValidYaml(file: File) = runCatching {
-            YamlConfiguration().load(file)
-        }.onFailure {
-            Logs.logError("Error loading YAML configuration file: " + file.path)
-            Logs.logError("Ensure that your config is formatted correctly:")
-            if (Settings.DEBUG.toBool()) it.printStackTrace()
-            else it.message?.let(Logs::logWarn)
-        }.getOrNull() != null
+        fun isValidYaml(file: File): Boolean {
+            return runCatching {
+                YamlConfiguration().load(file)
+            }.onFailure {
+                Logs.logError("Error loading YAML configuration file: " + file.path)
+                Logs.logError("Ensure that your config is formatted correctly:")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+                else it.message?.let(Logs::logWarn)
+            }.getOrNull() != null
+        }
 
-        fun loadConfiguration(file: File) = runCatching {
-            YamlConfiguration().apply { load(file) }
-        }.onFailure {
-            Logs.logError("Error loading YAML configuration file: " + file.name)
-            Logs.logError("Ensure that your config is formatted correctly:")
-            if (Settings.DEBUG.toBool()) it.printStackTrace()
-            else it.message?.let(Logs::logWarn)
-        }.getOrNull() ?: YamlConfiguration()
+        fun loadConfiguration(file: File): YamlConfiguration {
+            return runCatching {
+                YamlConfiguration().apply { load(file) }
+            }.onFailure {
+                Logs.logError("Error loading YAML configuration file: " + file.name)
+                Logs.logError("Ensure that your config is formatted correctly:")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+                else it.message?.let(Logs::logWarn)
+            }.getOrNull() ?: YamlConfiguration()
+        }
 
         fun saveConfig(file: File, section: ConfigurationSection) {
             runCatching {

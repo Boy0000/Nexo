@@ -106,7 +106,7 @@ open class BlockLocation(var x: Int = 0, var y: Int = 0, var z: Int = 0) : Confi
     companion object {
         var dataType = ConfigurationSerializableDataType(BlockLocation::class.java)
 
-        var ZERO = BlockLocation(0, 0, 0)
+        var ZERO = BlockLocation()
 
         fun deserialize(args: Map<String?, Any?>) = BlockLocation(args["x"] as Int, args["y"] as Int, args["z"] as Int)
     }

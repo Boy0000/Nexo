@@ -15,6 +15,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import org.bukkit.entity.Player
 
+typealias KyoriComponent = Component
+
 fun Component.serializeStrict(): String = AdventureUtils.STRICT_MINI_MESSAGE.serialize(this)
 fun Component.serialize(): String = AdventureUtils.MINI_MESSAGE.serialize(this)
 fun String.deserialize(): Component  = AdventureUtils.MINI_MESSAGE.deserialize(when {

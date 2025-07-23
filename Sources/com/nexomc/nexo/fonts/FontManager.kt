@@ -65,6 +65,12 @@ class FontManager(configsManager: ConfigsManager) {
 
     fun sendGlyphTabCompletion(player: Player) {
         player.removeCustomChatCompletions(tabcompletions)
-        player.addCustomChatCompletions(tabcompletions)
+        val playerCompletions = glyphMap.values.filter { it.tabcomplete && it.hasPermission(player) }.flatMap {
+            when {
+                Settings.UNICODE_COMPLETIONS.toBool() -> listOf(it.formattedUnicodes)
+                else -> it.placeholders
+            }
+        }
+        player.addCustomChatCompletions(playerCompletions)
     }
 }

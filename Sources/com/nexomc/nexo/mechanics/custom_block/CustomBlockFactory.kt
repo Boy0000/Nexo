@@ -215,8 +215,8 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             get() = ChorusBlockMechanic::class.java
     }
 
-    data class CustomBlockSounds(val enabled: Boolean = true, val playersOnly: Boolean = false) {
-        constructor(section: ConfigurationSection) : this(section.getBoolean("enabled", true), section.getBoolean("players_only", false))
+    data class CustomBlockSounds(val enabled: Boolean = true) {
+        constructor(section: ConfigurationSection) : this(section.getBoolean("enabled", true))
     }
 
     companion object {

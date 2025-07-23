@@ -122,8 +122,8 @@ data class NexoMeta(
 
                 item.type.name == "HAPPY_GHAST_HARNESS" && (itemId.endsWith("_harness") || allowedEntities.any { it.name == "HAPPY_GHAST" }) -> harness
 
-                slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST -> layer1
-                slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET -> layer2
+                slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST || slot == EquipmentSlot.FEET -> layer1
+                slot == EquipmentSlot.LEGS -> layer2
                 else -> null
             }
         }

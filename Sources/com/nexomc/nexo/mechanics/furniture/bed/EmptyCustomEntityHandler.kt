@@ -8,7 +8,7 @@ import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Trident
 
 class EmptyCustomEntityHandler : ICustomEntityHandler {
-    override fun createTridentEntity(tridentProjectile: Trident, mechanic: TridentMechanic, ): ICustomTridentEntity? {
+    override fun createTridentEntity(tridentProjectile: Trident, mechanic: TridentMechanic): ICustomTridentEntity? {
         return null
     }
     override fun createBedEntity(baseEntity: ItemDisplay, mechanic: FurnitureMechanic, bed: FurnitureBed): IFurnitureBedEntity? {

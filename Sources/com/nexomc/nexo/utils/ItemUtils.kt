@@ -7,6 +7,13 @@ import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.inventory.meta.components.FoodComponent
 import org.bukkit.persistence.PersistentDataContainer
 
+inline fun <reified T : ItemMeta> ItemStack.editMeta(crossinline block: (T) -> Boolean): ItemStack {
+    val meta = itemMeta as? T ?: return this
+    val hasChanged = block(meta)
+    if (hasChanged) itemMeta = meta
+    return this
+}
+
 object ItemUtils {
 
     val ItemStack.persistentDataView: PersistentDataContainer? get() = runCatching {

@@ -17,6 +17,8 @@ import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.TooltipDisplay
+import io.papermc.paper.registry.RegistryAccess
+import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.*
@@ -73,6 +75,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     // 1.21+ properties
     var jukeboxPlayable: JukeboxPlayableComponent? = null; private set
+    var paintingVariant: Art? = null; private set
 
     // 1.21.2+ properties
     var equippable: EquippableComponent? = null; private set
@@ -158,6 +161,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         if (VersionUtil.atleast("1.21")) {
             jukeboxPlayable = if (itemMeta.hasJukeboxPlayable()) itemMeta.jukeboxPlayable else null
+            paintingVariant = NMSHandlers.handler().itemUtils().paintingVariant(itemStack)
         }
 
         if (VersionUtil.atleast("1.21.2")) {
@@ -300,6 +304,16 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun setTooltipDisplay(tooltipDisplay: TooltipDisplay?): ItemBuilder {
         this.tooltipDisplay = tooltipDisplay
+        return this
+    }
+
+    fun hasPaintingVariant(): Boolean {
+        return VersionUtil.atleast("1.21") && paintingVariant != null
+    }
+
+    fun setPaintingVariant(paintingVariant: Key?): ItemBuilder {
+        val registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.PAINTING_VARIANT)
+        this.paintingVariant = paintingVariant?.let(registry::get)
         return this
     }
 
@@ -464,10 +478,9 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     @Suppress("UNCHECKED_CAST")
     fun <T, Z> customTag(namespacedKey: NamespacedKey, dataType: PersistentDataType<T, Z>): Z? {
-        for ((key, value) in persistentDataMap) {
+        for ((key, value) in persistentDataMap)
             if (key.key == namespacedKey && key.dataType == dataType)
                 return value as Z
-        }
         return null
     }
 
@@ -527,96 +540,93 @@ class ItemBuilder(private val itemStack: ItemStack) {
         itemStack.type = type
         if (amount != itemStack.amount) itemStack.amount = amount
 
-        val itemMeta = itemStack.itemMeta
-
-        // 1.20.5+ properties
-        if (VersionUtil.atleast("1.20.5")) {
-            if (itemMeta is Damageable) itemMeta.setMaxDamage(durability)
-            if (itemName != null) itemMeta.itemName(itemName)
-            if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize)
-            if (hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride)
-            if (hasRarity()) itemMeta.setRarity(rarity)
-            if (hasFoodComponent()) itemMeta.setFood(foodComponent)
-            if (hasToolComponent()) itemMeta.setTool(toolComponent)
-            if (fireResistant != null) itemMeta.isFireResistant = fireResistant!!
-            if (hideToolTip != null) itemMeta.isHideTooltip = hideToolTip!!
-        }
-
-        if (VersionUtil.atleast("1.21")) {
-            if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable)
-        }
-
-        if (VersionUtil.atleast("1.21.2")) {
-            if (hasEquippableComponent()) itemMeta.setEquippable(equippable)
-            if (hasUseCooldownComponent()) itemMeta.setUseCooldown(useCooldown)
-            if (hasDamageResistant()) itemMeta.damageResistant = damageResistant
-            if (hasTooltipStyle()) itemMeta.tooltipStyle = tooltipStyle
-            if (hasUseRemainder()) itemMeta.useRemainder = useRemainder
-            if (hasEnchantable()) itemMeta.setEnchantable(enchantable)
-            if (itemModel != null) itemMeta.itemModel = itemModel
-            if (isGlider != null) itemMeta.isGlider = isGlider!!
-        }
-
-        handleVariousMeta(itemMeta)
-        itemMeta.isUnbreakable = unbreakable
-
-        val pdc = itemMeta.persistentDataContainer
-        if (displayName != null) {
-            if (VersionUtil.below("1.20.5"))
-                pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName!!))
-            itemMeta.displayName(displayName?.setDefaultStyle())
-        }
-
-        enchantments.entries.forEach { enchant: Map.Entry<Enchantment?, Int?> ->
-            if (enchant.key == null) return@forEach
-            val lvl = enchant.value ?: 1
-            itemMeta.addEnchant(enchant.key!!, lvl, true)
-        }
-
-        itemMeta.addItemFlags(*itemFlags.toTypedArray())
-        attributeModifiers?.also(itemMeta::setAttributeModifiers)
-        itemMeta.setCustomModelData(customModelData)
-
-        if (VersionUtil.atleast("1.21.4")) {
-            val cmdComponent = (customModelDataComponent ?: itemMeta.customModelDataComponent.takeIf { customModelData != null })?.apply {
-                if (customModelData != null) floats = floats.plus(customModelData!!.toFloat()).distinct()
+        itemStack.editMeta { itemMeta ->
+            // 1.20.5+ properties
+            if (VersionUtil.atleast("1.20.5")) {
+                if (itemMeta is Damageable) itemMeta.setMaxDamage(durability)
+                if (itemName != null) itemMeta.itemName(itemName)
+                if (hasMaxStackSize()) itemMeta.setMaxStackSize(maxStackSize)
+                if (hasEnchantmentGlintOverride()) itemMeta.setEnchantmentGlintOverride(enchantmentGlintOverride)
+                if (hasRarity()) itemMeta.setRarity(rarity)
+                if (hasFoodComponent()) itemMeta.setFood(foodComponent)
+                if (hasToolComponent()) itemMeta.setTool(toolComponent)
+                if (fireResistant != null) itemMeta.isFireResistant = fireResistant!!
+                if (hideToolTip != null) itemMeta.isHideTooltip = hideToolTip!!
             }
-            itemMeta.setCustomModelDataComponent(cmdComponent)
+
+            if (VersionUtil.atleast("1.21")) {
+                if (hasJukeboxPlayable()) itemMeta.setJukeboxPlayable(jukeboxPlayable)
+            }
+
+            if (VersionUtil.atleast("1.21.2")) {
+                if (hasEquippableComponent()) itemMeta.setEquippable(equippable)
+                if (hasUseCooldownComponent()) itemMeta.setUseCooldown(useCooldown)
+                if (hasDamageResistant()) itemMeta.damageResistant = damageResistant
+                if (hasTooltipStyle()) itemMeta.tooltipStyle = tooltipStyle
+                if (hasUseRemainder()) itemMeta.useRemainder = useRemainder
+                if (hasEnchantable()) itemMeta.setEnchantable(enchantable)
+                if (itemModel != null) itemMeta.itemModel = itemModel
+                if (isGlider != null) itemMeta.isGlider = isGlider!!
+            }
+
+            handleVariousMeta(itemMeta)
+            itemMeta.isUnbreakable = unbreakable
+
+            val pdc = itemMeta.persistentDataContainer
+            if (displayName != null) {
+                if (VersionUtil.below("1.20.5"))
+                    pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName!!))
+                itemMeta.displayName(displayName?.setDefaultStyle())
+            }
+
+            enchantments.entries.forEach { enchant: Map.Entry<Enchantment?, Int?> ->
+                if (enchant.key == null) return@forEach
+                val lvl = enchant.value ?: 1
+                itemMeta.addEnchant(enchant.key!!, lvl, true)
+            }
+
+            itemMeta.addItemFlags(*itemFlags.toTypedArray())
+            attributeModifiers?.also(itemMeta::setAttributeModifiers)
+            itemMeta.setCustomModelData(customModelData)
+
+            if (VersionUtil.atleast("1.21.4")) {
+                val cmdComponent = (customModelDataComponent ?: itemMeta.customModelDataComponent.takeIf { customModelData != null })?.apply {
+                    if (customModelData != null) floats = floats.plus(customModelData!!.toFloat()).distinct()
+                }
+                itemMeta.setCustomModelDataComponent(cmdComponent)
+            }
+
+            for ((key, value) in persistentDataMap) {
+                val dataSpaceKey = key.safeCast<PersistentDataSpace<Any, Any>>() ?: continue
+                pdc.set(dataSpaceKey.key, dataSpaceKey.dataType, value)
+            }
+
+            itemMeta.lore(lore)
+
+            if (VersionUtil.atleast("1.21.2") && !itemMeta.hasItemModel() && (nexoMeta?.dyeableModel != null || nexoMeta?.throwingModel != null))
+                itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
         }
 
-        if (VersionUtil.atleast("1.21.5")) {
-
+        NMSHandlers.handler().itemUtils().apply {
+            asColorable(itemStack)?.color = color
+            paintingVariant(itemStack, paintingVariant)
+            consumableComponent(itemStack, consumableComponent)
+            repairableComponent(itemStack, repairableComponent)
+            blockstateComponent(itemStack, blockStates)
+            handleItemFlagToolTips(itemStack, itemFlags)
         }
-
-        for ((key, value) in persistentDataMap) {
-            val dataSpaceKey = key.safeCast<PersistentDataSpace<Any, Any>>() ?: continue
-            pdc.set(dataSpaceKey.key, dataSpaceKey.dataType, value)
-        }
-
-        itemMeta.lore(lore)
-
-        if (VersionUtil.atleast("1.21.2") && !itemMeta.hasItemModel() && (nexoMeta?.dyeableModel != null || nexoMeta?.throwingModel != null))
-            itemMeta.itemModel = NamespacedKey.fromString("nexo:${NexoItems.idFromItem(this)}")
-
-        itemStack.itemMeta = itemMeta
-
-        NMSHandlers.handler().itemUtils().asColorable(itemStack)?.color = color
-        NMSHandlers.handler().itemUtils().consumableComponent(itemStack, consumableComponent)
-        NMSHandlers.handler().itemUtils().repairableComponent(itemStack, repairableComponent)
-        NMSHandlers.handler().itemUtils().blockstateComponent(itemStack, blockStates)
-        NMSHandlers.handler().itemUtils().handleItemFlagToolTips(itemStack, itemFlags)
 
         if (VersionUtil.atleast("1.21.5") && tooltipDisplay != null) {
             itemStack.setData(DataComponentTypes.TOOLTIP_DISPLAY, tooltipDisplay!!)
         }
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->
-            when {
-                meta is PotionMeta -> {
+            when (meta) {
+                is PotionMeta -> {
                     NMSHandlers.handler().itemUtils().consumableComponent(itemStack, null)
                     meta.setFood(null)
                 }
-                meta is LeatherArmorMeta && VersionUtil.atleast("1.21.2") ->
+                is LeatherArmorMeta if VersionUtil.atleast("1.21.2") ->
                     meta.setEquippable(meta.equippable.apply { slot = EquipmentSlot.HAND })
             }
         }
@@ -641,6 +651,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             if (hasEquippableComponent()) {
                 yamlConfig.set("$itemId.Components.equippable.slot", equippable!!.slot.name)
                 yamlConfig.set("$itemId.Components.equippable.model", equippable!!.model?.toString())
+                yamlConfig.set("$itemId.Components.equippable.allowed_entities", equippable!!.allowedEntities?.map { it.name })
             }
 
             runCatching {
@@ -650,17 +661,18 @@ class ItemBuilder(private val itemStack: ItemStack) {
     }
 
     private fun handleVariousMeta(itemMeta: ItemMeta) {
-        when {
-            itemMeta is LeatherArmorMeta && color != null && (color != itemMeta.color) -> itemMeta.setColor(color)
-            itemMeta is PotionMeta -> handlePotionMeta(itemMeta)
-            itemMeta is MapMeta && color != null && (color != itemMeta.color) -> itemMeta.color = color
-            itemMeta is FireworkEffectMeta -> {
+        when (itemMeta) {
+            is LeatherArmorMeta if color != null && (color != itemMeta.color) -> itemMeta.setColor(color)
+            is PotionMeta -> handlePotionMeta(itemMeta)
+            is MapMeta if color != null && (color != itemMeta.color) -> itemMeta.color = color
+            is FireworkEffectMeta -> {
                 val fireWorkBuilder = FireworkEffect.builder()
                 if (color != null) fireWorkBuilder.withColor(color!!)
 
                 runCatching { itemMeta.effect = fireWorkBuilder.build() }
             }
-            itemMeta is ArmorMeta && hasTrimPattern() -> itemMeta.trim = ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()!!)
+
+            is ArmorMeta if hasTrimPattern() -> itemMeta.trim = ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()!!)
         }
     }
 
@@ -684,10 +696,9 @@ class ItemBuilder(private val itemStack: ItemStack) {
         val output = arrayOfNulls<ItemStack>(iterations + (if (rest > 0) 1 else 0))
 
         for (index in 0 until iterations)
-            output[index] = ItemUpdater.updateItem(built.clone().also { it.amount = max })
+            output[index] = ItemUpdater.updateItem(built.asQuantity(max))
 
-        if (rest != 0)
-            output[iterations] = ItemUpdater.updateItem(built.clone().also { it.amount = rest })
+        if (rest != 0) output[iterations] = ItemUpdater.updateItem(built.asQuantity(rest))
 
         return output
 

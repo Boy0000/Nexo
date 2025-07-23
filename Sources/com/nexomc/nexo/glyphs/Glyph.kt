@@ -137,8 +137,6 @@ open class Glyph(
     )
 
     companion object {
-        val ORIGINAL_SIGN_FRONT_LINES = NamespacedKey.fromString("nexo:original_sign_front_lines")!!
-        val ORIGINAL_SIGN_BACK_LINES = NamespacedKey.fromString("nexo:original_sign_back_lines")!!
         val ORIGINAL_ITEM_RENAME = NamespacedKey.fromString("nexo:original_item_rename")!!
         val REQUIRED_GLYPH = Key.key("minecraft:required/exit_icon.png")
         val REQUIRED_CHAR = Char(41999).toString()
@@ -187,6 +185,7 @@ open class Glyph(
     }
 
     open val fontProviders: Array<FontProvider> by lazy {
+        val unicodes = unicodes.ifEmpty { RequiredGlyph.unicodes }
         arrayOf(FontProvider.bitMap(texture, height, ascent.coerceAtMost(height), unicodes))
     }
 }

@@ -59,6 +59,13 @@ inline fun <T, R> Iterable<T>.mapFastSet(transform: (T) -> R): ObjectOpenHashSet
     return mapTo(ObjectOpenHashSet<R>((this as? Collection)?.size ?: 10), transform)
 }
 
+inline fun <T, reified R> Iterable<T>.toTypedArrayIndexed(transform: (Int, T) -> R): Array<R> {
+    val result = arrayOfNulls<R>(this.count())
+    var index = 0
+    for (item in this) result[index] = transform(index, item).also { index++ }
+    return result.ensureCast<Array<R>>()
+}
+
 inline fun <T, reified R> Iterable<T>.toTypedArray(transform: (T) -> R): Array<R> {
     val result = arrayOfNulls<R>(this.count())
     var index = 0
@@ -71,6 +78,23 @@ inline fun <T, reified R> Array<T>.toTypedArray(transform: (T) -> R): Array<R> {
     var index = 0
     for (item in this) result[index++] = transform(item)
     return result.ensureCast<Array<R>>()
+}
+
+inline fun <T, reified R : Any> Iterable<T>.toTypedArrayNotNull(transform: (T) -> R?): Array<R> {
+    var result = arrayOfNulls<R>(this.count())
+    var index = 0
+
+    for (item in this) {
+        transform(item)?.let {
+            if (index >= result.size) {
+                result = result.copyOf(maxOf(result.size * 2, this.count()))
+            }
+            result[index++] = it
+        }
+    }
+
+    // Trim to exact size
+    return result.copyOf(index).ensureCast<Array<R>>()
 }
 
 

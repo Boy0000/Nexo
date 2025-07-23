@@ -21,5 +21,4 @@ fun Location.minus(x: Double = 0.0, y: Double = 0.0, z: Double = 0.0): Location 
 
 val Entity.blockLocation get() = this.location.toBlockLocation()
 
-object LocationUtils {
-}
+object LocationUtils

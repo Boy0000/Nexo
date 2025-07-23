@@ -16,7 +16,7 @@ public class LibbyManager {
     public static boolean failedLibs = false;
 
     private static final ArrayList<Library> libs = new ArrayList<>();
-    private static final String COMMAND_API_VERSION = "10.1.1";
+    private static final String COMMAND_API_VERSION = "10.1.2";
 
     public static void loadLibs(JavaPlugin plugin) {
         BukkitLibraryManager manager = new BukkitLibraryManager(plugin, "libs");
@@ -34,7 +34,7 @@ public class LibbyManager {
                 manager.loadLibrary(lib);
             } catch (Exception e) {
                 e.printStackTrace();
-                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[Nexo] Failed to load library: " + lib.getArtifactId());
+                plugin.getComponentLogger().error("[Nexo] Failed to load library: " + lib.getArtifactId());
                 failedLibs = true;
             }
         }
@@ -48,7 +48,7 @@ public class LibbyManager {
         libs.add(getLib("dev{}jorel", (isPaperServer() && !isLegacyServer()) ? "commandapi-bukkit-shade-mojang-mapped" : "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
         libs.add(getLib("dev{}jorel", "commandapi-bukkit-kotlin", COMMAND_API_VERSION, "dev{}jorel").build());
 
-        libs.add(getLib("software{}amazon{}awssdk", "s3", "2.30.30", null, false).build());
+        libs.add(getLib("software{}amazon{}awssdk", "s3", "2.32.4", null, false).build());
     }
 
     private static Library.Builder getLib(String groupId, String artifactId, String version, String relocationId) {

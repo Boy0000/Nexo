@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack.creative;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.Strictness;
 import com.google.gson.stream.JsonReader;
 import com.nexomc.nexo.configs.Settings;
 import com.nexomc.nexo.utils.logs.Logs;
@@ -42,7 +43,6 @@ import java.util.Queue;
 
 import static com.nexomc.nexo.pack.creative.MinecraftResourcePackStructure.*;
 import static java.util.Objects.requireNonNull;
-import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.*;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.ASSETS_FOLDER;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.METADATA_EXTENSION;
 import static team.unnamed.creative.serialize.minecraft.MinecraftResourcePackStructure.PACK_ICON_FILE;

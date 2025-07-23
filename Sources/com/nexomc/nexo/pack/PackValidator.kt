@@ -8,7 +8,6 @@ import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
 import com.nexomc.nexo.utils.logs.Logs
-import it.unimi.dsi.fastutil.booleans.BooleanLists.emptyList
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas
@@ -39,14 +38,14 @@ class PackValidator(val resourcePack: ResourcePack) {
                 val texture = resourcePack.texture(texture) ?: VanillaResourcePack.resourcePack.texture(texture)
                     ?: return@textures run {
                     logMissingTexture("Atlas", Atlas.BLOCKS.key(), texture)
-                    kotlin.collections.emptyList()
+                    emptyList()
                 }
 
                 source.permutations().keys.map { permutation ->
                     texture.key().removeSuffix(".png").appendSuffix("_$permutation.png")
                 }
             }
-        } ?: kotlin.collections.emptyList()
+        } ?: emptyList()
 
         if (Settings.PACK_VALIDATE_MODELS.toBool()) resourcePack.models().forEach { model ->
             model.textures().layers().forEach layers@{

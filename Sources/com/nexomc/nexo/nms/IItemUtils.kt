@@ -2,6 +2,7 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.utils.Colorable
+import org.bukkit.Art
 import org.bukkit.Color
 import org.bukkit.FireworkEffect
 import org.bukkit.configuration.ConfigurationSection
@@ -15,6 +16,10 @@ import org.bukkit.inventory.meta.PotionMeta
 interface IItemUtils {
 
     fun asColorable(itemStack: ItemStack): Colorable?
+
+    fun paintingVariant(itemStack: ItemStack): Art? { return null }
+
+    fun paintingVariant(itemStack: ItemStack, paintingVariant: Art?) {}
 
     fun foodComponent(itemBuilder: ItemBuilder, foodSection: ConfigurationSection) {}
 

@@ -14,9 +14,10 @@ import com.nexomc.nexo.glyphs.ShiftTag
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.pack.ShaderUtils.ScoreboardBackground
 import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.pack.creative.NexoPackWriter
+import com.nexomc.nexo.pack.shaders.GifGenerator
+import com.nexomc.nexo.pack.shaders.ScoreboardBackground
 import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.AdventureUtils.parseLegacyThroughMiniMessage
 import com.nexomc.nexo.utils.EventUtils.call
@@ -136,7 +137,7 @@ class PackGenerator {
                 trimsCustomArmor?.generateTrimAssets(resourcePack)
                 componentCustomArmor?.generatePackFiles()
 
-                handleScoreboardTablist()
+                ScoreboardBackground(resourcePack).generateFiles()
                 Overlays.addToResourcepack(resourcePack)
                 removeExcludedFileExtensions()
                 sortModelOverrides()
@@ -228,19 +229,7 @@ class PackGenerator {
                 SoundRegistry.soundRegistry(existing.namespace(), existing.sounds().plus(customSoundRegistry.sounds()))
             } ?: customSoundRegistry).addTo(resourcePack)
         }
-        JukeboxPlayableDatapack().createDatapack()
-    }
-
-    private fun handleScoreboardTablist() {
-        if (!Settings.HIDE_SCOREBOARD_BACKGROUND.toBool() && !Settings.HIDE_TABLIST_BACKGROUND.toBool()) return
-
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_20_4, "rendertype_gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_20_6, "rendertype_gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_1, "rendertype_gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_3, "gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_4, "gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_5, "gui")
-        ScoreboardBackground.addOverlay(NexoOverlay.V1_21_6, "gui")
+        if (VersionUtil.below("1.21.6")) JukeboxPlayableDatapack().createDatapack()
     }
 
     private fun importRequiredPack() {
@@ -267,12 +256,11 @@ class PackGenerator {
         }
     }
 
-    private val defaultRegex = "(Default|Required)Pack_.*".toRegex()
     private fun importExternalPacks() {
         val externalPacks = externalPacks.listFiles() ?: return
         val externalOrder = Settings.PACK_IMPORT_EXTERNAL_PACK_ORDER.toStringList()
         externalPacks.sortedWith(Comparator.comparingInt<File> {
-            externalOrder.indexOf(it.name).takeIf { it != -1 } ?: Int.MAX_VALUE
+            externalOrder.indexOfOrNull(it.name) ?: Int.MAX_VALUE
         }.thenComparing(File::getName)).asSequence().filter { !it.name.matches(defaultRegex) }.forEach {
                 if (it.isDirectory || it.name.endsWith(".zip")) {
                     Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
@@ -337,7 +325,8 @@ class PackGenerator {
     }
     private val escapeMenuLangKeys = ObjectArrayList.of(
         "menu.game", "menu.disconnect", "menu.feedback", "menu.options", "menu.playerReporting",
-        "menu.reportBugs", "menu.returnToGame", "menu.sendFeedback", "gui.stats", "gui.advancements", "modmenu.title"
+        "menu.reportBugs", "menu.returnToGame", "menu.sendFeedback", "gui.stats", "gui.advancements", "modmenu.title",
+        "container.crafting"
     )
 
     private fun parseGlobalLanguage() {
@@ -381,6 +370,7 @@ class PackGenerator {
     }
 
     companion object {
+        private val defaultRegex = "(Default|Required)Pack_.*".toRegex()
         var externalPacks = NexoPlugin.instance().dataFolder.resolve("pack/external_packs")
 
         private val assetsFolder = NexoPlugin.instance().dataFolder.resolve("pack/assets")

@@ -21,7 +21,7 @@ class EvolutionTask(private val furnitureFactory: FurnitureFactory, private val 
 
             val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@runAtWorldEntities
             if (mechanic.farmlandRequired && entityLoc.block.getRelative(BlockFace.DOWN).type != Material.FARMLAND) {
-                NexoFurniture.remove(entity, null)
+                NexoFurniture.remove(entity)
                 return@runAtWorldEntities
             }
 

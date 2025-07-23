@@ -18,6 +18,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
+import kotlin.random.Random
 
 data class Drop(
     val hierarchy: List<String>? = null,
@@ -30,7 +31,10 @@ data class Drop(
 ) {
 
     val isEmpty get() = loots.isEmpty() && !isSilktouch
-    val explosionDrops: Drop get() = Drop(loots.filter(Loot::inExplosion).toMutableList(), false, false, sourceID)
+    val explosionDrops: Drop get() = Drop(loots.filter(Loot::inExplosion).toMutableList(), silktouch = false,
+        fortune = false,
+        sourceID = sourceID
+    )
 
     constructor(loots: MutableList<Loot>, silktouch: Boolean, fortune: Boolean, sourceID: String) :
             this(loots = loots, isSilktouch = silktouch, isFortune = fortune, sourceID = sourceID)
@@ -121,7 +125,7 @@ data class Drop(
     fun lootToDrop(player: Player): List<Loot> {
         val itemInHand = player.inventory.itemInMainHand
 
-        return loots.filter { loot -> canDrop(itemInHand) && Math.random() > loot.probability }
+        return loots.filter { loot -> canDrop(itemInHand) && Random.nextDouble() < loot.probability }
     }
 
     companion object {
@@ -138,9 +142,9 @@ data class Drop(
         }
 
         @JvmStatic
-        fun emptyDrop() = Drop(ArrayList(), false, false, "")
+        fun emptyDrop() = Drop(ArrayList(), silktouch = false, fortune = false, sourceID = "")
 
         @JvmStatic
-        fun emptyDrop(loots: MutableList<Loot>) = Drop(loots, false, false, "")
+        fun emptyDrop(loots: MutableList<Loot>) = Drop(loots, silktouch = false, fortune = false, sourceID = "")
     }
 }

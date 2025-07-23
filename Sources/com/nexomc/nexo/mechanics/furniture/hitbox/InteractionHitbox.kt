@@ -15,13 +15,6 @@ data class InteractionHitbox(
     val height: Float = 1f
 ) {
 
-    // Constructor taking a hitboxObject
-    constructor(hitboxObject: Any?) : this(
-        (hitboxObject as? String)?.let(::InteractionHitbox)?.offset ?: DEFAULT.offset,
-        (hitboxObject as? String)?.let(::InteractionHitbox)?.width ?: DEFAULT.width,
-        (hitboxObject as? String)?.let(::InteractionHitbox)?.height ?: DEFAULT.height
-    )
-
     // Constructor taking a hitboxString
     constructor(hitboxString: String) : this(
         offset = vectorFromString(StringUtils.split(hitboxString, " ", 2).firstOrNull() ?: "0,0,0", 0f),

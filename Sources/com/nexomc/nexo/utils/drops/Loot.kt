@@ -28,8 +28,12 @@ data class Loot(
         sourceID = sourceID
     )
 
-    constructor(itemStack: ItemStack?, probability: Double) : this(null, itemStack, min(1.0, probability), 1..1)
-    constructor(itemId: String?, probability: Double) : this(itemId, null, min(1.0, probability), 1..1)
+    constructor(itemStack: ItemStack?, probability: Double) : this(
+        itemStack = itemStack,
+        probability = min(1.0, probability),
+        amount = 1..1
+    )
+    constructor(itemId: String?, probability: Double) : this(itemId, probability = min(1.0, probability), amount = 1..1)
 
     constructor(sourceID: String?, itemStack: ItemStack?, probability: Double, minAmount: Int, maxAmount: Int)
             : this(sourceID, itemStack, min(1.0, probability), IntRange(minAmount, maxAmount))

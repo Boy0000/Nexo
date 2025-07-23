@@ -94,7 +94,7 @@ class FurnitureSoundListener : Listener {
         if (blockStandingOn.type == Material.TRIPWIRE) return
         val mechanic = NexoFurniture.furnitureMechanic(blockStandingOn.getRelative(BlockFace.UP).location)
         if (soundGroup.stepSound != Sound.BLOCK_STONE_STEP && mechanic == null) return
-        if (mechanic != null && !IFurniturePacketManager.blockIsHitbox(blockStandingOn, null, true)) return
+        if (mechanic != null && !IFurniturePacketManager.blockIsHitbox(blockStandingOn)) return
 
         val (sound, volume, pitch) = when {
             event === GameEvent.STEP ->

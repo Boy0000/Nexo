@@ -38,6 +38,5 @@ data class GhastHitbox(val offset: Vector = Vector(), val scale: Double = 1.0, v
     }
 
     companion object {
-        var DEFAULT = GhastHitbox()
     }
 }

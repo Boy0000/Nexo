@@ -2,11 +2,13 @@ package com.nexomc.nexo.utils.jukebox_playable
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.NexoDatapack
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 
-class JukeboxPlayableDatapack : NexoDatapack("nexo_music_discs", "Datapack for Custom Music Discs") {
+class JukeboxPlayableDatapack : NexoDatapack("nexo_jukebox_playables", "Datapack for Custom Music Discs") {
 
     fun createDatapack() {
+        if (VersionUtil.atleast("1.21.6")) return
         writeMCMeta()
 
         NexoPlugin.instance().soundManager().jukeboxPlayables.ifEmpty { null }?.forEach { jukeboxPlayable ->

@@ -180,7 +180,7 @@ class PackObfuscator(private val resourcePack: ResourceContainer) {
         }
 
         resourcePack.items().toList().forEach { item ->
-            Item.item(item.key(), obfuscateItemModel(item.model()), item.handAnimationOnSwap()).addTo(resourcePack)
+            Item.item(item.key(), obfuscateItemModel(item.model()), item.handAnimationOnSwap(), item.oversizedInGui()).addTo(resourcePack)
         }
     }
 

@@ -9,5 +9,4 @@ inline fun Player.withOp(block: () -> Unit) {
     isOp = originalOp
 }
 
-object PlayerUtils {
-}
+object PlayerUtils

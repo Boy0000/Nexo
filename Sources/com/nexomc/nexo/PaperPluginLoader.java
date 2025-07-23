@@ -22,7 +22,7 @@ public class PaperPluginLoader implements PluginLoader {
     public static boolean usedPaperPluginLoader = false;
     private static final List<String> libraries = new ArrayList<>();
 
-    private static final String COMMAND_API_VERSION = "10.1.1";
+    private static final String COMMAND_API_VERSION = "10.1.2";
 
     private static final List<Repo> repositories = List.of(
         new Repo("central", getDefaultMavenCentralMirror()),
@@ -47,7 +47,7 @@ public class PaperPluginLoader implements PluginLoader {
     static {
         libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1");
         libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1");
-        libraries.add("org.jetbrains.kotlin:kotlin-stdlib:2.0.21");
+        libraries.add("org.jetbrains.kotlin:kotlin-stdlib:2.2.0");
 
         try {
             Class.forName("org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer");
@@ -66,6 +66,7 @@ public class PaperPluginLoader implements PluginLoader {
         libraries.add("org.apache.commons:commons-lang3:3.17.0");
         libraries.add("org.apache.httpcomponents.client5:httpclient5:5.4.3");
         libraries.add("org.glassfish:javax.json:1.1.4");
+        libraries.add("software.amazon.awssdk:s3:2.32.4");
     }
 
 
@@ -85,7 +86,7 @@ public class PaperPluginLoader implements PluginLoader {
         MavenLibraryResolver resolver = new MavenLibraryResolver();
         RepositoryPolicy snapshot = new RepositoryPolicy(true, UPDATE_POLICY_ALWAYS, CHECKSUM_POLICY_IGNORE);
         for (Repo repo : repositories) resolver.addRepository(
-                new RemoteRepository.Builder(repo.getName(), "default", repo.getLink())
+                new RemoteRepository.Builder(repo.name(), "default", repo.link())
                         .setSnapshotPolicy(snapshot).build()
         );
 
@@ -94,24 +95,8 @@ public class PaperPluginLoader implements PluginLoader {
         classpathBuilder.addLibrary(resolver);
 
         usedPaperPluginLoader = true;
-        System.out.printf("PaperPluginLoader DONE!, %s%n", usedPaperPluginLoader);
     }
 
-    private static class Repo {
-        private final String name;
-        private final String link;
-
-        private Repo(String name, String link) {
-            this.name = name;
-            this.link = link;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getLink() {
-            return link;
-        }
+    private record Repo(String name, String link) {
     }
 }

@@ -12,6 +12,7 @@ import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
+import org.bukkit.entity.EntityType
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
@@ -127,6 +128,10 @@ class ComponentCustomArmor(private val resourcePack: ResourcePack) {
             val vanillaComponent = ItemStack(item.type).itemMeta.equippable.apply { this.slot = EquipmentSlot.HAND }
             val component = (item.equippable?.takeIf { it.model != modelKey } ?: vanillaComponent) ?: return@forEach
             if (item.nexoMeta?.generateModel != false) component.model = modelKey
+            if (slot == EquipmentSlot.BODY && item.equippable?.allowedEntities.isNullOrEmpty()) {
+                val suffix = itemId.removePrefix("${armorPrefix}_").substringBefore("_").uppercase()
+                component.allowedEntities = listOf(EntityType.valueOf(suffix))
+            }
             component.slot = slot
             if (component == item.equippable) return@forEach
             item.setEquippableComponent(component)

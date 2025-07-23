@@ -55,7 +55,7 @@ object NoteMechanicHelpers {
         val mechanic = NexoBlocks.noteBlockMechanic(blockAbove)?.takeIf { it.isFalling() } ?: return
         val fallingLocation = toCenterBlockLocation(blockAbove.location)
         val fallingData = NexoBlocks.blockData(mechanic.itemID) ?: return
-        NexoBlocks.remove(blockAbove.location, null, Drop.emptyDrop())
+        NexoBlocks.remove(blockAbove.location, overrideDrop = Drop.emptyDrop())
 
         val falling = blockAbove.world.spawn(fallingLocation, FallingBlock::class.java)
         falling.blockData = fallingData!!

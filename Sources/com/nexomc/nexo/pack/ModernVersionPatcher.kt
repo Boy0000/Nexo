@@ -2,9 +2,9 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
 import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.utils.associateFastBy
 import com.nexomc.nexo.utils.groupByFast
 import com.nexomc.nexo.utils.remove
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Vector3Float
@@ -49,19 +49,21 @@ object ModernVersionPatcher {
                         ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, entries, fallback)
                     }
 
-                    is SelectItemModel -> ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
-                        val model = when {
-                            baseItemModel is SpecialItemModel && baseItemModel.render() is HeadSpecialRender -> ItemModel.special(baseItemModel.render(), override.model())
-                            else -> ItemModel.reference(override.model())
-                        }
-                        RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, model)
-                    }, baseItemModel)
+                    is SelectItemModel -> {
+                        ItemModel.rangeDispatch(ItemNumericProperty.customModelData(), 1f, overrides.mapNotNull { override ->
+                            val model = when {
+                                baseItemModel is SpecialItemModel && baseItemModel.render() is HeadSpecialRender -> ItemModel.special(baseItemModel.render(), override.model())
+                                else -> ItemModel.reference(override.model())
+                            }
+                            RangeDispatchItemModel.Entry.entry(override.predicate().customModelData ?: return@mapNotNull null, model)
+                        }, baseItemModel)
+                    }
 
                     is ConditionItemModel -> {
                         val (trueOverrides, falseOverrides) = overrides.groupByFast { it.predicate().customModelData?.takeUnless { it == 0f } }.let { grouped ->
                             when {
                                 itemKey.asString().endsWith("bow") ->
-                                    grouped.values.flatMap { it.filter { p-> p.pulling } } to grouped.values.flatMap { it.filterNot { p -> p.pulling } }
+                                    grouped.values.flatMap { it.filter { it.pulling } } to grouped.values.flatMap { it.filterNot { it.pulling } }
 
                                 itemKey.asString().endsWith("shield") ->
                                     grouped.values.mapNotNull { it.firstOrNull { it.blocking } } to grouped.values.mapNotNull { it.firstOrNull { !it.blocking } }
@@ -165,10 +167,11 @@ object ModernVersionPatcher {
         get() = predicate().any { it.name() == "cast" }
 
     val standardItemModels by lazy {
-        runCatching {
+        val requiredPack = runCatching {
             NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
-        }.getOrDefault(ResourcePack.resourcePack()).items().plus(VanillaResourcePack.resourcePack.items())
-            .associateByTo(Object2ObjectOpenHashMap()) { it.key() }
+        }.getOrDefault(ResourcePack.resourcePack())
+
+        VanillaResourcePack.resourcePack.items().plus(requiredPack.items()).associateFastBy(Item::key)
     }
 
     private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}

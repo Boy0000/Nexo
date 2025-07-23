@@ -8,7 +8,6 @@ import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.trident.TridentFactory
-import com.nexomc.nexo.mechanics.trident.TridentMechanic
 import com.nexomc.nexo.utils.AdventureUtils.setDefaultStyle
 import com.nexomc.nexo.utils.NexoYaml.Companion.copyConfigurationSection
 import com.nexomc.nexo.utils.PotionUtils

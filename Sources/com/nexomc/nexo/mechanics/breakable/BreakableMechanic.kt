@@ -21,7 +21,7 @@ data class Breakable(var hardness: Double = 1.0, var drop: Drop = Drop.emptyDrop
         val itemId: String = section.rootId
         hardness = section.getDouble("hardness", 1.0)
         drop = when(val dropSection = section.getConfigurationSection("drop")) {
-            null -> Drop(mutableListOf(Loot(itemId, 1.0)), false, false, itemId)
+            null -> Drop(mutableListOf(Loot(itemId, 1.0)), silktouch = false, fortune = false, sourceID = itemId)
             else -> Drop.createDrop(CustomBlockFactory.instance()?.toolTypes, dropSection, itemId)
         }
     }

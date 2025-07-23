@@ -120,7 +120,7 @@ object CustomBlockHelpers {
                     when {
                         newMechanic.isFalling() && blockBelow.type.isAir() -> {
                             val fallingLocation = toCenterBlockLocation(target.location)
-                            NexoBlocks.remove(target.location, null, Drop.emptyDrop())
+                            NexoBlocks.remove(target.location, overrideDrop = Drop.emptyDrop())
                             if (fallingLocation.getNearbyEntitiesByType(FallingBlock::class.java, 0.25).isEmpty()) {
                                 val falling = target.world.spawn(fallingLocation, FallingBlock::class.java)
                                 falling.blockData = newData!!
