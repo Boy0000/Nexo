@@ -39,5 +39,8 @@ class GifGenerator(private val resourcePack: ResourcePack) {
 
         writeShaderFiles("rendertype_text")
         writeShaderFiles("rendertype_text_see_through")
+
+        val gifGlsl = Writable.resource(classLoader, "shaders/gifs/nexo_gif_utils.glsl")
+        unknownFile("assets/minecraft/shaders/include/nexo_gif_utils.glsl", gifGlsl)
     }
 }
