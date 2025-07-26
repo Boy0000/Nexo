@@ -8,6 +8,7 @@ import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
@@ -86,7 +87,7 @@ class FurnitureSoundListener : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
-        val player = entity?.takeIf { it.location.isLoaded && !isAsynchronous } as? Player ?: return
+        val player = entity?.takeIf { it.location.isLoaded && !isAsynchronous && !VersionUtil.isFoliaServer } as? Player ?: return
         val blockStandingOn = BlockHelpers.entityStandingOn(player)?.takeUnless { it.isEmpty } ?: return
         val (cause, soundGroup) = player.lastDamageCause to blockStandingOn.blockData.soundGroup
 

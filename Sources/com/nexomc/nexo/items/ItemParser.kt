@@ -16,6 +16,7 @@ import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.deserialize
 import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getLinkedMapList
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
@@ -45,7 +46,8 @@ class ItemParser(private val section: ConfigurationSection) {
 
     init {
 
-        if (section.isString("template")) templateItem = ItemTemplate.parserTemplate(section.getString("template")!!)
+        templateItem = section.getStringOrNull("template")?.let(ItemTemplate::parserTemplate)
+            ?: section.getStringListOrNull("templates")?.let(ItemTemplate::parserTemplates)
 
         section.getConfigurationSection("crucible")?.also { crucibleItem = WrappedCrucibleItem(it) }
             ?: section.getConfigurationSection("mmoitem")?.also { mmoItem = WrappedMMOItem(it) }

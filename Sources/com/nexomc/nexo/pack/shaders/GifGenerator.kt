@@ -6,7 +6,6 @@ import com.nexomc.nexo.glyphs.AnimatedGlyph
 import com.nexomc.nexo.pack.NexoOverlay
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Writable
-import team.unnamed.creative.overlay.Overlay
 
 class GifGenerator(private val resourcePack: ResourcePack) {
     private val classLoader = NexoPlugin.instance().javaClass.classLoader
@@ -17,15 +16,15 @@ class GifGenerator(private val resourcePack: ResourcePack) {
         }
 
         if (Settings.GENERATE_GIF_SHADERS.toBool()) {
-            NexoOverlay.V1_21_1.overlay.writables("v1_21_1")
-            NexoOverlay.V1_21_3.overlay.writables("v1_21_3")
-            NexoOverlay.V1_21_4.overlay.writables("v1_21_3")
-            NexoOverlay.V1_21_5.overlay.writables("v1_21_3")
-            NexoOverlay.V1_21_6.overlay.writables("v1_21_6")
+            NexoOverlay.V1_21_1.writables("v1_21_1")
+            NexoOverlay.V1_21_3.writables("v1_21_3")
+            NexoOverlay.V1_21_4.writables("v1_21_3")
+            NexoOverlay.V1_21_5.writables("v1_21_3")
+            NexoOverlay.V1_21_6.writables("v1_21_6")
         }
     }
 
-    private fun Overlay.writables(version: String) {
+    private fun NexoOverlay.writables(version: String) {
         val basePath = "assets/minecraft/shaders/core"
         val baseName = "shaders/gifs/$version"
 
@@ -33,14 +32,15 @@ class GifGenerator(private val resourcePack: ResourcePack) {
             val fullPath = "$basePath/$suffix"
             val fullName = "$baseName/$suffix"
             listOf("json", "vsh", "fsh").forEach { ext ->
-                unknownFile("$fullPath.$ext", Writable.resource(classLoader, "$fullName.$ext"))
+                overlay.unknownFile("$fullPath.$ext", Writable.resource(classLoader, "$fullName.$ext"))
             }
         }
 
         writeShaderFiles("rendertype_text")
         writeShaderFiles("rendertype_text_see_through")
 
-        val gifGlsl = Writable.resource(classLoader, "shaders/gifs/nexo_gif_utils.glsl")
-        unknownFile("assets/minecraft/shaders/include/nexo_gif_utils.glsl", gifGlsl)
+        val gifText = classLoader.getResourceAsStream("shaders/gifs/nexo_gif_utils.glsl")?.readAllBytes()?.decodeToString() ?: ""
+        val gifGlsl = Writable.stringUtf8(gifText.replace("%PACK_FORMAT%", format.toString()))
+        overlay.unknownFile("assets/minecraft/shaders/include/nexo_gif_utils.glsl", gifGlsl)
     }
 }

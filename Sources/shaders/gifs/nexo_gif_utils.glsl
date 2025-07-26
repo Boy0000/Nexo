@@ -1,7 +1,11 @@
 #version 150
 
+#define PACK_FORMAT %PACK_FORMAT%
+
 uniform sampler2D Sampler0;
+#if PACK_FORMAT < 63
 uniform float GameTime;
+#endif
 
 void applyGifEffect() {
     vec2 dimensions = textureSize(Sampler0, 0);

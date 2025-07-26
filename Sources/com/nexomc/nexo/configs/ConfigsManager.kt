@@ -20,8 +20,8 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastLinkedWith
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.childSections
-import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
@@ -210,8 +210,16 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     }
 
     fun parseAllItemTemplates() {
-        itemFiles().mapFast(NexoYaml::loadConfiguration).forEach { configuration ->
-            configuration.childSections().values.filterFast { it.isBoolean("template") }.forEach(ItemTemplate::register)
+        ItemTemplate.itemTemplates.clear()
+        val templateIds = mutableListOf<String>()
+        val itemConfigs = itemFiles().mapFast(NexoYaml::loadConfiguration)
+            .flatMap { it.childSections().toList() }.onEach { (_, section) ->
+            section.getStringOrNull("template")?.let(templateIds::add)
+            section.getStringListOrNull("templates")?.let(templateIds::addAll)
+        }.toMap()
+
+        templateIds.forEach { templateId ->
+            itemConfigs[templateId]?.let(ItemTemplate::register)
         }
     }
 

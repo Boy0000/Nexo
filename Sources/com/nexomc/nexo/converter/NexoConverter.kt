@@ -13,6 +13,7 @@ object NexoConverter {
 
     fun processItemConfigs(configSection: ConfigurationSection) {
         configSection.childSections().forEach { itemId, section ->
+            if (section.getBoolean("template")) section.remove("template")
             val furnitureSection = section.getConfigurationSection("Mechanics.furniture") ?: return@forEach
 
             runCatching {

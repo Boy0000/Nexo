@@ -44,7 +44,7 @@ public class LibbyManager {
     private static void load() {
         libs.add(Library.builder().groupId("org{}jetbrains{}kotlinx").artifactId("kotlinx-coroutines-core").version("1.10.1").relocate("kotlinx{}", "com{}nexomc{}libs{}kotlinx{}").build());
         libs.add(Library.builder().groupId("org{}jetbrains{}kotlinx").artifactId("kotlinx-coroutines-core-jvm").version("1.10.1").relocate("kotlinx{}", "com{}nexomc{}libs{}kotlinx{}").build());
-        libs.add(Library.builder().groupId("org{}jetbrains{}kotlin").artifactId("kotlin-stdlib").version("2.1.0").relocate("kotlin{}", "com{}nexomc{}libs{}kotlin{}").build());
+        libs.add(Library.builder().groupId("org{}jetbrains{}kotlin").artifactId("kotlin-stdlib").version("2.2.0").relocate("kotlin{}", "com{}nexomc{}libs{}kotlin{}").build());
         libs.add(getLib("dev{}jorel", (isPaperServer() && !isLegacyServer()) ? "commandapi-bukkit-shade-mojang-mapped" : "commandapi-bukkit-shade", COMMAND_API_VERSION, "dev{}jorel").build());
         libs.add(getLib("dev{}jorel", "commandapi-bukkit-kotlin", COMMAND_API_VERSION, "dev{}jorel").build());
 

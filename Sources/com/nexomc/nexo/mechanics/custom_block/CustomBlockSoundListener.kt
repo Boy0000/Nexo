@@ -86,7 +86,7 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
 
     @EventHandler(priority = EventPriority.LOWEST)
     fun GenericGameEvent.onStepFall() {
-        val player = entity as? Player ?: return
+        val player = (entity as? Player)?.takeUnless { VersionUtil.isFoliaServer } ?: return
         val fallDistance = AttributeWrapper.SAFE_FALL_DISTANCE?.let(player::getAttribute)?.value ?: return
 
         if (!player.location.isLoaded || isAsynchronous) return
