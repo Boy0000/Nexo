@@ -2,13 +2,14 @@ package com.nexomc.nexo.mechanics.misc.backpack
 
 import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.InventoryUtils.topInventoryForPlayer
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.deserialize
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
@@ -79,7 +80,9 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
         val backpackMeta = backpack.itemMeta
         if (!isBackpack(backpack) || backpackMeta == null) return null
         val pdc = backpackMeta.persistentDataContainer
-        val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(mechanic.title)).rows(mechanic.rows).create()
+        val gui = Gui.storage().title(mechanic.title.deserialize()).rows(mechanic.rows).inventory { t, o, r ->
+            Bukkit.createInventory(o, r, t)
+        }.create()
 
         gui.disableItemDrop()
         gui.disableItemSwap()

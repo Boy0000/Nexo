@@ -6,17 +6,18 @@ import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.furniture.FurnitureHelpers
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
-import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.deserialize
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.StorageGui
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -147,7 +148,9 @@ class StorageMechanic(section: ConfigurationSection) {
         get() = storageType == StorageType.SHULKER
 
     private fun createDisposalGui(location: Location, baseEntity: ItemDisplay?): StorageGui {
-        val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create()
+        val gui = Gui.storage().title(title.deserialize()).rows(rows).inventory { t, o, r ->
+            Bukkit.createInventory(o, r, t)
+        }.create()
 
         gui.setOpenGuiAction { gui.inventory.clear() }
 
@@ -161,7 +164,9 @@ class StorageMechanic(section: ConfigurationSection) {
 
     private fun createPersonalGui(player: Player, baseEntity: ItemDisplay?): StorageGui {
         val storagePDC = player.persistentDataContainer
-        val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create()
+        val gui = Gui.storage().title(title.deserialize()).rows(rows).inventory { t, o, r ->
+            Bukkit.createInventory(o, r, t)
+        }.create()
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
@@ -194,7 +199,9 @@ class StorageMechanic(section: ConfigurationSection) {
     private fun createGui(block: Block): StorageGui {
         val location = block.location
         val storagePDC = block.persistentDataContainer
-        val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create()
+        val gui = Gui.storage().title(title.deserialize()).rows(rows).inventory { t, o, r ->
+            Bukkit.createInventory(o, r, t)
+        }.create()
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
@@ -225,7 +232,9 @@ class StorageMechanic(section: ConfigurationSection) {
         val itemPDC = furnitureItem.itemMeta.persistentDataContainer
         val shulker = isShulker
         val shulkerPDC = if (shulker) itemPDC else null
-        val gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create()
+        val gui = Gui.storage().title(title.deserialize()).rows(rows).inventory { t, o, r ->
+            Bukkit.createInventory(o, r, t)
+        }.create()
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
