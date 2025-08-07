@@ -36,7 +36,6 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
-import kotlin.io.resolve
 
 class ConfigsManager(private val plugin: JavaPlugin) {
     private var settings: YamlConfiguration? = null
@@ -193,7 +192,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val material = Material.getMaterial(itemSection.getString("material", "")!!)
                     ?: WrappedCrucibleItem(itemSection).material
                     ?: WrappedMMOItem(itemSection, true).material
-                    ?: return@forEach
+                    ?: Material.PAPER
 
                 validatePackSection(itemId, packSection)
                 val modelData = packSection.getInt("custom_model_data", -1).takeUnless { it == -1 } ?: return@forEach

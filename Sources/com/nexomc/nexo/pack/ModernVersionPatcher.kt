@@ -8,7 +8,13 @@ import com.nexomc.nexo.utils.remove
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.base.Vector3Float
-import team.unnamed.creative.item.*
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
+import team.unnamed.creative.item.SpecialItemModel
 import team.unnamed.creative.item.property.ItemNumericProperty
 import team.unnamed.creative.item.property.ItemStringProperty
 import team.unnamed.creative.item.special.HeadSpecialRender
@@ -171,7 +177,7 @@ object ModernVersionPatcher {
             NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
         }.getOrDefault(ResourcePack.resourcePack())
 
-        VanillaResourcePack.resourcePack.items().plus(requiredPack.items()).associateFastBy(Item::key)
+        requiredPack.items().plus(VanillaResourcePack.resourcePack.items()).associateFastBy(Item::key)
     }
 
     private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}

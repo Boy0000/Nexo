@@ -16,16 +16,32 @@ fun Path.resolve(vararg path: String): Path {
 
 fun File.listYamlFiles(deep: Boolean = false): List<File> {
     return if (deep) walkBottomUp().filter { file -> file.isFile && file.extension == "yml" && file.length() != 0L }.toFastList()
-    else listFiles { file -> file.isFile && file.extension == "yml" && file.length() == 0L }?.toList() ?: emptyList()
+    else listFiles { file -> file.isFile && file.extension == "yml" && file.length() != 0L }?.toList() ?: emptyList()
 }
 
 fun File.listJsonFiles(deep: Boolean = false): List<File> {
     return if (deep) walkBottomUp().filter { file -> file.isFile && file.extension == "yml" && file.length() != 0L }.toFastList()
-    else listFiles { file -> file.isFile && file.extension == "json" && file.length() == 0L }?.toList() ?: emptyList()
+    else listFiles { file -> file.isFile && file.extension == "json" && file.length() != 0L }?.toList() ?: emptyList()
 }
 
 fun File.listDirectories(): List<File> {
     return walkBottomUp().filter { it.isDirectory }.toFastList()
+}
+
+fun File.replaceText(target: String, replacement: String) {
+    writeText(readText().replace(target, replacement))
+}
+
+fun File.replaceText(replacements: Map<String, String>) {
+    writeText(replacements.entries.fold(readText()) { a, (b, c) ->
+        a.replace(b, c)
+    })
+}
+
+fun File.replaceText(vararg replacements: Pair<String, String>) {
+    writeText(replacements.fold(readText()) { a, (b, c) ->
+        a.replace(b, c)
+    })
 }
 
 object FileUtils {

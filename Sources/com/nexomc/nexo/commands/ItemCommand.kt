@@ -11,7 +11,15 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
-import dev.jorel.commandapi.kotlindsl.*
+import dev.jorel.commandapi.kotlindsl.anyExecutor
+import dev.jorel.commandapi.kotlindsl.entitySelectorArgumentManyPlayers
+import dev.jorel.commandapi.kotlindsl.entitySelectorArgumentOnePlayer
+import dev.jorel.commandapi.kotlindsl.integerArgument
+import dev.jorel.commandapi.kotlindsl.literalArgument
+import dev.jorel.commandapi.kotlindsl.multiLiteralArgument
+import dev.jorel.commandapi.kotlindsl.playerExecutor
+import dev.jorel.commandapi.kotlindsl.stringArgument
+import dev.jorel.commandapi.kotlindsl.textArgument
 import net.kyori.adventure.audience.Audience
 import org.bukkit.entity.Player
 import java.util.concurrent.CompletableFuture

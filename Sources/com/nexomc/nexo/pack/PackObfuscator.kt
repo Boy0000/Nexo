@@ -16,8 +16,6 @@ import com.nexomc.nexo.utils.resolve
 import com.nexomc.nexo.utils.toFastMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import java.io.File
-import java.util.UUID
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.AtlasSource
@@ -44,6 +42,8 @@ import team.unnamed.creative.overlay.ResourceContainer
 import team.unnamed.creative.sound.Sound
 import team.unnamed.creative.sound.SoundRegistry
 import team.unnamed.creative.texture.Texture
+import java.io.File
+import java.util.*
 
 class PackObfuscator(private val resourcePack: ResourceContainer) {
     val obfuscationType: Type = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(Type::class.java) {

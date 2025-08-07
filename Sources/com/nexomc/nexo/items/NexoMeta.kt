@@ -1,8 +1,13 @@
 package com.nexomc.nexo.items
 
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.KeyUtils.dropExtension
+import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.rootId
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.configuration.ConfigurationSection

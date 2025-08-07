@@ -4,10 +4,16 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.glyphs.AnimatedGlyph
 import com.nexomc.nexo.glyphs.Glyph
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
 import com.nexomc.nexo.utils.KeyUtils.removeSuffix
+import com.nexomc.nexo.utils.appendIfMissing
+import com.nexomc.nexo.utils.associateFast
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.filterFastIsInstance
+import com.nexomc.nexo.utils.flatMapFast
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.mapFast
+import com.nexomc.nexo.utils.printOnFailure
 import net.kyori.adventure.key.Key
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.atlas.Atlas
@@ -97,13 +103,26 @@ class PackValidator(val resourcePack: ResourcePack) {
             }
         }
 
-        val glyphs = NexoPlugin.instance().fontManager().glyphs().filter { it.font != Font.MINECRAFT_DEFAULT }
-        val unicodes = glyphs.flatMap { it.unicodes.flatMap { it.toCharArray().toList() } }
-        if (Settings.PACK_VALIDATE_LANGUAGES.toBool()) resourcePack.languages().forEach { language ->
-            language.translations().forEach { (key, translation) ->
-                if (unicodes.none { it in translation }) return@forEach
-                Logs.logWarn("Non Default-font Glyph detected in ${language.key()} at $key")
-                Logs.logWarn("If this is for the Escape Menu, the Glyph must use \'font: minecraft:default\'")
+        if (Settings.PACK_VALIDATE_LANGUAGES.toBool()) {
+            data class TranslationEntry(val language: Key, val key: String, val value: String)
+            val glyphs = NexoPlugin.instance().fontManager().glyphs().filter { it.font != Font.MINECRAFT_DEFAULT }
+            val unicodes = glyphs.associate { it.id to it.unicodes.flatMap { it.toCharArray().toList() } }
+            val langCount = resourcePack.languages().size
+
+            val translations = resourcePack.languages().flatMap { lang ->
+                lang.translations().map { (key, value) -> TranslationEntry(lang.key(), key, value) }
+            }.groupBy { it.key to it.value }
+
+            val result = translations.flatMap { (pair, entries) ->
+                if (entries.size == langCount) listOf(TranslationEntry(Key.key("global"), pair.first, pair.second))
+                else entries
+            }
+
+            result.forEach { entry ->
+                unicodes.entries.firstOrNull { (_, chars) -> chars.any { it in entry.value } }?.let { (id, _) ->
+                    Logs.logWarn("Non Default-font Glyph <i>$id</i> detected in ${entry.language} at ${entry.key}")
+                    Logs.logWarn("If this is for the Escape Menu, the Glyph must use 'font: minecraft:default'")
+                }
             }
         }
     }

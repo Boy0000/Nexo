@@ -4,8 +4,14 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.glyphs.GlyphShadow.Companion.glyphShadow
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.KeyUtils.appendSuffix
+import com.nexomc.nexo.utils.deserialize
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.getStringOrNull
+import com.nexomc.nexo.utils.joinToString
+import com.nexomc.nexo.utils.remove
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component

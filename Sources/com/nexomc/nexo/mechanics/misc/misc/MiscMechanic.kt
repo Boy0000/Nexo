@@ -15,6 +15,7 @@ class MiscMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSect
     val canStripLogs = section.getBoolean("can_strip_logs", false)
     val piglinsIgnoreWhenEquipped = section.getBoolean("piglins_ignore_when_equipped", false)
     val isCompostable = section.getBoolean("compostable", false)
+    val preventItemFrames = section.getBoolean("prevent_item_frames", false)
 
     val isAllowedInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false)
 

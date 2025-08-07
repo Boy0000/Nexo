@@ -4,7 +4,6 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
-import com.nexomc.nexo.mechanics.MechanicsManager
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
@@ -123,8 +122,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
          * @param itemId The Nexo item ID.
          */
         fun setBlockModel(block: Block, itemId: String?) {
-            val stringBlockMechanic = MechanicsManager.getMechanicFactory("stringblock")?.getMechanic(itemId) as? StringBlockMechanic ?: return
-            block.blockData = stringBlockMechanic.blockData!!
+            block.blockData = instance?.getMechanic(itemId)?.blockData ?: return
         }
     }
 }

@@ -6,7 +6,11 @@ import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.safeCast
 import dev.jorel.commandapi.CommandTree
-import dev.jorel.commandapi.kotlindsl.*
+import dev.jorel.commandapi.kotlindsl.anyExecutor
+import dev.jorel.commandapi.kotlindsl.doubleArgument
+import dev.jorel.commandapi.kotlindsl.entitySelectorArgumentManyPlayers
+import dev.jorel.commandapi.kotlindsl.literalArgument
+import dev.jorel.commandapi.kotlindsl.playerExecutor
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 

@@ -7,8 +7,8 @@ import com.nexomc.nexo.utils.logs.Logs
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.events.ModelRegistrationEvent
 import com.ticxo.modelengine.api.generator.ModelGenerator
-import java.util.concurrent.CompletableFuture
 import org.bukkit.event.EventHandler
+import java.util.concurrent.CompletableFuture
 
 class ModelEngineCompatibility : CompatibilityProvider<ModelEngineAPI>() {
     @EventHandler

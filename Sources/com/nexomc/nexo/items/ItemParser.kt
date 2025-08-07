@@ -23,7 +23,6 @@ import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.toMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
-import java.util.UUID
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
@@ -33,6 +32,7 @@ import org.bukkit.enchantments.EnchantmentWrapper
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.potion.PotionEffect
+import java.util.*
 
 class ItemParser(private val section: ConfigurationSection) {
     private val nexoMeta: NexoMeta
@@ -72,19 +72,19 @@ class ItemParser(private val section: ConfigurationSection) {
     }
 
     private fun applyConfig(item: ItemBuilder): ItemBuilder {
-        section.getString("itemname", section.getString("displayname"))?.takeIf { it.isNotEmpty() }?.deserialize()?.let {
+        (section.getStringOrNull("itemname") ?: section.getString("displayname"))?.deserialize()?.let {
             if (VersionUtil.atleast("1.20.5")) {
                 if ("displayname" in section) isConfigUpdated = true
                 item.itemName(it)
             } else item.displayName(it)
         }
 
-        section.getString("customname")?.takeIf { it.isNotEmpty() }?.deserialize()?.let { customName ->
+        section.getStringOrNull("customname")?.deserialize()?.let { customName ->
             if (VersionUtil.below("1.20.5")) isConfigUpdated = true
             item.displayName(customName)
         }
 
-        section.getStringList("lore").takeIf { it.isNotEmpty() }?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
+        section.getStringListOrNull("lore")?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
         section.getStringOrNull("color")?.toColor()?.let(item::setColor)
         section.getKey("trim_pattern")?.let(item::setTrimPattern)
         if ("unbreakable" in section) item.setUnbreakable(section.getBoolean("unbreakable", false))
@@ -132,13 +132,12 @@ class ItemParser(private val section: ConfigurationSection) {
 
         }.printOnFailure(true)
 
-        section.getLinkedMapList("AttributeModifiers").forEach { attributeJson ->
-            attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString())
-            attributeJson.putIfAbsent("name", "nexo:modifier")
-            attributeJson.putIfAbsent("key", "nexo:modifier")
-            val attributeModifier = AttributeModifier.deserialize(attributeJson)
-            val attribute = fromString((attributeJson["attribute"] as String)) ?: return@forEach
-            item.addAttributeModifiers(attribute, attributeModifier)
+        section.getLinkedMapList("AttributeModifiers").forEach { attributes ->
+            attributes.putIfAbsent("uuid", UUID.randomUUID().toString())
+            attributes.putIfAbsent("name", "nexo:modifier")
+            attributes.putIfAbsent("key", "nexo:modifier")
+            val attribute = fromString((attributes["attribute"] as String)) ?: return@forEach
+            item.addAttributeModifiers(attribute, AttributeModifier.deserialize(attributes))
         }
 
         section.getConfigurationSection("Enchantments")?.getKeys(false)?.forEach { enchant: String ->
@@ -152,11 +151,11 @@ class ItemParser(private val section: ConfigurationSection) {
     private fun parseNexoSection(item: ItemBuilder) {
         val mechanicsSection = mergeWithTemplateSection().getConfigurationSection("Mechanics")
 
-        // Add trident mechanic by default if mat is trident
+        // Add trident mechanic by default if type is trident
         if (item.type == Material.TRIDENT) TridentFactory.instance()?.parse(section)
 
-        mechanicsSection?.childSections()?.forEach { mechanicId, section ->
-            val mechanic = MechanicsManager.getMechanicFactory(mechanicId)?.parse(section) ?: return@forEach
+        mechanicsSection?.childSections()?.forEach { factoryId, section ->
+            val mechanic = MechanicsManager.mechanicFactory(factoryId)?.parse(section) ?: return@forEach
             for (modifier in mechanic.itemModifiers) modifier.apply(item)
         }
 

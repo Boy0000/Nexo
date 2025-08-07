@@ -7,7 +7,14 @@ import org.bukkit.entity.Player
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.font.Font
-import team.unnamed.creative.item.*
+import team.unnamed.creative.item.CompositeItemModel
+import team.unnamed.creative.item.ConditionItemModel
+import team.unnamed.creative.item.EmptyItemModel
+import team.unnamed.creative.item.Item
+import team.unnamed.creative.item.ItemModel
+import team.unnamed.creative.item.RangeDispatchItemModel
+import team.unnamed.creative.item.ReferenceItemModel
+import team.unnamed.creative.item.SelectItemModel
 import team.unnamed.creative.lang.Language
 import team.unnamed.creative.metadata.Metadata
 import team.unnamed.creative.metadata.overlays.OverlayEntry

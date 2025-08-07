@@ -21,10 +21,10 @@ interface NexoPackServer {
         return CompletableFuture.allOf(NexoPlugin.instance().packGenerator().packGenFuture)
     }
 
-    fun sendPack(connection: Any, reconfigure: Boolean) {
-        val connection = connection as? PlayerConfigurationConnection ?: return
+    fun sendPack(connection: Any, reconfigure: Boolean): CompletableFuture<Void>? {
+        val connection = connection as? PlayerConfigurationConnection ?: return null
         val future = if (reconfigure) null else CompletableFuture<Void>()
-        val info = NexoPlugin.instance().packServer().packInfo() ?: return
+        val info = NexoPlugin.instance().packServer().packInfo() ?: return null
         val request = ResourcePackRequest.resourcePackRequest()
             .required(mandatory).replace(true).prompt(prompt)
             .packs(info).callback { uuid, status, audience ->
@@ -32,7 +32,7 @@ interface NexoPackServer {
             }.build()
 
         connection.audience.sendResourcePacks(request)
-        future?.join()
+        return future
     }
 
     fun sendPack(player: Player) {

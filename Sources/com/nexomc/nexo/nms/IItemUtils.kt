@@ -2,6 +2,7 @@ package com.nexomc.nexo.nms
 
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.utils.Colorable
+import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
 import org.bukkit.Art
 import org.bukkit.Color
 import org.bukkit.FireworkEffect
@@ -44,6 +45,16 @@ interface IItemUtils {
     }
 
     fun blockstateComponent(itemStack: ItemStack, blockstates: Map<String, String>?) {}
+
+    fun deathProtectionComponent(itemStack: ItemStack?): Any? {
+        return null
+    }
+
+    fun deathProtectionComponent(itemBuilder: ItemBuilder, deathProtectionSection: ConfigurationSection) {}
+
+    fun deathProtectionComponent(itemStack: ItemStack, deathProtection: Any?) {}
+
+    fun consumeEffectsFromSection(effectsSection: ConfigurationSection): List<ConsumeEffect>? { return emptyList() }
 
     fun handleItemFlagToolTips(itemStack: ItemStack, itemFlags: Set<ItemFlag>) {}
 

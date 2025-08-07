@@ -3,14 +3,14 @@ package com.nexomc.nexo.pack.server
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
-import java.net.URI
-import java.util.UUID
-import java.util.concurrent.CompletableFuture
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import java.net.URI
+import java.util.*
+import java.util.concurrent.CompletableFuture
 
 class S3Server : NexoPackServer {
     private val bucket = Settings.S3_BUCKET_NAME.toString()

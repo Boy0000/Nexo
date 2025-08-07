@@ -4,7 +4,12 @@ import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureTransform
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.appendIfMissing
+import com.nexomc.nexo.utils.getEnum
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getVector2f
+import com.nexomc.nexo.utils.rootId
+import com.nexomc.nexo.utils.rootSection
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.key.Key
 import org.bukkit.Material

@@ -6,7 +6,6 @@ import com.nexomc.nexo.mechanics.misc.custom.fields.CustomEvent
 import com.nexomc.nexo.mechanics.misc.custom.listeners.CustomListener
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.from
 import org.bukkit.configuration.ConfigurationSection
-import kotlin.collections.set
 
 class CustomMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     init {

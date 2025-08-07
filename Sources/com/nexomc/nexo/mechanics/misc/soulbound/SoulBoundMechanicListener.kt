@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.misc.soulbound
 
-import com.nexomc.nexo.api.NexoItems
 import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.api.NexoItems
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent

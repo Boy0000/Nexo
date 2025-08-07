@@ -1,8 +1,8 @@
 package com.nexomc.nexo.mechanics.furniture.jukebox
 
+import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.VersionUtil
-import com.jeff_media.morepersistentdatatypes.DataType
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Entity

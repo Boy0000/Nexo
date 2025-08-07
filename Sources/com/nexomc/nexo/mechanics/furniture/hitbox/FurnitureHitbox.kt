@@ -2,7 +2,14 @@ package com.nexomc.nexo.mechanics.furniture.hitbox
 
 import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.flatMapSetFast
+import com.nexomc.nexo.utils.getStringListOrNull
+import com.nexomc.nexo.utils.mapFast
+import com.nexomc.nexo.utils.mapFastSet
+import com.nexomc.nexo.utils.plusFast
+import com.nexomc.nexo.utils.remove
+import com.nexomc.nexo.utils.removeSpaces
+import com.nexomc.nexo.utils.toIntRangeOrNull
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection

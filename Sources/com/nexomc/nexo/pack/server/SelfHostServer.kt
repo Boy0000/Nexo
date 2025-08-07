@@ -4,13 +4,13 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import com.sun.net.httpserver.HttpExchange
+import team.unnamed.creative.server.ResourcePackServer
+import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URI
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
-import team.unnamed.creative.server.ResourcePackServer
-import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 
 class SelfHostServer : NexoPackServer {
     private var packServer: ResourcePackServer? = null

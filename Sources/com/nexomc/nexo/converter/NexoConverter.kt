@@ -2,8 +2,12 @@ package com.nexomc.nexo.converter
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.childSections
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.remove
+import com.nexomc.nexo.utils.rename
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File

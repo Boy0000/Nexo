@@ -21,7 +21,14 @@ import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
-import org.bukkit.*
+import org.bukkit.Art
+import org.bukkit.Bukkit
+import org.bukkit.Color
+import org.bukkit.FireworkEffect
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
+import org.bukkit.Registry
+import org.bukkit.Tag
 import org.bukkit.attribute.Attribute
 import org.bukkit.attribute.AttributeModifier
 import org.bukkit.damage.DamageType
@@ -30,8 +37,19 @@ import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemRarity
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.*
-import org.bukkit.inventory.meta.components.*
+import org.bukkit.inventory.meta.ArmorMeta
+import org.bukkit.inventory.meta.Damageable
+import org.bukkit.inventory.meta.FireworkEffectMeta
+import org.bukkit.inventory.meta.ItemMeta
+import org.bukkit.inventory.meta.LeatherArmorMeta
+import org.bukkit.inventory.meta.MapMeta
+import org.bukkit.inventory.meta.PotionMeta
+import org.bukkit.inventory.meta.components.CustomModelDataComponent
+import org.bukkit.inventory.meta.components.EquippableComponent
+import org.bukkit.inventory.meta.components.FoodComponent
+import org.bukkit.inventory.meta.components.JukeboxPlayableComponent
+import org.bukkit.inventory.meta.components.ToolComponent
+import org.bukkit.inventory.meta.components.UseCooldownComponent
 import org.bukkit.inventory.meta.trim.ArmorTrim
 import org.bukkit.inventory.meta.trim.TrimMaterial
 import org.bukkit.inventory.meta.trim.TrimPattern
@@ -88,6 +106,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
     var blockStates: Map<String, String>? = null; private set
     var enchantable: Int? = null; private set
     var consumableComponent: Any? = null; private set
+    var deathProtectionComponent: Any? = null; private set
     var repairableComponent: Any? = null; private set
     var cache: Boolean = true
 
@@ -382,6 +401,15 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     fun setConsumableComponent(consumableComponent: Any?): ItemBuilder {
         this.consumableComponent = consumableComponent
+        return this
+    }
+
+    fun hasDeathProtectionComponent(): Boolean {
+        return VersionUtil.atleast("1.21.2") && deathProtectionComponent != null
+    }
+
+    fun setDeathProtectionComponent(deathProtectionComponent: Any?): ItemBuilder {
+        this.deathProtectionComponent = deathProtectionComponent
         return this
     }
 

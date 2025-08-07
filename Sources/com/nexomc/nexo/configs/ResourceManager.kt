@@ -3,9 +3,9 @@ package com.nexomc.nexo.configs
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.printOnFailure
-import java.io.File
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 class ResourceManager(val plugin: JavaPlugin) {
     val settings: Resource by lazy { Resource(extractConfiguration("settings.yml")) }

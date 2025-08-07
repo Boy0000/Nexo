@@ -31,6 +31,7 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.plugin.java.JavaPlugin
+import javax.annotation.Nullable
 
 object MechanicsManager {
     private val FACTORIES_BY_MECHANIC_ID = mutableMapOf<String, MechanicFactory>()
@@ -130,7 +131,11 @@ object MechanicsManager {
         MECHANICS_LISTENERS.remove(mechanicId)?.forEach(HandlerList::unregisterAll)
     }
 
+    @Deprecated(message = "", replaceWith = ReplaceWith(expression = "mechanicFactory"))
     fun getMechanicFactory(mechanicID: String?) = FACTORIES_BY_MECHANIC_ID[mechanicID]
+
+    @Nullable
+    fun mechanicFactory(factoryId: String?) = FACTORIES_BY_MECHANIC_ID[factoryId]
 
     fun interface FactoryConstructor {
         fun create(section: ConfigurationSection): MechanicFactory

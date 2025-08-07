@@ -5,9 +5,20 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteMechanicHelpers
 import com.nexomc.nexo.mechanics.custom_block.stringblock.StringMechanicHelpers
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.FileUtils
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
+import com.nexomc.nexo.utils.deserialize
+import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.remove
+import com.nexomc.nexo.utils.replaceText
+import com.nexomc.nexo.utils.resolve
+import com.nexomc.nexo.utils.serialize
 import io.leangen.geantyref.TypeToken
 import org.spongepowered.configurate.ConfigurationNode
 import org.spongepowered.configurate.yaml.NodeStyle
@@ -25,17 +36,12 @@ object OraxenConverter {
 
         Logs.logInfo("Starting conversion of Oraxen-setup...")
 
-        oraxenFolder.listYamlFiles(true).forEach { file ->
-            file.copyTo(nexoFolder.resolve(file.relativeTo(oraxenFolder)), overwrite = true)
-            Logs.logInfo("Copied ${file.name} from Oraxen to Nexo...")
-        }
-
         oraxenFolder.resolve("messages").listYamlFiles().forEach { lang ->
-            lang.writeText(lang.readText()
-                .replace("<gradient:#9055FF:#13E2DA>", "<gradient:#46C392:#7FC794>")
-                .replace("Oraxen", "Nexo")
-                .replace("/o", "/nexo")
-                .replace("oraxen", "nexo")
+            lang.replaceText(
+                "<gradient:#9055FF:#13E2DA>" to "<gradient:#46C392:#7FC794>",
+                "Oraxen" to "Nexo",
+                "/o" to "/nexo",
+                "oraxen" to "nexo"
             )
         }
 
@@ -50,7 +56,7 @@ object OraxenConverter {
             oraxenFolder.resolve("items").listYamlFiles().forEach {
                 processItemConfigs(it)
                 Logs.logSuccess("Finished converting item-config ${it.name}")
-                it.copyTo(it.parentFile.resolve("oraxen_items").resolve(it.name))
+                it.copyTo(it.parentFile.resolve("oraxen_items", it.name))
                 it.delete()
             }
             oraxenFolder.resolve("recipes").listYamlFiles().forEach {
@@ -372,7 +378,7 @@ object OraxenConverter {
     fun processPackFolder(packFolder: File) {
         runCatching {
             if (!packFolder.exists() || !packFolder.isDirectory) return
-            val namespaceFolder = packFolder.resolve("assets").resolve("minecraft")
+            val namespaceFolder = packFolder.resolve("external_packs", "Oraxen", "assets").resolve("minecraft")
 
             packFolder.resolve("textures", "required").walkBottomUp().firstOrNull { it.name == "menu_items.png" }?.delete()
             packFolder.resolve("textures", "models", "armor").walkBottomUp().forEach { file ->

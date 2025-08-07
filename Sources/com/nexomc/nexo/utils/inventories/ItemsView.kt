@@ -11,14 +11,14 @@ import com.nexomc.nexo.utils.mapNotNullFast
 import dev.triumphteam.gui.guis.Gui
 import dev.triumphteam.gui.guis.GuiItem
 import dev.triumphteam.gui.guis.PaginatedGui
-import java.io.File
-import java.util.Collections
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
+import java.io.File
+import java.util.*
 import kotlin.math.max
 
 class ItemsView {

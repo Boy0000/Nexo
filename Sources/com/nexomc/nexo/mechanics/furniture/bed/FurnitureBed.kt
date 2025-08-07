@@ -11,7 +11,11 @@ import com.nexomc.nexo.utils.toFastMap
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.NamespacedKey
-import org.bukkit.entity.*
+import org.bukkit.entity.Entity
+import org.bukkit.entity.EntityType
+import org.bukkit.entity.Interaction
+import org.bukkit.entity.ItemDisplay
+import org.bukkit.entity.Player
 import org.bukkit.util.Vector
 import kotlin.math.cos
 import kotlin.math.sin

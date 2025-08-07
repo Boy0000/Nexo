@@ -7,7 +7,12 @@ import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import io.papermc.paper.math.Position
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
-import org.bukkit.*
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.SoundCategory
+import org.bukkit.Tag
+import org.bukkit.World
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.type.Snow

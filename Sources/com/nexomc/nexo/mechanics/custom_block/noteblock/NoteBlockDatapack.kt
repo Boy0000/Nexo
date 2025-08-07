@@ -3,9 +3,13 @@ package com.nexomc.nexo.mechanics.custom_block.noteblock
 import com.google.gson.JsonPrimitive
 import com.nexomc.nexo.NexoBootstrap
 import com.nexomc.nexo.mechanics.custom_block.noteblock.beacon.BeaconTagDatapack
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.JsonBuilder.toJsonArray
+import com.nexomc.nexo.utils.NexoDatapack
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.printOnFailure
+import com.nexomc.nexo.utils.resolve
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import io.papermc.paper.registry.tag.TagKey

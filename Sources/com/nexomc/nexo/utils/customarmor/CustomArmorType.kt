@@ -3,7 +3,7 @@ package com.nexomc.nexo.utils.customarmor
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
-import java.util.Locale
+import java.util.*
 
 enum class CustomArmorType {
     NONE, TRIMS, COMPONENT;

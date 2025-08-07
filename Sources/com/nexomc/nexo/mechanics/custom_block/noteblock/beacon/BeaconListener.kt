@@ -1,7 +1,7 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock.beacon
 
-import com.nexomc.nexo.api.NexoBlocks
 import com.destroystokyo.paper.event.block.BeaconEffectEvent
+import com.nexomc.nexo.api.NexoBlocks
 import org.bukkit.Location
 import org.bukkit.Tag
 import org.bukkit.block.Beacon

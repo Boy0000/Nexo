@@ -28,7 +28,11 @@ import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.drops.Drop
 import com.nexomc.nexo.utils.logs.Logs
-import org.bukkit.*
+import org.bukkit.Effect
+import org.bukkit.GameEvent
+import org.bukkit.GameMode
+import org.bukkit.Location
+import org.bukkit.Material
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.block.data.BlockData

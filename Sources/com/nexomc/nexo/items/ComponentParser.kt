@@ -8,14 +8,23 @@ import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.getEnum
+import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getKeyListOrNull
+import com.nexomc.nexo.utils.getNamespacedKey
+import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import io.papermc.paper.datacomponent.item.TooltipDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.Indyuce.mmoitems.MMOItems
 import org.apache.commons.lang3.EnumUtils
-import org.bukkit.*
+import org.bukkit.Bukkit
+import org.bukkit.Material
+import org.bukkit.NamespacedKey
+import org.bukkit.Registry
+import org.bukkit.Tag
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.damage.DamageType
 import org.bukkit.entity.EntityType
@@ -64,9 +73,10 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         }
 
         if (VersionUtil.below("1.21.2")) return
-        componentSection.getConfigurationSection("equippable")?.let { equippable: ConfigurationSection ->
-            parseEquippableComponent(itemBuilder, equippable)
+        componentSection.getConfigurationSection("death_protection")?.let { deathProtection ->
+            NMSHandlers.handler().itemUtils().deathProtectionComponent(itemBuilder, deathProtection)
         }
+        parseEquippableComponent()
 
         componentSection.getConfigurationSection("use_cooldown")?.let { cooldownSection: ConfigurationSection ->
                 ItemStack(Material.PAPER).itemMeta.useCooldown.also {
@@ -139,7 +149,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         item.setUseRemainder(result)
     }
 
-    private fun parseEquippableComponent(item: ItemBuilder, equippableSection: ConfigurationSection) {
+    private fun parseEquippableComponent() {
+        val equippableSection = componentSection?.getConfigurationSection("equippable") ?: return
         val equippableComponent = ItemStack(itemBuilder.type).itemMeta.equippable
 
         val slot = equippableSection.getString("slot")
@@ -161,11 +172,11 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         equippableSection.getNamespacedKey("camera_overlay")?.apply(equippableComponent::setCameraOverlay)
         equippableSection.getKey("equip_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
 
-        item.setEquippableComponent(equippableComponent)
+        itemBuilder.setEquippableComponent(equippableComponent)
     }
 
     private fun parseToolComponent() {
-        val toolSection = componentSection!!.getConfigurationSection("tool") ?: return
+        val toolSection = componentSection?.getConfigurationSection("tool") ?: return
         val toolComponent = ItemStack(Material.PAPER).itemMeta.tool
         toolComponent.damagePerBlock = toolSection.getInt("damage_per_block", 1).coerceAtLeast(0)
         toolComponent.defaultMiningSpeed = toolSection.getDouble("default_mining_speed", 1.0).toFloat().coerceAtLeast(0f)

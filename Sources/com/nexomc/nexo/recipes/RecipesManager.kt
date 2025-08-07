@@ -16,9 +16,9 @@ import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.logs.Logs
-import java.io.File
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
+import java.io.File
 
 object RecipesManager {
     private val recipeFileNames = arrayOf("furnace", "shaped", "shapeless", "blasting", "campfire", "smoking", "stonecutting", "brewing")

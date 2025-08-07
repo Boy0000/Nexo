@@ -4,8 +4,8 @@ import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureBreakEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.utils.EventUtils.call
-import com.ticxo.modelengine.api.events.BaseEntityInteractEvent
 import com.nexomc.protectionlib.ProtectionLib
+import com.ticxo.modelengine.api.events.BaseEntityInteractEvent
 import org.bukkit.GameMode
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.event.EventHandler

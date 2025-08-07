@@ -7,9 +7,13 @@ import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.utils.*
 import com.nexomc.nexo.utils.EventUtils.call
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.ItemUtils.persistentDataView
+import com.nexomc.nexo.utils.NexoYaml
+import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.filterFast
+import com.nexomc.nexo.utils.flatMapFast
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
@@ -99,7 +103,7 @@ object NexoItems {
     fun unexcludedItems(file: File): List<ItemBuilder> = unexcludedItems[file] ?: listOf()
 
     @JvmStatic
-    fun hasMechanic(itemID: String?, mechanicID: String?) = MechanicsManager.getMechanicFactory(mechanicID)?.getMechanic(itemID) != null
+    fun hasMechanic(itemID: String?, mechanicID: String?) = MechanicsManager.mechanicFactory(mechanicID)?.getMechanic(itemID) != null
 
     @JvmStatic
     fun itemMap(): Map<File, Map<String, ItemBuilder>> = itemMap

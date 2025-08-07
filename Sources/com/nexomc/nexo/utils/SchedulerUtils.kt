@@ -2,14 +2,14 @@ package com.nexomc.nexo.utils
 
 import com.nexomc.nexo.NexoPlugin
 import com.tcoded.folialib.impl.PlatformScheduler
-import java.util.concurrent.Future
-import java.util.function.Predicate
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Block
 import org.bukkit.block.BlockState
 import org.bukkit.entity.Entity
 import org.bukkit.scheduler.BukkitTask
+import java.util.concurrent.Future
+import java.util.function.Predicate
 
 object SchedulerUtils {
 

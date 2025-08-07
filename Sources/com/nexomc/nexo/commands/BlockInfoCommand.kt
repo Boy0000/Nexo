@@ -12,8 +12,8 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.kotlindsl.anyExecutor
 import dev.jorel.commandapi.kotlindsl.literalArgument
 import dev.jorel.commandapi.kotlindsl.stringArgument
-import java.util.concurrent.CompletableFuture
 import org.bukkit.command.CommandSender
+import java.util.concurrent.CompletableFuture
 
 internal fun CommandTree.blockInfoCommand() = literalArgument("blockinfo") {
     withPermission("nexo.command.blockinfo")

@@ -4,8 +4,10 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.VanillaResourcePack
-import com.nexomc.nexo.utils.*
+import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.plus
+import com.nexomc.nexo.utils.NexoDatapack
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import it.unimi.dsi.fastutil.objects.ObjectLinkedOpenHashSet
 import net.kyori.adventure.key.Key
@@ -21,7 +23,6 @@ import team.unnamed.creative.atlas.AtlasSource
 import team.unnamed.creative.atlas.PalettedPermutationsAtlasSource
 import team.unnamed.creative.base.Writable
 import team.unnamed.creative.texture.Texture
-import kotlin.io.resolve
 
 @Suppress("DEPRECATION")
 class TrimsCustomArmor : NexoDatapack("nexo_custom_armor", "Datapack for Nexos Custom Armor trims") {

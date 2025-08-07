@@ -52,7 +52,8 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return
         if (hand == EquipmentSlot.OFF_HAND || useItemInHand() == Event.Result.DENY) return
 
-        if (clickedBlock?.type == Material.DECORATED_POT) {
+        val blockType = clickedBlock?.type
+        if (blockType == Material.DECORATED_POT || blockType == Material.WATER_CAULDRON) {
             if (!player.isSneaking) return
             else setUseInteractedBlock(Event.Result.DENY)
         }
@@ -77,8 +78,7 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
     }
 
     private fun createGUI(mechanic: BackpackMechanic, backpack: ItemStack): StorageGui? {
-        val backpackMeta = backpack.itemMeta
-        if (!isBackpack(backpack) || backpackMeta == null) return null
+        val backpackMeta = backpack.takeIf(::isBackpack)?.itemMeta ?: return null
         val pdc = backpackMeta.persistentDataContainer
         val gui = Gui.storage().title(mechanic.title.deserialize()).rows(mechanic.rows).inventory { t, o, r ->
             Bukkit.createInventory(o, r, t)
@@ -89,10 +89,19 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
         gui.setPlayerInventoryAction { event: InventoryClickEvent ->
             if (isBackpack(event.currentItem) || isBackpack(event.cursor)) event.isCancelled = true
+            if (mechanic.isBlacklisted(event.currentItem) && event.isShiftClick) event.isCancelled = true
         }
 
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (isBackpack(event.currentItem) || isBackpack(event.cursor)) event.isCancelled = true
+            else {
+                val backpackInv = topInventoryForPlayer(event.whoClicked as Player)
+                if (mechanic.isBlacklisted(event.currentItem))
+                    if (backpackInv == event.clickedInventory || event.isShiftClick) event.isCancelled = true
+                if (mechanic.isBlacklisted(event.cursor) && backpackInv == event.clickedInventory)
+                    event.isCancelled = true
+            }
+
             if (!event.cursor.isEmpty || event.currentItem?.isEmpty == false) SchedulerUtils.runTaskLater(1L) {
                 pdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 backpack.itemMeta = backpackMeta
@@ -101,6 +110,11 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
 
         gui.setDragAction { event: InventoryDragEvent ->
             if (isBackpack(event.cursor)) event.isCancelled = true
+            else {
+                val backpackInv = topInventoryForPlayer(event.whoClicked as Player)
+                if (mechanic.isBlacklisted(event.cursor) && backpackInv == event.inventory)
+                    event.isCancelled = true
+            }
         }
 
         gui.setOutsideClickAction { event: InventoryClickEvent ->

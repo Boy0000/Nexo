@@ -18,6 +18,7 @@ import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
 import com.nexomc.protectionlib.ProtectionLib
 import io.papermc.paper.event.player.PlayerPickItemEvent
+import org.bukkit.ExplosionResult
 import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.block.BlockFace
@@ -137,7 +138,7 @@ class CustomBlockListener : Listener {
     fun EntityExplodeEvent.onEntityExplosion() {
         val customBlocks = blockList().associateWithNotNull(NexoBlocks::customBlockMechanic)
 
-        val windCharged = entity.type.name.contains("WIND_CHARGE") || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
+        val windCharged = "WIND_CHARGE" in entity.type.name || PotionEffectTypeWrapper.WIND_CHARGED?.let { (entity as? LivingEntity)?.hasPotionEffect(it) } == true
 
         customBlocks.forEach { (block, mechanic) ->
             if (!mechanic.isBlastResistant && !windCharged) block.type = Material.AIR
@@ -152,8 +153,10 @@ class CustomBlockListener : Listener {
             NexoBlocks.customBlockMechanic(block)?.let { m -> block to m }
         }.toMap()
 
+        val windCharged = explosionResult == ExplosionResult.TRIGGER_BLOCK
+
         customBlocks.forEach { (block, mechanic) ->
-            if (!mechanic.isBlastResistant) block.type = Material.AIR
+            if (!mechanic.isBlastResistant && !windCharged) block.type = Material.AIR
             mechanic.breakable.drop.explosionDrops.spawns(block.location, ItemStack(Material.AIR))
         }
         blockList().removeAll(customBlocks.keys)

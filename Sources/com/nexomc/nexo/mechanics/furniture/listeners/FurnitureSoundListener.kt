@@ -14,7 +14,11 @@ import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
 import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.SoundCategory
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
