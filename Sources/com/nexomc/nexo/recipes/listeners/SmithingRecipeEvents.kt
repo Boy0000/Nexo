@@ -1,7 +1,7 @@
 package com.nexomc.nexo.recipes.listeners
 
 import com.nexomc.nexo.api.NexoItems
-import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
+import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.filterFastIsInstance
 import org.bukkit.Bukkit
 import org.bukkit.event.EventHandler
@@ -22,7 +22,7 @@ class SmithingRecipeEvents : Listener {
         if (inventory.contents.filterNotNull().none(NexoItems::exists)) return
 
         val nexoItemId = NexoItems.idFromItem(input) ?: return
-        if (MiscMechanicFactory.instance()?.getMechanic(input)?.isAllowedInVanillaRecipes == true) return
+        if (ItemUtils.isAllowedInVanillaRecipes(input)) return
 
         val validRecipes = Bukkit.recipeIterator().asSequence().filterFastIsInstance<SmithingTransformRecipe> { recipe ->
             recipe.template.test(template) && recipe.addition.test(material) && recipe.base.test(input) && recipe.base is RecipeChoice.ExactChoice

@@ -76,6 +76,7 @@ interface NexoPackServer {
             PackServerRegistry.register("POLYMATH", ::PolymathServer)
             PackServerRegistry.register("LOBFILE", ::LobFileServer)
             PackServerRegistry.register("S3", ::S3Server)
+            PackServerRegistry.register("NEXO", ::NexoServer)
             PackServerRegistry.register("NONE", ::EmptyServer)
         }
 

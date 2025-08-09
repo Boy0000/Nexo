@@ -34,9 +34,9 @@ object ModernVersionPatcher {
                 listOf()
             }
             val handSwap = standardItem?.handAnimationOnSwap() ?: Item.DEFAULT_HAND_ANIMATION_ON_SWAP
-            val oversizedInGui = standardItem?.oversizedInGui() ?: let {
-                if (itemKey.value() == "player_head" && model.display()[ItemTransform.Type.GUI]?.scale() != Vector3Float.ONE) true
-                else Item.DEFAULT_OVERSIZED_IN_GUI
+            val oversizedInGui = when {
+                itemKey.value() == "player_head" && model.display()[ItemTransform.Type.GUI]?.scale() != Vector3Float.ONE -> true
+                else -> standardItem?.oversizedInGui() ?: Item.DEFAULT_OVERSIZED_IN_GUI
             }
 
             val finalNewItemModel = standardItem?.let { existingItemModel ->
@@ -177,7 +177,7 @@ object ModernVersionPatcher {
             NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
         }.getOrDefault(ResourcePack.resourcePack())
 
-        requiredPack.items().plus(VanillaResourcePack.resourcePack.items()).associateFastBy(Item::key)
+        VanillaResourcePack.resourcePack.items().plus(requiredPack.items()).associateFastBy(Item::key)
     }
 
     private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}

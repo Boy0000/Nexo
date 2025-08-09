@@ -3,9 +3,10 @@ package com.nexomc.nexo.recipes.listeners
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.configs.Settings
-import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
+import com.nexomc.nexo.utils.ItemUtils
+import io.papermc.paper.event.player.PlayerStonecutterRecipeSelectEvent
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
@@ -51,14 +52,16 @@ class RecipeEventManager(
         if (!hasPermission(player, customRecipe)) inventory.result = null
         if (inventory.result == null || recipe == null || inventory.matrix.none(NexoItems::exists)) return
 
-        val factory = MiscMechanicFactory.instance()
-        if (factory != null && inventory.matrix.any { factory.getMechanic(it)?.isAllowedInVanillaRecipes == false }) {
-            inventory.result = null
-        }
-
+        if (inventory.matrix.any { !ItemUtils.isAllowedInVanillaRecipes(it) }) inventory.result = null
         if (customRecipe == null || customRecipe.isValidDyeRecipe || whitelistedCraftRecipes.none(customRecipe::equals)) return
 
         inventory.result = customRecipe.result
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    fun PlayerStonecutterRecipeSelectEvent.onGrindstone() {
+        if (!hasPermission(player, CustomRecipe.fromRecipe(stonecuttingRecipe))) isCancelled = true
+        if (!ItemUtils.isAllowedInVanillaRecipes(stonecutterInventory.inputItem)) isCancelled = true
     }
 
     @EventHandler

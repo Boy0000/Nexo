@@ -1,5 +1,8 @@
 package com.nexomc.nexo.utils
 
+import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.mechanics.misc.misc.MiscMechanicFactory
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
@@ -15,6 +18,12 @@ inline fun <reified T : ItemMeta> ItemStack.editMeta(crossinline block: (T) -> B
 }
 
 object ItemUtils {
+
+    fun isAllowedInVanillaRecipes(itemStack: ItemStack?) : Boolean {
+        if (!NexoItems.exists(itemStack)) return true
+        return MiscMechanicFactory.instance()?.getMechanic(itemStack)?.isAllowedInVanillaRecipes
+            ?: Settings.DEFAULT_ALLOW_IN_VANILLA_RECIPES.toBool()
+    }
 
     val ItemStack.persistentDataView: PersistentDataContainer? get() = runCatching {
         persistentDataContainer as PersistentDataContainer

@@ -76,6 +76,7 @@ enum class Settings {
     HIDE_TABLIST_BACKGROUND("Misc.hide_tablist_background", false),
     BLOCK_OTHER_RESOURCEPACKS("Misc.block_other_resourcepacks", false),
     DEFAULT_LANGUAGE_KEY("Misc.default_language_key", "en_us"),
+    DEFAULT_ALLOW_IN_VANILLA_RECIPES("Misc.default_allow_in_vanilla_recipes", false),
 
 
     //Pack
@@ -109,12 +110,12 @@ enum class Settings {
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.nexomc.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "nexomc"),
     LOBFILE_API_KEY("Pack.server.lobfile.api_key", "API-KEY"),
-    S3_PUBLIC_URL("Pack.server.s3.public_url", "https://public_url.com"),
-    S3_REGION("Pack.server.s3.region", "EU_WEST_1"),
-    S3_BUCKET_NAME("Pack.server.s3.bucket", "packs"),
-    S3_KEY("Pack.server.s3.key", "resource_pack"),
+    S3_PUBLIC_URL("Pack.server.s3.public_url", "https://fsn1.your-objectstorage.com"),
+    S3_REGION("Pack.server.s3.region", "eu-central-1"),
+    S3_BUCKET_NAME("Pack.server.s3.bucket", "nexo-storage"),
+    S3_UNIQUE_KEY("Pack.server.s3.unique_key"),
     S3_SECRET_KEY("Pack.server.s3.secret_key", "SECRET"),
-    S3_ACCESS_KEY("Pack.server.s3.access_key", "SECRET"),
+    S3_ACCESS_KEY("Pack.server.s3.access_key", "ACCESS"),
 
     PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21")),
     PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", VersionUtil.below("1.21")),
@@ -198,9 +199,10 @@ enum class Settings {
 
     fun setValue(value: Any?, save: Boolean) {
         val settingFile = NexoPlugin.instance().configsManager().settings()
+        val oldValue = settingFile.get(path)
         settingFile.set(path, value)
         runCatching {
-            if (save) settingFile.save(NexoPlugin.instance().dataFolder.resolve("settings.yml"))
+            if (save && oldValue != value) settingFile.save(NexoPlugin.instance().dataFolder.resolve("settings.yml"))
         }.onFailure {
             Logs.logError("Failed to apply changes to settings.yml")
         }

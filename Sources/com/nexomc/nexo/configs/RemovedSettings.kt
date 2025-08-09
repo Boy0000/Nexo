@@ -77,6 +77,7 @@ enum class RemovedSettings(val path: String, vararg subPaths: String) {
     PACK_COMMENT("Pack.generation.comment"),
     PACK_SLICER("Pack.generation.texture_slicer"),
     PACK_UPLOAD("Pack.upload"),
+    S3_KEY("Pack.server.s3.key"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine"),
     PACK_READER_LENIENT("Pack.generation.lenient"),

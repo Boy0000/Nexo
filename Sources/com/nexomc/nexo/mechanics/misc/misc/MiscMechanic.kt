@@ -1,13 +1,12 @@
 package com.nexomc.nexo.mechanics.misc.misc
 
+import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.Mechanic
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import org.bukkit.configuration.ConfigurationSection
 
-class MiscMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class MiscMechanic(factory: MiscMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val cactusBreaks = section.getBoolean("breaks_from_cactus", true)
     val burnsInFire = section.getBoolean("burns_in_fire", true)
     val burnsInLava = section.getBoolean("burns_in_lava", true)
@@ -17,7 +16,7 @@ class MiscMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSect
     val isCompostable = section.getBoolean("compostable", false)
     val preventItemFrames = section.getBoolean("prevent_item_frames", false)
 
-    val isAllowedInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false)
+    val isAllowedInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", Settings.DEFAULT_ALLOW_IN_VANILLA_RECIPES.toBool())
 
     init {
         if (VersionUtil.atleast("1.20.5") && (section.getBoolean("burns_in_fire") || section.getBoolean("burns_in_lava"))) {
