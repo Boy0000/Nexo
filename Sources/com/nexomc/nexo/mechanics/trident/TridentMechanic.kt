@@ -2,7 +2,6 @@ package com.nexomc.nexo.mechanics.trident
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.Mechanic
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.furniture.FurnitureTransform
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.getEnum
@@ -17,7 +16,7 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import org.joml.Vector2f
 
-class TridentMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
+class TridentMechanic(factory: TridentFactory, section: ConfigurationSection) : Mechanic(factory, section) {
 
     val itemModel: Key? = section.getKey("thrown_item_model") ?: section.rootSection.getKey("Components.item_model")
     val model: String? = section.getString("thrown_item", section.rootId.appendIfMissing("_throwing"))

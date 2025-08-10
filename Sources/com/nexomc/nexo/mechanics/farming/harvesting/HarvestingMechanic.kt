@@ -1,14 +1,12 @@
 package com.nexomc.nexo.mechanics.farming.harvesting
 
 import com.nexomc.nexo.mechanics.Mechanic
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.utils.timers.Timer
 import com.nexomc.nexo.utils.timers.TimersFactory
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 
-class HarvestingMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class HarvestingMechanic(factory: HarvestingMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val radius: Int = section.getInt("radius")
     val height: Int = section.getInt("height")
     val lowerItemDurability: Boolean = section.getBoolean("lower_item_durability", true)

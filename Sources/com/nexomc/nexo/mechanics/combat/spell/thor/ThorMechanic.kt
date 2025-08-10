@@ -6,7 +6,7 @@ import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
 import kotlin.random.Random
 
-class ThorMechanic(factory: MechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
+class ThorMechanic(factory: ThorMechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
     val lightningBoltsAmount: Int = section.getInt("lightning_bolts_amount")
     private val randomLocationVariation: Double = section.getDouble("random_location_variation")
 

@@ -84,8 +84,7 @@ class ItemParser(private val section: ConfigurationSection) {
             item.displayName(customName)
         }
 
-        section.getStringListOrNull("lore")?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
-        section.getStringOrNull("color")?.toColor()?.let(item::setColor)
+        section.getStringList("lore").takeIf { it.isNotEmpty() }?.map { it.deserialize().setDefaultStyle() }?.let(item::lore)
         section.getKey("trim_pattern")?.let(item::setTrimPattern)
         if ("unbreakable" in section) item.setUnbreakable(section.getBoolean("unbreakable", false))
 

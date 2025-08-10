@@ -41,6 +41,9 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
     fun parseComponents() {
         if (componentSection == null || VersionUtil.below("1.20.5")) return
 
+        componentSection.getConfigurationSection("custom_data")?.let { c -> c.getKeys(false).associateWith(c::get) }
+            ?.let(itemBuilder.customDataMap::putAll)
+
         if ("max_stack_size" in componentSection)
             itemBuilder.maxStackSize(componentSection.getInt("max_stack_size").coerceIn(1..99))
 

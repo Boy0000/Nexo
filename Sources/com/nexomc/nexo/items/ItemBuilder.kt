@@ -60,6 +60,7 @@ import org.bukkit.potion.PotionType
 
 @Suppress("UnstableApiUsage")
 class ItemBuilder(private val itemStack: ItemStack) {
+    val customDataMap: MutableMap<String, Any?> = mutableMapOf()
     val persistentDataMap: MutableMap<PersistentDataSpace<*, *>, Any> = mutableMapOf()
     val persistentDataContainer: PersistentDataContainer
     val enchantments: MutableMap<Enchantment, Int>
@@ -641,6 +642,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
             consumableComponent(itemStack, consumableComponent)
             repairableComponent(itemStack, repairableComponent)
             blockstateComponent(itemStack, blockStates)
+            customDataComponent(itemStack, customDataMap)
             handleItemFlagToolTips(itemStack, itemFlags)
         }
 
@@ -668,10 +670,7 @@ class ItemBuilder(private val itemStack: ItemStack) {
         NexoItems.itemMap().entries.firstOrNull { it.value.containsValue(this) }?.let { (key, _) ->
             val yamlConfig = loadConfiguration(key)
             val itemId = NexoItems.idFromItem(this)
-            if (this.hasColor()) {
-                val color = color!!.red.toString() + "," + color!!.green + "," + color!!.blue
-                yamlConfig.set("$itemId.color", color)
-            }
+            color?.apply { yamlConfig.set("$itemId.color", "$red,$green,$blue") }
             if (this.hasTrimPattern()) yamlConfig.set("$itemId.trim_pattern", trimPatternKey!!.asString())
 
             if (itemFlags.isNotEmpty()) yamlConfig.set("$itemId.ItemFlags", itemFlags.map(ItemFlag::name))

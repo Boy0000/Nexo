@@ -6,6 +6,7 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
 import com.nexomc.nexo.utils.ItemUtils
+import com.nexomc.nexo.utils.safeCast
 import io.papermc.paper.event.player.PlayerStonecutterRecipeSelectEvent
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
@@ -48,11 +49,12 @@ class RecipeEventManager(
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     fun PrepareItemCraftEvent.onCrafted() {
+        val isVanillaRecipe = recipe.safeCast<Keyed>()?.key?.namespace == "minecraft"
         val (customRecipe, player) = CustomRecipe.fromRecipe(recipe) to (playerFromView(this) ?: return)
         if (!hasPermission(player, customRecipe)) inventory.result = null
         if (inventory.result == null || recipe == null || inventory.matrix.none(NexoItems::exists)) return
 
-        if (inventory.matrix.any { !ItemUtils.isAllowedInVanillaRecipes(it) }) inventory.result = null
+        if (isVanillaRecipe && inventory.matrix.any { !ItemUtils.isAllowedInVanillaRecipes(it) }) inventory.result = null
         if (customRecipe == null || customRecipe.isValidDyeRecipe || whitelistedCraftRecipes.none(customRecipe::equals)) return
 
         inventory.result = customRecipe.result

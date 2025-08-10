@@ -2,7 +2,6 @@ package com.nexomc.nexo.mechanics.misc.armor_effects
 
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.mechanics.Mechanic
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.utils.PotionUtils.getEffectType
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
@@ -12,7 +11,7 @@ import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.potion.PotionEffect
 
-class ArmorEffectsMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
+class ArmorEffectsMechanic(factory: ArmorEffectsFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val armorEffects = ObjectOpenHashSet<ArmorEffect>()
 
     init {

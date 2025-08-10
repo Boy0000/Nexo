@@ -11,7 +11,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.block.data.type.NoteBlock
 import org.bukkit.configuration.ConfigurationSection
 
-class NoteBlockMechanic(factory: MechanicFactory, section: ConfigurationSection) : CustomBlockMechanic(factory, section) {
+class NoteBlockMechanic(factory: NoteBlockMechanicFactory, section: ConfigurationSection) : CustomBlockMechanic(factory, section) {
     // Creates an instance of CustomBlockMechanic and applies the below
     private val canIgnite: Boolean = section.getBoolean("can_ignite", false)
     private val isFalling: Boolean = section.getBoolean("is_falling", false)

@@ -5,22 +5,21 @@ import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.misc.custom.fields.CustomEvent
 import com.nexomc.nexo.mechanics.misc.custom.listeners.CustomListener
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.from
+import com.nexomc.nexo.utils.childSections
 import org.bukkit.configuration.ConfigurationSection
 
-class CustomMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
+class CustomMechanic(factory: CustomMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     init {
-        section.getKeys(false).forEach { subMechanicName ->
-            val subsection = section.getConfigurationSection(subMechanicName) ?: return@forEach
-            val key = subsection.currentPath ?: return@forEach
-
+        section.childSections().forEach { _, subSection ->
+            val key = subSection.currentPath ?: return@forEach
             LOADED_VARIANTS[key]?.apply(CustomListener::unregister)
 
-            val clickAction = from(subsection) ?: return@forEach
+            val clickAction = from(subSection) ?: return@forEach
 
             val listener = CustomEvent(
-                subsection.getString("event", "")!!,
-                subsection.getBoolean("one_usage", false)
-            ).getListener(itemID, subsection.getLong("cooldown"), clickAction).apply(CustomListener::register)
+                subSection.getString("event", "")!!,
+                subSection.getBoolean("one_usage", false)
+            ).getListener(itemID, subSection.getLong("cooldown"), clickAction).apply(CustomListener::register)
 
             LOADED_VARIANTS[key] = listener
         }

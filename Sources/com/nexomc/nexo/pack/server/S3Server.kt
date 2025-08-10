@@ -51,7 +51,7 @@ open class S3Server : NexoPackServer {
                 .region(region)
                 .credentialsProvider { AwsBasicCredentials.create(accessKey, secretKey) }
                 .build().use { presigner ->
-                    val key = Settings.S3_UNIQUE_KEY.toString()
+                    val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/$hash.zip")
                     val presignRequest = GetObjectPresignRequest.builder()
                         .signatureDuration(Duration.ofHours(1))
                         .getObjectRequest { builder ->
@@ -80,7 +80,8 @@ open class S3Server : NexoPackServer {
 
         if (uploadFuture == null) uploadFuture = CompletableFuture.runAsync {
             runCatching {
-                val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/" + builtPack.hash() + ".zip")
+                this.hash = builtPack.hash()
+                val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/$hash.zip")
 
                 // If there is no hard-specified unique-key, check if the object exists under the given key
                 val exists = Settings.S3_UNIQUE_KEY.value == null && runCatching {
@@ -97,8 +98,6 @@ open class S3Server : NexoPackServer {
                     s3Client.putObject(putRequestHash, RequestBody.fromString(builtPack.hash()))
                     Logs.logInfo("Uploaded resource pack to S3-Server with key: $key")
                 }
-
-                this.hash = builtPack.hash()
             }.onFailure {
                 Logs.logError("Failed to upload resource pack to S3: " + it.message)
                 if (Settings.DEBUG.toBool()) it.printStackTrace()

@@ -7,7 +7,7 @@ import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 
-class BackpackMechanic(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
+class BackpackMechanic(factory: BackpackMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val rows = section.getInt("rows", 6)
     val title = section.getString("title", "Backpack")!!
     val openSound = section.getString("open_sound", "minecraft:entity.shulker.open")!!

@@ -46,6 +46,8 @@ interface IItemUtils {
 
     fun blockstateComponent(itemStack: ItemStack, blockstates: Map<String, String>?) {}
 
+    fun customDataComponent(itemStack: ItemStack, customData: Map<String, Any?>) {}
+
     fun deathProtectionComponent(itemStack: ItemStack?): Any? {
         return null
     }

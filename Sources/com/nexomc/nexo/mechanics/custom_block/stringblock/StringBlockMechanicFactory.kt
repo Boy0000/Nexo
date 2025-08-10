@@ -39,7 +39,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
         instance = this
 
         registerListeners(StringBlockMechanicListener(), SaplingListener())
-        registerSaplingMechanic()
+        if (saplingGrowthCheckDelay < 0) registerSaplingMechanic()
 
         registerListeners(StringBlockMechanicPaperListener())
 

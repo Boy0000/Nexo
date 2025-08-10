@@ -329,6 +329,7 @@ class ItemUpdater : Listener {
                 itemUtils.repairableComponent(newItem, itemUtils.repairableComponent(oldItem))
                 itemUtils.blockstateComponent(newItem, itemUtils.blockstateComponent(oldItem))
             }
+            NMSHandlers.handler().itemUtils().customDataComponent(newItem, newItemBuilder.customDataMap)
 
             return newItem
         }

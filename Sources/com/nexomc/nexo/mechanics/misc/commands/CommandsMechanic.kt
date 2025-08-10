@@ -7,8 +7,7 @@ import com.nexomc.nexo.utils.timers.TimersFactory
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 
-class CommandsMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class CommandsMechanic(factory: CommandsMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val commands = CommandsParser(section, null)
     private val timersFactory: TimersFactory = TimersFactory(section.getLong("cooldown"))
     var isOneUsage = section.getBoolean("one_usage")

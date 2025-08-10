@@ -6,7 +6,7 @@ import org.bukkit.Color
 import org.bukkit.Particle
 import org.bukkit.configuration.ConfigurationSection
 
-class EnergyBlastMechanic(factory: MechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
+class EnergyBlastMechanic(factory: EnergyBlastMechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
     val particle: Particle
     var particleColor: Particle.DustOptions? = null
     val damage: Double = section.getDouble("damage")

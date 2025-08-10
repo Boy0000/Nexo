@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.ItemMeta
 import org.bukkit.persistence.PersistentDataType
 
-abstract class SpellMechanic protected constructor(factory: MechanicFactory?, section: ConfigurationSection) : Mechanic(
+abstract class SpellMechanic protected constructor(factory: MechanicFactory, section: ConfigurationSection) : Mechanic(
     factory, section, { item: ItemBuilder ->
         val initCharges = section.getInt("charges", -1)
         item.customTag<Int, Int>(NAMESPACED_KEY, PersistentDataType.INTEGER, initCharges)

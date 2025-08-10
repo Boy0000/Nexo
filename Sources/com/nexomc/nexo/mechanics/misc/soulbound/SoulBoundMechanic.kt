@@ -6,8 +6,7 @@ import com.nexomc.nexo.mechanics.MechanicFactory
 import org.bukkit.NamespacedKey
 import org.bukkit.configuration.ConfigurationSection
 
-class SoulBoundMechanic(mechanicFactory: MechanicFactory?, section: ConfigurationSection) :
-    Mechanic(mechanicFactory, section) {
+class SoulBoundMechanic(factory: SoulBoundMechanicFactory, section: ConfigurationSection) : Mechanic(factory, section) {
     val loseChance = section.getDouble("lose_chance")
 
     companion object {

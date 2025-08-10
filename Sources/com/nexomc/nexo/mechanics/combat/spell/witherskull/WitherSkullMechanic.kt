@@ -6,7 +6,7 @@ import com.nexomc.nexo.utils.timers.TimersFactory
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 
-class WitherSkullMechanic(factory: MechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
+class WitherSkullMechanic(factory: WitherSkullMechanicFactory, section: ConfigurationSection) : SpellMechanic(factory, section) {
     private val timersFactory: TimersFactory = TimersFactory(section.getLong("delay"))
     val charged: Boolean = section.getBoolean("charged")
 

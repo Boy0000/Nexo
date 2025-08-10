@@ -6,7 +6,7 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingMechani
 import org.bukkit.block.data.type.Tripwire
 import org.bukkit.configuration.ConfigurationSection
 
-class StringBlockMechanic(factory: MechanicFactory, section: ConfigurationSection) : CustomBlockMechanic(factory, section) {
+class StringBlockMechanic(factory: StringBlockMechanicFactory, section: ConfigurationSection) : CustomBlockMechanic(factory, section) {
     private val randomPlace: List<String> = section.getStringList("random_place")
     private val sapling: SaplingMechanic? = section.getConfigurationSection("sapling")?.let { SaplingMechanic(itemID, it) }
     // Creates an instance of CustomBlockMechanic and applies the below
