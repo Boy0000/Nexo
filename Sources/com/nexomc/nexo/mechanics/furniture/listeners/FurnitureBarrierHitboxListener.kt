@@ -13,10 +13,12 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockFormEvent
 import org.bukkit.event.block.BlockFromToEvent
+import org.bukkit.event.block.BlockGrowEvent
 import org.bukkit.event.entity.EntityPlaceEvent
 import org.bukkit.event.hanging.HangingBreakEvent
 import org.bukkit.event.player.PlayerKickEvent
 import org.bukkit.event.player.PlayerMoveEvent
+import org.bukkit.event.world.StructureGrowEvent
 import java.util.*
 
 class FurnitureBarrierHitboxListener() : Listener {
@@ -58,6 +60,18 @@ class FurnitureBarrierHitboxListener() : Listener {
     fun BlockFromToEvent.onFlowThroughBarrier() {
         val toLoc = toBlock.location
         if (IFurniturePacketManager.barrierHitboxLocationMap.any { toLoc in it.value }) isCancelled = true
+    }
+
+    @EventHandler
+    fun BlockGrowEvent.onGrow() {
+        val loc = block.location
+        if (IFurniturePacketManager.barrierHitboxLocationMap.any { loc in it.value }) isCancelled = true
+    }
+
+    @EventHandler
+    fun StructureGrowEvent.onGrow() {
+        val locs = blocks.map { it.location }
+        if (IFurniturePacketManager.barrierHitboxLocationMap.any { locs.any(it.value::contains) }) isCancelled = true
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

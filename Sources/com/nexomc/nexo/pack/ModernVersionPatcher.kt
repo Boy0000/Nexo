@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
 import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastBy
 import com.nexomc.nexo.utils.groupByFast
 import com.nexomc.nexo.utils.remove
@@ -176,6 +177,8 @@ object ModernVersionPatcher {
         val requiredPack = runCatching {
             NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()!!.first { it.name.startsWith("RequiredPack_") })
         }.getOrDefault(ResourcePack.resourcePack())
+
+        if (VersionUtil.atleast("1.21.4")) requiredPack.removeItem(Key.key("player_head"))
 
         VanillaResourcePack.resourcePack.items().plus(requiredPack.items()).associateFastBy(Item::key)
     }

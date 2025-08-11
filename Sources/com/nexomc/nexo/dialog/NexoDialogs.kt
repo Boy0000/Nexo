@@ -1,9 +1,11 @@
 package com.nexomc.nexo.dialog
 
 import com.nexomc.nexo.utils.EnumUtils.toEnumOrElse
+import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.getEnum
 import com.nexomc.nexo.utils.getKeyList
 import com.nexomc.nexo.utils.getStringOrNull
+import com.nexomc.nexo.utils.handler
 import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.sectionList
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
@@ -20,15 +22,17 @@ import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 
 object NexoDialogs {
+    lateinit var context: BootstrapContext
     @JvmStatic
     fun registerDialogs(context: BootstrapContext) {
+        this.context = context
         runCatching {
-            NexoDialogItem.registerItemConfigs(context)
+            //NexoDialogItem.registerItemConfigs(context)
             val dialogDirectory = context.dataDirectory.resolve("dialogs").toFile().apply { mkdirs() }
             val dialogFiles = dialogDirectory.listYamlFiles(true)
             if (dialogFiles.isEmpty()) return
 
-            context.lifecycleManager.registerEventHandler(RegistryEvents.DIALOG.compose().newHandler { handler ->
+            context.lifecycleManager.registerEventHandler(RegistryEvents.DIALOG.handler { handler ->
                 dialogFiles.forEach { file ->
                     val dialogKey = Key.key("nexo", file.nameWithoutExtension.lowercase())
                     val typedKey = TypedKey.create(RegistryKey.DIALOG, dialogKey)
@@ -64,24 +68,23 @@ object NexoDialogs {
             DialogTypes.LINK -> {
                 val exitAction = NexoActionButton.createButton(dialogConfig.getConfigurationSection("exitAction"))
                 val columns = dialogConfig.getInt("columns").coerceAtLeast(1)
-                val buttonWidth = dialogConfig.getInt("buttonWidth", 200).coerceIn(1, 1024)
+                val buttonWidth = dialogConfig.getInt("buttonWidth", 150).coerceIn(1, 1024)
 
                 DialogType.serverLinks(exitAction, columns, buttonWidth)
             }
             DialogTypes.MULTI -> {
                 val actions = dialogConfig.sectionList("actions").map(NexoActionButton::createButton)
                 val exitAction = NexoActionButton.createButton(dialogConfig.getConfigurationSection("exitAction"))
-                val columns = dialogConfig.getInt("columns").coerceAtLeast(1)
+                val columns = dialogConfig.getInt("columns").coerceAtLeast(2)
 
                 DialogType.multiAction(actions, exitAction, columns)
             }
             DialogTypes.LIST -> {
-                val dialogRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.DIALOG)
                 val dialogs = dialogConfig.getKeyList("dialogs").mapNotNull(dialogRegistry::get)
                 val registrySet = RegistrySet.valueSet(RegistryKey.DIALOG, dialogs)
                 val exitAction = NexoActionButton.createButton(dialogConfig.getConfigurationSection("exitAction"))
-                val columns = dialogConfig.getInt("columns").coerceAtLeast(1)
-                val buttonWidth =dialogConfig.getInt("buttonWidth", 200).coerceIn(1, 1024)
+                val columns = dialogConfig.getInt("columns").coerceAtLeast(2)
+                val buttonWidth = dialogConfig.getInt("buttonWidth", 150).coerceIn(1, 1024)
 
                 DialogType.dialogList(registrySet, exitAction, columns, buttonWidth)
             }
@@ -94,9 +97,11 @@ object NexoDialogs {
         val canCloseWithEscape = baseConfig.getBoolean("canCloseWithEscape")
         val pause = baseConfig.getBoolean("pause")
         val afterAction = baseConfig.getEnum("afterAction", DialogBase.DialogAfterAction::class.java) ?: DialogBase.DialogAfterAction.CLOSE
-        val body = baseConfig.sectionList("bodies").map { NexoDialogBody(it).createDialogBody() }
-        val inputs = baseConfig.sectionList("inputs").mapNotNull { NexoDialogInput(it).createDialogInput() }
+        val body = baseConfig.getConfigurationSection("bodies")?.childSections()?.values?.map { NexoDialogBody(it).createDialogBody() } ?: emptyList()
+        val inputs = baseConfig.getConfigurationSection("inputs")?.childSections()?.mapNotNull { NexoDialogInput(it.key, it.value).createDialogInput() } ?: emptyList()
 
         return DialogBase.create(title, externalTitle, canCloseWithEscape, pause, afterAction, body, inputs)
     }
+
+    val dialogRegistry by lazy { RegistryAccess.registryAccess().getRegistry(RegistryKey.DIALOG) }
 }

@@ -5,8 +5,24 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.logs.Logs
+import io.papermc.paper.plugin.bootstrap.BootstrapContext
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEvent
+import io.papermc.paper.plugin.lifecycle.event.LifecycleEventOwner
+import io.papermc.paper.plugin.lifecycle.event.handler.LifecycleEventHandler
+import io.papermc.paper.plugin.lifecycle.event.handler.configuration.LifecycleEventHandlerConfiguration
+import io.papermc.paper.plugin.lifecycle.event.handler.configuration.PrioritizedLifecycleEventHandlerConfiguration
+import io.papermc.paper.registry.RegistryBuilder
+import io.papermc.paper.registry.event.RegistryComposeEvent
+import io.papermc.paper.registry.event.RegistryEventProvider
 import org.bukkit.Bukkit
 import org.bukkit.World
+
+fun <A : Any, B : RegistryBuilder<A>> RegistryEventProvider<A, B>.handler(
+    h: LifecycleEventHandler<in RegistryComposeEvent<A, B>>
+): PrioritizedLifecycleEventHandlerConfiguration<BootstrapContext> {
+    val eventType = if (VersionUtil.atleast("1.21.6")) compose() else freeze()
+    return eventType.newHandler(h)
+}
 
 open class NexoDatapack(key: String, description: String) {
 

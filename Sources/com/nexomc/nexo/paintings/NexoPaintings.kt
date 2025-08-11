@@ -2,6 +2,7 @@ package com.nexomc.nexo.paintings
 
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.handler
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents
 import io.papermc.paper.registry.RegistryKey
@@ -26,7 +27,7 @@ object NexoPaintings {
             val paintingsYaml = runCatching { YamlConfiguration.loadConfiguration(paintingFile) }.getOrNull() ?: return@runCatching
             val paintings = paintingsYaml.getConfigurationSection("paintings") ?: return
 
-            context.lifecycleManager.registerEventHandler(RegistryEvents.PAINTING_VARIANT.freeze().newHandler { handler ->
+            context.lifecycleManager.registerEventHandler(RegistryEvents.PAINTING_VARIANT.handler { handler ->
                 paintings.childSections().forEach { keyId, section ->
                     val key = Key.key(keyId)
                     val author = section.getRichMessage("author") ?: Component.text("boy0000")
@@ -38,8 +39,8 @@ object NexoPaintings {
 
                     handler.registry().register(variantKey) { builder ->
                         builder.author(author).title(title).assetId(assetId)
-                            .width(section.getInt("width"))
-                            .height(section.getInt("height"))
+                            .width(section.getInt("width").coerceIn(1..16))
+                            .height(section.getInt("height").coerceIn(1..16))
                     }
                 }
             })

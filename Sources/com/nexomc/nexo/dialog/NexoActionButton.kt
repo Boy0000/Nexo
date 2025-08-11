@@ -9,8 +9,8 @@ object NexoActionButton {
     fun createButton(dialogConfig: ConfigurationSection?): ActionButton {
         return ActionButton.builder(dialogConfig?.getRichMessage("label") ?: Component.empty())
             .tooltip(dialogConfig?.getRichMessage("tooltip"))
-            .width(dialogConfig?.getInt("width")?.coerceIn(1, 1024) ?: 200)
-            .action(null)
+            .width(dialogConfig?.getInt("width")?.coerceIn(1, 1024) ?: 150)
+            .action(dialogConfig?.getConfigurationSection("action")?.let(::NexoDialogAction)?.createAction())
             .build()
     }
 

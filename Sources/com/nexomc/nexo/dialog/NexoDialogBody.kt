@@ -14,19 +14,19 @@ data class NexoDialogBody(val bodySection: ConfigurationSection) {
         return when (type) {
             DialogBodyTypes.MESSAGE -> {
                 val message = bodySection.getRichMessage("message") ?: Component.empty()
-                DialogBody.plainMessage(message, bodySection.getInt("width", 200))
+                DialogBody.plainMessage(message, bodySection.getInt("width", 200).coerceIn(1..1024))
             }
             DialogBodyTypes.ITEM -> {
                 val item = NexoDialogItem(bodySection).buildItem()
                 val description = bodySection.getString("description")
                 val messageBody = object : PlainMessageDialogBody {
-                    override fun contents(): Component = bodySection.getRichMessage("description.contents") ?: Component.empty()
-                    override fun width(): @Range(from = 1, to = 1024) Int = bodySection.getInt("width", 200)
+                    override fun contents(): Component = bodySection.getRichMessage("description.contents") ?: bodySection.getRichMessage("description") ?: Component.empty()
+                    override fun width(): @Range(from = 1, to = 1024) Int = bodySection.getInt("description.width", 200).coerceIn(1..1024)
                 }.takeIf { description != null }
                 val showDecorations = bodySection.getBoolean("showDecorations", true)
                 val showTooltip = bodySection.getBoolean("showTooltip", true)
-                val width = bodySection.getInt("width", 16)
-                val height = bodySection.getInt("height", 16)
+                val width = bodySection.getInt("width", 16).coerceIn(1..256)
+                val height = bodySection.getInt("height", 16).coerceIn(1..256)
 
                 DialogBody.item(item, messageBody, showDecorations, showTooltip, width, height)
             }
