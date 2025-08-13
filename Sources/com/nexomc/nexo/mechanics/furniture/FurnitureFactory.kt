@@ -9,6 +9,7 @@ import com.nexomc.nexo.mechanics.furniture.compatibility.ModelEngineCompatibilit
 import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VacanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
+import com.nexomc.nexo.mechanics.furniture.door.FurnitureDoorListener
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionTask
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxListener
@@ -17,6 +18,7 @@ import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBreakListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurniturePacketListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureSoundListener
+import com.nexomc.nexo.mechanics.furniture.states.FurnitureStateListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
@@ -44,6 +46,8 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
             FurnitureBreakListener(),
             EvolutionListener(),
             JukeboxListener(),
+            FurnitureDoorListener(),
+            FurnitureStateListener()
         )
 
         evolvingFurnitures = false

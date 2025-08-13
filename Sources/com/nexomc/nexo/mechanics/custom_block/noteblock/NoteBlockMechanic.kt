@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.custom_block.noteblock
 
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.directional.DirectionalBlock

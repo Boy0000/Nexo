@@ -123,9 +123,36 @@ inline fun <K, V> Iterable<K>.associateFastWith(valueSelector: (K) -> V): Object
     return associateWithTo(result, valueSelector)
 }
 
+inline fun <T, K, V> Iterable<T>.associateFastLinked(pairSelector: (T) -> Pair<K, V>): Object2ObjectLinkedOpenHashMap<K, V> {
+    val result = Object2ObjectLinkedOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    return associateTo(result, pairSelector)
+}
+
 inline fun <K, V> Iterable<K>.associateFastLinkedWith(valueSelector: (K) -> V): Object2ObjectLinkedOpenHashMap<K, V> {
     val result = Object2ObjectLinkedOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
     return associateWithTo(result, valueSelector)
+}
+
+inline fun <T, K, V> Iterable<T>.associateFastNotNull(
+    pairSelector: (T) -> Pair<K?, V?>?
+): Object2ObjectOpenHashMap<K, V> {
+    val result = Object2ObjectOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    for (element in this) {
+        val (key, value) = pairSelector(element)?.let { (it.first ?: continue) to (it.second ?: continue) } ?: continue
+        result[key] = value
+    }
+    return result
+}
+
+inline fun <T, K, V> Iterable<T>.associateFastLinkedNotNull(
+    pairSelector: (T) -> Pair<K?, V?>?
+): Object2ObjectLinkedOpenHashMap<K, V> {
+    val result = Object2ObjectLinkedOpenHashMap<K, V>(mapCapacity((this as? Collection)?.size ?: 10).coerceAtLeast(16))
+    for (element in this) {
+        val (key, value) = pairSelector(element)?.let { (it.first ?: continue) to (it.second ?: continue) } ?: continue
+        result[key] = value
+    }
+    return result
 }
 
 inline fun <T, K, V> Iterable<T>.associateFastByNotNull(

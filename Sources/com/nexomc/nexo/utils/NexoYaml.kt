@@ -25,6 +25,11 @@ val ConfigurationSection.rootSection: ConfigurationSection
         return current
     }
 
+fun ConfigurationSection.copyTo(section: ConfigurationSection): ConfigurationSection {
+    NexoYaml.copyConfigurationSection(this, section)
+    return section
+}
+
 
 fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
@@ -99,9 +104,19 @@ fun ConfigurationSection.getVector3f(key: String): Vector3f {
     return Vector3f(x, y, z)
 }
 
+fun ConfigurationSection.getVector3f(key: String, default: Float): Vector3f {
+    val (x, y, z) = getStringOrNull(key)?.split(",", limit = 3)?.map { it.toFloatOrNull() ?: default } ?: return Vector3f()
+    return Vector3f(x, y, z)
+}
+
 fun ConfigurationSection.getVector2f(key: String): Vector2f {
     val (x, y) = getStringOrNull(key)?.split(",", limit = 2)?.map { it.toFloatOrNull() ?: 0f } ?: return Vector2f()
     return Vector2f(x, y)
+}
+
+fun ConfigurationSection.plus(key: String, value: Any?): ConfigurationSection {
+    set(key, value)
+    return this
 }
 
 fun ConfigurationSection.rename(oldKey: String, newKey: String): ConfigurationSection {

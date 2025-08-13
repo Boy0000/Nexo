@@ -74,6 +74,10 @@ interface IFurniturePacketManager {
         val shulkerHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
         val ghastHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
 
+        fun updateBaseEntity(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
+            furnitureBaseMap.get(baseEntity.uniqueId)?.mechanic = mechanic
+        }
+
         fun baseEntityFromHitbox(entityId: Int): ItemDisplay? =
             interactionHitboxIdMap.values.find { entityId in it.entityIds }?.baseEntity()
                 ?: shulkerHitboxIdMap.values.find { entityId in it.entityIds }?.baseEntity()

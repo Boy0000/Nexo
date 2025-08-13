@@ -155,8 +155,11 @@ class ItemParser(private val section: ConfigurationSection) {
         if (item.type == Material.TRIDENT) TridentFactory.instance()?.parse(section)
 
         mechanicsSection?.childSections()?.forEach { factoryId, section ->
+            val hasVariation = section.isInt("custom_variation")
             val mechanic = MechanicsManager.mechanicFactory(factoryId)?.parse(section) ?: return@forEach
             for (modifier in mechanic.itemModifiers) modifier.apply(item)
+
+            if (!hasVariation && section.isInt("custom_variation")) isConfigUpdated = true
         }
 
         if (!nexoMeta.containsPackInfo) return

@@ -14,7 +14,7 @@ import org.bukkit.entity.ItemDisplay.ItemDisplayTransform
 import org.joml.Quaternionf
 import org.joml.Vector3f
 
-class FurnitureProperties(
+open class FurnitureProperties(
     val glowColor: Color? = null,
     val viewRange: Float? = null,
     val brightness: Brightness? = null,
@@ -28,6 +28,7 @@ class FurnitureProperties(
     val translation: Vector3f = Vector3f(),
     val leftRotation: Quaternionf = Quaternionf(),
     val rightRotation: Quaternionf = Quaternionf(),
+    val delay: Int = 0,
 
     val offsetAgainstBlocks: Boolean = true
 ) {
@@ -36,11 +37,11 @@ class FurnitureProperties(
         private set
 
     constructor(configSection: ConfigurationSection) : this(
-            glowColor = configSection.getString("glow_color", "")!!.toColor(),
-                    viewRange = configSection.getDouble("view_range").toFloat().takeUnless { it == 0f },
-                    shadowStrength = configSection.getDouble("shadow_strength").toFloat().takeUnless { it == 0f },
-                    shadowRadius = configSection.getDouble("shadow_radius").toFloat().takeUnless { it == 0f },
-                    displayWidth = configSection.getDouble("display_width", 0.0).toFloat(),
+        glowColor = configSection.getString("glow_color", "")!!.toColor(),
+        viewRange = configSection.getDouble("view_range").toFloat().takeUnless { it == 0f },
+        shadowStrength = configSection.getDouble("shadow_strength").toFloat().takeUnless { it == 0f },
+        shadowRadius = configSection.getDouble("shadow_radius").toFloat().takeUnless { it == 0f },
+        displayWidth = configSection.getDouble("display_width", 0.0).toFloat(),
         displayHeight = configSection.getDouble("display_height", 0.0).toFloat(),
 
         displayTransform = configSection.getString("display_transform")?.toEnumOrElse<ItemDisplayTransform> { transform ->
@@ -64,6 +65,7 @@ class FurnitureProperties(
         } ?: Billboard.FIXED,
 
         brightness = configSection.getConfigurationSection("brightness")?.let { Brightness(it.getInt("block_light"), it.getInt("sky_light")) },
+        delay = configSection.getInt("delay").coerceAtLeast(0),
         offsetAgainstBlocks = configSection.getBoolean("offset_against_blocks", true)
     ) {
         scale = configSection.getString("scale")?.let { vector3fFromString(it, if (isFixedTransform) 0.5f else 1f) } ?: if (isFixedTransform) Vector3f(0.5f, 0.5f, 0.5f) else Vector3f(1f,1f,1f)

@@ -3,6 +3,7 @@ package com.nexomc.nexo.items
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.toIntRangeOrNull
+import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
@@ -11,7 +12,7 @@ import java.util.*
 class CustomModelData(val type: Material, nexoMeta: NexoMeta, val customModelData: Int) {
 
     init {
-        val map = DATAS.computeIfAbsent(type) { Object2ObjectOpenHashMap() }
+        val map = DATAS.computeIfAbsent(type) { Object2IntLinkedOpenHashMap() }
         nexoMeta.model?.let {
             map[it] = customModelData
         } ?: Logs.logWarn("Failed to assign customModelData due to invalid model")
@@ -19,20 +20,20 @@ class CustomModelData(val type: Material, nexoMeta: NexoMeta, val customModelDat
     }
 
     companion object {
-        val DATAS = Object2ObjectOpenHashMap<Material, MutableMap<Key, Int>>()
+        val DATAS = Object2ObjectOpenHashMap<Material, Object2IntLinkedOpenHashMap<Key>>()
 
         fun generateId(model: Key, type: Material): Int {
             val startingCMD = Settings.INITIAL_CUSTOM_MODEL_DATA.toInt(1000)
-            val usedModelDatas = DATAS.getOrPut(type) { Object2ObjectOpenHashMap() }
+            val usedModelDatas = DATAS.getOrPut(type) { Object2IntLinkedOpenHashMap() }
 
-            usedModelDatas[model]?.let { return it }
+            if (usedModelDatas.containsKey(model)) return usedModelDatas.getInt(model)
 
-            val usedValues = usedModelDatas.values.toSet()
+            val usedCmds = usedModelDatas.values.toSet()
             val skipped = skippedCustomModelData(type)
-            val currentMax = (usedValues.maxOrNull() ?: startingCMD).coerceAtLeast(startingCMD)
+            val currentMax = (usedCmds.maxOrNull() ?: startingCMD).coerceAtLeast(startingCMD)
 
             for (cmd in startingCMD..currentMax) {
-                if (cmd !in usedValues && cmd !in skipped) {
+                if (cmd !in usedCmds && cmd !in skipped) {
                     return cmd.also { usedModelDatas[model] = it }
                 }
             }

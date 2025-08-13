@@ -293,6 +293,9 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             return null
         }
 
+        val variation = CustomBlockRegistry.generateVariation(section)
+        if (variation != null) section.set("custom_variation", variation)
+
         return (type.factory()?.parse(section) as? CustomBlockMechanic)?.apply(::addToImplemented)
     }
 

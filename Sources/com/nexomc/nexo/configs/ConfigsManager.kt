@@ -12,22 +12,24 @@ import com.nexomc.nexo.items.CustomModelData
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.items.ItemParser
 import com.nexomc.nexo.items.ItemTemplate
+import com.nexomc.nexo.mechanics.custom_block.CustomBlockRegistry
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.AdventureUtils.tagResolver
 import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.VersionUtil
-import com.nexomc.nexo.utils.associateFastLinkedWith
+import com.nexomc.nexo.utils.associateFastLinked
 import com.nexomc.nexo.utils.associateFastWith
 import com.nexomc.nexo.utils.childSections
+import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.logs.Logs
-import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.rename
 import com.nexomc.nexo.utils.toIntRangeOrNull
+import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
@@ -180,15 +182,33 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return output
     }
 
-    internal fun parseItemConfig() = itemFiles().associateFastLinkedWith { parseItemConfig(it) }
+    private val itemConfigs by lazy { itemFiles().associateFastWith(NexoYaml::loadConfiguration) }
+
+    internal fun parseItemConfig() = itemConfigs.entries.associateFastLinked { it.key to parseItemConfig(it) }
+
+    fun assignAllUsedCustomVariations() {
+        itemConfigs.forEach { file, config ->
+            config.childSections().forEach { (itemId, section) ->
+                val blockSection = section.getConfigurationSection("Mechanics.custom_block") ?: return@forEach
+                val blockType = blockSection.getStringOrNull("type") ?: return@forEach
+                val customVariation = section.getInt("Mechanics.custom_block.custom_variation").takeIf { it > 0 } ?: return@forEach
+                val model = section.getKey("Mechanics.custom_block.model")
+                    ?: section.getKey("Pack.model") ?: Key.key(itemId)
+
+                val existingBlock = CustomBlockRegistry.DATAS[blockType]?.object2IntEntrySet()?.find { it.intValue == customVariation && it.key != model }
+                if (existingBlock == null) CustomBlockRegistry.DATAS.merge(blockType, Object2IntLinkedOpenHashMap()) { _, map ->
+                    map.apply { put(model, customVariation) }
+                } else {
+                    Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
+                }
+            }
+        }
+    }
 
     fun assignAllUsedCustomModelDatas() {
-        val assignedModelDatas = Object2ObjectLinkedOpenHashMap<Material, Object2ObjectLinkedOpenHashMap<Int, Key>>()
-        itemFiles().forEach file@{ file ->
-            val config = NexoYaml.loadConfiguration(file)
-
-            config.getKeys(false).associateFastWith { config.getConfigurationSection(it) }.forEach { (itemId, itemSection) ->
-                val packSection = itemSection?.getConfigurationSection("Pack") ?: return@forEach
+        itemConfigs.forEach { file, config ->
+            config.childSections().forEach { (itemId, itemSection) ->
+                val packSection = itemSection.getConfigurationSection("Pack") ?: return@forEach
                 val material = Material.getMaterial(itemSection.getString("material", "")!!)
                     ?: WrappedCrucibleItem(itemSection).material
                     ?: WrappedMMOItem(itemSection, true).material
@@ -198,11 +218,11 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val modelData = packSection.getInt("custom_model_data", -1).takeUnless { it == -1 } ?: return@forEach
                 val model = (packSection.getString("model")?.takeUnless(String::isNullOrEmpty) ?: itemId).takeIf(Key::parseable)?.let(Key::key) ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER
 
-                CustomModelData.DATAS[material]?.entries?.find { it.value == modelData && it.key != model }?.key?.asString()?.also { existingModel ->
+                val existingModel = CustomModelData.DATAS[material]?.object2IntEntrySet()?.find { it.intValue == modelData && it.key != model }?.key?.key()?.asString()
+                if (existingModel == null) CustomModelData.DATAS.merge(material, Object2IntLinkedOpenHashMap()) { _, map ->
+                    map.apply { put(model, modelData) }
+                } else {
                     Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomModelData <yellow>$modelData</yellow>, which is already assigned to <red>$existingModel")
-                } ?: also {
-                    assignedModelDatas.getOrPut(material) { Object2ObjectLinkedOpenHashMap<Int, Key>() }[modelData] = model
-                    CustomModelData.DATAS.getOrPut(material) { Object2ObjectLinkedOpenHashMap() }[model] = modelData
                 }
             }
         }
@@ -211,8 +231,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
     fun parseAllItemTemplates() {
         ItemTemplate.itemTemplates.clear()
         val templateIds = mutableListOf<String>()
-        val itemConfigs = itemFiles().mapFast(NexoYaml::loadConfiguration)
-            .flatMap { it.childSections().toList() }.onEach { (_, section) ->
+        val itemConfigs = itemConfigs.values.flatMap { it.childSections().toList() }.onEach { (_, section) ->
             section.getStringOrNull("template")?.let(templateIds::add)
             section.getStringListOrNull("templates")?.let(templateIds::addAll)
         }.toMap()
@@ -242,8 +261,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             ItemParser(Settings.ERROR_ITEM.toConfigSection()!!).buildItem()
         }.getOrDefault(ItemBuilder(Material.PODZOL))
     }
-    private fun parseItemConfig(itemFile: File): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
-        val config = NexoYaml.loadConfiguration(itemFile)
+
+    private fun parseItemConfig(entry: Map.Entry<File, YamlConfiguration>) = parseItemConfig(entry.key, entry.value)
+    private fun parseItemConfig(itemFile: File, config: YamlConfiguration): Object2ObjectLinkedOpenHashMap<String, ItemBuilder> {
         val parseMap = Object2ObjectLinkedOpenHashMap<String, ItemParser>()
         var configUpdated = false
 

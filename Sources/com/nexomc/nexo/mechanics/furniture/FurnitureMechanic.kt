@@ -11,6 +11,7 @@ import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.breakable.Breakable
 import com.nexomc.nexo.mechanics.furniture.bed.FurnitureBed
 import com.nexomc.nexo.mechanics.furniture.connectable.ConnectableMechanic
+import com.nexomc.nexo.mechanics.furniture.door.FurnitureDoor
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolvingFurniture
 import com.nexomc.nexo.mechanics.furniture.hitbox.BarrierHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
@@ -18,6 +19,7 @@ import com.nexomc.nexo.mechanics.furniture.hitbox.InteractionHitbox
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxBlock
 import com.nexomc.nexo.mechanics.furniture.rotatable.Rotatable
 import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
+import com.nexomc.nexo.mechanics.furniture.states.FurnitureStates
 import com.nexomc.nexo.mechanics.light.LightMechanic
 import com.nexomc.nexo.mechanics.limitedplacing.LimitedPlacing
 import com.nexomc.nexo.mechanics.storage.StorageMechanic
@@ -65,7 +67,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
     private val placedItemId: String = section.getString("item", itemID)!!
     private val placedItemModel: Key? = section.getString("item_model")?.let(Key::key)?.takeIf { VersionUtil.atleast("1.21.3") }
     val clickActions: List<ClickAction> = parseList(section)
-    val properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties()
+    var properties: FurnitureProperties = section.getConfigurationSection("properties")?.let(::FurnitureProperties) ?: FurnitureProperties(); internal set
     val rotatable: Rotatable = section.get("rotatable")?.let(::Rotatable) ?: Rotatable()
     val blockLocker: BlockLockerMechanic? = section.getConfigurationSection("blocklocker")?.let(::BlockLockerMechanic)
     val restrictedRotation: RestrictedRotation = section.getString("restricted_rotation")?.let(RestrictedRotation::fromString) ?: RestrictedRotation.STRICT
@@ -74,10 +76,13 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
     val seats = section.getStringList("seats").mapNotNullFast(FurnitureSeat::getSeat)
     val beds = section.getStringListOrNull("beds")?.map(::FurnitureBed) ?: listOf()
     val connectable = section.getConfigurationSection("connectable")?.let(::ConnectableMechanic)
+    val door = section.getConfigurationSection("door")?.let(::FurnitureDoor)
+    val states = section.getConfigurationSection("states")?.let(::FurnitureStates)
 
-    val hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox)
+    var hitbox: FurnitureHitbox = section.getConfigurationSection("hitbox")?.let(::FurnitureHitbox)
         ?: section.getStringListOrNull("hitbox")?.let(::FurnitureHitbox)
         ?: FurnitureHitbox(interactions = ObjectOpenHashSet.of(InteractionHitbox()))
+        internal set
 
     enum class RestrictedRotation {
         NONE, STRICT, VERY_STRICT;
@@ -114,6 +119,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         }
 
         if (connectable != null) builder = connectable.displayedItem(baseEntity)
+
+        //TODO furniturre-state item which modifies builder here to apply ontop of
 
         // Default Furniture items
         return builder ?: placedItemModel?.let { ItemBuilder(Material.LEATHER_HORSE_ARMOR).setItemModel(it) }
@@ -271,6 +278,10 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         baseEntity.setRotation(newYaw, baseEntity.pitch)
         hitbox.refreshHitboxes(baseEntity, this)
         light.refreshLights(baseEntity, this)
+    }
+
+    fun clone(): FurnitureMechanic {
+        return FurnitureMechanic(FurnitureFactory.instance()!!, section)
     }
 
     companion object {

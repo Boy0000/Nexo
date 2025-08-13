@@ -45,19 +45,12 @@ class CustomRecipe(
         return true
     }
 
-    val isValidDyeRecipe: Boolean
-        get() {
-            if (!isDyeRecipe) return false
-            val items = ingredients.filter { i -> i != null && !i.type.toString().endsWith("_DYE") }
-            if (items.size != 1) return false
-            val item = items[0] ?: return false
-            return !NexoItems.exists(item) || !item.hasItemMeta() || (item.itemMeta !is LeatherArmorMeta) || item.type == Material.LEATHER_HORSE_ARMOR
-        }
-
-    private val isDyeRecipe: Boolean
-        get() = ingredients.filterNotNull().size == 2 && ingredients.any { item ->
-            item?.type.toString().endsWith("_DYE")
-        }
+    val isValidDyeRecipe: Boolean get() {
+        val ingredients = ingredients.filterNotNull()
+        if (ingredients.size != 2 && ingredients.none { it.type.name.endsWith("_DYE") }) return false
+        val item = ingredients.filter { !it.type.name.endsWith("_DYE") }.takeUnless { it.size != 1 }?.first() ?: return false
+        return !NexoItems.exists(item) || !item.hasItemMeta() || (item.itemMeta !is LeatherArmorMeta) || item.type == Material.LEATHER_HORSE_ARMOR
+    }
 
     companion object {
         fun fromRecipe(bukkitRecipe: Recipe?): CustomRecipe? {

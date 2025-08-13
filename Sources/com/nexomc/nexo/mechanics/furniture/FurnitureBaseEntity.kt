@@ -1,6 +1,5 @@
 package com.nexomc.nexo.mechanics.furniture
 
-import com.nexomc.nexo.api.NexoFurniture
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.utils.asColorable
 import org.bukkit.Bukkit
@@ -9,7 +8,7 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import java.util.*
 
-class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: FurnitureMechanic) {
+class FurnitureBaseEntity(baseEntity: ItemDisplay, internal var mechanic: FurnitureMechanic) {
     fun refreshItem(baseEntity: ItemDisplay) {
         itemStack = (mechanic.placedItem(baseEntity)).apply {
             customTag(NexoItems.ITEM_ID, PersistentDataType.STRING, mechanic.itemID)
@@ -51,7 +50,7 @@ class FurnitureBaseEntity(baseEntity: ItemDisplay, private val mechanic: Furnitu
     }
 
     fun mechanic(): FurnitureMechanic {
-        return NexoFurniture.furnitureMechanic(furnitureId) ?: mechanic
+        return mechanic
     }
 
     override fun equals(other: Any?): Boolean {
