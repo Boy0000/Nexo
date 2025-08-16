@@ -6,7 +6,6 @@ import com.nexomc.nexo.mechanics.light.LightBlock
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.to
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
@@ -18,6 +17,7 @@ import org.bukkit.entity.Player
 import org.bukkit.util.BoundingBox
 import org.bukkit.util.Vector
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 interface IFurniturePacketManager {
     fun getEntity(entityId: Int): Entity?
@@ -59,20 +59,20 @@ interface IFurniturePacketManager {
         val AIR_DATA = Material.AIR.createBlockData()
         val WATER_DATA = Material.WATER.createBlockData()
 
-        val furnitureBaseMap = Object2ObjectOpenHashMap<UUID, FurnitureBaseEntity>()
-        val barrierHitboxPositionMap = Object2ObjectOpenHashMap<UUID, Array<BarrierHitbox>>()
-        val barrierHitboxLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
+        val furnitureBaseMap = ConcurrentHashMap<UUID, FurnitureBaseEntity>()
+        val barrierHitboxPositionMap = ConcurrentHashMap<UUID, Array<BarrierHitbox>>()
+        val barrierHitboxLocationMap = ConcurrentHashMap<UUID, Array<Location>>()
 
-        val lightPositionMap = Object2ObjectOpenHashMap<UUID, Array<LightBlock>>()
-        val lightLocationMap = Object2ObjectOpenHashMap<UUID, Array<Location>>()
+        val lightPositionMap = ConcurrentHashMap<UUID, Array<LightBlock>>()
+        val lightLocationMap = ConcurrentHashMap<UUID, Array<Location>>()
 
-        val interactionHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
-        val shulkerHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
-        val ghastHitboxPacketMap: Object2ObjectOpenHashMap<UUID, Array<IFurniturePacket>> = Object2ObjectOpenHashMap()
+        val interactionHitboxPacketMap: ConcurrentHashMap<UUID, Array<IFurniturePacket>> = ConcurrentHashMap()
+        val shulkerHitboxPacketMap: ConcurrentHashMap<UUID, Array<IFurniturePacket>> = ConcurrentHashMap()
+        val ghastHitboxPacketMap: ConcurrentHashMap<UUID, Array<IFurniturePacket>> = ConcurrentHashMap()
 
-        val interactionHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
-        val shulkerHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
-        val ghastHitboxIdMap = Object2ObjectOpenHashMap<UUID, FurnitureSubEntity>()
+        val interactionHitboxIdMap = ConcurrentHashMap<UUID, FurnitureSubEntity>()
+        val shulkerHitboxIdMap = ConcurrentHashMap<UUID, FurnitureSubEntity>()
+        val ghastHitboxIdMap = ConcurrentHashMap<UUID, FurnitureSubEntity>()
 
         fun updateBaseEntity(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
             furnitureBaseMap.get(baseEntity.uniqueId)?.mechanic = mechanic

@@ -19,7 +19,7 @@ import com.nexomc.nexo.utils.KeyUtils
 import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastLinked
-import com.nexomc.nexo.utils.associateFastWith
+import com.nexomc.nexo.utils.associateFastLinkedWith
 import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getStringListOrNull
@@ -182,7 +182,11 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return output
     }
 
-    private val itemConfigs by lazy { itemFiles().associateFastWith(NexoYaml::loadConfiguration) }
+    internal var itemConfigs: Map<File, YamlConfiguration> = mapOf()
+        get() {
+            if (field.isEmpty()) field = itemFiles().associateFastLinkedWith(NexoYaml::loadConfiguration)
+            return field
+        }
 
     internal fun parseItemConfig() = itemConfigs.entries.associateFastLinked { it.key to parseItemConfig(it) }
 
@@ -196,9 +200,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     ?: section.getKey("Pack.model") ?: Key.key(itemId)
 
                 val existingBlock = CustomBlockRegistry.DATAS[blockType]?.object2IntEntrySet()?.find { it.intValue == customVariation && it.key != model }
-                if (existingBlock == null) CustomBlockRegistry.DATAS.merge(blockType, Object2IntLinkedOpenHashMap()) { _, map ->
-                    map.apply { put(model, customVariation) }
-                } else {
+                if (existingBlock == null) CustomBlockRegistry.DATAS.getOrPut(blockType, ::Object2IntLinkedOpenHashMap)[model] = customVariation else {
                     Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
                 }
             }
@@ -219,10 +221,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val model = (packSection.getString("model")?.takeUnless(String::isNullOrEmpty) ?: itemId).takeIf(Key::parseable)?.let(Key::key) ?: KeyUtils.MALFORMED_KEY_PLACEHOLDER
 
                 val existingModel = CustomModelData.DATAS[material]?.object2IntEntrySet()?.find { it.intValue == modelData && it.key != model }?.key?.key()?.asString()
-                if (existingModel == null) CustomModelData.DATAS.merge(material, Object2IntLinkedOpenHashMap()) { _, map ->
-                    map.apply { put(model, modelData) }
-                } else {
-                    Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomModelData <yellow>$modelData</yellow>, which is already assigned to <red>$existingModel")
+                when (existingModel) {
+                    null -> CustomModelData.DATAS.getOrPut(material, ::Object2IntLinkedOpenHashMap)[model] = modelData
+                    else -> Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomModelData <yellow>$modelData</yellow>, which is already assigned to <red>$existingModel")
                 }
             }
         }
@@ -308,9 +309,9 @@ class ConfigsManager(private val plugin: JavaPlugin) {
         return map
     }
 
-    private fun itemFiles(): List<File> = itemsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sorted()
+    private fun itemFiles(): List<File> = itemsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sortedBy(File::nameWithoutExtension)
 
-    private fun glyphFiles(): List<File> = glyphsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sorted()
+    private fun glyphFiles(): List<File> = glyphsFolder.listYamlFiles(true).filter(NexoYaml::isValidYaml).sortedBy(File::nameWithoutExtension)
 
     companion object {
         private val defaultMechanics: YamlConfiguration = extractDefault("mechanics.yml")

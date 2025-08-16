@@ -5,7 +5,6 @@ import com.nexomc.nexo.utils.childSections
 import com.nexomc.nexo.utils.getEnum
 import com.nexomc.nexo.utils.getKeyList
 import com.nexomc.nexo.utils.getStringOrNull
-import com.nexomc.nexo.utils.handler
 import com.nexomc.nexo.utils.listYamlFiles
 import com.nexomc.nexo.utils.sectionList
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
@@ -32,7 +31,7 @@ object NexoDialogs {
             val dialogFiles = dialogDirectory.listYamlFiles(true)
             if (dialogFiles.isEmpty()) return
 
-            context.lifecycleManager.registerEventHandler(RegistryEvents.DIALOG.handler { handler ->
+            context.lifecycleManager.registerEventHandler(RegistryEvents.DIALOG.compose().newHandler { handler ->
                 dialogFiles.forEach { file ->
                     val dialogKey = Key.key("nexo", file.nameWithoutExtension.lowercase())
                     val typedKey = TypedKey.create(RegistryKey.DIALOG, dialogKey)

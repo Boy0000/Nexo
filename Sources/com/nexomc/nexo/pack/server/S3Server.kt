@@ -11,8 +11,9 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import java.net.URI
-import java.time.Duration
 import java.util.concurrent.CompletableFuture
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
 open class S3Server : NexoPackServer {
     internal open val bucket = Settings.S3_BUCKET_NAME.toString()
@@ -24,6 +25,7 @@ open class S3Server : NexoPackServer {
         Logs.logWarn("Failed to find Region for ${Settings.S3_REGION}, defaulting to ${Region.EU_WEST_1.id()}")
         if (Settings.DEBUG.toBool()) it.printStackTrace()
     }.getOrDefault(Region.EU_WEST_1)
+    internal open val urlExpiration: Duration = Settings.S3_URL_EXPIRATION.toDuration()
 
     private var packUrl: String? = null
     internal open val endpoint: URI = URI.create(Settings.S3_PUBLIC_URL.toString())
@@ -35,6 +37,7 @@ open class S3Server : NexoPackServer {
             .region(region)
             .credentialsProvider { AwsBasicCredentials.create(accessKey, secretKey) }
             .endpointOverride(endpoint)
+            .forcePathStyle(true) // Add for Hetzner compatibility
             .build()
     }
 
@@ -50,17 +53,17 @@ open class S3Server : NexoPackServer {
             S3Presigner.builder()
                 .region(region)
                 .credentialsProvider { AwsBasicCredentials.create(accessKey, secretKey) }
+                .endpointOverride(endpoint) // Critical: Add this to match S3Client
                 .build().use { presigner ->
                     val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/$hash.zip")
                     val presignRequest = GetObjectPresignRequest.builder()
-                        .signatureDuration(Duration.ofHours(1))
-                        .getObjectRequest { builder ->
+                        .apply { if (urlExpiration.isPositive() && urlExpiration.isFinite())
+                            signatureDuration(urlExpiration.toJavaDuration())
+                        }.getObjectRequest { builder ->
                             builder.bucket(bucket).key(key)
                         }.build()
 
-                    val url = presigner.presignGetObject(presignRequest).url().toString()
-                    packUrl = url
-                    url
+                    presigner.presignGetObject(presignRequest).url().toString().apply { packUrl = this }
                 }
         }.onFailure {
             Logs.logError("Failed to generate pre-signed ResourcePack URL: ${it.message}")

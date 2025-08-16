@@ -19,8 +19,9 @@ import com.nexomc.nexo.utils.remove
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.ResourcePack
-import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.URI
 import java.util.concurrent.CompletableFuture
@@ -144,36 +145,55 @@ object VanillaResourcePack {
 
     private fun extractJarAssetsToZip(clientJar: ByteArray, zipFile: File) {
         runCatching {
-            ByteArrayInputStream(clientJar).use { stream ->
-                ZipInputStream(stream).use { zis ->
-                    zipFile.outputStream().use { fos ->
+            // Write clientJar to a temporary file (reliable as per your observation)
+            val tempInputFile = File.createTempFile("clientJar", ".tmp").apply {
+                deleteOnExit()
+                writeBytes(clientJar)
+            }
+
+            // Create a temporary output file for the filtered ZIP
+            val tempOutputFile = File.createTempFile("filteredZip", ".tmp").apply {
+                deleteOnExit()
+            }
+
+            // Read the temporary input file and write filtered entries to the temporary output file
+            FileInputStream(tempInputFile).use { fis ->
+                ZipInputStream(fis).use { zis ->
+                    FileOutputStream(tempOutputFile).use { fos ->
                         ZipOutputStream(fos).use { zos ->
                             var entry = zis.nextEntry
                             while (entry != null) {
                                 val name = entry.name
-                                if (name.startsWith("assets/")
-                                    && !name.endsWith("scaffolding_unstable.json")
-                                    && !name.startsWith("assets/minecraft/shaders")
-                                    && !name.startsWith("assets/minecraft/particles")
-                                    && !name.endsWith("lang/_all.json")
+                                // Only include files in the assets folder, excluding specific paths
+                                if (name.startsWith("assets/") &&
+                                    !name.endsWith("scaffolding_unstable.json") &&
+                                    !name.startsWith("assets/minecraft/shaders/") &&
+                                    !name.startsWith("assets/minecraft/particles/") &&
+                                    !name.endsWith("lang/_all.json")
                                 ) {
-                                    // Prepare the new ZipEntry
                                     val zipEntry = ZipEntry(name)
                                     zos.putNextEntry(zipEntry)
-
-                                    // Write file content to the zip
-                                    zis.copyTo(zos)
+                                    // Copy entry data in chunks to ensure proper streaming
+                                    val buffer = ByteArray(8192)
+                                    var bytesRead: Int
+                                    while (zis.read(buffer).also { bytesRead = it } != -1) {
+                                        zos.write(buffer, 0, bytesRead)
+                                    }
                                     zos.closeEntry()
                                 }
                                 zis.closeEntry()
                                 entry = zis.nextEntry
                             }
+                            zos.finish() // Ensure ZIP headers are written
                         }
                     }
                 }
             }
+
+            // Replace the target zipFile with the filtered temporary file
+            tempOutputFile.copyTo(zipFile, overwrite = true)
         }.onFailure {
-            Logs.logWarn("Failed to extract vanilla-resourcepack directly to zip file...")
+            Logs.logWarn("Failed to extract vanilla-resourcepack directly to zip file: ${it.message}")
             if (Settings.DEBUG.toBool()) it.printStackTrace()
         }
     }

@@ -5,8 +5,6 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import com.nexomc.nexo.mechanics.custom_block.noteblock.NoteBlockMechanic
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
-import org.bukkit.event.Cancellable
-import org.bukkit.event.HandlerList
 
 /**
  * Event fired right before a player damages a NoteBlock.
@@ -20,12 +18,4 @@ class NexoChorusBlockDamageEvent(
     override val mechanic: ChorusBlockMechanic,
     block: Block,
     player: Player
-) : NexoBlockDamageEvent(mechanic, block, player), Cancellable {
-
-    override fun getHandlers() = handlerList
-
-    companion object {
-        @JvmStatic
-        val handlerList = HandlerList()
-    }
-}
+) : NexoBlockDamageEvent(mechanic, block, player)

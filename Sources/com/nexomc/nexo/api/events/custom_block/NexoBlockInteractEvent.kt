@@ -51,11 +51,12 @@ open class NexoBlockInteractEvent(
         isCancelled = cancel
     }
 
-
-    override fun getHandlers() = handlerList
+    override fun getHandlers() = HANDLERS
 
     companion object {
+        private val HANDLERS = HandlerList()
+
         @JvmStatic
-        val handlerList = HandlerList()
+        fun getHandlerList(): HandlerList = HANDLERS
     }
 }

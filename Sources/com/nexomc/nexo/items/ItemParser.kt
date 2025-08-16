@@ -21,6 +21,7 @@ import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
+import com.nexomc.nexo.utils.toLinkedMap
 import com.nexomc.nexo.utils.toMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
 import org.bukkit.Material
@@ -118,7 +119,7 @@ class ItemParser(private val section: ConfigurationSection) {
         }
 
         runCatching {
-            val persistentData = section.getLinkedMapList("PersistentData", listOfNotNull(section.getConfigurationSection("PersistentData")?.toMap()?.toMap(linkedMapOf())))
+            val persistentData = section.getLinkedMapList("PersistentData", listOfNotNull(section.getConfigurationSection("PersistentData")?.toLinkedMap()))
             persistentData.forEach { attributeJson ->
                 val key = NamespacedKey.fromString(attributeJson["key"] as String)!!
 

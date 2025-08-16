@@ -5,8 +5,6 @@ import com.nexomc.nexo.mechanics.custom_block.chorusblock.ChorusBlockMechanic
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.entity.Player
-import org.bukkit.event.Cancellable
-import org.bukkit.event.HandlerList
 import org.bukkit.event.block.Action
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
@@ -19,13 +17,4 @@ class NexoChorusBlockInteractEvent(
     block: Block,
     blockFace: BlockFace,
     action: Action
-) :
-    NexoBlockInteractEvent(mechanic, player, itemInHand, hand, block, blockFace, action), Cancellable {
-
-    override fun getHandlers() = handlerList
-
-    companion object {
-        @JvmStatic
-        val handlerList = HandlerList()
-    }
-}
+) : NexoBlockInteractEvent(mechanic, player, itemInHand, hand, block, blockFace, action)

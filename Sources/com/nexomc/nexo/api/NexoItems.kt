@@ -39,6 +39,7 @@ object NexoItems {
         // Clear existing data instead of reassigning new maps
         ItemParser.CUSTOM_MODEL_DATAS_BY_ID.clear()
         CustomModelData.DATAS.clear()
+        NexoPlugin.instance().configsManager().itemConfigs = emptyMap()
         NexoPlugin.instance().configsManager().assignAllUsedCustomModelDatas()
         NexoPlugin.instance().configsManager().assignAllUsedCustomVariations()
         NexoPlugin.instance().configsManager().parseAllItemTemplates()

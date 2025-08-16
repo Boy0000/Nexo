@@ -320,14 +320,11 @@ class ItemUpdater : Listener {
 
             newItem.asColorable().takeIf { oldItem.asColorable() != null }?.color = oldItem.asColorable()?.color
 
+            val itemUtils = NMSHandlers.handler().itemUtils()
             runCatching {
                 newItem.copyDataFrom(oldItem, componentsToCopy::contains)
             }.onFailure {
-                val itemUtils = NMSHandlers.handler().itemUtils()
                 itemUtils.paintingVariant(newItem, itemUtils.paintingVariant(oldItem))
-                itemUtils.consumableComponent(newItem, itemUtils.consumableComponent(oldItem))
-                itemUtils.repairableComponent(newItem, itemUtils.repairableComponent(oldItem))
-                itemUtils.blockstateComponent(newItem, itemUtils.blockstateComponent(oldItem))
             }
             NMSHandlers.handler().itemUtils().customDataComponent(newItem, newItemBuilder.customDataMap)
 
@@ -340,12 +337,12 @@ class ItemUpdater : Listener {
                     DataComponentTypes.DYED_COLOR,
                     DataComponentTypes.MAP_COLOR,
                     DataComponentTypes.BASE_COLOR,
-                    DataComponentTypes.CONSUMABLE,
-                    DataComponentTypes.REPAIRABLE,
-                    DataComponentTypes.BLOCK_DATA,
                     DataComponentTypes.CONTAINER,
                     DataComponentTypes.CONTAINER_LOOT,
                     DataComponentTypes.BUNDLE_CONTENTS,
+                    DataComponentTypes.PAINTING_VARIANT,
+                    DataComponentTypes.WRITTEN_BOOK_CONTENT,
+                    DataComponentTypes.WRITABLE_BOOK_CONTENT,
                 )
             }.getOrDefault(emptyList())
         }

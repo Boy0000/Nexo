@@ -1,7 +1,6 @@
 package com.nexomc.nexo.jukebox_songs
 
 import com.nexomc.nexo.utils.getKey
-import com.nexomc.nexo.utils.handler
 import com.nexomc.nexo.utils.jukebox_playable.JukeboxPlayable
 import com.nexomc.nexo.utils.sectionList
 import io.papermc.paper.plugin.bootstrap.BootstrapContext
@@ -17,7 +16,7 @@ object NexoJukeboxSong {
             val soundsYaml = runCatching { YamlConfiguration.loadConfiguration(soundsFile) }.getOrNull() ?: return@runCatching
             val sounds = soundsYaml.sectionList("sounds").ifEmpty { return }
 
-            context.lifecycleManager.registerEventHandler(RegistryEvents.JUKEBOX_SONG.handler { handler ->
+            context.lifecycleManager.registerEventHandler(RegistryEvents.JUKEBOX_SONG.compose().newHandler { handler ->
                 sounds.forEach { section ->
                     val key = section.getKey("id") ?: return@forEach
                     val jukeboxSection = section.getConfigurationSection("jukebox_playable") ?: return@forEach

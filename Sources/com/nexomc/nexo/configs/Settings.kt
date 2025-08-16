@@ -10,11 +10,13 @@ import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.customarmor.CustomArmorType
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.toDuration
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Material
 import org.bukkit.configuration.file.YamlConfiguration
+import kotlin.time.Duration
 
 enum class Settings {
     // Generic Plugin stuff
@@ -31,6 +33,9 @@ enum class Settings {
     FORMAT_ITEMS("Plugin.formatting.items", true),
     FORMAT_PACKET_EVENTS("Plugin.formatting.packet_events", !PluginUtils.isTABEnabled),
     FORMAT_ENTITY_DATA("Plugin.formatting.entity_data", true),
+
+    //PacketHandlers
+    DISABLE_GLYPH_HANDLER("Plugin.packets.disable_glyph_handler", false, "This should not be enabled unless you know what you are doing.."),
 
     // WorldEdit
     FAWE_HOOK("WorldEdit.fawe_hook", false),
@@ -116,6 +121,7 @@ enum class Settings {
     S3_UNIQUE_KEY("Pack.server.s3.unique_key"),
     S3_SECRET_KEY("Pack.server.s3.secret_key", "SECRET"),
     S3_ACCESS_KEY("Pack.server.s3.access_key", "ACCESS"),
+    S3_URL_EXPIRATION("Pack.server.s3.url_expiration"),
 
     PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21")),
     PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", VersionUtil.below("1.21")),
@@ -242,6 +248,8 @@ enum class Settings {
     fun toStringList() = NexoPlugin.instance().configsManager().settings().getStringList(path)
 
     fun toConfigSection() = NexoPlugin.instance().configsManager().settings().getConfigurationSection(path)
+
+    fun toDuration() = NexoPlugin.instance().configsManager().settings().getString(path)?.toDuration() ?: Duration.INFINITE
 
     companion object {
         fun reload() {

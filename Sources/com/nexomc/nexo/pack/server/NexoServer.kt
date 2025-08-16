@@ -5,9 +5,11 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.toDuration
 import software.amazon.awssdk.regions.Region
 import java.io.File
 import java.net.URI
+import kotlin.time.Duration
 
 class NexoServer : S3Server() {
     private val fallback = PolymathServer()
@@ -18,6 +20,7 @@ class NexoServer : S3Server() {
     override val endpoint: URI = URI.create(credentials.url)
     override val bucket = credentials.bucket
     override val region = credentials.region
+    override val urlExpiration: Duration = "7d".toDuration()!!
 
     override fun start() {
         //Test connection to Hetzner S3 bucket

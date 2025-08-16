@@ -95,6 +95,24 @@ object NexoPack {
         mergeContainers(resourcePack, importedPack)
     }
 
+    @JvmStatic
+    fun isEmpty(resourcePack: ResourcePack): Boolean {
+        if (resourcePack.items().isNotEmpty()) return false
+        if (resourcePack.models().isNotEmpty()) return false
+        if (resourcePack.equipment().isNotEmpty()) return false
+        if (resourcePack.textures().isNotEmpty()) return false
+        if (resourcePack.sounds().isNotEmpty()) return false
+        if (resourcePack.soundRegistries().isNotEmpty()) return false
+        if (resourcePack.atlases().isNotEmpty()) return false
+        if (resourcePack.languages().isNotEmpty()) return false
+        if (resourcePack.blockStates().isNotEmpty()) return false
+        if (resourcePack.fonts().isNotEmpty()) return false
+        if (resourcePack.unknownFiles().isNotEmpty()) return false
+        if (resourcePack.waypointStyles().isNotEmpty()) return false
+
+        return true
+    }
+
     private fun mergeContainers(container: ResourceContainer, importedContainer: ResourceContainer) {
         importedContainer.textures().forEach(container::texture)
         importedContainer.sounds().forEach(container::sound)

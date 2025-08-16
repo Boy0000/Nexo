@@ -6,15 +6,18 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
-import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.getEnum
+import com.nexomc.nexo.utils.getEnumList
+import com.nexomc.nexo.utils.getFloat
 import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getKeyListOrNull
 import com.nexomc.nexo.utils.getNamespacedKey
+import com.nexomc.nexo.utils.getNamespacedKeyList
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.sectionList
 import io.papermc.paper.datacomponent.item.TooltipDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
@@ -22,7 +25,6 @@ import net.Indyuce.mmoitems.MMOItems
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.Tag
 import org.bukkit.configuration.ConfigurationSection
@@ -184,50 +186,19 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         toolComponent.damagePerBlock = toolSection.getInt("damage_per_block", 1).coerceAtLeast(0)
         toolComponent.defaultMiningSpeed = toolSection.getDouble("default_mining_speed", 1.0).toFloat().coerceAtLeast(0f)
 
-        for (ruleEntry: Map<*, *> in toolSection.getMapList("rules")) {
-            val speed = ruleEntry["speed"]?.toString()?.toFloatOrNull() ?: 1f
-            val correctForDrops = ruleEntry["correct_for_drops"]?.toString()?.toBoolean()
-            val materials = mutableSetOf<Material>()
-            val tags = mutableSetOf<Tag<Material>>()
+        toolSection.sectionList("rules").forEach { section ->
+            val speed = section.getFloat("speed", 1f)
+            val correctForDrops = section.getBoolean("correct_for_drops")
 
-            runCatching {
-                val material = Material.valueOf(ruleEntry["material"]?.toString() ?: return@runCatching)
-                if (material.isBlock) materials += material
-            }.onFailure {
-                Logs.logWarn("Error parsing rule-entry in $itemId")
-                Logs.logWarn("Malformed \"material\"-section")
-                if (Settings.DEBUG.toBool()) it.printStackTrace()
-            }
+            val materials = section.getEnumList("materials", Material::class.java).filter(Material::isBlock).toMutableList()
+            val material = section.getEnum("material", Material::class.java)?.takeIf(Material::isBlock)
+            if (material != null) materials.add(material)
 
-            runCatching {
-                val materialIds = ruleEntry["materials"] as? List<*> ?: return@runCatching
-                materialIds.asSequence().filterIsInstance<String>().mapNotNull(Material::matchMaterial)
-                    .filter { it.isBlock }.forEach { materials += it }
-            }.onFailure {
-                Logs.logWarn("Error parsing rule-entry in $itemId")
-                Logs.logWarn("Malformed \"materials\"-section")
-                if (Settings.DEBUG.toBool()) it.printStackTrace()
-            }
-
-            runCatching {
-                val tagKey = ruleEntry["tag"]?.toString()?.let(NamespacedKey::fromString) ?: return@runCatching
-                tags += Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material::class.java)!!
-            }.onFailure {
-                Logs.logWarn("Error parsing rule-entry in $itemId")
-                Logs.logWarn("Malformed \"tag\"-section")
-                if (Settings.DEBUG.toBool()) it.printStackTrace()
-            }
-
-            runCatching {
-                (ruleEntry["tags"] as? List<*>)?.filterIsInstance<String>()?.forEach { tagString: String ->
-                    val tagKey = NamespacedKey.fromString(tagString) ?: return@forEach
-                    tags += Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagKey, Material::class.java) ?: return@forEach
-                }
-            }.onFailure {
-                Logs.logWarn("Error parsing rule-entry in $itemId")
-                Logs.logWarn("Malformed \"material\"-section")
-                if (Settings.DEBUG.toBool()) it.printStackTrace()
-            }
+            val tags = section.getNamespacedKeyList("tags").mapNotNull {
+                Bukkit.getTag(Tag.REGISTRY_BLOCKS, it, Material::class.java)
+            }.toMutableList()
+            val tag = section.getNamespacedKey("tag")?.let { Bukkit.getTag(Tag.REGISTRY_BLOCKS, it, Material::class.java) }
+            if (tag != null) tags += tag
 
             if (materials.isNotEmpty()) toolComponent.addRule(materials, speed, correctForDrops)
             for (tag in tags) toolComponent.addRule(tag, speed, correctForDrops)

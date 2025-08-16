@@ -1,6 +1,7 @@
 package com.nexomc.nexo.converter
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.utils.toTypedMap
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 
@@ -31,11 +32,7 @@ data class Converter(
     )
 
     data class NexoConverter(val furnitureConverter: Map<String, String> = mapOf()) {
-        constructor(config: ConfigurationSection) : this(
-            config.getConfigurationSection("furnitureConverter")?.let { section ->
-                section.getKeys(false).associateWith { section.getString(it)!! }
-            } ?: mapOf()
-        )
+        constructor(config: ConfigurationSection) : this(config.getConfigurationSection("furnitureConverter")?.toTypedMap<String>() ?: mapOf())
     }
 
     data class OraxenConverter(

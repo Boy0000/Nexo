@@ -84,9 +84,9 @@ class PackGenerator {
         val packFolder = NexoPlugin.instance().dataFolder.resolve("pack")
 
         val futures = arrayOf(
+            VanillaResourcePack.extractLatest(),
             packDownloader.downloadRequiredPack(),
             packDownloader.downloadDefaultPack(),
-            VanillaResourcePack.extractLatest(),
             ModelEngineCompatibility.modelEngineFuture()
         )
 
@@ -358,7 +358,6 @@ class PackGenerator {
         generateDefaultPaths()
 
         VanillaResourcePack.extractLatest()
-
         packDownloader.downloadRequiredPack()
         packDownloader.downloadDefaultPack()
 

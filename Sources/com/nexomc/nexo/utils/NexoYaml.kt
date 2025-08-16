@@ -35,8 +35,16 @@ fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }
 }
 
-fun ConfigurationSection.toMap(): Map<String, Any> {
-    return getKeys(false).associateWith { get(it)!! }
+fun ConfigurationSection.toMap(): Map<String, Any?> {
+    return getKeys(false).associateWith { get(it) }
+}
+
+fun ConfigurationSection.toLinkedMap(): LinkedHashMap<String, Any> {
+    return getKeys(false).associateWithNotNull { get(it) }.toMap(linkedMapOf())
+}
+
+fun <T> ConfigurationSection.toTypedMap(): Map<String, T> {
+    return getKeys(false).associateWithNotNull { get(it) as? T }
 }
 
 fun ConfigurationSection.getLinkedMapList(key: String, default: List<LinkedHashMap<String, Any>> = emptyList()): List<LinkedHashMap<String, Any>> {
@@ -87,8 +95,20 @@ fun ConfigurationSection.getNamespacedKey(key: String): NamespacedKey? {
     return runCatching { getString(key)?.let(NamespacedKey::fromString) }.getOrNull()
 }
 
+fun ConfigurationSection.getNamespacedKeyList(key: String): List<NamespacedKey> {
+    return runCatching { getStringList(key).mapNotNull { runCatching { NamespacedKey.fromString(it) }.getOrNull() } }.getOrDefault(listOf())
+}
+
+fun ConfigurationSection.getNamespacedKeyListOrNull(key: String): List<NamespacedKey>? {
+    return runCatching { getStringList(key).mapNotNull { runCatching { NamespacedKey.fromString(it) }.getOrNull() } }.getOrDefault(listOf()).ifEmpty { null }
+}
+
 fun <T : Enum<T>> ConfigurationSection.getEnum(key: String, enum: Class<T>): T? {
     return EnumUtils.getEnum(enum, getStringOrNull(key))
+}
+
+fun <T : Enum<T>> ConfigurationSection.getEnumList(key: String, enum: Class<T>): List<T> {
+    return getStringList(key).mapNotNull { EnumUtils.getEnum(enum, it) }
 }
 
 fun ConfigurationSection.getQuaternion(key: String): Quaternionf? {
@@ -134,6 +154,8 @@ fun ConfigurationSection.remove(key: String): ConfigurationSection {
     set(key, null)
     return this
 }
+
+fun ConfigurationSection.getFloat(key: String, default: Float) = getDouble(key, default.toDouble()).toFloat()
 
 fun ConfigurationSection.sectionList(key: String): List<ConfigurationSection> {
     return getMapList(key).map { map ->
