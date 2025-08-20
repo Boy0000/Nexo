@@ -13,7 +13,7 @@ import java.util.regex.Pattern
 object ShiftTag {
     private const val SHIFT = "shift"
     private const val SHIFT_SHORT = "s"
-    val FONT = Settings.SHIFT_FONT.toKey(Key.key("nexo:shift"))
+    val FONT by lazy { Settings.SHIFT_FONT.toKey(Key.key("nexo:shift")) }
     val PATTERN: Pattern = Pattern.compile("(<shift:(-?\\d+)>)")
     val ESCAPED_PATTERN: Pattern = Pattern.compile("(\\\\<shift:(-?\\d+)>)")
 

@@ -29,7 +29,7 @@ internal fun CommandTree.glyphInfoCommand() = literalArgument("glyphinfo") {
             sender.sendMessage("<dark_aqua>Texture: <aqua>${glyph.texture.asString()}".deserialize())
             sender.sendMessage("<dark_aqua>Font: <aqua>${glyph.font.asString()}".deserialize())
             sender.sendMessage(
-                Component.text("Unicode:", NamedTextColor.DARK_AQUA).append(glyph.component
+                Component.text("Unicode:", NamedTextColor.DARK_AQUA).append(glyph.component.color(NamedTextColor.WHITE)
                 .hoverEvent(HoverEvent.showText(Component.text("Click to copy to clipboard!", NamedTextColor.GOLD)))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, glyph.unicodes.joinToString("")))
             ))

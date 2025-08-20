@@ -17,9 +17,11 @@ class LimitedPlacing(section: ConfigurationSection) {
     private val blockTags: Set<Tag<Material>> = limitedBlockTags(section.getStringList("block_tags"))
     private val nexoBlocks: List<String> = limitedNexoBlocks(section.getStringList("nexo_blocks"))
     val radiusLimitation: RadiusLimitation? = section.getConfigurationSection("radius_limitation")?.let(::RadiusLimitation)
-    val isFloor = section.getBoolean("floor", true)
-    val isRoof = section.getBoolean("roof", true)
-    val isWall = section.getBoolean("wall", true)
+    // If any of the properties are marked true, default others to false if unspecified
+    private val anyRestrictions = section.getBoolean("floor", section.getBoolean("roof", section.getBoolean("wall")))
+    val isFloor = section.getBoolean("floor", !anyRestrictions)
+    val isRoof = section.getBoolean("roof", !anyRestrictions)
+    val isWall = section.getBoolean("wall", !anyRestrictions)
 
     class RadiusLimitation(section: ConfigurationSection) {
         val radius = section.getInt("radius", -1)

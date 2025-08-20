@@ -107,9 +107,11 @@ object GlyphHandlers {
         var component = GlobalTranslator.render(this, locale ?: Locale.US)
         val serialized = component.asFlatTextContent()
 
-        if (Glyph.containsTagOrPlaceholder(serialized)) NexoPlugin.instance().fontManager().glyphs().forEach { glyph ->
-            if (glyph.id in serialized && glyph.baseRegex.containsMatchIn(serialized)) component = component.replaceText(glyph.tagConfig)
-            if (glyph.placeholders.any(serialized::contains)) glyph.placeholderConfig?.let { component = component.replaceText(it) }
+        if (Glyph.containsTagOrPlaceholder(serialized)) {
+            runCatching { NexoPlugin.instance().fontManager().glyphs() }.getOrDefault(listOf()).forEach { glyph ->
+                if (glyph.id in serialized && glyph.baseRegex.containsMatchIn(serialized)) component = component.replaceText(glyph.tagConfig)
+                if (glyph.placeholders.any(serialized::contains)) glyph.placeholderConfig?.let { component = component.replaceText(it) }
+            }
         }
 
         if (ShiftTag.containsTag(serialized)) component = component.replaceText(ShiftTag.REPLACEMENT_CONFIG)

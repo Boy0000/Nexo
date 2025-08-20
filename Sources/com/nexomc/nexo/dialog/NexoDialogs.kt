@@ -38,8 +38,12 @@ object NexoDialogs {
                     val dialogConfig = runCatching { YamlConfiguration.loadConfiguration(file) }.getOrNull() ?: return@forEach
                     val dialogBase = dialogConfig.getConfigurationSection("base")?.let(::dialogBase) ?: return@forEach
 
-                    handler.registry().register(typedKey) { builder ->
-                        builder.type(dialogType(dialogConfig)).base(dialogBase)
+                    runCatching {
+                        handler.registry().register(typedKey) { builder ->
+                            builder.type(dialogType(dialogConfig)).base(dialogBase)
+                        }
+                    }.onFailure {
+                        context.logger.warn("Failed to register dialog $dialogKey", it)
                     }
                 }
             })

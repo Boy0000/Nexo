@@ -22,11 +22,15 @@ object NexoJukeboxSong {
                     val jukeboxSection = section.getConfigurationSection("jukebox_playable") ?: return@forEach
                     val jukeboxPlayable = JukeboxPlayable(jukeboxSection, key)
 
-                    handler.registry().register(JukeboxSongKeys.create(key)) { builder ->
-                        builder.description(jukeboxPlayable.description)
-                            .comparatorOutput(jukeboxPlayable.comparatorOutput)
-                            .lengthInSeconds(jukeboxPlayable.lengthInSeconds)
-                            .soundEvent { it.empty().location(key).fixedRange(jukeboxPlayable.range?.toFloat()) }
+                    runCatching {
+                        handler.registry().register(JukeboxSongKeys.create(key)) { builder ->
+                            builder.description(jukeboxPlayable.description)
+                                .comparatorOutput(jukeboxPlayable.comparatorOutput)
+                                .lengthInSeconds(jukeboxPlayable.lengthInSeconds)
+                                .soundEvent { it.empty().location(key).fixedRange(jukeboxPlayable.range?.toFloat()) }
+                        }
+                    }.onFailure {
+                        context.logger.warn("Failed to register JukeboxSong for id $key", it)
                     }
                 }
             })

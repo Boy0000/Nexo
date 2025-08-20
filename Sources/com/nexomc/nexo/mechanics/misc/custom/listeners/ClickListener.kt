@@ -56,6 +56,7 @@ class ClickListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAc
     fun PlayerInteractEvent.onClicked() {
         if (!interactActions.contains(action)) return
         if (itemID != NexoItems.idFromItem(item)) return
-        perform(player, item!!)
+        if (!perform(player, item!!)) return
+        if (event.cancelEvent) isCancelled = true
     }
 }

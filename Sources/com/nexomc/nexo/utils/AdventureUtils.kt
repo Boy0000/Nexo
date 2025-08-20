@@ -49,7 +49,7 @@ object AdventureUtils {
     val STANDARD_MINI_MESSAGE = MiniMessage.miniMessage()
     val STRICT_MINI_MESSAGE = MiniMessage.builder().strict(true).build()
 
-    private val NexoTagResolver get() = TagResolver.resolver(
+    val NexoTagResolver get() = TagResolver.resolver(
         TagResolver.standard(),
         GlyphTag.RESOLVER, ShiftTag.RESOLVER, TagResolver.resolver(
             "prefix", Tag.selfClosingInserting(STANDARD_MINI_MESSAGE.deserialize(Message.PREFIX.toString()))

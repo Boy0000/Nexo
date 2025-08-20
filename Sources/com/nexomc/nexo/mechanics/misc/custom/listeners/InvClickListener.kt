@@ -13,6 +13,8 @@ class InvClickListener(itemID: String?, cooldown: Long, event: CustomEvent, clic
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun InventoryClickEvent.onInvClick() {
         val clicked = currentItem
-        if (clicked != null && itemID == NexoItems.idFromItem(clicked)) perform(whoClicked as Player, clicked)
+        if (clicked == null || itemID != NexoItems.idFromItem(clicked)) return
+        if (!perform(whoClicked as Player, clicked)) return
+        if (event.cancelEvent) isCancelled = true
     }
 }

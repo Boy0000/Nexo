@@ -14,7 +14,8 @@ class DropAllListener(itemID: String?, cooldown: Long, event: CustomEvent, click
         val item = itemDrop.itemStack
         if (itemID != NexoItems.idFromItem(item)) return
         if (itemID != null && player.inventory.containsItemWithId(itemID)) return
-        perform(player, item)
+        if (!perform(player, item)) return
+        if (event.cancelEvent) isCancelled = true
     }
 
     private fun PlayerInventory.containsItemWithId(itemID: String): Boolean {

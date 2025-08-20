@@ -48,9 +48,9 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
-        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
+        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
 
         SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
@@ -62,9 +62,9 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun PlayerUntrackEntityEvent.onPlayerUntrackFurniture() {
-        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
+        val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
 
         packetManager.removeHitboxEntityPacket(itemDisplay, mechanic, player)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic, player)
@@ -79,7 +79,7 @@ class FurniturePacketListener : Listener {
 
         SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
             val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@Runnable
-            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return@Runnable
+            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return@Runnable
 
             packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic)
             packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
@@ -91,9 +91,9 @@ class FurniturePacketListener : Listener {
 
     @EventHandler
     fun EntityRemoveFromWorldEvent.onUnload() {
-        val itemDisplay = entity.takeIf { it.location.isLoaded } as? ItemDisplay ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: return
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
+        val itemDisplay = entity.takeIf { it.location.isLoaded } as? ItemDisplay ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
 
         SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
             FurnitureBed.removeBeds(itemDisplay)
@@ -123,7 +123,7 @@ class FurniturePacketListener : Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     fun EntityTeleportEvent.onTeleportFurniture() {
         val baseEntity = entity as? ItemDisplay ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: FurnitureMechanic.invalidFurniture(baseEntity) ?: return
 
         mechanic.hitbox.refreshHitboxes(baseEntity, mechanic)
         mechanic.light.refreshLights(baseEntity, mechanic)
@@ -135,7 +135,7 @@ class FurniturePacketListener : Listener {
     fun NexoItemsLoadedEvent.onFurnitureFactory() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         SchedulerUtils.runAtWorldEntities<ItemDisplay> { entity ->
-            val mechanic = NexoFurniture.furnitureMechanic(entity) ?: return@runAtWorldEntities
+            val mechanic = NexoFurniture.furnitureMechanic(entity) ?: FurnitureMechanic.invalidFurniture(entity) ?: return@runAtWorldEntities
             if (FurnitureSeat.isSeat(entity)|| FurnitureBed.isBed(entity)) return@runAtWorldEntities
 
             packetManager.sendFurnitureMetadataPacket(entity, mechanic)
@@ -154,7 +154,7 @@ class FurniturePacketListener : Listener {
         val baseEntity = IFurniturePacketManager.baseEntityFromHitbox(entityId) ?: return
         val relativePos = (clickedRelativePosition ?: Vector()).takeIf { isAttack || clickedRelativePosition != null} ?: return
         val interactionPoint = IFurniturePacketManager.hitboxLocFromId(entityId, baseEntity.world)?.add(relativePos) ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: FurnitureMechanic.invalidFurniture(baseEntity) ?: return
 
         when {
             isAttack && player.gameMode != GameMode.ADVENTURE && ProtectionLib.canBreak(player, baseEntity.location) -> {

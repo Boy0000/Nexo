@@ -14,6 +14,7 @@ class PickupListener(itemID: String?, cooldown: Long, event: CustomEvent, clickA
         val player = entity as? Player ?: return
         val item = item.itemStack
         if (itemID != NexoItems.idFromItem(item)) return
-        perform(player, item)
+        if (!perform(player, item)) return
+        if (event.cancelEvent) isCancelled = true
     }
 }

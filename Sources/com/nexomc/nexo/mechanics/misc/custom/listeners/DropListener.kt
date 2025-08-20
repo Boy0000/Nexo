@@ -12,6 +12,7 @@ class DropListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAct
     fun PlayerDropItemEvent.onDropped() {
         val item = itemDrop.itemStack
         if (itemID != NexoItems.idFromItem(item)) return
-        perform(player, item)
+        if (!perform(player, item)) return
+        if (event.cancelEvent) isCancelled = true
     }
 }

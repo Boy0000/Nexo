@@ -1,7 +1,6 @@
 package com.nexomc.nexo.mechanics.misc.custom
 
 import com.nexomc.nexo.mechanics.Mechanic
-import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.misc.custom.fields.CustomEvent
 import com.nexomc.nexo.mechanics.misc.custom.listeners.CustomListener
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.from
@@ -18,7 +17,8 @@ class CustomMechanic(factory: CustomMechanicFactory, section: ConfigurationSecti
 
             val listener = CustomEvent(
                 subSection.getString("event", "")!!,
-                subSection.getBoolean("one_usage", false)
+                subSection.getBoolean("one_usage", false),
+                subSection.getBoolean("cancel_event", false),
             ).getListener(itemID, subSection.getLong("cooldown"), clickAction).apply(CustomListener::register)
 
             LOADED_VARIANTS[key] = listener

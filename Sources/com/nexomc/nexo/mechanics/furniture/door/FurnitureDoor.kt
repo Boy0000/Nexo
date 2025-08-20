@@ -17,17 +17,29 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
 import org.joml.Quaternionf
 
-data class FurnitureDoor(private val openSound: String?, private val closeSound: String? = openSound, private val toggleHitboxOnOpen: Boolean = true, val openProperties: FurnitureProperties?) {
+data class FurnitureDoor(
+    private val openSound: String?,
+    private val closeSound: String? = openSound,
+    private val toggleHitboxOnOpen: Boolean = true,
+    private val isSliding: Boolean = false,
+    val openProperties: FurnitureProperties?
+) {
 
     constructor(section: ConfigurationSection) : this(
         section.getStringOrNull("open_sound"),
         section.getStringOrNull("close_sound") ?: section.getStringOrNull("open_sound"),
         section.getBoolean("toggle_hitbox_on_open", true),
-        (section.getConfigurationSection("open_properties") ?: YamlConfiguration())
-            .copyTo(section.parent?.getConfigurationSection("properties") ?: YamlConfiguration())
-            .let(::FurnitureProperties).apply {
-                if (leftRotation == Quaternionf()) this.leftRotation.set(0f, 0.707f, 0f, 0.707f)
-            }
+        section.getBoolean("is_sliding", false),
+
+        (section.parent?.getConfigurationSection("properties") ?: YamlConfiguration()).let {
+            val properties = YamlConfiguration()
+            section.parent?.getConfigurationSection("properties")?.copyTo(properties)
+            section.getConfigurationSection("open_properties")?.copyTo(properties)
+            properties
+        }.let(::FurnitureProperties).apply {
+            if (!section.getBoolean("is_sliding", false) && leftRotation == Quaternionf())
+                this.leftRotation.set(0f, 0.707f, 0f, 0.707f)
+        }
     )
 
     fun toggleState(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {
@@ -68,7 +80,10 @@ data class FurnitureDoor(private val openSound: String?, private val closeSound:
      * Returns a clone of the hitbox, rotating and swapping barriers for interaction-entities
      */
     private fun openHitboxMechanic(baseEntity: ItemDisplay, mechanic: FurnitureMechanic): FurnitureMechanic {
-        val hitboxes = mechanic.hitbox.barriers.mapFastSet { InteractionHitbox(it.groundRotate(baseEntity.yaw + 90).toVector()) }
+        val hitboxes = mechanic.hitbox.barriers.mapFastSet {
+            val blockLoc = if (isSliding) it else it.groundRotate(baseEntity.yaw - 180).add(0,0,1)
+            InteractionHitbox(blockLoc.toVector())
+        }
         return mechanic.clone().apply {
             properties = openProperties ?: properties
             hitbox = FurnitureHitbox(interactions = hitboxes)

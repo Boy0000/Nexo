@@ -25,13 +25,15 @@ abstract class CustomListener protected constructor(
         HandlerList.unregisterAll(this)
     }
 
-    fun perform(player: Player, itemStack: ItemStack?) {
-        if (!clickAction.canRun(player)) return
+    fun perform(player: Player, itemStack: ItemStack?): Boolean {
+        if (!clickAction.canRun(player)) return false
 
-        timers.getTimer(player).let { it.takeIf { it.isFinished }?.reset() ?: return it.sendToPlayer(player) }
+        timers.getTimer(player).let { it.takeIf { it.isFinished }?.reset() ?: return run { it.sendToPlayer(player); false } }
 
         clickAction.performActions(player)
 
         if (event.isOneUsage) itemStack?.subtract()
+
+        return true
     }
 }

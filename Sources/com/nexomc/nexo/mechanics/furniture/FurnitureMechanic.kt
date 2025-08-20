@@ -5,6 +5,7 @@ import com.jeff_media.morepersistentdatatypes.DataType
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerMechanic
+import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
@@ -26,6 +27,7 @@ import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
+import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
@@ -36,6 +38,8 @@ import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapNotNullFast
+import com.nexomc.nexo.utils.plus
+import com.nexomc.nexo.utils.rootSection
 import com.ticxo.modelengine.api.ModelEngineAPI
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.key.Key
@@ -48,6 +52,7 @@ import org.bukkit.block.BlockFace
 import org.bukkit.block.data.Bisected
 import org.bukkit.block.data.type.TrapDoor
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.ItemDisplay
 import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType
@@ -286,6 +291,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
 
     companion object {
         val FURNITURE_KEY = NamespacedKey(NexoPlugin.instance(), "furniture")
+        val INVALID_FURNITURE_KEY = NamespacedKey(NexoPlugin.instance(), "invalid_furniture")
         val DISPLAY_NAME_KEY = NamespacedKey(NexoPlugin.instance(), "display_name")
         val FURNITURE_DYE_KEY = NamespacedKey(NexoPlugin.instance(), "furniture_dye")
         val FURNITURE_LIGHT_KEY = NamespacedKey(NexoPlugin.instance(), "furniture_light")
@@ -304,5 +310,19 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
             return IFurniturePacketManager.baseEntityFromHitbox(interactionId)
         }
 
+        private val invalidFurnitureSection = YamlConfiguration().createSection("invalid_furniture.Mechanics.furniture")
+            .plus("hitbox", YamlConfiguration().plus("interactions", listOf("0,0,0 1,1")))
+            .plus("item_model", "minecraft:barrier")
+            .apply {
+                NexoYaml.copyConfigurationSection(Settings.INVALID_FURNITURE_ITEM.toConfigSection()!!, this.rootSection)
+            }
+        val INVALID_FURNITURE = FurnitureMechanic(FurnitureFactory.instance()!!, invalidFurnitureSection)
+
+        fun invalidFurniture(baseEntity: ItemDisplay): FurnitureMechanic? {
+            return when {
+                !baseEntity.persistentDataContainer.has(INVALID_FURNITURE_KEY) -> null
+                else -> INVALID_FURNITURE
+            }
+        }
     }
 }

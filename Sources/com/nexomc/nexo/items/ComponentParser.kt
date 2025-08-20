@@ -15,7 +15,6 @@ import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getKeyListOrNull
 import com.nexomc.nexo.utils.getNamespacedKey
 import com.nexomc.nexo.utils.getNamespacedKeyList
-import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.sectionList
 import io.papermc.paper.datacomponent.item.TooltipDisplay
@@ -109,10 +108,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
             NMSHandlers.handler().itemUtils().consumableComponent(itemBuilder, consumableSection)
         }
 
-        val repairableWith = componentSection.getStringListOrNull("repairable") ?: listOf(componentSection.getString("repairable", ""))
-        repairableWith.filterNotNull().takeIf { it.isNotEmpty() && it.any { it.isNotEmpty() } }?.let { repairable ->
-            NMSHandlers.handler().itemUtils().repairableComponent(itemBuilder, repairable)
-        }
+        val repairableWith = componentSection.getKeyListOrNull("repairable") ?: listOf(componentSection.getKey("repairable"))
+        NMSHandlers.handler().itemUtils().repairableComponent(itemBuilder, repairableWith.filterNotNull())
 
         if (VersionUtil.below("1.21.4")) return
         componentSection.getConfigurationSection("custom_model_data")?.let { cmdSection ->

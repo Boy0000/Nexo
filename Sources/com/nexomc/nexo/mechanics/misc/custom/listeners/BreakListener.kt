@@ -20,6 +20,7 @@ class BreakListener(itemID: String?, cooldown: Long, event: CustomEvent, clickAc
     @EventHandler
     fun BlockBreakEvent.onBroken() {
         val item = NexoBlocks.customBlockMechanic(block)?.itemID?.let(NexoItems::itemFromId)?.build() ?: return
-        perform(player, item)
+        if (!perform(player, item)) return
+        if (event.cancelEvent) isCancelled = true
     }
 }

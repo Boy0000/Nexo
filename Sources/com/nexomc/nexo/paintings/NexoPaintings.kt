@@ -36,10 +36,14 @@ object NexoPaintings {
 
                     if (section.getBoolean("random_place")) randomPlacePaintings.add(TypedKey.create(RegistryKey.PAINTING_VARIANT, key))
 
-                    handler.registry().register(variantKey) { builder ->
-                        builder.author(author).title(title).assetId(assetId)
-                            .width(section.getInt("width").coerceIn(1..16))
-                            .height(section.getInt("height").coerceIn(1..16))
+                    runCatching {
+                        handler.registry().register(variantKey) { builder ->
+                            builder.author(author).title(title).assetId(assetId)
+                                .width(section.getInt("width").coerceIn(1..16))
+                                .height(section.getInt("height").coerceIn(1..16))
+                        }
+                    }.onFailure {
+                        context.logger.warn("Failed to register Custom Painting $key", it)
                     }
                 }
             })

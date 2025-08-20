@@ -3,6 +3,7 @@ package com.nexomc.nexo.nms
 import com.nexomc.nexo.items.ItemBuilder
 import com.nexomc.nexo.utils.Colorable
 import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect
+import net.kyori.adventure.key.Key
 import org.bukkit.Art
 import org.bukkit.Color
 import org.bukkit.FireworkEffect
@@ -36,7 +37,7 @@ interface IItemUtils {
         return null
     }
 
-    fun repairableComponent(itemBuilder: ItemBuilder, repairableWith: List<String>) {}
+    fun repairableComponent(itemBuilder: ItemBuilder, repairableWith: List<Key>) {}
 
     fun repairableComponent(itemStack: ItemStack, repairable: Any?) {}
 
