@@ -86,6 +86,7 @@ enum class Settings {
 
     //Pack
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),
+    PACK_PREFER_ITEMMODELS("Pack.generation.prefer_item_models", false),
     PACK_MINIMIZE_JSON("Pack.generation.minimize_json", true),
     PACK_READER_LENIENT("Pack.generation.read_lenient", true),
     PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.Type.SIMPLE),
@@ -121,7 +122,7 @@ enum class Settings {
     S3_UNIQUE_KEY("Pack.server.s3.unique_key"),
     S3_SECRET_KEY("Pack.server.s3.secret_key", "SECRET"),
     S3_ACCESS_KEY("Pack.server.s3.access_key", "ACCESS"),
-    S3_URL_EXPIRATION("Pack.server.s3.url_expiration"),
+    S3_URL_EXPIRATION("Pack.server.s3.url_expiration", "7d"),
 
     PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21")),
     PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", VersionUtil.below("1.21")),

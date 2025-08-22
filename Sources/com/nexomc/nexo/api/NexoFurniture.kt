@@ -205,6 +205,13 @@ object NexoFurniture {
         return FurnitureFactory.instance()?.getMechanic(itemID)
     }
 
+    @JvmStatic
+    fun furnitureMechanic(itemStack: ItemStack?): FurnitureMechanic? {
+        if (!FurnitureFactory.isEnabled) return null
+        val itemId = NexoItems.idFromItem(itemStack) ?: return null
+        return FurnitureFactory.instance()?.getMechanic(itemId)
+    }
+
     /**
      * Ensures that the given entity is a Furniture, and updates it if it is
      *

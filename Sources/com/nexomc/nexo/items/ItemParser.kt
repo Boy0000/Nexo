@@ -1,6 +1,7 @@
 package com.nexomc.nexo.items
 
 import com.jeff_media.morepersistentdatatypes.DataType
+import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.mmoitems.WrappedMMOItem
@@ -24,6 +25,7 @@ import com.nexomc.nexo.utils.safeCast
 import com.nexomc.nexo.utils.toLinkedMap
 import com.nexomc.nexo.utils.toMap
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper.fromString
+import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.attribute.AttributeModifier
@@ -160,10 +162,17 @@ class ItemParser(private val section: ConfigurationSection) {
             val mechanic = MechanicsManager.mechanicFactory(factoryId)?.parse(section) ?: return@forEach
             for (modifier in mechanic.itemModifiers) modifier.apply(item)
 
-            if (!hasVariation && section.isInt("custom_variation")) isConfigUpdated = true
+            if (!hasVariation && section.isInt("custom_variation")) {
+                this.section.set("Mechanics.custom_block.custom_variation", section.getInt("custom_variation"))
+                isConfigUpdated = true
+            }
         }
 
         if (!nexoMeta.containsPackInfo) return
+
+        if (!item.hasItemModel() && Settings.PACK_PREFER_ITEMMODELS.toBool())
+            item.setItemModel(Key.key("nexo:$itemId"))
+
         val customModelData = CUSTOM_MODEL_DATAS_BY_ID[section.name]?.customModelData
             ?: nexoMeta.takeIf { !item.hasItemModel() && !item.hasCustomModelDataComponent() }?.model?.let {
                 CustomModelData.generateId(it, type).also { cmd ->

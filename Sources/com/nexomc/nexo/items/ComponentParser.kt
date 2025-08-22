@@ -6,6 +6,7 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
 import com.nexomc.nexo.commands.toColor
 import com.nexomc.nexo.compatibilities.mythiccrucible.WrappedCrucibleItem
+import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.getEnum
@@ -21,6 +22,7 @@ import io.papermc.paper.datacomponent.item.TooltipDisplay
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.Indyuce.mmoitems.MMOItems
+import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -96,10 +98,11 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
 
         componentSection.getNamespacedKey("tooltip_style")?.apply(itemBuilder::setTooltipStyle)
 
-        componentSection.getNamespacedKey("item_model")?.also {
-            // For when an ItemModel would just be the TextureModel, do not obfuscate
-            if (VersionUtil.below("1.21.4")) NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += it.key()
-        }?.apply(itemBuilder::setItemModel)
+        val itemModel = componentSection.getKey("item_model")
+            ?: Key.key("nexo:$itemId").takeIf { Settings.PACK_PREFER_ITEMMODELS.toBool() }
+        if (itemModel != null && VersionUtil.below("1.21.4"))
+            NexoPlugin.instance().packGenerator().packObfuscator().skippedKeys += itemModel.key()
+        itemModel?.also(itemBuilder::setItemModel)
 
         if ("enchantable" in componentSection) itemBuilder.setEnchantable(componentSection.getInt("enchantable"))
         if ("glider" in componentSection) itemBuilder.setGlider(componentSection.getBoolean("glider"))

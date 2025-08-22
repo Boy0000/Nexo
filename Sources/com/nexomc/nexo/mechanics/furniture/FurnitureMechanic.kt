@@ -283,6 +283,8 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         baseEntity.setRotation(newYaw, baseEntity.pitch)
         hitbox.refreshHitboxes(baseEntity, this)
         light.refreshLights(baseEntity, this)
+        FurnitureSeat.updateSeats(baseEntity, this)
+        FurnitureBed.updateBeds(baseEntity, this)
     }
 
     fun clone(): FurnitureMechanic {

@@ -2,6 +2,7 @@ package com.nexomc.nexo.utils
 
 import org.joml.Matrix4f
 import org.joml.Quaternionf
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -50,6 +51,11 @@ object QuaternionUtils {
         matrix.rotateX(pitchRad)
 
         return matrix
+    }
+
+    fun leftRotationToYaw(leftRotation: Quaternionf): Float {
+        val n = leftRotation.normalize()
+        return Math.toDegrees(atan2(2f * (n.y * n.w + n.x * n.z), 1f- 2f * (n.y * n.y + n.x * n.x)).toDouble()).toFloat()
     }
 
 }

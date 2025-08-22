@@ -1,6 +1,7 @@
 package com.nexomc.nexo.compatibilities
 
 import com.nexomc.nexo.NexoPlugin
+import com.nexomc.nexo.compatibilities.axiom.AxiomCompatibility
 import com.nexomc.nexo.compatibilities.blocklocker.BlockLockerCompatibility
 import com.nexomc.nexo.compatibilities.modelengine.ModelEngineCompatibility
 import com.nexomc.nexo.compatibilities.mythicmobs.MythicMobsCompatibility
@@ -22,11 +23,13 @@ object CompatibilitiesManager {
     fun enableCompatibilies() {
         WrappedWorldEdit.registerParser()
         Bukkit.getPluginManager().registerEvents(CompatibilityListener(), NexoPlugin.instance())
+        Bukkit.getPluginManager().registerEvents(CompatibilityListener(), NexoPlugin.instance())
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility::class.java, true)
         addCompatibility("MythicMobs", MythicMobsCompatibility::class.java, true)
         addCompatibility("BlockLocker", BlockLockerCompatibility::class.java, true)
         addCompatibility("ModelEngine", ModelEngineCompatibility::class.java, true)
         addCompatibility("WorldGuard", WorldGuardCompatibility::class.java, true)
+        addCompatibility("AxiomPaper", AxiomCompatibility::class.java, true)
         TABCompatibility.registerPlaceholders()
     }
 

@@ -77,7 +77,7 @@ class ModelGenerator(private val resourcePack: ResourcePack) {
                         val trueModel = ItemModel.reference(throwingModel.key())
                         ItemModel.conditional(ItemBooleanProperty.usingItem(), trueModel, falseModel)
                     }
-                    oversizedInGui != null || handSwapAnimation != null -> {
+                    oversizedInGui != null || handSwapAnimation != null || item.hasItemModel() -> {
                         val modelKey = item.nexoMeta?.model ?: Key.key("nexo:$itemId")
                         if (type == Material.PLAYER_HEAD) ItemModel.special(SpecialRender.playerHead(), modelKey)
                         else ItemModel.reference(modelKey)

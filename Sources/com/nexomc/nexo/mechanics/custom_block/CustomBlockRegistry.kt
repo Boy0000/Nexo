@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics.custom_block
 
+import com.nexomc.nexo.items.ItemTemplate
 import com.nexomc.nexo.utils.getKey
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.logs.Logs
@@ -60,6 +61,8 @@ object CustomBlockRegistry {
     fun generateVariation(section: ConfigurationSection): Int? {
         val model = section.getKey("model") ?: section.rootSection.getKey("Pack.model") ?: Key.key(section.rootId)
         val type = section.getStringOrNull("type")
+
+        if (ItemTemplate.isTemplate(section.rootId)) return null
 
         return when {
             type != null -> generateVariation(model, type)

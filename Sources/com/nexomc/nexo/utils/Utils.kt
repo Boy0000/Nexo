@@ -48,6 +48,9 @@ fun <T, Z> Map<T, Z?>.filterValuesNotNull() = filterValues { it != null }.ensure
 inline fun <K, V> Iterable<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K, V> {
     return associateWith(valueSelector).filterValuesNotNull()
 }
+inline fun <K, V> Array<K>.associateWithNotNull(valueSelector: (K) -> V?): Map<K, V> {
+    return associateWith(valueSelector).filterValuesNotNull()
+}
 
 inline fun <T> nonNullList(crossinline block: (List<T?>) -> T): List<T> {
     val result = mutableListOf<T>()

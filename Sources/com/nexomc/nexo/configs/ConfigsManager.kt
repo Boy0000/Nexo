@@ -196,12 +196,12 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val blockSection = section.getConfigurationSection("Mechanics.custom_block") ?: return@forEach
                 val blockType = blockSection.getStringOrNull("type") ?: return@forEach
                 val customVariation = section.getInt("Mechanics.custom_block.custom_variation").takeIf { it > 0 } ?: return@forEach
-                val model = section.getKey("Mechanics.custom_block.model")
-                    ?: section.getKey("Pack.model") ?: Key.key(itemId)
+                val model = section.getKey("Mechanics.custom_block.model") ?: section.getKey("Pack.model") ?: Key.key(itemId)
 
                 val existingBlock = CustomBlockRegistry.DATAS[blockType]?.object2IntEntrySet()?.find { it.intValue == customVariation && it.key != model }
-                if (existingBlock == null) CustomBlockRegistry.DATAS.getOrPut(blockType, ::Object2IntLinkedOpenHashMap)[model] = customVariation else {
-                    Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
+                when (existingBlock) {
+                    null -> CustomBlockRegistry.DATAS.getOrPut(blockType, ::Object2IntLinkedOpenHashMap)[model] = customVariation
+                    else -> Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
                 }
             }
         }
@@ -288,7 +288,7 @@ class ConfigsManager(private val plugin: JavaPlugin) {
             if (itemParser.isConfigUpdated) configUpdated = true
         }
 
-        if (configUpdated) {
+        if (configUpdated) runCatching {
             config.childSections().forEach { _, section ->
                 when {
                     VersionUtil.atleast("1.20.5") -> section.rename("displayname", "itemname")
@@ -300,11 +300,8 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                     it.remove("uuid")
                 }
             }
-
-            runCatching {
-                config.save(itemFile)
-            }.printOnFailure(true)
-        }
+            config.save(itemFile)
+        }.printOnFailure(true)
 
         return map
     }

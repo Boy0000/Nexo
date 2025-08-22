@@ -4,6 +4,9 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.checksums.RequestChecksumCalculation
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
@@ -35,9 +38,11 @@ open class S3Server : NexoPackServer {
     val s3Client: S3Client by lazy {
         S3Client.builder()
             .region(region)
-            .credentialsProvider { AwsBasicCredentials.create(accessKey, secretKey) }
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
             .endpointOverride(endpoint)
             .forcePathStyle(true) // Add for Hetzner compatibility
+            .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
+            .responseChecksumValidation(ResponseChecksumValidation.WHEN_REQUIRED)
             .build()
     }
 
@@ -52,14 +57,13 @@ open class S3Server : NexoPackServer {
         return runCatching {
             S3Presigner.builder()
                 .region(region)
-                .credentialsProvider { AwsBasicCredentials.create(accessKey, secretKey) }
-                .endpointOverride(endpoint) // Critical: Add this to match S3Client
+                .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)))
+                .endpointOverride(endpoint)
                 .build().use { presigner ->
                     val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/$hash.zip")
                     val presignRequest = GetObjectPresignRequest.builder()
-                        .apply { if (urlExpiration.isPositive() && urlExpiration.isFinite())
-                            signatureDuration(urlExpiration.toJavaDuration())
-                        }.getObjectRequest { builder ->
+                        .signatureDuration(urlExpiration.coerceAtLeast(Duration.ZERO).toJavaDuration())
+                        .getObjectRequest { builder ->
                             builder.bucket(bucket).key(key)
                         }.build()
 
