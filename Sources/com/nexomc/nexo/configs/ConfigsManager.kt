@@ -201,7 +201,10 @@ class ConfigsManager(private val plugin: JavaPlugin) {
                 val existingBlock = CustomBlockRegistry.DATAS[blockType]?.object2IntEntrySet()?.find { it.intValue == customVariation && it.key != model }
                 when (existingBlock) {
                     null -> CustomBlockRegistry.DATAS.getOrPut(blockType, ::Object2IntLinkedOpenHashMap)[model] = customVariation
-                    else -> Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
+                    else -> {
+                        if (section.contains("Mechanics.custom_block.directional")) return@forEach
+                        Logs.logError("<red>$itemId</red> in <red>${file.path}</red> is using CustomVariation <yellow>$customVariation</yellow>, which is already assigned to <red>$existingBlock")
+                    }
                 }
             }
         }

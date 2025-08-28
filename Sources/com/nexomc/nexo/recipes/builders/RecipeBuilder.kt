@@ -2,6 +2,7 @@ package com.nexomc.nexo.recipes.builders
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.recipes.RecipeType
 import com.nexomc.nexo.utils.NexoYaml.Companion.loadConfiguration
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.resolve
@@ -18,13 +19,13 @@ import java.util.*
 @Suppress("UNCHECKED_CAST")
 abstract class RecipeBuilder(
     val player: Player,
-    private val builderId: String,
-    val inventoryTitle: Component = Component.text("${player.name} $builderId builder")
+    private val recipeType: RecipeType,
+    val inventoryTitle: Component = Component.text("${player.name} ${recipeType.id} builder")
 ) {
-    var inventory: Inventory = currentBuilder(player.uniqueId)?.takeIf { it.builderId == builderId }?.inventory
+    var inventory: Inventory = currentBuilder(player.uniqueId)?.takeIf { it.recipeType == recipeType }?.inventory
         ?: createInventory(player, inventoryTitle)
     private set
-    val configFile: File = NexoPlugin.instance().dataFolder.resolve("recipes/$builderId.yml")
+    val configFile: File = NexoPlugin.instance().dataFolder.resolve("recipes/$recipeType.yml")
     val config: YamlConfiguration by lazy { loadConfiguration(configFile) }
 
     init {
@@ -57,7 +58,7 @@ abstract class RecipeBuilder(
     }
 
     fun open() {
-        inventory = currentBuilder(player.uniqueId)?.takeIf { it.builderId == builderId }?.inventory
+        inventory = currentBuilder(player.uniqueId)?.takeIf { it.recipeType == recipeType }?.inventory
             ?: createInventory(player, inventoryTitle)
 
         player.openInventory(inventory)

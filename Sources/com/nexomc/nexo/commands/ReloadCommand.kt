@@ -57,7 +57,7 @@ object ReloadCommand {
     @JvmStatic
     fun reloadAll(sender: CommandSender? = Bukkit.getConsoleSender()) {
         Bukkit.getOnlinePlayers().forEach {
-            NMSHandlers.handler().packetHandler().uninject(it)
+            //NMSHandlers.handler().packetHandler().uninject(it)
             NMSHandlers.handler().packetHandler().inject(it)
         }
         FurnitureFactory.instance()?.packetManager()?.removeAllFurniturePackets()

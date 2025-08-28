@@ -10,10 +10,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.EntityDamageByEntityEvent
+import org.bukkit.event.entity.ProjectileHitEvent
 
 class LifeStealMechanicListener(private val factory: LifeStealMechanicFactory) : Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    fun EntityDamageByEntityEvent.onCall() {
+    fun EntityDamageByEntityEvent.onHit() {
         val damager = damager as? Player ?: return
         val item = damager.inventory.itemInMainHand.takeUnless { VersionUtil.atleast("1.21.2") && damager.hasCooldown(it) } ?: return
         val livingEntity = entity as? LivingEntity ?: return
@@ -25,5 +26,20 @@ class LifeStealMechanicListener(private val factory: LifeStealMechanicFactory) :
         livingEntity.health = (livingEntity.health - mechanic.amount).coerceAtLeast(0.0)
 
         ItemUtils.triggerCooldown(damager, item)
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    fun ProjectileHitEvent.onHit() {
+        val shooter = entity.shooter as? Player ?: return
+        val item = shooter.inventory.itemInMainHand.takeUnless { VersionUtil.atleast("1.21.2") && shooter.hasCooldown(it) } ?: return
+        val livingEntity = hitEntity as? LivingEntity ?: return
+        if (!ProtectionLib.canInteract(shooter, livingEntity.location)) return
+
+        val mechanic = factory.getMechanic(item) ?: return
+        val maxHealth = shooter.getAttribute(AttributeWrapper.MAX_HEALTH)!!.value
+        shooter.health = (shooter.health + mechanic.amount).coerceAtMost(maxHealth)
+        livingEntity.health = (livingEntity.health - mechanic.amount).coerceAtLeast(0.0)
+
+        ItemUtils.triggerCooldown(shooter, item)
     }
 }

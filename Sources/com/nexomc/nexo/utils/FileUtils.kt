@@ -28,6 +28,10 @@ fun File.listDirectories(): List<File> {
     return walkBottomUp().filter { it.isDirectory }.toFastList()
 }
 
+fun List<File>.resolve(string: String): List<File> {
+    return mapNotNull { it.resolve(string).takeIf { it.exists() } }
+}
+
 fun File.replaceText(target: String, replacement: String) {
     writeText(readText().replace(target, replacement))
 }

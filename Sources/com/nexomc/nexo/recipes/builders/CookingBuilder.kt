@@ -1,12 +1,13 @@
 package com.nexomc.nexo.recipes.builders
 
+import com.nexomc.nexo.recipes.RecipeType
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
-open class CookingBuilder(player: Player, builderName: String) : RecipeBuilder(player, builderName) {
+open class CookingBuilder(player: Player, recipeType: RecipeType) : RecipeBuilder(player, recipeType) {
     private var cookingTime = 0
     private var experience = 0
 

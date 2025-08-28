@@ -6,7 +6,8 @@ import com.nexomc.nexo.mechanics.furniture.FurnitureProperties
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager
 import com.nexomc.nexo.mechanics.furniture.hitbox.FurnitureHitbox
 import com.nexomc.nexo.mechanics.furniture.hitbox.InteractionHitbox
-import com.nexomc.nexo.utils.copyTo
+import com.nexomc.nexo.utils.clone
+import com.nexomc.nexo.utils.copyFrom
 import com.nexomc.nexo.utils.getStringOrNull
 import com.nexomc.nexo.utils.mapFastSet
 import org.bukkit.NamespacedKey
@@ -31,15 +32,11 @@ data class FurnitureDoor(
         section.getBoolean("toggle_hitbox_on_open", true),
         section.getBoolean("is_sliding", false),
 
-        (section.parent?.getConfigurationSection("properties") ?: YamlConfiguration()).let {
-            val properties = YamlConfiguration()
-            section.parent?.getConfigurationSection("properties")?.copyTo(properties)
-            section.getConfigurationSection("open_properties")?.copyTo(properties)
-            properties
-        }.let(::FurnitureProperties).apply {
-            if (!section.getBoolean("is_sliding", false) && leftRotation == Quaternionf())
-                this.leftRotation.set(0f, 0.707f, 0f, 0.707f)
-        }
+        (section.parent?.getConfigurationSection("properties")?.clone() ?: YamlConfiguration())
+            .copyFrom(section.getConfigurationSection("open_properties")).let(::FurnitureProperties).apply {
+                if (!section.getBoolean("is_sliding", false) && leftRotation == Quaternionf())
+                    this.leftRotation.set(0f, 0.707f, 0f, 0.707f)
+            }
     )
 
     fun toggleState(baseEntity: ItemDisplay, mechanic: FurnitureMechanic) {

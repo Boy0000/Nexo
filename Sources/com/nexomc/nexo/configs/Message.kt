@@ -2,6 +2,8 @@ package com.nexomc.nexo.configs
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.AdventureUtils
+import com.nexomc.nexo.utils.AdventureUtils.STANDARD_MINI_MESSAGE
+import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
@@ -62,5 +64,9 @@ enum class Message(val path: String) {
 
     fun log(vararg placeholders: TagResolver) {
         send(Bukkit.getConsoleSender(), *placeholders)
+    }
+
+    companion object {
+        val PREFIX_TAG_RESOLVER by lazy { TagResolver.resolver("prefix", Tag.selfClosingInserting(STANDARD_MINI_MESSAGE.deserialize(Message.PREFIX.toString()))) }
     }
 }

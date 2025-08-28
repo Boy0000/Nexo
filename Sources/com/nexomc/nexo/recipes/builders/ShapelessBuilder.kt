@@ -1,9 +1,10 @@
 package com.nexomc.nexo.recipes.builders
 
+import com.nexomc.nexo.recipes.RecipeType
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, "shapeless") {
+class ShapelessBuilder(player: Player) : WorkbenchBuilder(player, RecipeType.SHAPELESS) {
     override fun saveRecipe(name: String, permission: String?) {
         val items = mutableMapOf<ItemStack?, Int>()
         val content = inventory.contents

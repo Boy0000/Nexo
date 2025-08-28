@@ -2,15 +2,23 @@ package com.nexomc.nexo.converter
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.recipes.RecipeType
+import com.nexomc.nexo.recipes.RecipesManager
 import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.childSections
+import com.nexomc.nexo.utils.copyFrom
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.moveTo
 import com.nexomc.nexo.utils.remove
 import com.nexomc.nexo.utils.rename
+import com.nexomc.nexo.utils.resolve
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
+import kotlin.io.path.deleteExisting
+import kotlin.io.path.exists
+import kotlin.io.path.moveTo
 import kotlin.io.path.pathString
 
 object NexoConverter {
@@ -18,9 +26,13 @@ object NexoConverter {
     fun processItemConfigs(configSection: ConfigurationSection) {
         configSection.childSections().forEach { itemId, section ->
             if (section.getBoolean("template")) section.remove("template")
-            val furnitureSection = section.getConfigurationSection("Mechanics.furniture") ?: return@forEach
+
+            section.getConfigurationSection("Components.durability")?.let { durability ->
+                durability.parent!!.set(durability.name, durability.getInt("value"))
+            }
 
             runCatching {
+                val furnitureSection = section.getConfigurationSection("Mechanics.furniture") ?: return@forEach
                 furnitureSection.rename("display_entity_properties", "properties")
                 furnitureSection.rename("hitbox.barrierHitboxes", "hitbox.barriers")
                 furnitureSection.remove("type")
@@ -46,29 +58,36 @@ object NexoConverter {
 
     fun processGlyphConfigs(glyphFile: File) {
         if (glyphFile.extension != "yml") return
-
-        val glyphFolder = NexoPlugin.instance().dataFolder.toPath()
-        val resourcePath = glyphFolder.relativize(glyphFile.toPath())
-        val resource = NexoPlugin.instance().getResource(resourcePath.pathString) ?: return
-        val resourceContent = YamlConfiguration().apply { loadFromString(resource.readAllBytes().decodeToString()) }
-
         val glyphConfig = NexoYaml.loadConfiguration(glyphFile)
-        // Merge default glyphs with existing glyphs
-        resourceContent.childSections().forEach { key, section ->
-            val char = glyphConfig.get("$key.char")
-            glyphConfig.set(key, section)
-            glyphConfig.set("$key.char", char)
-        }
 
-        glyphConfig.childSections().forEach { key, section ->
-            val chatSection = section.getConfigurationSection("chat")
-            if (chatSection != null) {
-                NexoYaml.copyConfigurationSection(chatSection, section)
-                section.set("chat", null)
+
+        // Merge default glyphs with existing glyphs
+        val resourcePath = NexoPlugin.instance().dataFolder.toPath().relativize(glyphFile.toPath())
+        val resource = NexoPlugin.instance().getResource(resourcePath.pathString)
+        YamlConfiguration().apply { resource?.readAllBytes()?.decodeToString()?.let { loadFromString(it) } }
+            .childSections().forEach { key, section ->
+                val char = glyphConfig.get("$key.char")
+                glyphConfig.set(key, section)
+                glyphConfig.set("$key.char", char)
             }
+
+        glyphConfig.childSections().values.forEach { section ->
+            section.getConfigurationSection("chat")?.moveTo(section)
         }
 
         glyphConfig.save(glyphFile)
+    }
+
+    fun processRecipes() {
+        RecipeType.entries.forEach {
+            val recipeFile = RecipesManager.recipesFolder.resolve(it.id + ".yml").toPath().takeIf { it.exists() } ?: return@forEach
+            val recipeFolder = RecipesManager.recipesFolder.resolve(it.id).apply { mkdirs() }
+            val targetFile = recipeFolder.resolve(it.id + ".yml")
+            if (targetFile.exists()) {
+                NexoYaml.saveConfig(targetFile, NexoYaml.loadConfiguration(targetFile).copyFrom(NexoYaml.loadConfiguration(recipeFile.toFile())))
+                recipeFile.deleteExisting()
+            } else recipeFile.moveTo(targetFile.toPath(), true)
+        }
     }
 
     fun processSettings(settings: YamlConfiguration) {

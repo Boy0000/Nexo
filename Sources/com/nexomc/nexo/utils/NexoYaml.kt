@@ -25,11 +25,25 @@ val ConfigurationSection.rootSection: ConfigurationSection
         return current
     }
 
+fun ConfigurationSection.clone(): ConfigurationSection {
+    return YamlConfiguration().createSection(name).copyFrom(this)
+}
+
+fun ConfigurationSection.copyFrom(section: ConfigurationSection?): ConfigurationSection {
+    section?.let { NexoYaml.copyConfigurationSection(it, this) }
+    return this
+}
+
 fun ConfigurationSection.copyTo(section: ConfigurationSection): ConfigurationSection {
     NexoYaml.copyConfigurationSection(this, section)
     return section
 }
 
+fun ConfigurationSection.moveTo(section: ConfigurationSection): ConfigurationSection {
+    copyTo(section)
+    parent?.set(name, null) ?: this.root?.set(name, null)
+    return section
+}
 
 fun ConfigurationSection.childSections(): Map<String, ConfigurationSection> {
     return getValues(false).filterValues { it is ConfigurationSection }.mapValues { it.value as ConfigurationSection }

@@ -1,10 +1,11 @@
 package com.nexomc.nexo.recipes.builders
 
+import com.nexomc.nexo.recipes.RecipeType
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 
-class ShapedBuilder(player: Player) : WorkbenchBuilder(player, "shaped") {
+class ShapedBuilder(player: Player) : WorkbenchBuilder(player, RecipeType.SHAPED) {
     override fun saveRecipe(name: String, permission: String?) {
         val letterByItem = mutableMapOf<ItemStack?, Char>()
         var letter = 'A'

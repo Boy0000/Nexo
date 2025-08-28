@@ -53,11 +53,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         if ("enchantment_glint_override" in componentSection)
             itemBuilder.setEnchantmentGlintOverride(componentSection.getBoolean("enchantment_glint_override"))
 
-        if ("durability" in componentSection) {
-            itemBuilder.isDamagedOnBlockBreak = componentSection.getBoolean("durability.damage_block_break")
-            itemBuilder.isDamagedOnEntityHit = componentSection.getBoolean("durability.damage_entity_hit")
-            itemBuilder.setDurability(componentSection.getInt("durability.value").coerceAtLeast(componentSection.getInt("durability", 1)))
-        }
+        if ("durability" in componentSection) itemBuilder.setDurability(componentSection.getInt("durability").coerceAtLeast(1))
         if ("rarity" in componentSection) itemBuilder.setRarity(componentSection.getEnum("rarity", ItemRarity::class.java))
         if ("fire_resistant" in componentSection) itemBuilder.setFireResistant(componentSection.getBoolean("fire_resistant"))
         if ("hide_tooltip" in componentSection) itemBuilder.setHideToolTip(componentSection.getBoolean("hide_tooltip"))

@@ -89,8 +89,6 @@ class ItemBuilder(private val itemStack: ItemStack) {
     var hideToolTip: Boolean? = null; private set
     var rarity: ItemRarity? = null; private set
     var durability: Int? = null; private set
-    var isDamagedOnBlockBreak = false
-    var isDamagedOnEntityHit = false
 
     // 1.21+ properties
     var jukeboxPlayable: JukeboxPlayableComponent? = null; private set

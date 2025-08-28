@@ -9,10 +9,9 @@ class BlastingLoader(section: ConfigurationSection) : RecipeLoader(section) {
     override fun registerRecipe() {
         val inputSection = section.getConfigurationSection("input") ?: return
         val recipeChoice = recipeChoice(inputSection) ?: return
-        val recipe = BlastingRecipe(
-            key, result,
-            recipeChoice, section.getInt("experience").toFloat(), section.getInt("cookingTime")
-        )
+        val exp = section.getInt("experience").toFloat()
+        val cookingTime = section.getInt("cookingTime")
+        val recipe = BlastingRecipe(key, result, recipeChoice, exp, cookingTime)
         recipe.group = section.getString("group", "")!!
         recipe.category = section.getEnum("category", CookingBookCategory::class.java) ?: recipe.category
         loadRecipe(recipe)

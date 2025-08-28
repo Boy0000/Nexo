@@ -8,7 +8,6 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.AdventureUtils
 import com.nexomc.nexo.utils.ItemUtils
-import com.nexomc.nexo.utils.ItemUtils.isTool
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.asColorable
@@ -16,7 +15,6 @@ import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.serialize
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
-import org.bukkit.GameMode
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.Tag
@@ -29,9 +27,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent
-import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityPickupItemEvent
 import org.bukkit.event.inventory.PrepareAnvilEvent
 import org.bukkit.event.player.PlayerItemConsumeEvent
@@ -96,30 +92,6 @@ class ItemUpdater : Listener {
         NexoItems.builderFromItem(item)?.nexoMeta?.takeIf(NexoMeta::disableEnchanting)?.apply {
             if (result?.enchantments != item.enchantments) result = null
         }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun BlockBreakEvent.onUseMaxDamageItem() {
-        val itemStack = player.inventory.itemInMainHand
-
-        if (VersionUtil.below("1.20.5") || player.gameMode == GameMode.CREATIVE) return
-        if (itemStack.isEmpty || isTool(itemStack)) return
-        if ((itemStack.itemMeta as? Damageable)?.hasMaxDamage() != true) return
-
-        itemStack.takeIf { NexoItems.builderFromItem(it)?.isDamagedOnBlockBreak == true }?.damage(1, player)
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    fun EntityDamageByEntityEvent.onUseMaxDamageItem() {
-        if (VersionUtil.below("1.20.5") || VersionUtil.atleast("1.21.2")) return
-        val entity = damager as? LivingEntity ?: return
-        val itemStack = entity.equipment?.itemInMainHand ?: return
-
-        if (entity is Player && entity.gameMode == GameMode.CREATIVE) return
-        if (itemStack.isEmpty || isTool(itemStack)) return
-        if ((itemStack.itemMeta as? Damageable)?.hasMaxDamage() != true) return
-
-        itemStack.takeIf { NexoItems.builderFromItem(it)?.isDamagedOnEntityHit == true }?.damage(1, entity)
     }
 
     // Until Paper changes getReplacement to use food-component, this is the best way

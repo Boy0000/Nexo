@@ -2,6 +2,7 @@ package com.nexomc.nexo.pack
 
 import com.nexomc.nexo.pack.PackGenerator.Companion.externalPacks
 import com.nexomc.nexo.pack.creative.NexoPackReader
+import com.nexomc.nexo.utils.JsonPrimitive
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastBy
 import com.nexomc.nexo.utils.groupByFast
@@ -165,9 +166,9 @@ object ModernVersionPatcher {
     private val ItemOverride.pulling: Boolean
         get() = predicate().any { it.name() == "pulling" }
     private val ItemOverride.charged: SelectItemModel.Case?
-        get() = takeIf { it.predicate().any { it.name() == "charged" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), "arrow") }
+        get() = takeIf { it.predicate().any { it.name() == "charged" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), JsonPrimitive("arrow")) }
     private val ItemOverride.firework: SelectItemModel.Case?
-        get() = takeIf { it.predicate().any { it.name() == "firework" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), "rocket") }
+        get() = takeIf { it.predicate().any { it.name() == "firework" } }?.model()?.let { SelectItemModel.Case._case(ItemModel.reference(it), JsonPrimitive("rocket")) }
     private val ItemOverride.blocking: Boolean
         get() = predicate().any { it.name() == "blocking" }
     private val ItemOverride.cast: Boolean

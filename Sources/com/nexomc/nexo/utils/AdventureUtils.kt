@@ -39,7 +39,23 @@ object AdventureUtils {
     }
 
     fun reload() {
-        MM = MiniMessage.builder().tags(NexoTagResolver).build()
+        MM = MiniMessage.builder().tags(TagResolver.resolver(NexoTagResolver)).build()
+    }
+
+    fun injectTagResolver(tagResolver: TagResolver) {
+        NexoTagResolver += tagResolver
+    }
+
+    fun uninjectTagResolver(tagResolver: TagResolver) {
+        NexoTagResolver -= tagResolver
+    }
+
+    fun resetNexoTagResolver() {
+        NexoTagResolver.clear()
+        NexoTagResolver.add(TagResolver.standard())
+        NexoTagResolver.add(GlyphTag.RESOLVER)
+        NexoTagResolver.add(ShiftTag.RESOLVER)
+        NexoTagResolver.add(Message.PREFIX_TAG_RESOLVER)
     }
 
     fun Component.setDefaultStyle(color: TextColor? = NamedTextColor.WHITE) =
@@ -49,18 +65,13 @@ object AdventureUtils {
     val STANDARD_MINI_MESSAGE = MiniMessage.miniMessage()
     val STRICT_MINI_MESSAGE = MiniMessage.builder().strict(true).build()
 
-    val NexoTagResolver get() = TagResolver.resolver(
-        TagResolver.standard(),
-        GlyphTag.RESOLVER, ShiftTag.RESOLVER, TagResolver.resolver(
-            "prefix", Tag.selfClosingInserting(STANDARD_MINI_MESSAGE.deserialize(Message.PREFIX.toString()))
-        )
-    )
+    private val NexoTagResolver = mutableSetOf(TagResolver.standard(), GlyphTag.RESOLVER, ShiftTag.RESOLVER, Message.PREFIX_TAG_RESOLVER)
 
     @JvmField
     val LEGACY_SERIALIZER = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build()
 
     val MINI_MESSAGE get() = MM
-    private var MM = MiniMessage.builder().tags(NexoTagResolver).build()
+    private var MM = MiniMessage.builder().tags(TagResolver.resolver(NexoTagResolver)).build()
 
 
     @JvmStatic

@@ -17,9 +17,9 @@ open class NexoDatapack(key: String, description: String) {
         )
 
         fun clearOldDatapacks() {
-            Bukkit.getServer().worldContainer.walkBottomUp().filter {
-                it.isDirectory && it.name in removedDatapacks
-            }.forEach { it.deleteRecursively() }
+            Bukkit.getServer().worldContainer.listFiles { it.isDirectory }.toList().resolve("datapacks")
+                .flatMap { it.listFiles { it.isDirectory && it.name in removedDatapacks }.toList() }
+                .forEach { it.deleteRecursively() }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.nexomc.nexo.recipes.builders
 
+import com.nexomc.nexo.recipes.RecipeType
 import com.nexomc.nexo.utils.deserialize
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -8,7 +9,7 @@ import org.bukkit.event.inventory.InventoryType
 import org.bukkit.inventory.Inventory
 
 class BrewingBuilder(player: Player) :
-    RecipeBuilder(player, "brewing", "<glyph:brewing_stand_recipe_builder>".deserialize())
+    RecipeBuilder(player, RecipeType.BREWING, "<glyph:brewing_stand_recipe_builder>".deserialize())
 {
     override fun createInventory(player: Player?, inventoryTitle: Component): Inventory {
         return Bukkit.createInventory(player, InventoryType.BREWING, inventoryTitle)

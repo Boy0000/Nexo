@@ -59,10 +59,6 @@ class NexoPlugin : JavaPlugin() {
         private set
 
     override fun onLoad() {
-//        if (!PaperPluginLoader.usedPaperPluginLoader) {
-//            NexoLibsLoader.loadNexoLibs(this)
-//            if (!NexoLibsLoader.usedNexoLoader) LibbyManager.loadLibs(this)
-//        }
         nexo = this
         foliaLib = FoliaLib(this)
         runCatching { CommandAPIManager(this).load() }
