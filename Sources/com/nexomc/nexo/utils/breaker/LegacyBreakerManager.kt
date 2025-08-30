@@ -12,7 +12,7 @@ import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.protectionlib.ProtectionLib
-import com.tcoded.folialib.wrapper.task.WrappedTask
+import kotlinx.coroutines.Job
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Block
@@ -54,9 +54,9 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
         activeBreakerData.sendBreakProgress()
     }
 
-    private fun createBreakScheduler(blockBreakTime: Double, breakerUUID: UUID): WrappedTask {
-        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
-            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
+    private fun createBreakScheduler(blockBreakTime: Double, breakerUUID: UUID): Job {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1, 1) {
+            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
             val mechanic = NexoBlocks.customBlockMechanic(block)
@@ -88,15 +88,15 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
                 }
                 else -> stopBlockBreak(player)
             }
-        }, 1, 1)
+        }
     }
 
-    private fun createBreakSoundScheduler(breakerUUID: UUID): WrappedTask {
-        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
-            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
+    private fun createBreakSoundScheduler(breakerUUID: UUID): Job {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0, 4L) {
+            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
-            val mechanic = NexoBlocks.customBlockMechanic(block) ?: return@Runnable stopBlockBreak(player)
+            val mechanic = NexoBlocks.customBlockMechanic(block) ?: return@launchRepeating stopBlockBreak(player)
             val hitSound = mechanic.blockSounds
 
             when {
@@ -104,7 +104,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
                 hitSound?.hitSound == null -> activeBreakerData.breakerSoundTask!!.cancel()
                 else -> playCustomBlockSound(block.location, hitSound.hitSound, hitSound.hitVolume, hitSound.hitPitch)
             }
-        }, 0, 4L)
+        }
     }
 
     class ActiveBreakerData(
@@ -113,8 +113,8 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
         val mechanic: CustomBlockMechanic,
         private val totalBreakTime: Int,
         breakTimeProgress: Int,
-        private val breakerTask: WrappedTask?,
-        val breakerSoundTask: WrappedTask?
+        private val breakerTask: Job?,
+        val breakerSoundTask: Job?
     ) {
         private val sourceId = SOURCE_RANDOM.nextInt()
         private var breakTimeProgress: Double

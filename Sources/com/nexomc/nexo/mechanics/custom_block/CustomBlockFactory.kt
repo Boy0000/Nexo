@@ -155,7 +155,7 @@ class CustomBlockFactory(section: ConfigurationSection) : MechanicFactory(sectio
             val blockAbove = block.getRelative(BlockFace.UP)
             if (mechanic.isTall) blockAbove.type = Material.AIR
             block.type = Material.AIR
-            SchedulerUtils.foliaScheduler.runAtLocation(block.location) {
+            SchedulerUtils.launch(block.location) {
                 StringMechanicHelpers.fixClientsideUpdate(block.location)
                 if (blockAbove.type == Material.TRIPWIRE) removeCustomBlock(blockAbove, player, overrideDrop)
             }

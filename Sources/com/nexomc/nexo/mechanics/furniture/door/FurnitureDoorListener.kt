@@ -20,9 +20,9 @@ class FurnitureDoorListener : Listener {
         val baseEntity = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
-        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
+        SchedulerUtils.launchDelayed(baseEntity, 6L) {
             mechanic.door?.ensureHitboxState(baseEntity, mechanic, player)
-        }, 6L)
+        }
     }
 
     @EventHandler
@@ -30,15 +30,15 @@ class FurnitureDoorListener : Listener {
         val baseEntity = entity as? ItemDisplay ?: return
         furnitureBaseMap.remove(baseEntity.uniqueId, furnitureBaseMap.get(baseEntity.uniqueId)?.takeIf { it.baseId != baseEntity.entityId })
 
-        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
-            val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@Runnable
+        SchedulerUtils.launchDelayed(baseEntity, 4L) {
+        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@launchDelayed
             mechanic.door?.ensureHitboxState(baseEntity, mechanic)
-        }, 4L)
+        }
     }
 
     @EventHandler
     fun NexoItemsLoadedEvent.onFurnitureFactory() {
-        SchedulerUtils.runTaskLater(2L) {
+        SchedulerUtils.launchDelayed(2L) {
             SchedulerUtils.runAtWorldEntities<ItemDisplay> { baseEntity ->
                 val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@runAtWorldEntities
                 mechanic.door?.ensureHitboxState(baseEntity, mechanic)

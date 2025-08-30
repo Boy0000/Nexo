@@ -1,5 +1,6 @@
 package com.nexomc.nexo.mechanics
 
+import com.github.shynixn.mccoroutine.folia.registerSuspendingEvents
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.events.NexoMechanicsRegisteredEvent
 import com.nexomc.nexo.mechanics.combat.lifesteal.LifeStealMechanicFactory
@@ -25,8 +26,10 @@ import com.nexomc.nexo.mechanics.repair.RepairMechanicFactory
 import com.nexomc.nexo.mechanics.trident.TridentFactory
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.tcoded.folialib.wrapper.task.WrappedTask
-import org.bukkit.Bukkit
+import com.nexomc.nexo.utils.coroutines.SuspendingListener
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import it.unimi.dsi.fastutil.objects.ObjectArrayList
+import kotlinx.coroutines.Job
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
@@ -34,9 +37,9 @@ import org.bukkit.plugin.java.JavaPlugin
 import javax.annotation.Nullable
 
 object MechanicsManager {
-    private val FACTORIES_BY_MECHANIC_ID = mutableMapOf<String, MechanicFactory>()
-    private val MECHANIC_TASKS = mutableMapOf<String, MutableList<WrappedTask>>()
-    private val MECHANICS_LISTENERS = mutableMapOf<String, MutableList<Listener>>()
+    private val FACTORIES_BY_MECHANIC_ID = Object2ObjectOpenHashMap<String, MechanicFactory>()
+    private val MECHANIC_TASKS = Object2ObjectOpenHashMap<String, ObjectArrayList<Job>>()
+    private val MECHANICS_LISTENERS = Object2ObjectOpenHashMap<String, ObjectArrayList<Listener>>()
 
     fun registerNativeMechanics(reload: Boolean) {
         // misc
@@ -71,7 +74,7 @@ object MechanicsManager {
         if (reload) NexoMechanicsRegisteredEvent().call()
         // Schedule sync as this is called during onEnable
         // Need to register mechanics & listeners first but call the event before items are parsed post-onEnable
-        else SchedulerUtils.syncDelayedTask { NexoMechanicsRegisteredEvent().call() }
+        else SchedulerUtils.launch { NexoMechanicsRegisteredEvent().call() }
     }
 
     /**
@@ -95,36 +98,41 @@ object MechanicsManager {
         if (factorySection.getBoolean("enabled")) FACTORIES_BY_MECHANIC_ID[mechanicId] = constructor.create(factorySection)
     }
 
-    fun registerTask(mechanicId: String, task: WrappedTask) {
+    fun registerTask(mechanicId: String, task: Job) {
         MECHANIC_TASKS.compute(mechanicId) { _, value ->
-            (value ?: mutableListOf()).also { it += task }
+            (value ?: ObjectArrayList()).also { it += task }
         }
     }
 
     fun unregisterTasks() {
         MECHANIC_TASKS.onEach {
-            it.value.forEach(SchedulerUtils.foliaScheduler::cancelTask)
+            it.value.forEach(Job::cancel)
         }.clear()
     }
 
     fun unregisterTasks(mechanicId: String) {
         MECHANIC_TASKS.computeIfPresent(mechanicId) { _, value ->
-            value.forEach { taskId ->
-                SchedulerUtils.foliaScheduler.cancelTask(taskId)
-            }
-            mutableListOf()
+            value.forEach(Job::cancel)
+            ObjectArrayList()
         }
     }
 
     fun registerListeners(plugin: JavaPlugin, mechanicId: String, vararg listeners: Listener) {
-        for (listener in listeners) Bukkit.getPluginManager().registerEvents(listener, plugin)
+        for (listener in listeners) plugin.server.pluginManager.registerEvents(listener, plugin)
         MECHANICS_LISTENERS.compute(mechanicId) { _, value ->
-            (value ?: mutableListOf()).also { it += listeners }
+            (value ?: ObjectArrayList()).also { it += listeners }
+        }
+    }
+
+    fun registerSuspendingListeners(plugin: JavaPlugin, mechanicId: String, vararg listeners: SuspendingListener) {
+        for (listener in listeners) plugin.server.pluginManager.registerSuspendingEvents(listener, plugin, listener.dispatchers)
+        MECHANICS_LISTENERS.compute(mechanicId) { _, value ->
+            (value ?: ObjectArrayList()).also { it += listeners }
         }
     }
 
     fun unregisterListeners() {
-        MECHANICS_LISTENERS.values.flatten().forEach(HandlerList::unregisterAll)
+        MECHANICS_LISTENERS.values.forEach { it.forEach(HandlerList::unregisterAll) }
     }
 
     fun unregisterListeners(mechanicId: String?) {

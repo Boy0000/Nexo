@@ -5,16 +5,15 @@ import com.nexomc.nexo.compatibilities.worldedit.WrappedWorldEdit
 import com.nexomc.nexo.mechanics.Mechanic
 import com.nexomc.nexo.mechanics.MechanicFactory
 import com.nexomc.nexo.mechanics.custom_block.CustomBlockFactory
+import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingJob
 import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListener
-import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingTask
 import com.nexomc.nexo.nms.NMSHandlers
-import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.to
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import kotlinx.coroutines.Job
 import net.kyori.adventure.key.Key
 import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
@@ -97,7 +96,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     fun registerSaplingMechanic() {
         if (sapling || !WrappedWorldEdit.loaded) return
         saplingTask?.cancel()
-        saplingTask = SchedulerUtils.foliaScheduler.runTimer(SaplingTask(saplingGrowthCheckDelay), 0, saplingGrowthCheckDelay.toLong())
+        saplingTask = SaplingJob.launchJob(saplingGrowthCheckDelay)
         sapling = true
     }
 
@@ -109,7 +108,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
     companion object {
         val MAX_BLOCK_VARIATION = 1..127
         private var instance: StringBlockMechanicFactory? = null
-        private var saplingTask: WrappedTask? = null
+        private var saplingTask: Job? = null
         val isEnabled: Boolean
             get() = instance != null
 

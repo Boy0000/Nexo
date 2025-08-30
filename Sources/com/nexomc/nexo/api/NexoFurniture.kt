@@ -232,7 +232,7 @@ object NexoFurniture {
         packetManager.removeHitboxEntityPacket(baseEntity, mechanic)
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic)
 
-        SchedulerUtils.foliaScheduler.runAtEntity(baseEntity) {
+        SchedulerUtils.launch(baseEntity) {
             packetManager.sendFurnitureMetadataPacket(baseEntity, mechanic)
             packetManager.sendHitboxEntityPacket(baseEntity, mechanic)
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic)

@@ -25,7 +25,7 @@ abstract class RecipeBuilder(
     var inventory: Inventory = currentBuilder(player.uniqueId)?.takeIf { it.recipeType == recipeType }?.inventory
         ?: createInventory(player, inventoryTitle)
     private set
-    val configFile: File = NexoPlugin.instance().dataFolder.resolve("recipes/$recipeType.yml")
+    val configFile: File = NexoPlugin.instance().dataFolder.resolve("recipes/${recipeType.id}/${recipeType.id}_recipes.yml")
     val config: YamlConfiguration by lazy { loadConfiguration(configFile) }
 
     init {

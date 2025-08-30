@@ -1,9 +1,9 @@
 package com.nexomc.nexo.utils
 
-import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.utils.JarReader.manifestMap
 import com.nexomc.nexo.utils.VersionUtil.NMSVersion.UNKNOWN
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import org.bukkit.Bukkit
 
 @Suppress("EnumEntryName")
 object VersionUtil {
@@ -30,7 +30,7 @@ object VersionUtil {
 
     fun below(versionString: String) = !atleast(versionString)
 
-    val isFoliaServer by lazy { NexoPlugin.instance().foliaLib.isFolia }
+    val isFoliaServer by lazy { Bukkit.getServer().name.equals("Folia", ignoreCase = true) }
 
     val isCompiled by lazy { manifestMap.isEmpty() || ((manifestMap["Compiled"]?.toBoolean() == true) && !isValidCompiler) }
 

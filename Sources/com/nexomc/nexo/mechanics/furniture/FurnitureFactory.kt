@@ -10,8 +10,8 @@ import com.nexomc.nexo.mechanics.furniture.compatibility.SpartanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VacanCompatibility
 import com.nexomc.nexo.mechanics.furniture.compatibility.VulcanCompatibility
 import com.nexomc.nexo.mechanics.furniture.door.FurnitureDoorListener
+import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionJob
 import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionListener
-import com.nexomc.nexo.mechanics.furniture.evolution.EvolutionTask
 import com.nexomc.nexo.mechanics.furniture.jukebox.JukeboxListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBarrierHitboxListener
 import com.nexomc.nexo.mechanics.furniture.listeners.FurnitureBreakListener
@@ -22,7 +22,6 @@ import com.nexomc.nexo.mechanics.furniture.states.FurnitureStateListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
-import com.tcoded.folialib.wrapper.task.WrappedBukkitTask
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
@@ -41,7 +40,6 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
         instance = this
         registerListeners(
             FurnitureListener(),
-            FurniturePacketListener(),
             FurnitureBarrierHitboxListener(),
             FurnitureBreakListener(),
             EvolutionListener(),
@@ -49,6 +47,8 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
             FurnitureDoorListener(),
             FurnitureStateListener()
         )
+
+        registerSuspendingListeners(FurniturePacketListener())
 
         evolvingFurnitures = false
 
@@ -79,10 +79,7 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
     fun registerEvolution() {
         if (evolvingFurnitures) return
-        evolutionTask?.cancel()
-        evolutionTask = EvolutionTask(this, evolutionCheckDelay)
-        val task = evolutionTask!!.runTaskTimer(NexoPlugin.instance(), 0, evolutionCheckDelay.toLong())
-        MechanicsManager.registerTask(mechanicID, WrappedBukkitTask(task))
+        MechanicsManager.registerTask(mechanicID, EvolutionJob.launchJob(evolutionCheckDelay))
         evolvingFurnitures = true
     }
 
@@ -92,21 +89,11 @@ class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section)
 
     companion object {
         private var instance: FurnitureFactory? = null
-        private var evolutionTask: EvolutionTask? = null
         val isEnabled: Boolean
             get() = instance != null
 
         fun instance(): FurnitureFactory? {
             return instance
-        }
-
-        fun unregisterEvolution() {
-            if (evolutionTask != null) evolutionTask!!.cancel()
-        }
-
-        fun removeAllFurniturePackets() {
-            if (instance == null) return
-            instance!!.packetManager().removeAllFurniturePackets()
         }
     }
 }

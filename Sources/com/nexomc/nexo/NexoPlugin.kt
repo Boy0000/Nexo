@@ -18,7 +18,6 @@ import com.nexomc.nexo.fonts.FontManager
 import com.nexomc.nexo.fonts.NexoTranslator
 import com.nexomc.nexo.items.ItemUpdater
 import com.nexomc.nexo.mechanics.MechanicsManager
-import com.nexomc.nexo.mechanics.furniture.FurnitureFactory
 import com.nexomc.nexo.pack.PackGenerator
 import com.nexomc.nexo.pack.server.EmptyServer
 import com.nexomc.nexo.pack.server.NexoPackServer
@@ -37,7 +36,6 @@ import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
 import com.nexomc.protectionlib.ProtectionLib
-import com.tcoded.folialib.FoliaLib
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import org.bukkit.plugin.java.JavaPlugin
@@ -55,12 +53,9 @@ class NexoPlugin : JavaPlugin() {
     private lateinit var clickActionManager: ClickActionManager
     private lateinit var breakerManager: BreakerManager
     private lateinit var converter: Converter
-    lateinit var foliaLib: FoliaLib
-        private set
 
     override fun onLoad() {
         nexo = this
-        foliaLib = FoliaLib(this)
         runCatching { CommandAPIManager(this).load() }
 
         NexoWorldguardFlags.registerFlags()
@@ -96,7 +91,7 @@ class NexoPlugin : JavaPlugin() {
         MechanicsManager.registerNativeMechanics(false)
         NexoPackServer.registerDefaultPackServers()
 
-        foliaLib.scheduler.runNextTick {
+        SchedulerUtils.launchDelayed {
             NexoPackServer.initializeServer()
             NexoItems.loadItems()
             RecipesManager.load()
@@ -110,16 +105,13 @@ class NexoPlugin : JavaPlugin() {
         if (VersionUtil.isLeaked) NoticeUtils.leakNotice()
         if (LibbyManager.failedLibs) NoticeUtils.failedLibs()
 
-        SchedulerUtils.runTaskLater(10L) {
-            JarReader.postStartupCheck()
-        }
+        SchedulerUtils.launchDelayed(10) { JarReader.postStartupCheck() }
     }
 
     override fun onDisable() {
         runCatching {
             packServer.stop()
             HandlerList.unregisterAll(this)
-            FurnitureFactory.unregisterEvolution()
 
             CompatibilitiesManager.disableCompatibilities()
             CommandAPIManager(this).disable()
@@ -170,7 +162,7 @@ class NexoPlugin : JavaPlugin() {
     fun packGenerator(): PackGenerator = packGenerator
 
     fun packGenerator(packGenerator: PackGenerator) {
-        PackGenerator.stopPackGeneration()
+        if (this.packGenerator.packGenJob?.isActive == true) PackGenerator.stopPackGeneration()
         this.packGenerator = packGenerator
     }
 

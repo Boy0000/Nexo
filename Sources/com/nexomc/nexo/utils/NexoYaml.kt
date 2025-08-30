@@ -235,10 +235,15 @@ class NexoYaml : YamlConfiguration() {
         fun saveConfig(file: File, section: ConfigurationSection) {
             runCatching {
                 val config = loadConfiguration(file)
-                config[section.currentPath!!] = section
-                config.save(file)
+                if (section.currentPath.isNullOrEmpty()) {
+                    copyConfigurationSection(section, config)
+                    config.save(file)
+                } else {
+                    config[section.currentPath!!] = section
+                    config.save(file)
+                }
             }.onFailure {
-                Logs.logError("Error saving YAML configuration file: " + file.name)
+                Logs.logError("Error saving YAML configuration file: ${file.name}")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
                 else it.message?.let(Logs::logWarn)
             }

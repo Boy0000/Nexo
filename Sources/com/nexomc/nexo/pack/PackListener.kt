@@ -24,9 +24,9 @@ class PackListener : Listener {
 
         val delay = Settings.PACK_SEND_DELAY.toInt(-1)
         if (delay <= 0) NexoPlugin.instance().packServer().sendPack(player)
-        else SchedulerUtils.foliaScheduler.runAtEntityLater(
-            player, Runnable { NexoPlugin.instance().packServer().sendPack(player) }, delay * 20L
-        )
+        else SchedulerUtils.launchDelayed(player, delay * 20L) {
+            NexoPlugin.instance().packServer().sendPack(player)
+        }
     }
 
 }

@@ -89,7 +89,7 @@ data class ConnectableMechanic(
     )
 
     fun scheduleUpdateState(baseEntity: ItemDisplay, delay: Long = 1L) {
-        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable { updateState(baseEntity) }, delay)
+        SchedulerUtils.launchDelayed(baseEntity, delay) { updateState(baseEntity) }
     }
 
     fun updateState(baseEntity: ItemDisplay) {
@@ -99,7 +99,7 @@ data class ConnectableMechanic(
     }
 
     fun updateSurrounding(baseEntity: ItemDisplay) {
-        SchedulerUtils.runTaskLater(2L) {
+        SchedulerUtils.launchDelayed(2L) {
             val (leftLoc, rightLoc) = baseEntity.blockLocation.minus(1) to baseEntity.blockLocation.plus(1)
             val (aheadLoc, behindLoc) = baseEntity.blockLocation.minus(z = 1) to baseEntity.blockLocation.plus(z = 1)
             IFurniturePacketManager.baseEntityFromHitbox(leftLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)

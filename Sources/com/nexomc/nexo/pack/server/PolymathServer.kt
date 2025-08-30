@@ -6,36 +6,37 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.converter.Print
 import com.nexomc.nexo.mechanics.breakable.L
 import com.nexomc.nexo.mechanics.breakable.N
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.appendIfMissing
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.prependIfMissing
+import kotlinx.coroutines.Job
 import org.apache.hc.client5.http.classic.methods.HttpPost
 import org.apache.hc.client5.http.entity.mime.ByteArrayBody
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder
 import org.apache.hc.client5.http.impl.classic.HttpClients
 import org.apache.hc.core5.http.io.entity.EntityUtils
 import java.util.*
-import java.util.concurrent.CompletableFuture
 
 class PolymathServer : NexoPackServer {
     private val serverAddress: String = Settings.POLYMATH_SERVER.toString("atlas.nexomc.com").prependIfMissing("https://").appendIfMissing("/")
     private var packUrl: String? = null
     private var hash: String? = null
     private var packUUID: UUID? = null
-    private var uploadFuture: CompletableFuture<Void>? = null
+    private var uploadFuture: Job? = null
 
     override fun packUrl() = packUrl ?: ""
 
     override val isPackUploaded: Boolean
-        get() = NexoPlugin.instance().packGenerator().packGenFuture?.isDone != false && uploadFuture?.isDone != false
+        get() = NexoPlugin.instance().packGenerator().packGenJob?.isCompleted != false && uploadFuture?.isCompleted != false
 
-    override fun uploadPack(): CompletableFuture<Void> {
+    override fun uploadPack(): Job {
         if (hash != NexoPlugin.instance().packGenerator().builtPack()!!.hash()) {
-            uploadFuture?.cancel(true)
+            uploadFuture?.cancel()
             uploadFuture = null
         }
 
-        if (uploadFuture == null) uploadFuture = CompletableFuture.runAsync {
+        if (uploadFuture == null) uploadFuture = SchedulerUtils.launch {
             runCatching {
                 HttpClients.createDefault().use { httpClient ->
                     val request = HttpPost(serverAddress + "upload")
@@ -61,7 +62,7 @@ class PolymathServer : NexoPackServer {
                             it.printStackTrace()
                         }
                         else Logs.logWarn(it.message!!)
-                    }.getOrNull() ?: return@runAsync
+                    }.getOrNull() ?: return@launch
 
                     if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
                         packUrl = jsonOutput["url"].asString
@@ -69,7 +70,7 @@ class PolymathServer : NexoPackServer {
                         packUUID = UUID.nameUUIDFromBytes(hash!!.toByteArray())
 
                         Logs.logSuccess("ResourcePack has been uploaded to $packUrl")
-                        return@runAsync
+                        return@launch
                     }
 
                     if (jsonOutput.has("error")) Logs.logError("Error: " + jsonOutput["error"].asString)

@@ -50,7 +50,9 @@ class NoteBlockMechanicPhysicsListener : Listener {
 
         if (!location.isLoaded || isAsynchronous || event !== GameEvent.NOTE_BLOCK_PLAY) return
 
-        SchedulerUtils.foliaScheduler.runAtLocationLater(location, Runnable { block.setBlockData(data, false) }, 1L)
+        SchedulerUtils.launchDelayed(location) {
+            block.setBlockData(data, false)
+        }
     }
 
     private fun updateBlockAbove(block: Block) {

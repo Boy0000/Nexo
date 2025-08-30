@@ -49,7 +49,7 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
             )
         }
 
-        SchedulerUtils.syncDelayedTask(2L) {
+        SchedulerUtils.launchDelayed(2) {
             Bukkit.getEntity(originalUUID)?.safeCast<ItemDisplay>()?.also(NexoFurniture::updateFurniture)
             val location = BukkitAdapter.adapt(world, location)
             mechanic.place(location, location.yaw, BlockFace.UP, false)

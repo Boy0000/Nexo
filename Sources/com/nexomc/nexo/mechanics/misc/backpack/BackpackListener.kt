@@ -102,7 +102,7 @@ class BackpackListener(private val factory: BackpackMechanicFactory) : Listener 
                     event.isCancelled = true
             }
 
-            if (!event.cursor.isEmpty || event.currentItem?.isEmpty == false) SchedulerUtils.runTaskLater(1L) {
+            if (!event.cursor.isEmpty || event.currentItem?.isEmpty == false) SchedulerUtils.launchDelayed {
                 pdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 backpack.itemMeta = backpackMeta
             }

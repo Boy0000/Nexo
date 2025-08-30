@@ -4,12 +4,12 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.logs.Logs
 import com.sun.net.httpserver.HttpExchange
+import kotlinx.coroutines.Job
 import team.unnamed.creative.server.ResourcePackServer
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.URI
-import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
 
 class SelfHostServer : NexoPackServer {
@@ -47,13 +47,13 @@ class SelfHostServer : NexoPackServer {
     override val isPackUploaded: Boolean
         get() = true
 
-    override fun uploadPack(): CompletableFuture<Void> {
+    override fun uploadPack(): Job {
         val hashPart = "/${NexoPlugin.instance().packGenerator().builtPack()!!.hash()}.zip"
         val address = publicAddress.takeIf { it.startsWith("http") } ?: "http://$publicAddress:${packServer!!.address().port}"
         if (Settings.DEBUG.toBool()) Logs.logSuccess("Resourcepack uploaded and will be dispatched with publicAddress $address$hashPart")
         else Logs.logSuccess("Resourcepack has been uploaded to SelfHost!")
 
-        return CompletableFuture.completedFuture(null)
+        return Job()
     }
 
     override fun start() {

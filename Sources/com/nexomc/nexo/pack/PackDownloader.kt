@@ -4,9 +4,13 @@ import com.google.gson.JsonParser
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.utils.FileUtils.setHidden
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.resolve
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import org.apache.commons.lang3.StringUtils
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
@@ -15,64 +19,66 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URI
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.time.Duration.Companion.seconds
 
 class PackDownloader {
     @Volatile
-    private var requiredPackDownload: CompletableFuture<Void>? = null
+    private var requiredPackDownload: Job? = null
 
     @Volatile
-    private var defaultPackDownload: CompletableFuture<Void>? = null
+    private var defaultPackDownload: Job? = null
 
-    fun downloadRequiredPack(): CompletableFuture<Void> {
-        return requiredPackDownload ?: synchronized(this) {
-            requiredPackDownload ?: CompletableFuture.runAsync {
-                if (VersionUtil.isLeaked) return@runAsync
-                runCatching {
-                    val hash = checkPackHash("RequiredResourcePack") ?: return@runAsync
-                    val zipPath = PackGenerator.externalPacks.resolve("RequiredPack_$hash.zip")
-                    removeOldHashPack("RequiredPack", hash)
-                    if (!zipPath.exists() && !zipPath.resolveSibling("RequiredPack_$hash").exists()) {
-                        downloadPack("RequiredResourcePack", zipPath.toPath())
-                    }
-                }.onFailure {
-                    Logs.logWarn("Failed to download RequiredPack...")
-                    if (Settings.DEBUG.toBool()) it.printStackTrace()
+    fun downloadRequiredPack(): Job {
+        if (requiredPackDownload?.isCompleted == false) return requiredPackDownload!!
+
+        requiredPackDownload = SchedulerUtils.launch(Dispatchers.IO) {
+            if (VersionUtil.isLeaked) return@launch
+            runCatching {
+                val hash = checkPackHash("RequiredResourcePack") ?: return@launch
+                val zipPath = PackGenerator.externalPacks.resolve("RequiredPack_$hash.zip")
+                removeOldHashPack("RequiredPack", hash)
+                if (!zipPath.exists() && !zipPath.resolveSibling("RequiredPack_$hash").exists()) {
+                    downloadPack("RequiredResourcePack", zipPath.toPath())
+                    delay(2.seconds)
                 }
-            }.also { requiredPackDownload = it }
-        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
+            }.onFailure {
+                Logs.logWarn("Failed to download RequiredPack...")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+            }
+        }
+
+        return requiredPackDownload!!
     }
 
-    fun downloadDefaultPack(): CompletableFuture<Void> {
-        return defaultPackDownload ?: synchronized(this) {
-            defaultPackDownload ?: CompletableFuture.runAsync {
-                if (!Settings.PACK_IMPORT_DEFAULT.toBool()) return@runAsync
-                if (VersionUtil.isCompiled || VersionUtil.isCI || VersionUtil.isLeaked) {
-                    logSkipReason()
-                    return@runAsync
-                }
-                runCatching {
-                    val hash = checkPackHash("DefaultResourcePack") ?: return@runAsync
-                    val zipPath = PackGenerator.externalPacks.resolve("DefaultPack_$hash.zip")
-                    removeOldHashPack("DefaultPack", hash)
-                    if (!zipPath.exists() && !zipPath.resolveSibling("DefaultPack_$hash").exists()) {
-                        Logs.logInfo("Downloading default resourcepack...")
-                        downloadPack("DefaultResourcePack", zipPath.toPath())
-                    } else {
-                        Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!")
-                    }
-                }.onFailure {
-                    Logs.logWarn("Failed to download DefaultPack")
-                    if (Settings.DEBUG.toBool()) it.printStackTrace()
-                }
-            }.also { defaultPackDownload = it }
-        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
+    fun downloadDefaultPack(): Job {
+        if (defaultPackDownload?.isCompleted == false) return defaultPackDownload!!
+
+        defaultPackDownload = SchedulerUtils.launch(Dispatchers.IO) {
+            if (VersionUtil.isLeaked) return@launch
+            if (!Settings.PACK_IMPORT_DEFAULT.toBool()) return@launch
+            if (VersionUtil.isCompiled || VersionUtil.isCI || VersionUtil.isLeaked) return@launch logSkipReason()
+
+            runCatching {
+                val hash = checkPackHash("DefaultResourcePack") ?: return@launch
+                val zipPath = PackGenerator.externalPacks.resolve("DefaultPack_$hash.zip")
+                removeOldHashPack("DefaultPack", hash)
+                if (!zipPath.exists() && !zipPath.resolveSibling("DefaultPack_$hash").exists()) {
+                    Logs.logInfo("Downloading default resourcepack...")
+                    downloadPack("DefaultResourcePack", zipPath.toPath())
+                    delay(2.seconds)
+                } else Logs.logSuccess("Skipped downloading DefaultPack as it is up to date!")
+            }.onFailure {
+                Logs.logWarn("Failed to download DefaultPack")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+            }
+        }
+
+        return defaultPackDownload!!
     }
 
     private fun logSkipReason() {

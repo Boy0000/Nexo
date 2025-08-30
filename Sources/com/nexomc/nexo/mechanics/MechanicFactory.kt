@@ -2,6 +2,7 @@ package com.nexomc.nexo.mechanics
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoItems
+import com.nexomc.nexo.utils.coroutines.SuspendingListener
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.event.Listener
 import org.bukkit.inventory.ItemStack
@@ -42,5 +43,9 @@ abstract class MechanicFactory {
 
     fun registerListeners(vararg listeners: Listener) {
         MechanicsManager.registerListeners(NexoPlugin.instance(), mechanicID, *listeners)
+    }
+
+    fun registerSuspendingListeners(vararg listeners: SuspendingListener) {
+        MechanicsManager.registerSuspendingListeners(NexoPlugin.instance(), mechanicID, *listeners)
     }
 }

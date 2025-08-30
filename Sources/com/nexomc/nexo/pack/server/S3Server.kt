@@ -2,7 +2,9 @@ package com.nexomc.nexo.pack.server
 
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
+import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.logs.Logs
+import kotlinx.coroutines.Job
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation
@@ -14,7 +16,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest
 import java.net.URI
-import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
@@ -33,7 +34,7 @@ open class S3Server : NexoPackServer {
     private var packUrl: String? = null
     internal open val endpoint: URI = URI.create(Settings.S3_PUBLIC_URL.toString())
     private var hash: String? = null
-    private var uploadFuture: CompletableFuture<Void>? = null
+    private var uploadFuture: Job? = null
 
     val s3Client: S3Client by lazy {
         S3Client.builder()
@@ -52,7 +53,7 @@ open class S3Server : NexoPackServer {
     }
 
     override fun packUrl(): String {
-        if (uploadFuture?.isDone != true) return ""
+        if (uploadFuture?.isCompleted != true) return ""
 
         return runCatching {
             S3Presigner.builder()
@@ -76,18 +77,18 @@ open class S3Server : NexoPackServer {
     }
 
     override val isPackUploaded: Boolean
-        get() = NexoPlugin.instance().packGenerator().packGenFuture?.isDone != false && uploadFuture?.isDone != false
+        get() = NexoPlugin.instance().packGenerator().packGenJob?.isCompleted != false && uploadFuture?.isCompleted != false
 
-    override fun uploadPack(): CompletableFuture<Void> {
+    override fun uploadPack(): Job {
         val builtPack = NexoPlugin.instance().packGenerator().builtPack()!!
         if (hash != builtPack.hash()) {
-            uploadFuture?.cancel(true)
+            uploadFuture?.cancel()
             uploadFuture = null
         }
 
-        if (uploadFuture == null) uploadFuture = CompletableFuture.runAsync {
+        if (uploadFuture == null) uploadFuture = SchedulerUtils.launch {
             runCatching {
-                this.hash = builtPack.hash()
+                this@S3Server.hash = builtPack.hash()
                 val key = Settings.S3_UNIQUE_KEY.toString("resourcepacks/$hash.zip")
 
                 // If there is no hard-specified unique-key, check if the object exists under the given key

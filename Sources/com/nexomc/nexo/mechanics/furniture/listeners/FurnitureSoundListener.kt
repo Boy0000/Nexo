@@ -12,8 +12,8 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
-import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
+import kotlinx.coroutines.Job
 import org.bukkit.GameEvent
 import org.bukkit.Location
 import org.bukkit.Material
@@ -34,7 +34,7 @@ import org.bukkit.event.world.WorldUnloadEvent
 
 class FurnitureSoundListener : Listener {
     companion object {
-        val breakerPlaySound = Object2ObjectOpenHashMap<Location, WrappedTask>()
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, Job>()
     }
 
     @EventHandler
@@ -78,10 +78,9 @@ class FurnitureSoundListener : Listener {
         if (instaBreak || block.type == Material.BARRIER || soundGroup.hitSound != Sound.BLOCK_STONE_HIT) return
         if (location in breakerPlaySound) return
 
-        breakerPlaySound[location] = SchedulerUtils.foliaScheduler.runAtLocationTimer(location, Runnable {
-                BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
-            }, 2L, 4L
-        )
+        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2, 4) {
+            BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

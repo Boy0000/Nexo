@@ -9,7 +9,7 @@ import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.protectionlib.ProtectionLib
-import com.tcoded.folialib.wrapper.task.WrappedTask
+import kotlinx.coroutines.Job
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.block.Block
@@ -53,9 +53,9 @@ object FurnitureBreakerManager {
         breakerUUID: UUID,
         baseEntity: ItemDisplay,
         mechanic: FurnitureMechanic
-    ): WrappedTask {
-        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
-            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
+    ): Job {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1, 1) {
+            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
 
@@ -82,15 +82,15 @@ object FurnitureBreakerManager {
                 }
                 else -> stopFurnitureBreak(player)
             }
-        }, 1, 1)
+        }
     }
 
-    private fun createBreakSoundScheduler(breakerUUID: UUID): WrappedTask {
-        return SchedulerUtils.foliaScheduler.runAtLocationTimer(activeBreakerDataMap[breakerUUID]?.location, Runnable {
-            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@Runnable
+    private fun createBreakSoundScheduler(breakerUUID: UUID): Job {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0, 4L) {
+            val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
-            val baseEntity = Bukkit.getEntity(activeBreakerData.baseUUID) ?: return@Runnable stopFurnitureBreak(player)
-            val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@Runnable stopFurnitureBreak(player)
+            val baseEntity = Bukkit.getEntity(activeBreakerData.baseUUID) ?: return@launchRepeating stopFurnitureBreak(player)
+            val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@launchRepeating stopFurnitureBreak(player)
             val hitSound = mechanic.blockSounds
 
             when {
@@ -98,7 +98,7 @@ object FurnitureBreakerManager {
                 hitSound?.hitSound == null -> activeBreakerData.breakerSoundTask!!.cancel()
                 else -> playCustomBlockSound(baseEntity.location, hitSound.hitSound, hitSound.hitVolume, hitSound.hitPitch)
             }
-        }, 0, 4L)
+        }
     }
 
     class ActiveBreakerData(
@@ -108,8 +108,8 @@ object FurnitureBreakerManager {
         val mechanic: FurnitureMechanic,
         private val totalBreakTime: Int,
         breakTimeProgress: Int,
-        private val breakerTask: WrappedTask?,
-        val breakerSoundTask: WrappedTask?
+        private val breakerTask: Job?,
+        val breakerSoundTask: Job?
     ) {
         private val sourceId = SOURCE_RANDOM.nextInt()
         private var breakTimeProgress: Double

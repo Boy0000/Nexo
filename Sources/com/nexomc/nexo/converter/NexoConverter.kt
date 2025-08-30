@@ -13,6 +13,7 @@ import com.nexomc.nexo.utils.moveTo
 import com.nexomc.nexo.utils.remove
 import com.nexomc.nexo.utils.rename
 import com.nexomc.nexo.utils.resolve
+import com.nexomc.nexo.utils.toMap
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import java.io.File
@@ -81,10 +82,11 @@ object NexoConverter {
     fun processRecipes() {
         RecipeType.entries.forEach {
             val recipeFile = RecipesManager.recipesFolder.resolve(it.id + ".yml").toPath().takeIf { it.exists() } ?: return@forEach
-            val recipeFolder = RecipesManager.recipesFolder.resolve(it.id).apply { mkdirs() }
-            val targetFile = recipeFolder.resolve(it.id + ".yml")
+            val targetFile = RecipesManager.recipesFolder.resolve(it.id).apply { mkdirs() }.resolve(it.id + ".yml")
             if (targetFile.exists()) {
-                NexoYaml.saveConfig(targetFile, NexoYaml.loadConfiguration(targetFile).copyFrom(NexoYaml.loadConfiguration(recipeFile.toFile())))
+                val newRecipe = NexoYaml.loadConfiguration(targetFile).copyFrom(NexoYaml.loadConfiguration(recipeFile.toFile()))
+                println(newRecipe.toMap().toString())
+                NexoYaml.saveConfig(targetFile, newRecipe)
                 recipeFile.deleteExisting()
             } else recipeFile.moveTo(targetFile.toPath(), true)
         }
