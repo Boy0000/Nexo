@@ -264,10 +264,10 @@ class PackGenerator : CoroutineScope {
         if (VersionUtil.below("1.21.6")) JukeboxPlayableDatapack().createDatapack()
     }
 
-    private suspend fun importRequiredPack() {
+    private fun importRequiredPack() {
         runCatching {
             val requiredPack = NexoPackReader.INSTANCE.readFile(externalPacks.listFiles()?.firstOrNull { it.name.startsWith("RequiredPack_") } ?: return)
-            if (VersionUtil.atleast("1.21.4")) requiredPack.items().map { it.key() }.forEach(requiredPack::removeItem)
+            if (VersionUtil.atleast("1.21.4")) VanillaResourcePack.resourcePack.items().forEach { requiredPack.removeItem(it.key()) }
             NexoPack.mergePack(resourcePack, requiredPack)
         }.onFailure {
             if (!Settings.DEBUG.toBool()) Logs.logError(it.message!!)
@@ -275,7 +275,7 @@ class PackGenerator : CoroutineScope {
         }
     }
 
-    private suspend fun importDefaultPack() {
+    private fun importDefaultPack() {
         val defaultPack = externalPacks.listFiles()?.firstOrNull { it.name.startsWith("DefaultPack_") } ?: return
         Logs.logInfo("Importing DefaultPack...")
 
@@ -288,7 +288,7 @@ class PackGenerator : CoroutineScope {
         }
     }
 
-    private suspend fun importExternalPacks() {
+    private fun importExternalPacks() {
         val externalPacks = externalPacks.listFiles() ?: return
         val externalOrder = Settings.PACK_IMPORT_EXTERNAL_PACK_ORDER.toStringList()
         externalPacks.sortedWith(Comparator.comparingInt<File> {
@@ -310,7 +310,7 @@ class PackGenerator : CoroutineScope {
         }
     }
 
-    private suspend fun importModelEnginePack() {
+    private fun importModelEnginePack() {
         if (!PluginUtils.isModelEngineEnabled) return
         val megPack = ModelEngineAPI.getAPI().dataFolder.resolve("resource pack.zip").takeIf(File::exists)
             ?: ModelEngineAPI.getAPI().dataFolder.resolve("resource pack").takeIf(File::exists)

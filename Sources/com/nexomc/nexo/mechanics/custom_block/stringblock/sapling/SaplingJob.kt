@@ -5,16 +5,19 @@ import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.api.NexoBlocks
 import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.inWholeTicks
+import com.nexomc.nexo.utils.ticks
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.persistence.PersistentDataType
+import kotlin.time.Duration
 
 object SaplingJob {
 
-    fun launchJob(delay: Int): Job {
-        return SchedulerUtils.launchRepeating(0L, delay.toLong()) {
+    fun launchJob(delay: Duration): Job {
+        return SchedulerUtils.launchRepeating(0.ticks, delay) {
             for (world in Bukkit.getWorlds()) world.loadedChunks.forEach { chunk ->
                 CustomBlockData.getBlocksWithCustomData(NexoPlugin.instance(), chunk).forEach { block ->
                     val location = block.location
@@ -30,7 +33,7 @@ object SaplingJob {
                                 val selectedSchematic = sapling.selectSchematic() ?: return@withContext
                                 if (!sapling.canPlaceSchematic(location, selectedSchematic)) return@withContext
 
-                                val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay
+                                val growthTimeRemains = pdc.getOrDefault(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay.inWholeTicks.toInt()
                                 if (growthTimeRemains <= 0) {
                                     sapling.placeSchematic(location, selectedSchematic)
                                 } else pdc.set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains)

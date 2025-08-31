@@ -18,6 +18,7 @@ import org.bukkit.block.BlockState
 import org.bukkit.entity.Entity
 import java.util.function.Predicate
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 
 
 suspend fun withContext(entity: Entity, delay: Long? = null, block: suspend CoroutineScope.() -> Unit) {
@@ -79,14 +80,14 @@ object SchedulerUtils {
         }
     }
 
-    fun launchDelayed(delay: Long = 1, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchDelayed(delay: Duration = 1.ticks, block: suspend CoroutineScope.() -> Unit): Job {
         return launch {
             delay(delay)
             block.invoke(this)
         }
     }
 
-    fun launchDelayed(entity: Entity, delay: Long = 1, async: Boolean = false, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchDelayed(entity: Entity, delay: Duration = 1.ticks, async: Boolean = false, block: suspend CoroutineScope.() -> Unit): Job {
         return when {
             async && !VersionUtil.isFoliaServer -> NexoPlugin.instance().launch(asyncDispatcher) {
                 delay(delay)
@@ -99,21 +100,21 @@ object SchedulerUtils {
         }
     }
 
-    fun launchDelayed(location: Location, delay: Long = 1, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchDelayed(location: Location, delay: Duration = 1.ticks, block: suspend CoroutineScope.() -> Unit): Job {
         return NexoPlugin.instance().launch(regionDispatcher(location)) {
             delay(delay)
             block.invoke(this)
         }
     }
 
-    fun launchDelayed(world: World, chunk: Chunk, delay: Long = 1, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchDelayed(world: World, chunk: Chunk, delay: Duration = 1.ticks, block: suspend CoroutineScope.() -> Unit): Job {
         return NexoPlugin.instance().launch(regionDispatcher(world, chunk)) {
             delay(delay)
             block.invoke(this)
         }
     }
 
-    fun launchRepeating(initialDelay: Long, delay: Long, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchRepeating(initialDelay: Duration, delay: Duration, block: suspend CoroutineScope.() -> Unit): Job {
         return launch {
             delay(initialDelay)
             while (true) {
@@ -123,7 +124,7 @@ object SchedulerUtils {
         }
     }
 
-    fun launchRepeating(location: Location, initialDelay: Long, delay: Long, block: suspend CoroutineScope.() -> Unit): Job {
+    fun launchRepeating(location: Location, initialDelay: Duration, delay: Duration, block: suspend CoroutineScope.() -> Unit): Job {
         return launch(location) {
             delay(initialDelay)
             while (true) {

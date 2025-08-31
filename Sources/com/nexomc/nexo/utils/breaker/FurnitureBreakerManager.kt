@@ -8,6 +8,7 @@ import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.protectionlib.ProtectionLib
 import kotlinx.coroutines.Job
 import org.bukkit.Bukkit
@@ -54,7 +55,7 @@ object FurnitureBreakerManager {
         baseEntity: ItemDisplay,
         mechanic: FurnitureMechanic
     ): Job {
-        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1, 1) {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1.ticks, 4.ticks) {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
@@ -86,7 +87,7 @@ object FurnitureBreakerManager {
     }
 
     private fun createBreakSoundScheduler(breakerUUID: UUID): Job {
-        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0, 4L) {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0.ticks, 4.ticks) {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val baseEntity = Bukkit.getEntity(activeBreakerData.baseUUID) ?: return@launchRepeating stopFurnitureBreak(player)

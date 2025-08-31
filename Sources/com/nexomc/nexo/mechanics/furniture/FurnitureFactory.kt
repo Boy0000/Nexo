@@ -22,14 +22,16 @@ import com.nexomc.nexo.mechanics.furniture.states.FurnitureStateListener
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.ticks
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.ResourcePack
 import team.unnamed.creative.sound.SoundRegistry
+import kotlin.time.Duration
 
 class FurnitureFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringList("tool_types")
-    private val evolutionCheckDelay: Int = section.getInt("evolution_check_delay")
+    private val evolutionCheckDelay: Duration = section.getInt("evolution_check_delay").ticks
     val customSounds: Boolean = section.getBoolean("custom_block_sounds", true)
     private var evolvingFurnitures: Boolean
     val defaultRotatableOnSneak = section.getBoolean("default_rotatable_on_sneak", false)

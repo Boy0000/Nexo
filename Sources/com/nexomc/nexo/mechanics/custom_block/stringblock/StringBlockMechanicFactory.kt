@@ -10,6 +10,7 @@ import com.nexomc.nexo.mechanics.custom_block.stringblock.sapling.SaplingListene
 import com.nexomc.nexo.nms.NMSHandlers
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.nexo.utils.to
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -24,11 +25,12 @@ import org.bukkit.inventory.ItemStack
 import team.unnamed.creative.blockstate.BlockState
 import team.unnamed.creative.blockstate.MultiVariant
 import team.unnamed.creative.blockstate.Variant
+import kotlin.time.Duration
 
 class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactory(section) {
     val toolTypes: List<String> = section.getStringListOrNull("tool_types") ?: CustomBlockFactory.instance()?.toolTypes ?: listOf()
     private var sapling = false
-    private val saplingGrowthCheckDelay: Int = section.getInt("sapling_growth_check_delay")
+    private val saplingGrowthCheckDelay: Duration = section.getInt("sapling_growth_check_delay").ticks
     val disableVanillaString: Boolean = section.getBoolean("disable_vanilla_strings", true)
 
     val BLOCK_PER_VARIATION = Int2ObjectOpenHashMap<StringBlockMechanic>()
@@ -38,7 +40,7 @@ class StringBlockMechanicFactory(section: ConfigurationSection) : MechanicFactor
         instance = this
 
         registerListeners(StringBlockMechanicListener(), SaplingListener())
-        if (saplingGrowthCheckDelay < 0) registerSaplingMechanic()
+        if (saplingGrowthCheckDelay.isPositive()) registerSaplingMechanic()
 
         registerListeners(StringBlockMechanicPaperListener())
 

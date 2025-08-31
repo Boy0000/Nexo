@@ -12,18 +12,27 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import kotlinx.coroutines.Job
-import org.bukkit.*
+import org.bukkit.GameEvent
+import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Sound
+import org.bukkit.SoundCategory
 import org.bukkit.block.Block
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
-import org.bukkit.event.block.*
+import org.bukkit.event.block.BlockBreakEvent
+import org.bukkit.event.block.BlockDamageAbortEvent
+import org.bukkit.event.block.BlockDamageEvent
+import org.bukkit.event.block.BlockPistonExtendEvent
+import org.bukkit.event.block.BlockPlaceEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.world.GenericGameEvent
 import org.bukkit.event.world.WorldUnloadEvent
@@ -73,7 +82,7 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
         val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
         val pitch = blockSounds?.hitPitch ?: BlockSounds.VANILLA_HIT_PITCH
 
-        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2, 4) {
+        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2.ticks, 4.ticks) {
             BlockHelpers.playCustomBlockSound(location, sound, volume, pitch)
         }
     }

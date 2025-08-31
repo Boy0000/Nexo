@@ -35,6 +35,7 @@ import com.nexomc.nexo.utils.breaker.ModernBreakerManager
 import com.nexomc.nexo.utils.customarmor.CustomArmorListener
 import com.nexomc.nexo.utils.inventories.InventoryManager
 import com.nexomc.nexo.utils.libs.CommandAPIManager
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.protectionlib.ProtectionLib
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
@@ -105,7 +106,7 @@ class NexoPlugin : JavaPlugin() {
         if (VersionUtil.isLeaked) NoticeUtils.leakNotice()
         if (LibbyManager.failedLibs) NoticeUtils.failedLibs()
 
-        SchedulerUtils.launchDelayed(10) { JarReader.postStartupCheck() }
+        SchedulerUtils.launchDelayed(10.ticks) { JarReader.postStartupCheck() }
     }
 
     override fun onDisable() {

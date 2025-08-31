@@ -13,6 +13,7 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.serialize
+import com.nexomc.nexo.utils.ticks
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -44,7 +45,7 @@ import org.bukkit.persistence.PersistentDataType
 class ItemUpdater : Listener {
 
     init {
-        SchedulerUtils.launchDelayed(2) {
+        SchedulerUtils.launchDelayed(2.ticks) {
             if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities(::updateEntityInventories)
             if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates({ it.type in TILE_ENTITIES }) { tileEntity ->
                 (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
@@ -56,7 +57,7 @@ class ItemUpdater : Listener {
 
     @EventHandler
     fun EntityAddToWorldEvent.onEntityLoad() {
-        if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.launchDelayed(entity, 2) {
+        if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.launchDelayed(entity, 2.ticks) {
             updateEntityInventories(entity)
         }
     }

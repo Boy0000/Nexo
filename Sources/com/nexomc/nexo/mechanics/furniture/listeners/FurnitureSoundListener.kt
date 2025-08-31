@@ -10,6 +10,7 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.nexo.utils.to
 import com.nexomc.protectionlib.ProtectionLib
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
@@ -78,7 +79,7 @@ class FurnitureSoundListener : Listener {
         if (instaBreak || block.type == Material.BARRIER || soundGroup.hitSound != Sound.BLOCK_STONE_HIT) return
         if (location in breakerPlaySound) return
 
-        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2, 4) {
+        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2.ticks, 4.ticks) {
             BlockHelpers.playCustomBlockSound(location, BlockSounds.VANILLA_STONE_HIT, BlockSounds.VANILLA_HIT_VOLUME, BlockSounds.VANILLA_HIT_PITCH)
         }
     }

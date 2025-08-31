@@ -30,6 +30,7 @@ enum class RemovedSettings(val path: String, vararg subPaths: String) {
     UPLOAD("Pack.upload.enabled"),
     UPLOAD_OPTIONS("Pack.upload.options"),
     POLYMATH_SERVER("Pack.upload.polymath.server"),
+    PACK_SEND_DELAY("Pack.dispatch.delay"),
 
     EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
     EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),

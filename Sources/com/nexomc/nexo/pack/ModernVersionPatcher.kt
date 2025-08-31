@@ -5,6 +5,7 @@ import com.nexomc.nexo.pack.creative.NexoPackReader
 import com.nexomc.nexo.utils.JsonPrimitive
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.associateFastBy
+import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.groupByFast
 import com.nexomc.nexo.utils.remove
 import net.kyori.adventure.key.Key
@@ -181,7 +182,8 @@ object ModernVersionPatcher {
 
         if (VersionUtil.atleast("1.21.4")) requiredPack.removeItem(Key.key("player_head"))
 
-        VanillaResourcePack.resourcePack.items().plus(requiredPack.items()).associateFastBy(Item::key)
+        val requiredItems = requiredPack.items().filterFast { it.key().namespace() == Key.MINECRAFT_NAMESPACE }
+        VanillaResourcePack.resourcePack.items().plus(requiredItems).associateFastBy(Item::key)
     }
 
     private val simpleItemModelPredicate = { item: ItemModel -> item is ReferenceItemModel && item.tints().isEmpty()}

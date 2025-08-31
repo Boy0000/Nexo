@@ -73,6 +73,8 @@ object AdventureUtils {
     val MINI_MESSAGE get() = MM
     private var MM = MiniMessage.builder().tags(TagResolver.resolver(NexoTagResolver)).build()
 
+    val NEXO_SERIALIZER = MiniMessage.builder().tags(TagResolver.resolver(GlyphTag.RESOLVER, ShiftTag.RESOLVER)).build()
+
 
     @JvmStatic
     fun MINI_MESSAGE_PLAYER(player: Player?): MiniMessage {

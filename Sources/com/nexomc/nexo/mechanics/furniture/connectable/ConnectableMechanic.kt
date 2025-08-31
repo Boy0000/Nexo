@@ -17,6 +17,7 @@ import com.nexomc.nexo.utils.minus
 import com.nexomc.nexo.utils.plus
 import com.nexomc.nexo.utils.rootId
 import com.nexomc.nexo.utils.rootSection
+import com.nexomc.nexo.utils.ticks
 import net.kyori.adventure.key.Key
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
@@ -24,6 +25,7 @@ import org.bukkit.block.BlockFace
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
+import kotlin.time.Duration
 
 enum class ConnectableItemType {
     ITEM_MODEL, ITEM;
@@ -88,7 +90,7 @@ data class ConnectableMechanic(
         outer = section.getKey("outer") ?: section.getKey("default")?.appendSuffix("_outer"),
     )
 
-    fun scheduleUpdateState(baseEntity: ItemDisplay, delay: Long = 1L) {
+    fun scheduleUpdateState(baseEntity: ItemDisplay, delay: Duration = 1.ticks) {
         SchedulerUtils.launchDelayed(baseEntity, delay) { updateState(baseEntity) }
     }
 
@@ -99,7 +101,7 @@ data class ConnectableMechanic(
     }
 
     fun updateSurrounding(baseEntity: ItemDisplay) {
-        SchedulerUtils.launchDelayed(2L) {
+        SchedulerUtils.launchDelayed(2.ticks) {
             val (leftLoc, rightLoc) = baseEntity.blockLocation.minus(1) to baseEntity.blockLocation.plus(1)
             val (aheadLoc, behindLoc) = baseEntity.blockLocation.minus(z = 1) to baseEntity.blockLocation.plus(z = 1)
             IFurniturePacketManager.baseEntityFromHitbox(leftLoc)?.takeIf { it.isValid }?.let(::scheduleUpdateState)

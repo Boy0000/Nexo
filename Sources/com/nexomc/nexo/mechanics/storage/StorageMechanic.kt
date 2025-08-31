@@ -11,6 +11,7 @@ import com.nexomc.nexo.utils.BlockHelpers.persistentDataContainer
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.deserialize
+import com.nexomc.nexo.utils.ticks
 import com.ticxo.modelengine.api.ModelEngineAPI
 import com.ticxo.modelengine.api.model.ActiveModel
 import dev.triumphteam.gui.guis.Gui
@@ -171,9 +172,9 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                if (baseEntity != null) SchedulerUtils.launchDelayed(baseEntity, 3) {
+                if (baseEntity != null) SchedulerUtils.launchDelayed(baseEntity, 3.ticks) {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
-                } else SchedulerUtils.launchDelayed(3) {
+                } else SchedulerUtils.launchDelayed(3.ticks) {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 }
             }
@@ -208,7 +209,7 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtils.launchDelayed(block.location, 3L) {
+                SchedulerUtils.launchDelayed(block.location, 3.ticks) {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 }
             }
@@ -240,7 +241,7 @@ class StorageMechanic(section: ConfigurationSection) {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction { event: InventoryClickEvent ->
             if (event.cursor.type != Material.AIR || event.getCurrentItem() != null) {
-                SchedulerUtils.launchDelayed(baseEntity, 3L) {
+                SchedulerUtils.launchDelayed(baseEntity, 3.ticks) {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.inventory.contents)
                 }
             }

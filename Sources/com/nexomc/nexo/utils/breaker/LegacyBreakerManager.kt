@@ -11,6 +11,7 @@ import com.nexomc.nexo.utils.BlockHelpers.playCustomBlockSound
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils.damageItem
 import com.nexomc.nexo.utils.SchedulerUtils
+import com.nexomc.nexo.utils.ticks
 import com.nexomc.protectionlib.ProtectionLib
 import kotlinx.coroutines.Job
 import org.bukkit.Location
@@ -55,7 +56,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
     }
 
     private fun createBreakScheduler(blockBreakTime: Double, breakerUUID: UUID): Job {
-        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1, 1) {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 1.ticks, 1.ticks) {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
@@ -92,7 +93,7 @@ class LegacyBreakerManager(private val activeBreakerDataMap: ConcurrentHashMap<U
     }
 
     private fun createBreakSoundScheduler(breakerUUID: UUID): Job {
-        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0, 4L) {
+        return SchedulerUtils.launchRepeating(activeBreakerDataMap[breakerUUID]!!.location, 0.ticks, 40.ticks) {
             val activeBreakerData = activeBreakerDataMap[breakerUUID] ?: return@launchRepeating
             val player = activeBreakerData.breaker
             val block = activeBreakerData.location.block
