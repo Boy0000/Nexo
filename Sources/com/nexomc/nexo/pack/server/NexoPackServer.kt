@@ -3,44 +3,41 @@ package com.nexomc.nexo.pack.server
 import com.nexomc.nexo.NexoPlugin
 import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.pack.PackListener
-import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.logs.Logs
 import io.papermc.paper.connection.PlayerConfigurationConnection
-import kotlinx.coroutines.Job
 import net.kyori.adventure.resource.ResourcePackInfo
 import net.kyori.adventure.resource.ResourcePackRequest
-import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.HandlerList
 import java.net.URI
 import java.util.*
+import java.util.concurrent.CompletableFuture
 
 interface NexoPackServer {
-    val isPackUploaded: Boolean get() = uploadPack().isCompleted
+    val isPackUploaded: Boolean get() = uploadPack().isDone
 
-    fun uploadPack(): Job {
-        return NexoPlugin.instance().packGenerator().packGenJob ?: Job()
+    fun uploadPack(): CompletableFuture<Void> {
+        return CompletableFuture.allOf(NexoPlugin.instance().packGenerator().packGenFuture)
     }
 
-    fun sendPack(connection: Any, reconfigure: Boolean): Job? {
+    fun sendPack(connection: Any, reconfigure: Boolean): CompletableFuture<Void>? {
         val connection = connection as? PlayerConfigurationConnection ?: return null
-        val job = if (reconfigure) null else Job()
+        val future = if (reconfigure) null else CompletableFuture<Void>()
         val info = NexoPlugin.instance().packServer().packInfo() ?: return null
         val request = ResourcePackRequest.resourcePackRequest()
             .required(mandatory).replace(true).prompt(prompt)
             .packs(info).callback { uuid, status, audience ->
-                if (!status.intermediate()) job?.complete() ?: connection.completeReconfiguration()
+                if (!status.intermediate()) future?.complete(null) ?: connection.completeReconfiguration()
             }.build()
 
         connection.audience.sendResourcePacks(request)
-        return job
+        return future
     }
 
     fun sendPack(player: Player) {
-        SchedulerUtils.launch {
-            NexoPlugin.instance().packGenerator().packGenJob?.join()
-            val hash = NexoPlugin.instance().packGenerator().builtPack()!!.hash()
+        NexoPlugin.instance().packGenerator().packGenFuture?.thenRun {
+            val hash = NexoPlugin.instance().packGenerator().builtPack()?.hash() ?: return@thenRun
             val packUUID = UUID.nameUUIDFromBytes(hashArray(hash))
             val packUrl = URI.create(packUrl())
 
@@ -71,8 +68,8 @@ interface NexoPackServer {
     companion object {
         const val BYPASS_PERMISSION = "nexo.resourcepack.bypass"
 
-        var mandatory = runCatching { Settings.PACK_SEND_MANDATORY.toBool() }.getOrDefault(true); private set
-        var prompt: Component? = null; private set
+        var mandatory = Settings.PACK_SEND_MANDATORY.toBool(); private set
+        var prompt = Settings.PACK_SEND_PROMPT.toComponent(); private set
 
         fun registerDefaultPackServers() {
             PackServerRegistry.register("SELFHOST", ::SelfHostServer)

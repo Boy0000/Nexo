@@ -143,7 +143,7 @@ class FurnitureListener : Listener {
         // Since the server-side block is AIR by default, placing blocks acts weird
         // Temporarily set the block to a barrier, then schedule a task to revert it next tick and resend hitboxes
         block.setType(Material.BARRIER, false)
-        SchedulerUtils.launch(block.location) { block.setType(Material.AIR, false) }
+        SchedulerUtils.foliaScheduler.runAtLocation(block.location) { block.setType(Material.AIR, false) }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

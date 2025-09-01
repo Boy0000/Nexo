@@ -26,6 +26,7 @@ enum class Settings {
     FORMAT_ANVIL("Plugin.formatting.anvil", true),
     FORMAT_SIGNS("Plugin.formatting.signs", true),
     FORMAT_CHAT("Plugin.formatting.chat", true),
+    FORMAT_CHAT_STANDARD_TAGS("Plugin.formatting.chat_standard_tags", false),
     FORMAT_BOOKS("Plugin.formatting.books", true),
     FORMAT_TABLIST("Plugin.formatting.tablist", !PluginUtils.isTABEnabled),
     FORMAT_BOSSBAR("Plugin.formatting.bossbar", !(PluginUtils.isMythicHUDEnabled || PluginUtils.isBetterHUDEnabled)),
@@ -127,7 +128,7 @@ enum class Settings {
     PACK_SEND_PRE_JOIN("Pack.dispatch.send_pre_join", VersionUtil.atleast("1.21")),
     PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", VersionUtil.below("1.21")),
     PACK_SEND_RELOAD("Pack.dispatch.send_on_reload", true),
-    PACK_SEND_DELAY("Pack.dispatch.delay_duration", "0t"),
+    PACK_SEND_DELAY("Pack.dispatch.delay", -1),
     PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),
     PACK_SEND_PROMPT("Pack.dispatch.prompt", "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Nexo</b><#fa4943> experience"),
 
@@ -251,7 +252,6 @@ enum class Settings {
     fun toConfigSection() = NexoPlugin.instance().configsManager().settings().getConfigurationSection(path)
 
     fun toDuration() = NexoPlugin.instance().configsManager().settings().getString(path)?.toDuration() ?: Duration.INFINITE
-    fun toDuration(default: Duration) = NexoPlugin.instance().configsManager().settings().getString(path)?.toDuration() ?: default
 
     companion object {
         fun reload() {

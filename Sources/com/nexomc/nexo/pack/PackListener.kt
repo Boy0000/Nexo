@@ -8,7 +8,6 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
-import kotlin.time.Duration
 
 class PackListener : Listener {
     @EventHandler(priority = EventPriority.NORMAL)
@@ -23,10 +22,11 @@ class PackListener : Listener {
             if (VersionUtil.atleast("1.21") && player.hasResourcePack()) return
         }
 
-        val delay = Settings.PACK_SEND_DELAY.toDuration(Duration.ZERO)
-        if (delay.isPositive()) SchedulerUtils.launchDelayed(player, delay.times(20)) {
-            NexoPlugin.instance().packServer().sendPack(player)
-        } else NexoPlugin.instance().packServer().sendPack(player)
+        val delay = Settings.PACK_SEND_DELAY.toInt(-1)
+        if (delay <= 0) NexoPlugin.instance().packServer().sendPack(player)
+        else SchedulerUtils.foliaScheduler.runAtEntityLater(
+            player, Runnable { NexoPlugin.instance().packServer().sendPack(player) }, delay * 20L
+        )
     }
 
 }

@@ -12,12 +12,11 @@ import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
-import com.nexomc.nexo.utils.ticks
 import com.nexomc.nexo.utils.to
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.protectionlib.ProtectionLib
+import com.tcoded.folialib.wrapper.task.WrappedTask
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
-import kotlinx.coroutines.Job
 import org.bukkit.GameEvent
 import org.bukkit.Location
 import org.bukkit.Material
@@ -39,7 +38,7 @@ import org.bukkit.event.world.WorldUnloadEvent
 
 class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockSounds) : Listener {
     companion object {
-        val breakerPlaySound = Object2ObjectOpenHashMap<Location, Job>()
+        val breakerPlaySound = Object2ObjectOpenHashMap<Location, WrappedTask>()
     }
 
     @EventHandler
@@ -82,9 +81,10 @@ class CustomBlockSoundListener(val customSounds: CustomBlockFactory.CustomBlockS
         val volume = blockSounds?.hitVolume ?: BlockSounds.VANILLA_HIT_VOLUME
         val pitch = blockSounds?.hitPitch ?: BlockSounds.VANILLA_HIT_PITCH
 
-        breakerPlaySound[location] = SchedulerUtils.launchRepeating(location, 2.ticks, 4.ticks) {
-            BlockHelpers.playCustomBlockSound(location, sound, volume, pitch)
-        }
+        breakerPlaySound[location] = SchedulerUtils.foliaScheduler.runAtLocationTimer(
+            location, Runnable {
+                BlockHelpers.playCustomBlockSound(location, sound, volume, pitch)
+        }, 2L, 4L)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

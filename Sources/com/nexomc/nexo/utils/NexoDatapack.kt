@@ -41,8 +41,8 @@ open class NexoDatapack(key: String, description: String) {
     }
 
     internal fun enableDatapack(enabled: Boolean, reload: Boolean = false) {
-        SchedulerUtils.launchDelayed {
-            if (VersionUtil.below("1.21.1")) return@launchDelayed Logs.logWarn("Could not enable $datapackName datapack, use /datapack-command")
+        SchedulerUtils.callSyncMethod {
+            if (VersionUtil.below("1.21.1")) return@callSyncMethod Logs.logWarn("Could not enable $datapackName datapack, use /datapack-command")
             Bukkit.getDatapackManager().getPack(datapackName)?.takeUnless { it.isEnabled == enabled }?.also {
                 it.isEnabled = enabled
                 if (reload) RecipesManager.reload()

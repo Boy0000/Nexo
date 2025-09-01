@@ -166,3 +166,50 @@ double_bed:
       beds:
         - 0,0,1 true true
         - 1,0,1 true true
+large_wooden_door:
+  itemname: Large Wooden Door
+  Pack:
+    model: nexo:item/nexo_furniture/large_wooden_door
+    custom_model_data: 1056
+  Mechanics:
+    furniture:
+      limited_placing:
+        floor: true
+      hitbox:
+        barriers: 0..1,0..2,0
+      block_sounds:
+        place_sound: block.wood.place
+        break_sound: block.wood.break
+      properties:
+        translation: 0,1,0
+        delay: 4
+      door:
+        open_sound: block.wooden_door.open
+        close_sound: block.wooden_door.close
+        toggle_hitbox_on_open: true
+        open_properties:
+          translation: -0.85,1,0
+large_wooden_sliding_door:
+  itemname: Large Wooden Sliding Door
+  Pack:
+    model: nexo:item/nexo_furniture/large_wooden_door
+    custom_model_data: 1056
+  Mechanics:
+    furniture:
+      limited_placing:
+        floor: true
+      hitbox:
+        barriers: 0..1,0..2,0
+      block_sounds:
+        place_sound: block.wood.place
+        break_sound: block.wood.break
+      properties:
+        translation: 0,1,0
+        delay: 8
+      door:
+        is_sliding: true
+        open_sound: block.wooden_door.open
+        close_sound: block.wooden_door.close
+        toggle_hitbox_on_open: true
+        open_properties:
+          translation: -2,1,0

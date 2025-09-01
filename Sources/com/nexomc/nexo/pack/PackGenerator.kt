@@ -38,12 +38,6 @@ import com.nexomc.nexo.utils.prependIfMissing
 import com.nexomc.nexo.utils.resolve
 import com.ticxo.modelengine.api.ModelEngineAPI
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.BuiltResourcePack
@@ -57,13 +51,10 @@ import team.unnamed.creative.metadata.pack.PackFormat
 import team.unnamed.creative.sound.SoundRegistry
 import java.io.File
 import java.net.URI
-import kotlin.coroutines.CoroutineContext
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 
-class PackGenerator : CoroutineScope {
-    private val job = Job()
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.IO + job
-
+class PackGenerator {
     private val packDownloader: PackDownloader = PackDownloader()
     private val resourcePack = ResourcePack.resourcePack()
     private val packObfuscator: PackObfuscator = PackObfuscator(resourcePack)
@@ -75,22 +66,12 @@ class PackGenerator : CoroutineScope {
     private val modelGenerator: ModelGenerator
     private val atlasGenerator: AtlasGenerator
     private val gifGenerator: GifGenerator
-    var packGenJob: Job? = null; private set
+    var packGenFuture: CompletableFuture<Void>? = null
+        private set
 
     init {
         NexoPackReader.resetReader()
         NexoPackWriter.resetWriter()
-
-        generateDefaultPaths()
-        VanillaResourcePack.extractLatest()
-        packDownloader.downloadRequiredPack()
-        packDownloader.downloadDefaultPack()
-
-        trimsCustomArmor = TrimsCustomArmor().takeIf { setting == CustomArmorType.TRIMS }
-        componentCustomArmor = ComponentCustomArmor(resourcePack).takeIf { setting == CustomArmorType.COMPONENT }
-        modelGenerator = ModelGenerator(resourcePack)
-        atlasGenerator = AtlasGenerator(resourcePack)
-        gifGenerator = GifGenerator(resourcePack)
     }
 
     fun regeneratePack() {
@@ -102,17 +83,16 @@ class PackGenerator : CoroutineScope {
         NexoPrePackGenerateEvent(resourcePack).call()
         val packFolder = NexoPlugin.instance().dataFolder.resolve("pack")
 
-        packGenJob = launch(Dispatchers.IO) {
+        val futures = arrayOf(
+            VanillaResourcePack.extractLatest(),
+            packDownloader.downloadRequiredPack(),
+            packDownloader.downloadDefaultPack(),
+            ModelEngineCompatibility.modelEngineFuture()
+        )
+
+        packGenFuture = CompletableFuture.allOf(*futures).thenRunAsync {
             runCatching {
                 Logs.logInfo("Generating resourcepack...")
-
-                listOf(
-                    VanillaResourcePack.extractLatest(),
-                    packDownloader.downloadRequiredPack(),
-                    packDownloader.downloadDefaultPack(),
-                    ModelEngineCompatibility.megJob()
-                ).joinAll()
-
                 importRequiredPack()
                 if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack()
                 if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks()
@@ -171,10 +151,10 @@ class PackGenerator : CoroutineScope {
                 removeExcludedFileExtensions()
                 sortModelOverrides()
 
-                withTimeoutOrNull(4000L) {
-                    SchedulerUtils.launchDelayed {
+                runCatching {
+                    SchedulerUtils.foliaScheduler.runNextTick {
                         NexoPostPackGenerateEvent(resourcePack).callEvent()
-                    }
+                    }.get(4L, TimeUnit.SECONDS)
                 }
 
                 packValidator.validatePack()
@@ -193,37 +173,34 @@ class PackGenerator : CoroutineScope {
                     if (Settings.PACK_GENERATE_ZIP.toBool()) squashedZip.copyTo(packZip, true)
                     builtPack = BuiltResourcePack.of(Writable.file(packZip), FileUtils.getSha1Hash(packZip))
                 } else {
-                    if (Settings.PACK_GENERATE_ZIP.toBool()) {
-                        launch {
-                            NexoPackWriter.INSTANCE.writeToZipFile(packZip, resourcePack)
-                        }
+                    if (Settings.PACK_GENERATE_ZIP.toBool()) SchedulerUtils.foliaScheduler.runAsync {
+                        NexoPackWriter.INSTANCE.writeToZipFile(packZip, resourcePack)
                     }
                     builtPack = NexoPackWriter.INSTANCE.build(resourcePack)
                 }
-
-                Logs.logSuccess("Finished generating resourcepack!", true)
-                val packServer = NexoPlugin.instance().packServer()
-                packServer.uploadPack().join()
-                SchedulerUtils.launchDelayed {
-                    NexoPackUploadEvent(builtPack!!.hash(), packServer.packUrl()).call()
-                }
-                if (sendToOnline) {
-                    Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
-                }
-                NexoTranslator.registerTranslations()
             }.onFailure {
                 Logs.logError("Failed to generate ResourcePack...")
                 if (Settings.DEBUG.toBool()) it.printStackTrace()
                 else Logs.logWarn(it.message!!)
             }
+        }.thenRunAsync {
+            Logs.logSuccess("Finished generating resourcepack!", true)
+            val packServer = NexoPlugin.instance().packServer()
+            packServer.uploadPack().thenRun {
+                SchedulerUtils.foliaScheduler.runNextTick {
+                    NexoPackUploadEvent(builtPack!!.hash(), packServer.packUrl()).call()
+                }
+                if (sendToOnline) Bukkit.getOnlinePlayers().forEach(packServer::sendPack)
+            }
+            NexoTranslator.registerTranslations()
         }
     }
 
     private fun sortModelOverrides() {
         resourcePack.models().toMutableList().forEach { model ->
             val sortedOverrides = LinkedHashSet(model.overrides()).sortedWith(Comparator.comparingInt { o ->
-                o.predicate().firstOrNull { p -> p.name() == "custom_model_data" }?.value().toString().toIntOrNull() ?: 0
-            })
+                    o.predicate().firstOrNull { p -> p.name() == "custom_model_data" }?.value().toString().toIntOrNull() ?: 0
+                })
             model.toBuilder().overrides(sortedOverrides).build().addTo(resourcePack)
         }
     }
@@ -294,20 +271,20 @@ class PackGenerator : CoroutineScope {
         externalPacks.sortedWith(Comparator.comparingInt<File> {
             externalOrder.indexOfOrNull(it.name) ?: Int.MAX_VALUE
         }.thenComparing(File::getName)).asSequence().filter { !it.name.matches(defaultRegex) }.forEach {
-            if (it.isDirectory || it.name.endsWith(".zip")) {
-                Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
-                runCatching {
-                    NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(it))
-                }.onFailure { e ->
-                    Logs.logError("Failed to read ${it.path} to a ResourcePack...")
-                    if (!Settings.DEBUG.toBool()) Logs.logError(e.message!!)
-                    else e.printStackTrace()
+                if (it.isDirectory || it.name.endsWith(".zip")) {
+                    Logs.logInfo("Importing external-pack <aqua>${it.name}</aqua>...")
+                    runCatching {
+                        NexoPack.mergePack(resourcePack, NexoPackReader.INSTANCE.readFile(it))
+                    }.onFailure { e ->
+                        Logs.logError("Failed to read ${it.path} to a ResourcePack...")
+                        if (!Settings.DEBUG.toBool()) Logs.logError(e.message!!)
+                        else e.printStackTrace()
+                    }
+                } else {
+                    Logs.logError("Skipping unknown file ${it.name} in imports folder")
+                    Logs.logError("File is neither a directory nor a zip file")
                 }
-            } else {
-                Logs.logError("Skipping unknown file ${it.name} in imports folder")
-                Logs.logError("File is neither a directory nor a zip file")
             }
-        }
     }
 
     private fun importModelEnginePack() {
@@ -377,6 +354,20 @@ class PackGenerator : CoroutineScope {
         resourcePack.removeLanguage(Key.key("global"))
     }
 
+    init {
+        generateDefaultPaths()
+
+        VanillaResourcePack.extractLatest()
+        packDownloader.downloadRequiredPack()
+        packDownloader.downloadDefaultPack()
+
+        trimsCustomArmor = TrimsCustomArmor().takeIf { setting == CustomArmorType.TRIMS }
+        componentCustomArmor = ComponentCustomArmor(resourcePack).takeIf { setting == CustomArmorType.COMPONENT }
+        modelGenerator = ModelGenerator(resourcePack)
+        atlasGenerator = AtlasGenerator(resourcePack)
+        gifGenerator = GifGenerator(resourcePack)
+    }
+
     private fun removeExcludedFileExtensions() {
         Settings.PACK_EXCLUDED_FILE_EXTENSIONS.toStringList().map { it.prependIfMissing(".") }.forEach { extension ->
             if (extension in ignoredExtensions) return@forEach
@@ -395,9 +386,12 @@ class PackGenerator : CoroutineScope {
             runCatching {
                 NexoPackSquash.stopPackSquash()
                 NexoPlugin.instance().packGenerator().let {
-                    if (it.packGenJob?.isActive == true) Logs.logError("Cancelling generation of Nexo ResourcePack...")
-                    it.packGenJob?.cancel()
-                    it.packGenJob = null
+                    it.packGenFuture?.also { future ->
+                        if (future.isDone) return@also
+                        future.cancel(true)
+                        Logs.logError("Cancelling generation of Nexo ResourcePack...")
+                    }
+                    it.packGenFuture = null
                 }
             }
         }

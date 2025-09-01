@@ -45,10 +45,8 @@ public class PaperPluginLoader implements PluginLoader {
     }
 
     static {
-        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2");
-        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.2");
-        libraries.add("com.github.shynixn.mccoroutine:mccoroutine-folia-api:2.22.0");
-        libraries.add("com.github.shynixn.mccoroutine:mccoroutine-folia-core:2.22.0");
+        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1");
+        libraries.add("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.10.1");
         libraries.add("org.jetbrains.kotlin:kotlin-stdlib:2.2.0");
 
         try {

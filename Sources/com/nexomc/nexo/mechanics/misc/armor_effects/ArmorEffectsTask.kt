@@ -1,15 +1,10 @@
 package com.nexomc.nexo.mechanics.misc.armor_effects
 
-import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.ticks
-import kotlinx.coroutines.Job
 import org.bukkit.Bukkit
+import org.bukkit.scheduler.BukkitRunnable
 
-object ArmorEffectsTask {
-
-    fun launchJob(delay: Int): Job {
-        return SchedulerUtils.launchDelayed(delay.ticks) {
-            Bukkit.getOnlinePlayers().forEach(ArmorEffectsMechanic::addEffects)
-        }
+class ArmorEffectsTask : BukkitRunnable() {
+    override fun run() {
+        Bukkit.getOnlinePlayers().forEach(ArmorEffectsMechanic::addEffects)
     }
 }

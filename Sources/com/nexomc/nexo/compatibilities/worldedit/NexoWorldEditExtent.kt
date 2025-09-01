@@ -6,7 +6,6 @@ import com.nexomc.nexo.configs.Settings
 import com.nexomc.nexo.mechanics.furniture.FurnitureMechanic
 import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.safeCast
-import com.nexomc.nexo.utils.ticks
 import com.sk89q.jnbt.Tag
 import com.sk89q.worldedit.WorldEditException
 import com.sk89q.worldedit.bukkit.BukkitAdapter
@@ -50,7 +49,7 @@ class NexoWorldEditExtent(extent: Extent, val world: World) : AbstractDelegateEx
             )
         }
 
-        SchedulerUtils.launchDelayed(2.ticks) {
+        SchedulerUtils.syncDelayedTask(2L) {
             Bukkit.getEntity(originalUUID)?.safeCast<ItemDisplay>()?.also(NexoFurniture::updateFurniture)
             val location = BukkitAdapter.adapt(world, location)
             mechanic.place(location, location.yaw, BlockFace.UP, false)

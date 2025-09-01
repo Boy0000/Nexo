@@ -13,13 +13,9 @@ import com.nexomc.nexo.utils.JsonBuilder
 import com.nexomc.nexo.utils.JsonBuilder.array
 import com.nexomc.nexo.utils.JsonBuilder.plus
 import com.nexomc.nexo.utils.MinecraftVersion
-import com.nexomc.nexo.utils.SchedulerUtils
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.remove
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import team.unnamed.creative.ResourcePack
@@ -28,10 +24,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.net.URI
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-import kotlin.time.Duration.Companion.seconds
 
 object VanillaResourcePack {
     private const val VERSION_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
@@ -41,86 +38,73 @@ object VanillaResourcePack {
     val vanillaLangKeys = mutableListOf<Key>()
     private val version = MinecraftVersion.currentVersion.version.removeSuffix(".0")
     private val zipPath = NexoPlugin.instance().dataFolder.resolve("pack/.assetCache/$version").apply(File::mkdirs).resolve("$version.zip")
-    private var extractJob: Job? = null
+    private var future: CompletableFuture<Void>? = null
 
     init {
         FileUtils.setHidden(zipPath.parentFile.parentFile.toPath())
     }
 
-    fun extractLatest(): Job {
-        if (extractJob?.isCompleted == false) return extractJob!!
-
-        extractJob = SchedulerUtils.launch(Dispatchers.IO) {
-            runCatching {
-                delay(4.seconds)
-
-                val vanillaSoundsJson = zipPath.resolveSibling("vanilla-sounds.json")
-                val vanillaLangJson = zipPath.resolveSibling("vanilla-languages.json")
-
-                zipPath.parentFile.apply {
-                    mkdirs()
-                    FileUtils.setHidden(zipPath.parentFile.parentFile.toPath())
-                }
-
-                // --- Languages ---
-                runCatching {
-                    val jsonArray = runCatching {
-                        JsonParser.parseString(vanillaLangJson.readText()).asJsonObject.array("languages")
-                    }.getOrNull() ?: JsonArray()
-
-                    if (jsonArray.isEmpty) {
-                        val langJson = downloadJson(GITHUB_API_URL.format(Bukkit.getMinecraftVersion()))
-                        val names = langJson?.array("files")?.map { it.asString.removeSuffix(".json") } ?: listOf()
-                        val langObject = JsonBuilder.jsonObject.add("languages", JsonBuilder.jsonArray.plus(names))
-                        vanillaLangJson.writeText(langObject.toString())
-                        vanillaLangKeys += names.map(Key::key)
-                    } else {
-                        jsonArray.forEach { json: JsonElement ->
-                            vanillaLangKeys += Key.key(json.asString)
-                        }
-                    }
-                }.printOnFailure()
-
-                // --- Sounds ---
-                runCatching {
-                    if (vanillaSoundsJson.createNewFile() || vanillaSoundsJson.readText().isEmpty()) {
-                        val versionInfo = downloadJson(findVersionInfoUrl())?.asJsonObject
-                        extractVanillaSounds(assetIndex(versionInfo!!)!!)
-                    }
-                    JsonParser.parseString(vanillaSoundsJson.readText())
-                        .asJsonObject
-                        .getAsJsonArray("sounds")
-                        .forEach { json: JsonElement ->
-                            vanillaSounds += Key.key(json.asString)
-                        }
-                }
-
-                if (zipPath.exists()) return@launch readVanillaRP()
-
-                Logs.logInfo("Extracting latest vanilla-resourcepack...")
-
-                val versionInfo = runCatching {
-                    downloadJson(findVersionInfoUrl())?.asJsonObject
-                }.onFailure {
-                    Logs.logWarn("Failed to fetch version-info for vanilla-resourcepack...")
-                    if (Settings.DEBUG.toBool()) it.printStackTrace() else Logs.logWarn(it.message!!)
-                    return@launch
-                }.getOrNull() ?: return@launch
-
-                val clientJar = downloadClientJar(versionInfo)
-                extractJarAssetsToZip(clientJar!!, zipPath)
-
-                val assetIndex = assetIndex(versionInfo)
-                extractVanillaSounds(assetIndex!!)
-
-                readVanillaRP()
-                Logs.logSuccess("Finished extracting latest vanilla-resourcepack!")
-            }.onFailure {
-                it.printStackTrace()
+    fun extractLatest(): CompletableFuture<Void> {
+        if (future == null || (!zipPath.exists() && future!!.isDone)) future = CompletableFuture.runAsync {
+            val vanillaSoundsJson = zipPath.resolveSibling("vanilla-sounds.json")
+            val vanillaLangJson = zipPath.resolveSibling("vanilla-languages.json")
+            zipPath.parentFile.apply {
+                mkdirs()
+                FileUtils.setHidden(zipPath.parentFile.parentFile.toPath())
             }
-        }
 
-        return extractJob!!
+            runCatching {
+                val jsonArray = runCatching {
+                    JsonParser.parseString(vanillaLangJson.readText()).asJsonObject.array("languages")
+                }.getOrNull() ?: JsonArray()
+
+                if (jsonArray.isEmpty) {
+                    val langJson = downloadJson(GITHUB_API_URL.format(Bukkit.getMinecraftVersion()))
+                    val names = langJson?.array("files")?.map { it.asString.removeSuffix(".json") } ?: listOf()
+                    val langObject = JsonBuilder.jsonObject.add("languages", JsonBuilder.jsonArray.plus(names))
+
+                    zipPath.resolveSibling("vanilla-languages.json").writeText(langObject.toString())
+                    vanillaLangKeys += names.map(Key::key)
+                } else jsonArray.forEach { json: JsonElement ->
+                    vanillaLangKeys += Key.key(json.asString)
+                }
+            }.printOnFailure()
+
+            runCatching {
+                if (vanillaSoundsJson.createNewFile() || vanillaSoundsJson.readText().isEmpty()) {
+                    val versionInfo = downloadJson(findVersionInfoUrl())?.asJsonObject
+                    extractVanillaSounds(assetIndex(versionInfo!!)!!)
+                }
+
+                JsonParser.parseString(vanillaSoundsJson.readText()).asJsonObject.getAsJsonArray("sounds").forEach { json: JsonElement ->
+                    vanillaSounds += Key.key(json.asString)
+                }
+            }
+
+            if (zipPath.exists()) return@runAsync readVanillaRP()
+
+            Logs.logInfo("Extracting latest vanilla-resourcepack...")
+
+            val versionInfo = runCatching {
+                downloadJson(findVersionInfoUrl())?.asJsonObject
+            }.onFailure {
+                Logs.logWarn("Failed to fetch version-info for vanilla-resourcepack...")
+                if (Settings.DEBUG.toBool()) it.printStackTrace()
+                else Logs.logWarn(it.message!!)
+                return@runAsync
+            }.getOrNull() ?: return@runAsync
+
+            val clientJar = downloadClientJar(versionInfo)
+            extractJarAssetsToZip(clientJar!!, zipPath)
+
+            val assetIndex = assetIndex(versionInfo)
+            extractVanillaSounds(assetIndex!!)
+
+            readVanillaRP()
+            Logs.logSuccess("Finished extracting latest vanilla-resourcepack!")
+        }.completeOnTimeout(null, 4L, TimeUnit.SECONDS)
+
+        return future!!
     }
 
     private fun readVanillaRP() {

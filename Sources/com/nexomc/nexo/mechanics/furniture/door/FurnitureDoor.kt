@@ -78,7 +78,7 @@ data class FurnitureDoor(
      */
     private fun openHitboxMechanic(baseEntity: ItemDisplay, mechanic: FurnitureMechanic): FurnitureMechanic {
         val hitboxes = mechanic.hitbox.barriers.mapFastSet {
-            val blockLoc = if (isSliding) it else it.groundRotate(baseEntity.yaw - 180).add(0,0,1)
+            val blockLoc = if (isSliding) it else it.groundRotate(baseEntity.yaw + 90).add(0,0,0)
             InteractionHitbox(blockLoc.toVector())
         }
         return mechanic.clone().apply {

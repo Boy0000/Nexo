@@ -27,19 +27,18 @@ import com.nexomc.nexo.mechanics.storage.StorageMechanic
 import com.nexomc.nexo.mechanics.storage.StorageType
 import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.BlockHelpers.toCenterBlockLocation
-import com.nexomc.nexo.utils.NexoYaml
 import com.nexomc.nexo.utils.PluginUtils
 import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.actions.ClickAction
 import com.nexomc.nexo.utils.actions.ClickAction.Companion.parseList
 import com.nexomc.nexo.utils.blocksounds.BlockSounds
+import com.nexomc.nexo.utils.copyFrom
 import com.nexomc.nexo.utils.filterFast
 import com.nexomc.nexo.utils.getStringListOrNull
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.mapFast
 import com.nexomc.nexo.utils.mapNotNullFast
 import com.nexomc.nexo.utils.plus
-import com.nexomc.nexo.utils.rootSection
 import com.ticxo.modelengine.api.ModelEngineAPI
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import net.kyori.adventure.key.Key
@@ -315,9 +314,7 @@ class FurnitureMechanic(mechanicFactory: MechanicFactory, section: Configuration
         private val invalidFurnitureSection = YamlConfiguration().createSection("invalid_furniture.Mechanics.furniture")
             .plus("hitbox", YamlConfiguration().plus("interactions", listOf("0,0,0 1,1")))
             .plus("item_model", "minecraft:barrier")
-            .apply {
-                NexoYaml.copyConfigurationSection(Settings.INVALID_FURNITURE_ITEM.toConfigSection()!!, this.rootSection)
-            }
+            .copyFrom(Settings.INVALID_FURNITURE_ITEM.toConfigSection())
         val INVALID_FURNITURE = FurnitureMechanic(FurnitureFactory.instance()!!, invalidFurnitureSection)
 
         fun invalidFurniture(baseEntity: ItemDisplay): FurnitureMechanic? {

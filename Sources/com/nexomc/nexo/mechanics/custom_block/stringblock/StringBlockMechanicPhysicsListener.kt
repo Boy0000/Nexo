@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPhysicsEvent
 import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.inventory.ItemStack
+import java.util.function.Consumer
 
 class StringBlockMechanicPhysicsListener : Listener {
     @EventHandler(priority = EventPriority.MONITOR)
@@ -30,16 +31,17 @@ class StringBlockMechanicPhysicsListener : Listener {
             if (changed.type != Material.TRIPWIRE) return@forEach
 
             val data = changed.blockData.clone()
-            SchedulerUtils.launchDelayed(changed.location) {
-                changed.setBlockData(data, false)
-            }
+            SchedulerUtils.foliaScheduler.runAtLocationLater(
+                changed.location, Consumer { changed.setBlockData(data, false) }, 1L
+            )
         }
 
         // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
         val blockData = block.blockData.clone()
-        SchedulerUtils.launchDelayed(block.location) {
-            if (!block.isEmpty) block.setBlockData(blockData, false)
-        }
+        SchedulerUtils.foliaScheduler.runAtLocationLater(block.location, Consumer {
+            if (block.type.isAir()) return@Consumer
+            block.setBlockData(blockData, false)
+        }, 1L)
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -66,9 +68,9 @@ class StringBlockMechanicPhysicsListener : Listener {
             if (player.gameMode != GameMode.CREATIVE) block.breakNaturally(player.inventory.itemInMainHand, true)
             else block.type = Material.AIR
             if (BlockHelpers.isReplaceable(blockAbove.type)) blockAbove.breakNaturally(true)
-            SchedulerUtils.launchDelayed(block.location) {
-                StringMechanicHelpers.fixClientsideUpdate(block.location)
-            }
+            SchedulerUtils.foliaScheduler.runAtLocationLater(
+                block.location, Consumer { StringMechanicHelpers.fixClientsideUpdate(block.location) }, 1
+            )
         }
     }
 }

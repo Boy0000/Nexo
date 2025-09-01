@@ -6,7 +6,6 @@ import com.nexomc.nexo.api.events.NexoItemsLoadedEvent
 import com.nexomc.nexo.api.events.furniture.NexoFurnitureInteractEvent
 import com.nexomc.nexo.mechanics.furniture.IFurniturePacketManager.Companion.furnitureBaseMap
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.ticks
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import org.bukkit.entity.Entity
 import org.bukkit.entity.ItemDisplay
@@ -21,9 +20,9 @@ class FurnitureDoorListener : Listener {
         val baseEntity = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
-        SchedulerUtils.launchDelayed(baseEntity, 6.ticks) {
+        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
             mechanic.door?.ensureHitboxState(baseEntity, mechanic, player)
-        }
+        }, 6L)
     }
 
     @EventHandler
@@ -31,15 +30,15 @@ class FurnitureDoorListener : Listener {
         val baseEntity = entity as? ItemDisplay ?: return
         furnitureBaseMap.remove(baseEntity.uniqueId, furnitureBaseMap.get(baseEntity.uniqueId)?.takeIf { it.baseId != baseEntity.entityId })
 
-        SchedulerUtils.launchDelayed(baseEntity, 4.ticks) {
-        val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@launchDelayed
+        SchedulerUtils.foliaScheduler.runAtEntityLater(baseEntity, Runnable {
+            val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@Runnable
             mechanic.door?.ensureHitboxState(baseEntity, mechanic)
-        }
+        }, 4L)
     }
 
     @EventHandler
     fun NexoItemsLoadedEvent.onFurnitureFactory() {
-        SchedulerUtils.launchDelayed(2.ticks) {
+        SchedulerUtils.runTaskLater(2L) {
             SchedulerUtils.runAtWorldEntities<ItemDisplay> { baseEntity ->
                 val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return@runAtWorldEntities
                 mechanic.door?.ensureHitboxState(baseEntity, mechanic)

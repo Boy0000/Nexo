@@ -50,8 +50,6 @@ class NexoServer : S3Server() {
                 return null
             }
 
-            println(credJson)
-
             return runCatching {
                 val credJson = JsonParser.parseString(credJson).asJsonObject
                 Credentials(

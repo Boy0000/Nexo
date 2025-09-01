@@ -20,11 +20,9 @@ import com.nexomc.nexo.mechanics.furniture.seats.FurnitureSeat
 import com.nexomc.nexo.utils.BlockHelpers.isLoaded
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.SchedulerUtils
-import com.nexomc.nexo.utils.coroutines.SuspendingListener
 import com.nexomc.protectionlib.ProtectionLib
 import io.papermc.paper.event.player.PlayerTrackEntityEvent
 import io.papermc.paper.event.player.PlayerUntrackEntityEvent
-import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.Material
@@ -34,6 +32,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
+import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
@@ -45,23 +44,24 @@ import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.util.Vector
 
-class FurniturePacketListener : SuspendingListener() {
+class FurniturePacketListener : Listener {
 
     @EventHandler
-    suspend fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
+    fun PlayerTrackEntityEvent.onPlayerTrackFurniture() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
 
-        delay(4)
-        packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
-        packetManager.sendHitboxEntityPacket(itemDisplay, mechanic, player)
-        packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
-        packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
+        SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
+            packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic, player)
+            packetManager.sendHitboxEntityPacket(itemDisplay, mechanic, player)
+            packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic, player)
+            packetManager.sendLightMechanicPacket(itemDisplay, mechanic, player)
+        }, 4L)
     }
 
     @EventHandler
-    suspend fun PlayerUntrackEntityEvent.onPlayerUntrackFurniture() {
+    fun PlayerUntrackEntityEvent.onPlayerUntrackFurniture() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         val itemDisplay = entity.takeIf(Entity::isValid) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
@@ -72,34 +72,37 @@ class FurniturePacketListener : SuspendingListener() {
     }
 
     @EventHandler
-    suspend fun EntityAddToWorldEvent.onLoad() {
+    fun EntityAddToWorldEvent.onLoad() {
         val itemDisplay = entity as? ItemDisplay ?: return
-        furnitureBaseMap.remove(itemDisplay.uniqueId)
 
-        delay(2)
-        val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
-        val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
+        furnitureBaseMap.remove(itemDisplay.uniqueId, furnitureBaseMap.get(itemDisplay.uniqueId)?.takeIf { it.baseId != itemDisplay.entityId })
 
-        packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic)
-        packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
-        packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic)
-        packetManager.sendLightMechanicPacket(itemDisplay, mechanic)
-        if (mechanic.hasBeds) FurnitureBed.spawnBeds(itemDisplay, mechanic)
+        SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
+            val packetManager = FurnitureFactory.instance()?.packetManager() ?: return@Runnable
+            val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return@Runnable
+
+            packetManager.sendFurnitureMetadataPacket(itemDisplay, mechanic)
+            packetManager.sendHitboxEntityPacket(itemDisplay, mechanic)
+            packetManager.sendBarrierHitboxPacket(itemDisplay, mechanic)
+            packetManager.sendLightMechanicPacket(itemDisplay, mechanic)
+            if (mechanic.hasBeds) FurnitureBed.spawnBeds(itemDisplay, mechanic)
+        }, 2L)
     }
 
     @EventHandler
-    suspend fun EntityRemoveFromWorldEvent.onUnload() {
+    fun EntityRemoveFromWorldEvent.onUnload() {
         val packetManager = FurnitureFactory.instance()?.packetManager() ?: return
         val itemDisplay = entity.takeIf { it.location.isLoaded } as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(itemDisplay) ?: FurnitureMechanic.invalidFurniture(itemDisplay) ?: return
+
+        SchedulerUtils.foliaScheduler.runAtEntityLater(itemDisplay, Runnable {
+            FurnitureBed.removeBeds(itemDisplay)
+        }, 1L)
 
         furnitureBaseMap.remove(itemDisplay.uniqueId)
         packetManager.removeHitboxEntityPacket(itemDisplay, mechanic)
         packetManager.removeBarrierHitboxPacket(itemDisplay, mechanic)
         packetManager.removeLightMechanicPacket(itemDisplay, mechanic)
-
-        delay(1)
-        FurnitureBed.removeBeds(itemDisplay)
     }
 
     @EventHandler
@@ -174,7 +177,7 @@ class FurniturePacketListener : SuspendingListener() {
         val baseEntity = FurnitureMechanic.baseEntity(clickedBlock) ?: FurnitureMechanic.baseEntity(interactionPoint) ?: return
         val interactionPoint = interactionPoint ?: clickedBlock?.location?.toCenterLocation()
 
-        when (action) {
+         when (action) {
             Action.RIGHT_CLICK_BLOCK -> {
                 if (!ProtectionLib.canBuild(player, baseEntity.location)) setUseItemInHand(Event.Result.DENY)
                 val validBlockItem = item != null && !NexoFurniture.isFurniture(item) && item!!.type.let { it.isBlock && it != Material.LILY_PAD && it != Material.FROGSPAWN }
@@ -199,18 +202,19 @@ class FurniturePacketListener : SuspendingListener() {
                     }
                 }
             }
-            else -> {}
+             else -> {}
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    suspend fun EntityMountEvent.onSitSeat() {
+    fun EntityMountEvent.onSitSeat() {
         val player = entity as? Player ?: return
         val baseEntity = mount.persistentDataContainer.get(FurnitureSeat.SEAT_KEY, DataType.UUID)?.let(Bukkit::getEntity) as? ItemDisplay ?: return
         val mechanic = NexoFurniture.furnitureMechanic(baseEntity) ?: return
 
-        delay(4)
-        FurnitureFactory.instance()?.packetManager()?.removeBarrierHitboxPacket(baseEntity, mechanic, player)
+        SchedulerUtils.runTaskLater(4L) {
+            FurnitureFactory.instance()?.packetManager()?.removeBarrierHitboxPacket(baseEntity, mechanic, player)
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
@@ -225,40 +229,5 @@ class FurniturePacketListener : SuspendingListener() {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     fun BlockPlaceEvent.onPlaceInBarrier() {
         if (IFurniturePacketManager.blockIsHitbox(blockPlaced)) isCancelled = true
-    }
-
-    init {
-        registerDispatcher<PlayerTrackEntityEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<PlayerUntrackEntityEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<EntityAddToWorldEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<EntityRemoveFromWorldEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<EntityTeleportEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<EntityMountEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<EntityDismountEvent> {
-            SchedulerUtils.entityDispatcher(it.entity)
-        }
-        registerDispatcher<PlayerUseUnknownEntityEvent> {
-            SchedulerUtils.entityDispatcher(it.player)
-        }
-        registerDispatcher<PlayerInteractEvent> {
-            SchedulerUtils.entityDispatcher(it.player)
-        }
-        registerDispatcher<BlockPlaceEvent> {
-            SchedulerUtils.entityDispatcher(it.player)
-        }
-        registerDispatcher<WorldUnloadEvent>(SchedulerUtils.minecraftDispatcher)
-        registerDispatcher<NexoItemsLoadedEvent>(SchedulerUtils.minecraftDispatcher)
     }
 }

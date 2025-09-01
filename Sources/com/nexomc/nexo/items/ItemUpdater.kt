@@ -13,7 +13,6 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.asColorable
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.serialize
-import com.nexomc.nexo.utils.ticks
 import io.papermc.paper.datacomponent.DataComponentTypes
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -45,7 +44,7 @@ import org.bukkit.persistence.PersistentDataType
 class ItemUpdater : Listener {
 
     init {
-        SchedulerUtils.launchDelayed(2.ticks) {
+        SchedulerUtils.syncDelayedTask(2) {
             if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldEntities(::updateEntityInventories)
             if (Settings.UPDATE_TILE_ENTITY_CONTENTS.toBool()) SchedulerUtils.runAtWorldTileStates({ it.type in TILE_ENTITIES }) { tileEntity ->
                 (tileEntity as? InventoryHolder)?.inventory?.contents?.forEachIndexed { index, item ->
@@ -57,9 +56,7 @@ class ItemUpdater : Listener {
 
     @EventHandler
     fun EntityAddToWorldEvent.onEntityLoad() {
-        if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.launchDelayed(entity, 2.ticks) {
-            updateEntityInventories(entity)
-        }
+        if (Settings.UPDATE_ENTITY_CONTENTS.toBool()) SchedulerUtils.foliaScheduler.runAtEntityLater(entity, Runnable { updateEntityInventories(entity) }, 2L)
     }
 
     @EventHandler
@@ -107,7 +104,7 @@ class ItemUpdater : Listener {
 
         val inventory = player.inventory
         if (inventory.firstEmpty() == -1) setItem(item.add(usingConvertsTo.amount))
-        else SchedulerUtils.launch(player) {
+        else SchedulerUtils.foliaScheduler.runAtEntity(player) {
             for (i in 0..inventory.size) {
                 val oldItem = inventory.getItem(i) ?: continue
                 val newItem = updateItem(oldItem).takeIf(item::isSimilar) ?: continue
