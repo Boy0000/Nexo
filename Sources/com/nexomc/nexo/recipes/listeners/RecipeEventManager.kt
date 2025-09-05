@@ -7,6 +7,7 @@ import com.nexomc.nexo.recipes.CustomRecipe
 import com.nexomc.nexo.utils.InventoryUtils.playerFromView
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.safeCast
+import io.papermc.paper.command.brigadier.argument.ArgumentTypes.player
 import io.papermc.paper.event.player.PlayerStonecutterRecipeSelectEvent
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap
 import it.unimi.dsi.fastutil.objects.ObjectArrayList
@@ -14,10 +15,14 @@ import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet
 import org.bukkit.Bukkit
 import org.bukkit.Keyed
 import org.bukkit.NamespacedKey
+import org.bukkit.block.Furnace
 import org.bukkit.command.CommandSender
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.FurnaceBurnEvent
+import org.bukkit.event.inventory.FurnaceSmeltEvent
+import org.bukkit.event.inventory.FurnaceStartSmeltEvent
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.PrepareItemCraftEvent
 import org.bukkit.event.player.PlayerJoinEvent
@@ -32,6 +37,10 @@ class RecipeEventManager(
     fun registerEvents() {
         Bukkit.getPluginManager().registerEvents(instance!!, NexoPlugin.instance())
         Bukkit.getPluginManager().registerEvents(SmithingRecipeEvents(), NexoPlugin.instance())
+    }
+
+    fun d() {
+        val words = listOf("Four", "Five", "Nine")
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -49,15 +58,31 @@ class RecipeEventManager(
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     fun PrepareItemCraftEvent.onCrafted() {
-        val isVanillaRecipe = recipe.safeCast<Keyed>()?.key?.namespace == "minecraft"
-        val (customRecipe, player) = CustomRecipe.fromRecipe(recipe) to (playerFromView(this) ?: return)
+        val recipeKey = recipe.safeCast<Keyed>()?.key ?: return
+        val isValidDyeRecipe = recipeKey.asString() == "minecraft:armor_dye"
+        val isVanillaRecipe = recipeKey.namespace == "minecraft" && !isValidDyeRecipe
+        val customRecipe = CustomRecipe.fromRecipe(recipe)
+        val player = playerFromView(this) ?: return
         if (!hasPermission(player, customRecipe)) inventory.result = null
         if (inventory.result == null || recipe == null || inventory.matrix.none(NexoItems::exists)) return
 
         if (isVanillaRecipe && inventory.matrix.any { !ItemUtils.isAllowedInVanillaRecipes(it) }) inventory.result = null
-        if (customRecipe == null || customRecipe.isValidDyeRecipe || whitelistedCraftRecipes.none(customRecipe::equals)) return
+        if (customRecipe == null || isValidDyeRecipe || whitelistedCraftRecipes.none(customRecipe::equals)) return
 
         inventory.result = customRecipe.result
+    }
+
+    @EventHandler
+    fun FurnaceBurnEvent.onBurn() {
+        val furnace = block.state.safeCast<Furnace>() ?: return
+        val recipe = furnace.recipesUsed.firstNotNullOfOrNull { CustomRecipe.fromRecipe(it.key) } ?: return
+        val player = furnace.inventory.viewers.firstOrNull()
+
+        when {
+            recipe.safeCast<Keyed>()?.key?.namespace == "minecraft" -> return
+            player == null && recipe in permissionsPerRecipe && Settings.RECIPES_REQUIRE_PLAYER_IF_PERMISSION.toBool() -> isCancelled = true
+            player != null && !hasPermission(player, recipe) -> isCancelled = true
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

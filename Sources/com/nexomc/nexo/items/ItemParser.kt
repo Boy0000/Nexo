@@ -143,10 +143,9 @@ class ItemParser(private val section: ConfigurationSection) {
             item.addAttributeModifiers(attribute, AttributeModifier.deserialize(attributes))
         }
 
-        section.getConfigurationSection("Enchantments")?.getKeys(false)?.forEach { enchant: String ->
-            item.addEnchant(
-                EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)) ?: return@forEach,
-                section.getConfigurationSection("Enchantments")!!.getInt(enchant)
+        section.getConfigurationSection("Enchantments")?.getKeys(false)?.forEach { enchant ->
+            val enchantment = EnchantmentWrapper.getByKey(NamespacedKey.fromString(enchant)) ?: return@forEach
+            item.addEnchant(enchantment,section.getInt("Enchantments.$enchant")
             )
         }
     }

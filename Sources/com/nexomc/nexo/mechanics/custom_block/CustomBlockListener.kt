@@ -13,6 +13,7 @@ import com.nexomc.nexo.utils.BlockHelpers
 import com.nexomc.nexo.utils.EventUtils.call
 import com.nexomc.nexo.utils.ItemUtils
 import com.nexomc.nexo.utils.VersionUtil
+import com.nexomc.nexo.utils.associateFastNotNull
 import com.nexomc.nexo.utils.associateWithNotNull
 import com.nexomc.nexo.utils.wrappers.AttributeWrapper
 import com.nexomc.nexo.utils.wrappers.PotionEffectTypeWrapper
@@ -149,11 +150,9 @@ class CustomBlockListener : Listener {
 
     @EventHandler
     fun BlockExplodeEvent.onBlockExplosion() {
-        val customBlocks = blockList().mapNotNull { block ->
-            NexoBlocks.customBlockMechanic(block)?.let { m -> block to m }
-        }.toMap()
+        val customBlocks = blockList().associateWithNotNull(NexoBlocks::customBlockMechanic)
 
-        val windCharged = explosionResult == ExplosionResult.TRIGGER_BLOCK
+        val windCharged = VersionUtil.atleast("1.21.1") && explosionResult == ExplosionResult.TRIGGER_BLOCK
 
         customBlocks.forEach { (block, mechanic) ->
             if (!mechanic.isBlastResistant && !windCharged) block.type = Material.AIR
@@ -192,8 +191,8 @@ class CustomBlockListener : Listener {
         val itemId = NexoItems.idFromItem(item)
 
         for (i in 0..8) {
-            if (player.inventory.getItem(i) == null) continue
-            if (NexoItems.idFromItem(player.inventory.getItem(i)) != itemId) continue
+            val invItem = player.inventory.getItem(i) ?: continue
+            if (NexoItems.idFromItem(invItem) != itemId) continue
 
             player.inventory.heldItemSlot = i
             isCancelled = true

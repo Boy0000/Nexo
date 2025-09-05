@@ -13,19 +13,29 @@ import com.nexomc.nexo.utils.getEnum
 import com.nexomc.nexo.utils.getEnumList
 import com.nexomc.nexo.utils.getFloat
 import com.nexomc.nexo.utils.getKey
+import com.nexomc.nexo.utils.getKeyList
 import com.nexomc.nexo.utils.getKeyListOrNull
 import com.nexomc.nexo.utils.getNamespacedKey
 import com.nexomc.nexo.utils.getNamespacedKeyList
 import com.nexomc.nexo.utils.logs.Logs
 import com.nexomc.nexo.utils.sectionList
+import com.nexomc.nexo.utils.sectionListOrSingle
+import io.papermc.paper.datacomponent.item.BlocksAttacks
 import io.papermc.paper.datacomponent.item.TooltipDisplay
+import io.papermc.paper.datacomponent.item.Weapon
+import io.papermc.paper.datacomponent.item.blocksattacks.DamageReduction
+import io.papermc.paper.datacomponent.item.blocksattacks.ItemDamageFunction
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
+import io.papermc.paper.registry.TypedKey
+import io.papermc.paper.registry.set.RegistrySet
+import io.papermc.paper.registry.tag.TagKey
 import net.Indyuce.mmoitems.MMOItems
 import net.kyori.adventure.key.Key
 import org.apache.commons.lang3.EnumUtils
 import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.Registry
 import org.bukkit.Tag
 import org.bukkit.configuration.ConfigurationSection
@@ -129,6 +139,8 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
                 TooltipDisplay.tooltipDisplay().addHiddenComponents(*displayList.mapNotNull(registry::get).toTypedArray()).build()
             }
         }.also(itemBuilder::setTooltipDisplay)
+        parseWeaponComponent()
+        parseBlocksAttacksComponent()
     }
 
     private fun parseUseRemainderComponent(item: ItemBuilder, remainderSection: ConfigurationSection) {
@@ -169,7 +181,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         if ("dispensable" in equippableSection) equippableComponent.isDispensable = equippableSection.getBoolean("dispensable", true)
         if ("swappable" in equippableSection) equippableComponent.isSwappable = equippableSection.getBoolean("swappable", true)
 
-        equippableSection.getNamespacedKey("model")?.apply(equippableComponent::setModel)
+        equippableSection.getNamespacedKey("asset_id")?.apply(equippableComponent::setModel)
         equippableSection.getNamespacedKey("camera_overlay")?.apply(equippableComponent::setCameraOverlay)
         equippableSection.getKey("equip_sound")?.let(Registry.SOUNDS::get)?.apply(equippableComponent::setEquipSound)
 
@@ -178,7 +190,7 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
 
     private fun parseToolComponent() {
         val toolSection = componentSection?.getConfigurationSection("tool") ?: return
-        val toolComponent = ItemStack(Material.PAPER).itemMeta.tool
+        val toolComponent = ItemStack(itemBuilder.type).itemMeta.tool
         toolComponent.damagePerBlock = toolSection.getInt("damage_per_block", 1).coerceAtLeast(0)
         toolComponent.defaultMiningSpeed = toolSection.getDouble("default_mining_speed", 1.0).toFloat().coerceAtLeast(0f)
 
@@ -201,5 +213,50 @@ class ComponentParser(section: ConfigurationSection, private val itemBuilder: It
         }
 
         itemBuilder.setToolComponent(toolComponent)
+    }
+
+    private fun parseWeaponComponent() {
+        val weaponSection = componentSection?.getConfigurationSection("weapon") ?: return
+        val weapon = Weapon.weapon().itemDamagePerAttack(weaponSection.getInt("damage_per_attack", 1))
+            .disableBlockingForSeconds(weaponSection.getFloat("disable_blocking", 0f).coerceAtLeast(0f))
+            .build()
+
+        itemBuilder.setWeaponComponent(weapon)
+    }
+
+    private fun parseBlocksAttacksComponent() {
+        val blocksSection = componentSection?.getConfigurationSection("blocks_attacks") ?: return
+        val blocksAttacks = BlocksAttacks.blocksAttacks()
+            .blockDelaySeconds(blocksSection.getFloat("block_delay", 0f).coerceAtLeast(0f))
+            .disableCooldownScale(blocksSection.getFloat("disable_cooldown_scale", 1f).coerceAtLeast(0f))
+            .blockSound(blocksSection.getKey("block_sound"))
+            .disableSound(blocksSection.getKey("disable_sound"))
+            .bypassedBy(blocksSection.getKey("bypassed_by")?.let { TagKey.create(RegistryKey.DAMAGE_TYPE, it) })
+
+        blocksSection.getConfigurationSection("item_damage")?.let { itemDamageSection ->
+            val itemDamage = ItemDamageFunction.itemDamageFunction()
+                .base(itemDamageSection.getFloat("base", 1f))
+                .factor(itemDamageSection.getFloat("factor", 1f))
+                .threshold(itemDamageSection.getFloat("threshold", 0f).coerceAtLeast(0f))
+            blocksAttacks.itemDamage(itemDamage.build())
+        }
+
+        blocksSection.sectionListOrSingle("damage_reductions").forEach { reductionSection ->
+            val damageReduction = DamageReduction.damageReduction()
+                .base(reductionSection.getFloat("base", 1f))
+                .factor(reductionSection.getFloat("factor", 1f))
+                .horizontalBlockingAngle(reductionSection.getFloat("horizontal_blocking", 90f).coerceAtLeast(0f))
+
+            val types = reductionSection.getKeyList("types").plus(reductionSection.getKey("type")).mapNotNull {
+                val key = it?.asString()?.let(NamespacedKey::fromString) ?: return@mapNotNull null
+                val tag = Bukkit.getTag(DamageTypeTags.REGISTRY_DAMAGE_TYPES, key, DamageType::class.java) ?: key
+                TypedKey.create(RegistryKey.DAMAGE_TYPE, tag.key())
+            }
+            damageReduction.type(RegistrySet.keySet(RegistryKey.DAMAGE_TYPE, types))
+
+            blocksAttacks.addDamageReduction(damageReduction.build())
+        }
+
+        itemBuilder.setBlocksAttacksComponent(blocksAttacks.build())
     }
 }

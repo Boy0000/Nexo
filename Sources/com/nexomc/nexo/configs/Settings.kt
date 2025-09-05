@@ -84,6 +84,9 @@ enum class Settings {
     DEFAULT_LANGUAGE_KEY("Misc.default_language_key", "en_us"),
     DEFAULT_ALLOW_IN_VANILLA_RECIPES("Misc.default_allow_in_vanilla_recipes", false),
 
+    //Recipes
+    RECIPES_REQUIRE_PLAYER_IF_PERMISSION("Recipes.require_player_if_permission", true),
+
 
     //Pack
     PACK_GENERATE_ZIP("Pack.generation.generate_zip", true),

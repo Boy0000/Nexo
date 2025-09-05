@@ -11,6 +11,7 @@ import org.joml.Quaternionf
 import org.joml.Vector2f
 import org.joml.Vector3f
 import java.io.File
+import kotlin.time.Duration
 
 val ConfigurationSection.rootId: String
     get() = rootSection.name
@@ -171,6 +172,10 @@ fun ConfigurationSection.remove(key: String): ConfigurationSection {
 
 fun ConfigurationSection.getFloat(key: String, default: Float) = getDouble(key, default.toDouble()).toFloat()
 
+fun ConfigurationSection.getDuration(key: String): Duration {
+    return getString(key)?.toDuration() ?: Duration.ZERO
+}
+
 fun ConfigurationSection.sectionList(key: String): List<ConfigurationSection> {
     return getMapList(key).map { map ->
         YamlConfiguration().apply {
@@ -181,6 +186,22 @@ fun ConfigurationSection.sectionList(key: String): List<ConfigurationSection> {
             }
         }
     }
+}
+
+fun ConfigurationSection.sectionListOrSingle(key: String): List<ConfigurationSection> {
+    val sections: MutableList<ConfigurationSection> = getMapList(key).mapTo(mutableListOf()) { map ->
+        YamlConfiguration().apply {
+            map.entries.forEach { (key, value) ->
+                if (key is String) {
+                    set(key, convertToConfigurationSection(value))
+                }
+            }
+        }
+    }
+
+    getConfigurationSection(key)?.let(sections::add)
+
+    return sections
 }
 
 private fun convertToConfigurationSection(value: Any?): Any? {

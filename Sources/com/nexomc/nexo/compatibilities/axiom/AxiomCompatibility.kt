@@ -85,6 +85,8 @@ class AxiomCompatibility : CompatibilityProvider<AxiomPaper>() {
             val translationKey = (nexoItem?.itemName ?: nexoItem?.displayName)?.let(AdventureUtils.MINI_MESSAGE::serialize) ?: mechanic.itemID
             val builder = AxiomCustomBlocksAPI.getAPI().createSingle(key, translationKey, mechanic.blockData)
 
+            nexoItem?.customDataMap?.put("Axiom", mapOf("CustomBlockPlacer" to key.asString()))
+
             builder.preventShapeUpdates(true)
             builder.pickBlockItemStack(nexoItem?.build())
             AxiomCustomBlocksAPI.getAPI().register(NexoPlugin.instance(), builder)
@@ -113,6 +115,8 @@ class AxiomCompatibility : CompatibilityProvider<AxiomPaper>() {
                         AxiomCustomBlocksAPI.getAPI().createFacing(key, translationKey, n,e,s,w,u,d)
                     }
                 }
+
+                nexoItem?.customDataMap?.put("Axiom", mapOf("CustomBlockPlacer" to key.asString()))
 
                 builder.preventShapeUpdates(true)
                 builder.pickBlockItemStack(nexoItem?.build())

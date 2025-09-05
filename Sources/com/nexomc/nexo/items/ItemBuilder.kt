@@ -16,7 +16,9 @@ import com.nexomc.nexo.utils.VersionUtil
 import com.nexomc.nexo.utils.printOnFailure
 import com.nexomc.nexo.utils.safeCast
 import io.papermc.paper.datacomponent.DataComponentTypes
+import io.papermc.paper.datacomponent.item.BlocksAttacks
 import io.papermc.paper.datacomponent.item.TooltipDisplay
+import io.papermc.paper.datacomponent.item.Weapon
 import io.papermc.paper.registry.RegistryAccess
 import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.key.Key
@@ -114,6 +116,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
     // 1.21.5+ properties
     var tooltipDisplay: TooltipDisplay? = null; private set
+    var weapon: Weapon? = null; private set
+    var blocksAttacks: BlocksAttacks? = null; private set
 
 
     constructor(material: Material) : this(ItemStack(material))
@@ -202,6 +206,8 @@ class ItemBuilder(private val itemStack: ItemStack) {
 
         if (VersionUtil.atleast("1.21.5")) {
             tooltipDisplay = itemStack.getData(DataComponentTypes.TOOLTIP_DISPLAY)
+            weapon = itemStack.getData(DataComponentTypes.WEAPON)
+            blocksAttacks = itemStack.getData(DataComponentTypes.BLOCKS_ATTACKS)
         }
     }
 
@@ -430,6 +436,24 @@ class ItemBuilder(private val itemStack: ItemStack) {
         return this
     }
 
+    fun hasWeaponComponent(): Boolean {
+        return VersionUtil.atleast("1.21.5") && weapon != null
+    }
+
+    fun setWeaponComponent(weaponComponent: Weapon?): ItemBuilder {
+        this.weapon = weaponComponent
+        return this
+    }
+
+    fun hasBlocksAttacksComponent(): Boolean {
+        return VersionUtil.atleast("1.21.5") && blocksAttacks != null
+    }
+
+    fun setBlocksAttacksComponent(blocksAttacksComponent: BlocksAttacks?): ItemBuilder {
+        this.blocksAttacks = blocksAttacksComponent
+        return this
+    }
+
     fun hasJukeboxPlayable(): Boolean {
         return VersionUtil.atleast("1.21") && jukeboxPlayable != null
     }
@@ -644,8 +668,10 @@ class ItemBuilder(private val itemStack: ItemStack) {
             handleItemFlagToolTips(itemStack, itemFlags)
         }
 
-        if (VersionUtil.atleast("1.21.5") && tooltipDisplay != null) {
-            itemStack.setData(DataComponentTypes.TOOLTIP_DISPLAY, tooltipDisplay!!)
+        if (VersionUtil.atleast("1.21.5")) {
+            if (tooltipDisplay != null) itemStack.setData(DataComponentTypes.TOOLTIP_DISPLAY, tooltipDisplay!!)
+            if (weapon != null) itemStack.setData(DataComponentTypes.WEAPON, weapon!!)
+            if (blocksAttacks != null) itemStack.setData(DataComponentTypes.BLOCKS_ATTACKS, blocksAttacks!!)
         }
 
         if (VersionUtil.atleast("1.20.5") && NexoFurniture.isFurniture(itemStack)) itemStack.editMeta { meta ->

@@ -31,6 +31,7 @@ object NexoConverter {
             section.getConfigurationSection("Components.durability")?.let { durability ->
                 durability.parent!!.set(durability.name, durability.getInt("value"))
             }
+            section.rename("Components.equippable.model", "Components.equippable.asset_id")
 
             runCatching {
                 val furnitureSection = section.getConfigurationSection("Mechanics.furniture") ?: return@forEach

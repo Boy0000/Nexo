@@ -198,7 +198,8 @@ object OraxenConverter {
                 }
                 itemNode.node("injectID").renameNode("injectId")
                 itemNode.node("trim_pattern")?.let { it.set(it.string?.replace("oraxen", "nexo")) }
-                itemNode.node("Components", "equippable", "model")?.let { it.set(it.string?.replace("oraxen", "nexo")) }
+                itemNode.node("Components", "equippable", "model")?.also { it.set(it.string?.replace("oraxen", "nexo")) }
+                    ?.renameNode("asset_id")
                 itemNode.node("AttributeModifiers").childrenList().forEach { attributeNode ->
                     attributeNode.removeChild("name")
                     attributeNode.removeChild("key")
