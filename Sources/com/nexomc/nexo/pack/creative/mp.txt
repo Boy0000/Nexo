@@ -1,8 +1,0 @@
-mun: {{USER_NAME}}
-mu: {{USER}}
-mui: {{USER_IDENTIFIER}}
-mt: {{TIMESTAMP}}
-mr: {{RESOURCE}}
-mrv: {{RESOURCE_VERSION}}
-mn: {{NONCE}}
-mc: {{MCMODELS}}
